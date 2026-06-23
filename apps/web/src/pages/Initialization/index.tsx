@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { EyeIcon, EyeOffIcon, LogInIcon } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,10 +16,13 @@ export default function Initialization() {
   const [displayName, setDisplayName] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
 
   const handleInit = async () => {
-    setError("")
+    if (!email || !password || !displayName) {
+      toast.error("请填写所有必填字段")
+      return
+    }
+
     setLoading(true)
     try {
       const res = await apiPost<{ code: number; data: null; message: string }>("/init", {
@@ -27,10 +31,13 @@ export default function Initialization() {
         displayName,
       })
       if (res.code === 0) {
+        toast.success("初始化成功")
         navigate("/login")
+      } else {
+        toast.error(res.message)
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "初始化失败")
+      toast.error(e instanceof Error ? e.message : "初始化失败")
     } finally {
       setLoading(false)
     }
@@ -96,9 +103,6 @@ export default function Initialization() {
                 </button>
               </div>
             </div>
-            {error && (
-              <p className="text-sm text-red-500">{error}</p>
-            )}
             <Button type="submit" className="mt-2" disabled={loading}>
               <LogInIcon data-icon="inline-start" />
               {loading ? "初始化中..." : "初 始 化"}

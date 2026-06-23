@@ -28,7 +28,7 @@ function App() {
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <Toaster />
+      <Toaster position="top-center" />
     </>
   )
 }
