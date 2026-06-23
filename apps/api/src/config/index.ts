@@ -1,4 +1,11 @@
-import { resolve } from 'node:path';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import dotenv from 'dotenv';
+
+// Load .env from api app root
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: resolve(__dirname, '../../.env') });
 
 export const config = {
   port: parseInt(process.env.PORT ?? '3001', 10),
@@ -8,4 +15,13 @@ export const config = {
   isDev: (process.env.NODE_ENV ?? 'development') === 'development',
   logLevel: process.env.LOG_LEVEL ?? 'info',
   apiPrefix: '/api/v1',
+  db: {
+    type: process.env.DB_TYPE ?? 'mysql',
+    host: process.env.DB_HOST ?? 'localhost',
+    port: parseInt(process.env.DB_PORT ?? '3306', 10),
+    user: process.env.DB_USER ?? 'root',
+    password: process.env.DB_PASSWORD ?? '',
+    name: process.env.DB_NAME ?? 'dextea_admin',
+    url: process.env.DATABASE_URL ?? '',
+  },
 } as const;

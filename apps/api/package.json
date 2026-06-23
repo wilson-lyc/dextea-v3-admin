@@ -7,17 +7,26 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:drop": "drizzle-kit drop",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "fastify": "^5.3.2",
+    "@dextea/shared-types": "workspace:*",
     "@fastify/cors": "^11.0.1",
-    "@dextea/shared-types": "workspace:*"
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^5.3.2",
+    "mysql2": "^3.22.5"
   },
   "devDependencies": {
-    "typescript": "~5.8.3",
-    "tsx": "^4.19.4",
     "@types/node": "^22.15.3",
-    "pino-pretty": "^13.1.0"
+    "drizzle-kit": "^0.31.10",
+    "pino-pretty": "^13.1.0",
+    "tsx": "^4.19.4",
+    "typescript": "~5.8.3"
   }
 }
