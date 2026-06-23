@@ -91,4 +91,34 @@ export async function authRoutes(app: FastifyInstance) {
       });
     }
   });
+
+  // Logout — invalidate token
+  app.post('/auth/logout', async (request, reply) => {
+    const authHeader = request.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return reply.status(401).send({
+        code: 1,
+        data: null,
+        message: '未提供有效的认证令牌',
+      });
+    }
+
+    try {
+      const token = authHeader.slice(7);
+      await app.redis.del(`${TOKEN_PREFIX}${token}`);
+
+      return {
+        code: 0,
+        data: null,
+        message: '已退出登录',
+      };
+    } catch (error) {
+      request.log.error(error);
+      return reply.status(500).send({
+        code: 1,
+        data: null,
+        message: '退出登录失败',
+      });
+    }
+  });
 }

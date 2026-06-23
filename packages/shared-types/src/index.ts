@@ -14,6 +14,30 @@ export interface PaginatedData<T> {
 
 export type PaginatedResponse<T> = ApiResponse<PaginatedData<T>>;
 
+// ====== 用户状态 ======
+export type UserStatus = 0 | 1;
+
+// ====== 用户 ======
+export interface User {
+  id: number;
+  email: string;
+  displayName: string;
+  status: UserStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateUserInput {
+  email: string;
+  displayName: string;
+}
+
+export interface UpdateUserInput {
+  email: string;
+  displayName: string;
+  status: UserStatus;
+}
+
 // ====== 店铺 ======
 export interface Shop {
   id: string;

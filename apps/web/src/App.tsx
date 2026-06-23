@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom"
 import AppLayout from "@/components/layout/AppLayout"
 import Login from "@/pages/Login"
 import Initialization from "@/pages/Initialization"
+import EmployeesPage from "@/pages/Employees"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/hooks/use-theme"
 
@@ -19,14 +20,10 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/initialization" element={<Initialization />} />
-        <Route
-          path="/"
-          element={
-            <AppLayout>
-              <Home />
-            </AppLayout>
-          }
-        />
+        <Route path="/" element={<AppLayout />}>
+          <Route index element={<Home />} />
+          <Route path="employees" element={<EmployeesPage />} />
+        </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Toaster position="top-center" />

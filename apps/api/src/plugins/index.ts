@@ -8,6 +8,7 @@ export async function registerPlugins(app: FastifyInstance) {
   await app.register(cors, {
     origin: config.corsOrigin,
     credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
   });
 
   await app.register(redis, {

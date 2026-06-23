@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
 import {
   BookOpenIcon,
   PackageIcon,
@@ -15,16 +16,18 @@ import {
 import { cn } from "@/lib/utils"
 
 const navItems = [
-  { label: "员工管理", icon: UsersIcon },
-  { label: "门店管理", icon: StoreIcon },
-  { label: "商品管理", icon: PackageIcon },
-  { label: "菜单管理", icon: BookOpenIcon },
-  { label: "顾客管理", icon: UserCircleIcon },
-  { label: "订单管理", icon: ShoppingCartIcon },
+  { label: "员工管理", icon: UsersIcon, path: "/employees" },
+  { label: "门店管理", icon: StoreIcon, path: "/shops" },
+  { label: "商品管理", icon: PackageIcon, path: "/products" },
+  { label: "菜单管理", icon: BookOpenIcon, path: "/menus" },
+  { label: "顾客管理", icon: UserCircleIcon, path: "/customers" },
+  { label: "订单管理", icon: ShoppingCartIcon, path: "/orders" },
 ]
 
 export default function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
 
   return (
     <aside
@@ -36,22 +39,27 @@ export default function AppSidebar() {
       {/* Navigation */}
       <nav className="no-scrollbar flex min-h-0 flex-1 flex-col gap-0 overflow-auto p-2 pt-[10px]">
         <ul className="flex w-full min-w-0 flex-col gap-0">
-          {navItems.map((item) => (
-            <li key={item.label} className="relative">
-              <button
-                title={collapsed ? item.label : undefined}
-                className={cn(
-                  "flex w-full items-center gap-2 overflow-hidden rounded-md text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2",
-                  collapsed
-                    ? "justify-center p-2 [&>svg]:size-5"
-                    : "h-8 p-2 [&>svg]:size-4"
-                )}
-              >
-                <item.icon className="shrink-0" />
-                {!collapsed && <span className="truncate">{item.label}</span>}
-              </button>
-            </li>
-          ))}
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path
+            return (
+              <li key={item.label} className="relative">
+                <button
+                  title={collapsed ? item.label : undefined}
+                  onClick={() => navigate(item.path)}
+                  className={cn(
+                    "flex w-full items-center gap-2 overflow-hidden rounded-md text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2",
+                    collapsed
+                      ? "justify-center p-2 [&>svg]:size-5"
+                      : "h-8 p-2 [&>svg]:size-4",
+                    isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
+                  )}
+                >
+                  <item.icon className="shrink-0" />
+                  {!collapsed && <span className="truncate">{item.label}</span>}
+                </button>
+              </li>
+            )
+          })}
         </ul>
       </nav>
 

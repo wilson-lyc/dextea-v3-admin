@@ -1,4 +1,6 @@
 import { ChevronDownIcon, LogOutIcon, SettingsIcon } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -11,7 +13,37 @@ import {
 } from "@/components/ui/dropdown-menu"
 import ThemeToggle from "./ThemeToggle"
 
+const API_BASE = 'http://localhost:3001/api/v1'
+
 export default function Header() {
+  const navigate = useNavigate()
+  const user = (() => {
+    try {
+      const raw = sessionStorage.getItem("user")
+      return raw ? (JSON.parse(raw) as { displayName: string }) : null
+    } catch {
+      return null
+    }
+  })()
+
+  const handleLogout = async () => {
+    const token = sessionStorage.getItem("token")
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+    } catch {
+      // 即使网络请求失败也执行前端清理
+    }
+    sessionStorage.clear()
+    navigate("/login", { replace: true })
+    toast.success("已退出登录")
+  }
+
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b px-6">
       <h1 className="text-lg font-semibold tracking-tight">dextea admin</h1>
@@ -20,7 +52,7 @@ export default function Header() {
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger render={<Button variant="ghost" />}>
-            admin
+            {user?.displayName ?? "admin"}
             <ChevronDownIcon data-icon="inline-end" />
           </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -32,7 +64,7 @@ export default function Header() {
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem variant="destructive">
+            <DropdownMenuItem variant="destructive" onMouseDown={handleLogout}>
               <LogOutIcon />
               退出
             </DropdownMenuItem>
