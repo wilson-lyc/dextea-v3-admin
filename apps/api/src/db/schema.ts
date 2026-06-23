@@ -6,6 +6,7 @@ import {
   timestamp,
   bigint,
   text,
+  double,
   primaryKey,
 } from 'drizzle-orm/mysql-core';
 
@@ -85,6 +86,25 @@ export const configTable = mysqlTable('config', {
   key: varchar({ length: 255 }).notNull().unique(),
   value: text().notNull().default(''),
   note: varchar({ length: 255 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
+});
+
+// ──────────────────────────────────────────────
+// Stores (门店)
+// ──────────────────────────────────────────────
+export const storesTable = mysqlTable('stores', {
+  id: serial().primaryKey(),
+  name: varchar({ length: 255 }).notNull(),
+  province: varchar({ length: 100 }).notNull().default(''),
+  city: varchar({ length: 100 }).notNull().default(''),
+  district: varchar({ length: 100 }).notNull().default(''),
+  address: varchar({ length: 500 }).notNull().default(''),
+  status: tinyint().notNull().default(2), // 0休息中 1营业中 2筹备中 3门店已注销
+  businessHours: varchar('business_hours', { length: 255 }).notNull().default(''),
+  phone: varchar({ length: 50 }).notNull().default(''),
+  longitude: double().notNull().default(0),
+  latitude: double().notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
 });

@@ -38,17 +38,50 @@ export interface UpdateUserInput {
   status: UserStatus;
 }
 
-// ====== 店铺 ======
-export interface Shop {
-  id: string;
+// ====== 门店状态 ======
+export type StoreStatus = 0 | 1 | 2 | 3; // 0休息中 1营业中 2筹备中 3门店已注销
+
+// ====== 门店 ======
+export interface Store {
+  id: number;
   name: string;
+  province: string;
+  city: string;
+  district: string;
   address: string;
-  status: ShopStatus;
+  status: StoreStatus;
+  businessHours: string;
+  phone: string;
+  longitude: number;
+  latitude: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export type ShopStatus = 'active' | 'inactive' | 'closed';
+export interface CreateStoreInput {
+  name: string;
+  province: string;
+  city: string;
+  district: string;
+  address: string;
+  businessHours: string;
+  phone: string;
+  longitude?: number;
+  latitude?: number;
+}
+
+export interface UpdateStoreInput {
+  name: string;
+  province: string;
+  city: string;
+  district: string;
+  address: string;
+  status: StoreStatus;
+  businessHours: string;
+  phone: string;
+  longitude?: number;
+  latitude?: number;
+}
 
 // ====== 商品 ======
 export interface Product {

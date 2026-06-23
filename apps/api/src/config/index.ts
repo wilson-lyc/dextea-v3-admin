@@ -37,4 +37,7 @@ export const config = {
     pass: process.env.MAIL_PASS ?? '',
     from: process.env.MAIL_FROM ?? '',
   },
+  amapKey: process.env.AMAP_KEY ?? '',
+  amapJsKey: process.env.AMAP_JS_KEY ?? '',
+  amapJsSecurityCode: process.env.AMAP_JS_SECURITY_CODE ?? '',
 } as const;

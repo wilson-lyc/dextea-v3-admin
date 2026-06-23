@@ -3,12 +3,14 @@ import AppLayout from "@/components/layout/AppLayout"
 import Login from "@/pages/Login"
 import Initialization from "@/pages/Initialization"
 import EmployeesPage from "@/pages/Employees"
+import StoresPage from "@/pages/Stores"
+import StoreDetailPage from "@/pages/Stores/detail"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/hooks/use-theme"
 
 function Home() {
   return (
-    <div className="flex h-full items-center justify-center text-muted-foreground">
+    <div className="flex h-full items-center justify-center p-6 text-muted-foreground">
       Welcome to dextea admin
     </div>
   )
@@ -23,6 +25,8 @@ function App() {
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Home />} />
           <Route path="employees" element={<EmployeesPage />} />
+          <Route path="stores" element={<StoresPage />} />
+          <Route path="stores/:id" element={<StoreDetailPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
