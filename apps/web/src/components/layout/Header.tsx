@@ -9,17 +9,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import ThemeToggle from "./ThemeToggle"
 
 export default function Header() {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b px-6">
       <h1 className="text-lg font-semibold tracking-tight">dextea admin</h1>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="ghost" />}>
-          admin
-          <ChevronDownIcon data-icon="inline-end" />
-        </DropdownMenuTrigger>
+      <div className="flex items-center gap-1">
+        <ThemeToggle />
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button variant="ghost" />}>
+            admin
+            <ChevronDownIcon data-icon="inline-end" />
+          </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
             <DropdownMenuItem>
@@ -35,7 +38,8 @@ export default function Header() {
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
-      </DropdownMenu>
+        </DropdownMenu>
+      </div>
     </header>
   )
 }
