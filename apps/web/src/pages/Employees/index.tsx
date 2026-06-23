@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { Loader2Icon, PlusIcon, PencilIcon, BanIcon, CheckCircleIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { User, UserStatus, ApiResponse, PaginatedData } from "@dextea/shared-types"
+import type { User, UserStatus } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,14 +29,9 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-import { apiGet, apiPost, apiPut, apiPatch } from "@/lib/api"
+import { getUsers, createUser, updateUser, toggleUserStatus } from "@/services"
 
 type DialogMode = "create" | "edit"
-
-interface CreateResponse {
-  user: User
-  initialPassword: string
-}
 
 export default function EmployeesPage() {
   const [users, setUsers] = useState<User[]>([])
@@ -59,7 +54,7 @@ export default function EmployeesPage() {
   const fetchUsers = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await apiGet<ApiResponse<PaginatedData<User>>>("/users")
+      const res = await getUsers()
       setUsers(res.data.items)
       setTotal(res.data.total)
     } catch (err) {
@@ -103,10 +98,7 @@ export default function EmployeesPage() {
     setSubmitting(true)
     try {
       if (dialogMode === "create") {
-        const res = await apiPost<ApiResponse<CreateResponse>>("/users", {
-          email: formEmail,
-          displayName: formDisplayName,
-        })
+        const res = await createUser({ email: formEmail, displayName: formDisplayName })
         if (res.code === 0) {
           toast.success(res.message)
           setDialogOpen(false)
@@ -118,11 +110,7 @@ export default function EmployeesPage() {
           toast.error(res.message)
         }
       } else {
-        const res = await apiPut<ApiResponse<{ id: number }>>(`/users/${editUserId}`, {
-          email: formEmail,
-          displayName: formDisplayName,
-          status: formStatus,
-        })
+        const res = await updateUser(editUserId!, { email: formEmail, displayName: formDisplayName, status: formStatus })
         if (res.code === 0) {
           toast.success(res.message)
           setDialogOpen(false)
@@ -141,7 +129,7 @@ export default function EmployeesPage() {
   // Toggle user status
   const handleToggleStatus = async (user: User) => {
     try {
-      const res = await apiPatch<ApiResponse<{ status: UserStatus }>>(`/users/${user.id}/status`)
+      const res = await toggleUserStatus(user.id)
       if (res.code === 0) {
         toast.success(res.message)
         setUsers((prev) =>

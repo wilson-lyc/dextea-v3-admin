@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { apiPost } from "@/lib/api"
+import { initSystem } from "@/services"
 
 export default function Initialization() {
   const navigate = useNavigate()
@@ -25,11 +25,7 @@ export default function Initialization() {
 
     setLoading(true)
     try {
-      const res = await apiPost<{ code: number; data: null; message: string }>("/init", {
-        email,
-        password,
-        displayName,
-      })
+      const res = await initSystem({ email, password, displayName })
       if (res.code === 0) {
         toast.success("初始化成功")
         navigate("/login")

@@ -7,20 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { apiGet, apiPost } from "@/lib/api"
-
-interface LoginResponse {
-  code: number
-  data: {
-    token: string
-    user: {
-      id: number
-      email: string
-      displayName: string
-    }
-  }
-  message: string
-}
+import { getInitStatus, login } from "@/services"
 
 export default function Login() {
   const navigate = useNavigate()
@@ -33,7 +20,7 @@ export default function Login() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await apiGet<{ code: number; data: { initialized: boolean }; message: string }>("/init/status")
+        const res = await getInitStatus()
         if (!res.data.initialized) {
           navigate("/initialization", { replace: true })
         }
@@ -54,7 +41,7 @@ export default function Login() {
     setLoading(true)
 
     try {
-      const res = await apiPost<LoginResponse>("/auth/login", { account, password })
+      const res = await login({ account, password })
       if (res.code === 0) {
         toast.success("登录成功")
         sessionStorage.setItem("token", res.data.token)

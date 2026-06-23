@@ -11,9 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { logout } from "@/services"
 import ThemeToggle from "./ThemeToggle"
-
-const API_BASE = 'http://localhost:3001/api/v1'
 
 export default function Header() {
   const navigate = useNavigate()
@@ -27,15 +26,8 @@ export default function Header() {
   })()
 
   const handleLogout = async () => {
-    const token = sessionStorage.getItem("token")
     try {
-      await fetch(`${API_BASE}/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
+      await logout()
     } catch {
       // 即使网络请求失败也执行前端清理
     }
