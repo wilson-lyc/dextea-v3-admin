@@ -1,12 +1,26 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { EyeIcon, EyeOffIcon, LogInIcon } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { apiGet } from "@/lib/api"
+import { apiGet, apiPost } from "@/lib/api"
+
+interface LoginResponse {
+  code: number
+  data: {
+    token: string
+    user: {
+      id: number
+      email: string
+      displayName: string
+    }
+  }
+  message: string
+}
 
 export default function Login() {
   const navigate = useNavigate()
@@ -14,6 +28,7 @@ export default function Login() {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [checking, setChecking] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     (async () => {
@@ -30,8 +45,28 @@ export default function Login() {
     })()
   }, [navigate])
 
-  const handleLogin = () => {
-    // TODO: 实现登录逻辑，调用后端接口验证账号密码
+  const handleLogin = async () => {
+    if (!account || !password) {
+      toast.error("请输入账号和密码")
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const res = await apiPost<LoginResponse>("/auth/login", { account, password })
+      if (res.code === 0) {
+        toast.success("登录成功")
+        sessionStorage.setItem("token", res.data.token)
+        navigate("/", { replace: true })
+      } else {
+        toast.error(res.message)
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "登录失败，请稍后重试")
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (checking) {
@@ -88,9 +123,9 @@ export default function Login() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="mt-2" onClick={handleLogin}>
+            <Button type="submit" className="mt-2" onClick={handleLogin} disabled={loading}>
               <LogInIcon data-icon="inline-start" />
-              登 录
+              {loading ? "登录中..." : "登 录"}
             </Button>
           </form>
         </CardContent>
