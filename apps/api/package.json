@@ -1,0 +1,23 @@
+{
+  "name": "dextea-admin-api",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fastify": "^5.3.2",
+    "@fastify/cors": "^11.0.1",
+    "@dextea/shared-types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3",
+    "tsx": "^4.19.4",
+    "@types/node": "^22.15.3",
+    "pino-pretty": "^13.1.0"
+  }
+}

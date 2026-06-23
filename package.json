@@ -1,0 +1,11 @@
+{
+  "name": "dextea-admin",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r --parallel run dev",
+    "dev:api": "pnpm --filter dextea-admin-api dev",
+    "dev:web": "pnpm --filter dextea-admin-web dev",
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm -r run typecheck"
+  }
+}
