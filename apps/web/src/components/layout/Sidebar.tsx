@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils"
 
 const navItems = [
   { label: "员工管理", icon: UsersIcon, path: "/employees" },
-  { label: "门店管理", icon: StoreIcon, path: "/shops" },
+  { label: "门店管理", icon: StoreIcon, path: "/stores" },
   { label: "商品管理", icon: PackageIcon, path: "/products" },
   { label: "菜单管理", icon: BookOpenIcon, path: "/menus" },
   { label: "顾客管理", icon: UserCircleIcon, path: "/customers" },
