@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import redis from '@fastify/redis';
+import mailPlugin from './mail.js';
 import { config } from '../config/index.js';
 
 export async function registerPlugins(app: FastifyInstance) {
@@ -14,4 +15,6 @@ export async function registerPlugins(app: FastifyInstance) {
     port: config.redis.port,
     password: config.redis.password || undefined,
   });
+
+  await app.register(mailPlugin);
 }
