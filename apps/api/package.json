@@ -17,6 +17,7 @@
   "dependencies": {
     "@dextea/shared-types": "workspace:*",
     "@fastify/cors": "^11.0.1",
+    "argon2": "^0.44.0",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "fastify": "^5.3.2",

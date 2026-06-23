@@ -76,3 +76,15 @@ export const rolePermissionsTable = mysqlTable(
     primaryKey: primaryKey({ columns: [table.roleId, table.permissionId] }),
   }),
 );
+
+// ──────────────────────────────────────────────
+// Config (key-value 配置表)
+// ──────────────────────────────────────────────
+export const configTable = mysqlTable('config', {
+  id: serial().primaryKey(),
+  key: varchar({ length: 255 }).notNull().unique(),
+  value: text().notNull().default(''),
+  note: varchar({ length: 255 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
+});

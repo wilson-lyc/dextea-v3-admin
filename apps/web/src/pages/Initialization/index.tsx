@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { EyeIcon, EyeOffIcon, LogInIcon } from "lucide-react"
 
@@ -6,61 +6,69 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { apiGet } from "@/lib/api"
+import { apiPost } from "@/lib/api"
 
-export default function Login() {
+export default function Initialization() {
   const navigate = useNavigate()
-  const [account, setAccount] = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [displayName, setDisplayName] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [checking, setChecking] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await apiGet<{ code: number; data: { initialized: boolean }; message: string }>("/init/status")
-        if (!res.data.initialized) {
-          navigate("/initialization", { replace: true })
-        }
-      } catch {
-        // 如果请求失败（如后端未启动），停留在登录页
-      } finally {
-        setChecking(false)
+  const handleInit = async () => {
+    setError("")
+    setLoading(true)
+    try {
+      const res = await apiPost<{ code: number; data: null; message: string }>("/init", {
+        email,
+        password,
+        displayName,
+      })
+      if (res.code === 0) {
+        navigate("/login")
       }
-    })()
-  }, [navigate])
-
-  const handleLogin = () => {
-    // TODO: 实现登录逻辑，调用后端接口验证账号密码
-  }
-
-  if (checking) {
-    return null
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "初始化失败")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4">
       <Card size="sm" className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>登录</CardTitle>
-          <CardDescription>请输入您的账号和密码</CardDescription>
+          <CardTitle>系统初始化</CardTitle>
+          <CardDescription>请设置管理员账号信息</CardDescription>
         </CardHeader>
         <CardContent>
           <form
             onSubmit={(e) => {
               e.preventDefault()
-              handleLogin()
+              handleInit()
             }}
             className="flex flex-col gap-4"
           >
             <div className="flex flex-col gap-2">
-              <Label htmlFor="account">账号</Label>
+              <Label htmlFor="email">邮箱</Label>
               <Input
-                id="account"
+                id="email"
+                type="email"
+                placeholder="请输入邮箱"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="displayName">显示名称</Label>
+              <Input
+                id="displayName"
                 type="text"
-                placeholder="请输入账号"
-                value={account}
-                onChange={(e) => setAccount(e.target.value)}
+                placeholder="请输入显示名称"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -88,9 +96,12 @@ export default function Login() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="mt-2" onClick={handleLogin}>
+            {error && (
+              <p className="text-sm text-red-500">{error}</p>
+            )}
+            <Button type="submit" className="mt-2" disabled={loading}>
               <LogInIcon data-icon="inline-start" />
-              登 录
+              {loading ? "初始化中..." : "初 始 化"}
             </Button>
           </form>
         </CardContent>
