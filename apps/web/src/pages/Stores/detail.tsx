@@ -4,6 +4,7 @@ import { ArrowLeftIcon, Loader2Icon, PencilIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store, StoreStatus } from "@dextea/shared-types"
+import { STORE_STATUS_LABEL } from "@dextea/shared-types"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -21,17 +22,12 @@ import {
   CardAction,
   CardContent,
 } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import AmapMap from "@/components/amap-map"
 import { getStore } from "@/services"
-
-const STATUS_LABELS: Record<StoreStatus, string> = {
-  0: "休息中",
-  1: "营业中",
-  2: "筹备中",
-  3: "门店已注销",
-}
+import { EditStatusDialog } from "./components/EditStatusDialog"
+import { EditBasicInfoDialog } from "./components/EditBasicInfoDialog"
+import { EditLocationDialog } from "./components/EditLocationDialog"
 
 function formatDate(iso: string) {
   const d = new Date(iso)
@@ -142,7 +138,7 @@ export default function StoreDetailPage() {
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">当前状态</span>
                   <Badge className={STATUS_BADGE_CLASSES[store.status]}>
-                    {STATUS_LABELS[store.status]}
+                    {STORE_STATUS_LABEL[store.status]}
                   </Badge>
               </div>
             </CardContent>
@@ -161,23 +157,13 @@ export default function StoreDetailPage() {
             <CardContent>
               <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
                 <span className="text-sm text-muted-foreground">门店名称</span>
-                <span className="text-sm font-medium">{store.name}</span>
+                <span className="text-sm">{store.name}</span>
 
                 <span className="text-sm text-muted-foreground">联系电话</span>
                 <span className="text-sm">{store.phone || "-"}</span>
 
                 <span className="text-sm text-muted-foreground">营业时间</span>
                 <span className="text-sm">{store.businessHours || "-"}</span>
-              </div>
-
-              <Separator className="my-3" />
-
-              <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
-                <span className="text-sm text-muted-foreground">创建时间</span>
-                <span className="text-sm">{formatDate(store.createdAt)}</span>
-
-                <span className="text-sm text-muted-foreground">更新时间</span>
-                <span className="text-sm">{formatDate(store.updatedAt)}</span>
               </div>
             </CardContent>
           </Card>
@@ -210,6 +196,21 @@ export default function StoreDetailPage() {
                     暂无位置信息
                   </div>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>维护记录</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
+                <span className="text-sm text-muted-foreground">创建时间</span>
+                <span className="text-sm">{formatDate(store.createdAt)}</span>
+
+                <span className="text-sm text-muted-foreground">更新时间</span>
+                <span className="text-sm">{formatDate(store.updatedAt)}</span>
               </div>
             </CardContent>
           </Card>

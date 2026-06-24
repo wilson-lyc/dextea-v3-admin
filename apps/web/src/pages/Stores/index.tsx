@@ -4,32 +4,15 @@ import { Loader2Icon, PlusIcon, SearchIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store, StoreStatus } from "@dextea/shared-types"
-import type { Division } from "@/services"
+import { STORE_STATUS_LABEL } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxTrigger,
-} from "@/components/ui/combobox"
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
   TooltipProvider,
 } from "@/components/ui/tooltip"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
 import {
   Table,
   TableHeader,
@@ -38,8 +21,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-import { getStores, createStore } from "@/services"
-import { getProvinces, getChildren } from "@/services"
+import { getStores } from "@/services"
 import {
   Pagination,
   PaginationContent,
@@ -49,13 +31,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-
-const STATUS_LABELS: Record<StoreStatus, string> = {
-  0: "休息中",
-  1: "营业中",
-  2: "筹备中",
-  3: "门店已注销",
-}
+import { CreateStoreDialog } from "./components/CreateStoreDialog"
 
 const STATUS_CLASSES: Record<StoreStatus, string> = {
   0: "text-red-600 dark:text-red-400",
@@ -75,22 +51,6 @@ export default function StoresPage() {
   const pageSize = 20
 
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [formName, setFormName] = useState("")
-  const [formProvince, setFormProvince] = useState("")
-  const [formCity, setFormCity] = useState("")
-  const [formDistrict, setFormDistrict] = useState("")
-  const [formAddress, setFormAddress] = useState("")
-  const [formBusinessHours, setFormBusinessHours] = useState("")
-  const [formPhone, setFormPhone] = useState("")
-  const [submitting, setSubmitting] = useState(false)
-
-  const [provinces, setProvinces] = useState<Division[]>([])
-  const [cities, setCities] = useState<Division[]>([])
-  const [districts, setDistricts] = useState<Division[]>([])
-  const [selectedProvince, setSelectedProvince] = useState<Division | null>(null)
-  const [selectedCity, setSelectedCity] = useState<Division | null>(null)
-  const [selectedDistrict, setSelectedDistrict] = useState<Division | null>(null)
-  const [areasLoading, setAreasLoading] = useState(false)
 
   const fetchStores = useCallback(async (targetPage: number) => {
     setLoading(true)
@@ -114,115 +74,6 @@ export default function StoresPage() {
     fetchStores(1)
   }, [fetchStores])
 
-  useEffect(() => {
-    fetchStores()
-  }, [fetchStores])
-
-  // Fetch provinces when dialog opens
-  useEffect(() => {
-    if (!dialogOpen) {
-      setProvinces([])
-      setCities([])
-      setDistricts([])
-      setSelectedProvince(null)
-      setSelectedCity(null)
-      setSelectedDistrict(null)
-      return
-    }
-
-    setAreasLoading(true)
-    getProvinces().then((res) => {
-      if (res.code === 0) {
-        setProvinces(res.data)
-      }
-      setAreasLoading(false)
-    })
-  }, [dialogOpen])
-
-  // Fetch cities when province changes
-  useEffect(() => {
-    if (!selectedProvince) {
-      setCities([])
-      setSelectedCity(null)
-      setDistricts([])
-      setSelectedDistrict(null)
-      return
-    }
-
-    setFormProvince(selectedProvince.name)
-    getChildren(selectedProvince.code).then((res) => {
-      if (res.code === 0) {
-        setCities(res.data)
-      }
-    })
-  }, [selectedProvince])
-
-  // Fetch districts when city changes
-  useEffect(() => {
-    if (!selectedCity) {
-      setDistricts([])
-      setSelectedDistrict(null)
-      return
-    }
-
-    setFormCity(selectedCity.name)
-    getChildren(selectedCity.code).then((res) => {
-      if (res.code === 0) {
-        setDistricts(res.data)
-      }
-    })
-  }, [selectedCity])
-
-  // Sync district name when selected
-  useEffect(() => {
-    setFormDistrict(selectedDistrict?.name ?? "")
-  }, [selectedDistrict])
-
-  const openCreateDialog = () => {
-    setFormName("")
-    setFormProvince("")
-    setFormCity("")
-    setFormDistrict("")
-    setFormAddress("")
-    setFormBusinessHours("")
-    setFormPhone("")
-    setSelectedProvince(null)
-    setSelectedCity(null)
-    setSelectedDistrict(null)
-    setDialogOpen(true)
-  }
-
-  const handleSubmit = async () => {
-    if (!formName) {
-      toast.error("门店名称不能为空")
-      return
-    }
-
-    setSubmitting(true)
-    try {
-      const res = await createStore({
-        name: formName,
-        province: formProvince,
-        city: formCity,
-        district: formDistrict,
-        address: formAddress,
-        businessHours: formBusinessHours,
-        phone: formPhone,
-      })
-      if (res.code === 0) {
-        toast.success(res.message)
-        setDialogOpen(false)
-        await fetchStores(1)
-      } else {
-        toast.error(res.message)
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "操作失败")
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
   const handleSearch = () => {
     setSearchKeyword(keyword)
   }
@@ -236,7 +87,7 @@ export default function StoresPage() {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
-        <Button onClick={openCreateDialog}>
+        <Button onClick={() => setDialogOpen(true)}>
           <PlusIcon data-icon="inline-start" />
           创建门店
         </Button>
@@ -314,7 +165,7 @@ export default function StoresPage() {
                   <TableCell>{store.businessHours || "-"}</TableCell>
                   <TableCell>
                     <span className={STATUS_CLASSES[store.status]}>
-                      {STATUS_LABELS[store.status]}
+                      {STORE_STATUS_LABEL[store.status]}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
@@ -383,154 +234,11 @@ export default function StoresPage() {
         </Pagination>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>创建门店</DialogTitle>
-          </DialogHeader>
-
-          <div className="flex flex-col gap-4 py-2">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="store-name">
-                门店名称 <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="store-name"
-                placeholder="请输入门店名称"
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label>省市区 <span className="text-destructive">*</span></Label>
-            <div className="grid grid-cols-3 gap-3">
-              <Combobox
-                items={provinces}
-                value={selectedProvince}
-                onValueChange={setSelectedProvince}
-                itemToStringValue={(item: Division | null) => item?.name ?? ""}
-              >
-                <ComboboxTrigger
-                  render={
-                    <Button variant="outline" className="w-full justify-between font-normal" disabled={areasLoading} />
-                  }
-                >
-                  {selectedProvince ? selectedProvince.name : <span className="text-muted-foreground">选择省</span>}
-                </ComboboxTrigger>
-                <ComboboxContent>
-                  <ComboboxInput showTrigger={false} placeholder="搜索省..." />
-                  <ComboboxEmpty>未找到</ComboboxEmpty>
-                  <ComboboxList>
-                    {(item: Division) => (
-                      <ComboboxItem key={item.code} value={item}>
-                        {item.name}
-                      </ComboboxItem>
-                    )}
-                  </ComboboxList>
-                </ComboboxContent>
-              </Combobox>
-              <Combobox
-                items={cities}
-                value={selectedCity}
-                onValueChange={setSelectedCity}
-                itemToStringValue={(item: Division | null) => item?.name ?? ""}
-              >
-                <ComboboxTrigger
-                  render={
-                    <Button variant="outline" className="w-full justify-between font-normal" disabled={!selectedProvince} />
-                  }
-                >
-                  {selectedCity ? selectedCity.name : <span className="text-muted-foreground">选择市</span>}
-                </ComboboxTrigger>
-                <ComboboxContent>
-                  <ComboboxInput showTrigger={false} placeholder="搜索市..." />
-                  <ComboboxEmpty>未找到</ComboboxEmpty>
-                  <ComboboxList>
-                    {(item: Division) => (
-                      <ComboboxItem key={item.code} value={item}>
-                        {item.name}
-                      </ComboboxItem>
-                    )}
-                  </ComboboxList>
-                </ComboboxContent>
-              </Combobox>
-              <Combobox
-                items={districts}
-                value={selectedDistrict}
-                onValueChange={setSelectedDistrict}
-                itemToStringValue={(item: Division | null) => item?.name ?? ""}
-              >
-                <ComboboxTrigger
-                  render={
-                    <Button variant="outline" className="w-full justify-between font-normal" disabled={!selectedCity} />
-                  }
-                >
-                  {selectedDistrict ? selectedDistrict.name : <span className="text-muted-foreground">选择区</span>}
-                </ComboboxTrigger>
-                <ComboboxContent>
-                  <ComboboxInput showTrigger={false} placeholder="搜索区..." />
-                  <ComboboxEmpty>未找到</ComboboxEmpty>
-                  <ComboboxList>
-                    {(item: Division) => (
-                      <ComboboxItem key={item.code} value={item}>
-                        {item.name}
-                      </ComboboxItem>
-                    )}
-                  </ComboboxList>
-                </ComboboxContent>
-              </Combobox>
-            </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="store-address">
-                具体地址 <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="store-address"
-                placeholder="请输入具体地址"
-                value={formAddress}
-                onChange={(e) => setFormAddress(e.target.value)}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="store-phone">
-                  联系电话 <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="store-phone"
-                  placeholder="请输入联系电话"
-                  value={formPhone}
-                  onChange={(e) => setFormPhone(e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="store-hours">
-                  营业时间 <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="store-hours"
-                  placeholder="例如：09:00-22:00"
-                  value={formBusinessHours}
-                  onChange={(e) => setFormBusinessHours(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              取消
-            </Button>
-            <Button onClick={handleSubmit} disabled={submitting}>
-              {submitting ? "提交中..." : "确定"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateStoreDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onCreated={() => fetchStores(1)}
+      />
     </div>
   )
 }

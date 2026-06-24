@@ -3,6 +3,7 @@ import { Loader2Icon, PlusIcon, PencilIcon, BanIcon, CheckCircleIcon } from "luc
 import { toast } from "sonner"
 
 import type { User, UserStatus } from "@dextea/shared-types"
+import { USER_STATUS, USER_STATUS_LABEL } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -189,12 +190,12 @@ export default function EmployeesPage() {
                   <TableCell>
                     <span
                       className={
-                        user.status === 1
+                        user.status === USER_STATUS.ACTIVE
                           ? "text-green-600 dark:text-green-400"
                           : "text-muted-foreground"
                       }
                     >
-                      {user.status === 1 ? "激活" : "禁用"}
+                      {USER_STATUS_LABEL[user.status]}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
@@ -204,20 +205,20 @@ export default function EmployeesPage() {
                         编辑
                       </Button>
                       <Button
-                        variant={user.status === 1 ? "destructive" : "default"}
+                        variant={user.status === USER_STATUS.ACTIVE ? "destructive" : "default"}
                         size="sm"
                         onClick={() => handleToggleStatus(user)}
-                        className={user.status === 0 ? "bg-green-600 hover:bg-green-700" : ""}
+                        className={user.status === USER_STATUS.DISABLED ? "bg-green-600 hover:bg-green-700" : ""}
                       >
-                        {user.status === 1 ? (
+                        {user.status === USER_STATUS.ACTIVE ? (
                           <>
                             <BanIcon data-icon="inline-start" />
-                            禁用
+                            {USER_STATUS_LABEL[USER_STATUS.DISABLED]}
                           </>
                         ) : (
                           <>
                             <CheckCircleIcon data-icon="inline-start" />
-                            激活
+                            {USER_STATUS_LABEL[USER_STATUS.ACTIVE]}
                           </>
                         )}
                       </Button>
@@ -283,11 +284,11 @@ export default function EmployeesPage() {
                   onValueChange={(val: string) => setFormStatus(Number(val) as UserStatus)}
                 >
                   <SelectTrigger id="user-status" className="w-full">
-                     <SelectValue>{formStatus === 1 ? "激活" : "禁用"}</SelectValue>
+                     <SelectValue>{USER_STATUS_LABEL[formStatus]}</SelectValue>
                    </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="0">禁用</SelectItem>
-                    <SelectItem value="1">激活</SelectItem>
+                    <SelectItem value={String(USER_STATUS.DISABLED)}>{USER_STATUS_LABEL[USER_STATUS.DISABLED]}</SelectItem>
+                    <SelectItem value={String(USER_STATUS.ACTIVE)}>{USER_STATUS_LABEL[USER_STATUS.ACTIVE]}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
