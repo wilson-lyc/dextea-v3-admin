@@ -41,6 +41,7 @@ export type {
 export type {
   LoginRequest,
   LoginResponse,
+  AuthMeResponse,
 } from './types/index.js';
 
 export type {

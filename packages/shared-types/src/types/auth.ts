@@ -14,3 +14,11 @@ export interface LoginResponse {
     displayName: string;
   };
 }
+
+export interface AuthMeResponse {
+  user: {
+    id: number;
+    email: string;
+    displayName: string;
+  };
+}

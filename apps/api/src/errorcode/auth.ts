@@ -25,7 +25,7 @@ export const authErrors = {
   INVALID_TOKEN: {
     code: 1103,
     message: '未提供有效的认证令牌',
-    httpStatus: 401,
+    httpStatus: 403,
   } satisfies BizError,
 
   LOGIN_FAILED: {

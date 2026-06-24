@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { toast } from 'sonner'
 import { redirectToLogin, redirectToForbidden } from './navigation'
 
 export const API_BASE = 'http://localhost:3001/api/v1'
@@ -23,11 +24,10 @@ http.interceptors.response.use(
   (error) => {
     if (error.response) {
       const status = error.response.status
-      if (status === 401) {
-        // Token 无效/过期 → 跳转登录页
+      if ((status === 401) || (status === 403 && error.response.data?.code === 1103)) {
+        toast.error('登录已过期，请重新登录')
         redirectToLogin()
       } else if (status === 403) {
-        // 权限不足 → 跳转禁止访问页
         redirectToForbidden()
       }
     }

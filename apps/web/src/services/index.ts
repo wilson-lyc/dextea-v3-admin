@@ -1,6 +1,6 @@
 export { http, API_BASE } from './http'
 
-export { login, logout } from './auth'
+export { login, logout, getMe } from './auth'
 export { getInitStatus, initSystem } from './init'
 export { getUsers, createUser, updateUser, toggleUserStatus } from './user'
 export { getStores, getStore, createStore, updateStore, updateStoreStatus, updateStoreBasicInfo, updateStoreLocation } from './store'

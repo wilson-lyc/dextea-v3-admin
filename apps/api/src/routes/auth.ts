@@ -6,7 +6,7 @@ import { usersTable } from '../db/schema.js';
 import { verifyPassword } from '../utils/password.js';
 import { AppError } from '../errorcode/index.js';
 import { authErrors } from '../errorcode/auth.js';
-import type { ApiResponse, LoginRequest, LoginResponse } from '@dextea/shared-types';
+import type { ApiResponse, AuthMeResponse, LoginRequest, LoginResponse } from '@dextea/shared-types';
 
 const TOKEN_PREFIX = 'dextea:admin:token:';
 const TOKEN_TTL = 60 * 30; // 30 minutes
@@ -14,8 +14,23 @@ const TOKEN_TTL = 60 * 30; // 30 minutes
 export async function authRoutes(app: FastifyInstance) {
 
   /** 
+   * 获取当前用户信息
+   * url：/api/v1/auth/me
+   */
+  app.get<{ Reply: ApiResponse<AuthMeResponse> }>('/auth/me', async (request, reply) => {
+    const { userId, email, displayName } = request.authUser!;
+    return {
+      code: 0,
+      data: {
+        user: { id: userId, email, displayName },
+      },
+      message: 'ok',
+    };
+  });
+
+  /**
    * 用户登录
-   * url：/api/v1/auth/login 
+   * url：/api/v1/auth/login
    */
   app.post<{
     Body: LoginRequest;

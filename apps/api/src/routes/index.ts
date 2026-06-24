@@ -11,7 +11,7 @@ import { authHook } from '../middleware/auth.js';
 
 export async function registerRoutes(app: FastifyInstance) {
   // 全局认证钩子 — 除白名单路由外，所有请求都需要 Bearer token 校验
-  app.addHook('onRequest', authHook);
+  app.addHook('preHandler', authHook);
 
   // Public routes (no prefix)
   await app.register(healthRoutes);

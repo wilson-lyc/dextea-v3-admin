@@ -66,7 +66,6 @@ export default function Login() {
       <Card size="sm" className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>登录</CardTitle>
-          <CardDescription>请输入您的账号和密码</CardDescription>
         </CardHeader>
         <CardContent>
           <form
