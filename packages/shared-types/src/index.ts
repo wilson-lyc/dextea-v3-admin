@@ -1,5 +1,5 @@
 // ---- status layer ----
-export { USER_STATUS, getUserStatusLabel } from './status/index.js';
+export { USER_STATUS, USER_STATUS_VALUES, getUserStatusLabel } from './status/index.js';
 export type { UserStatus } from './status/index.js';
 
 export { STORE_STATUS, STORE_STATUS_VALUES, getStoreStatusLabel } from './status/index.js';

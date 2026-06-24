@@ -11,7 +11,6 @@ export interface Product {
   description: string;
   status: ProductStatus;
   price: number;
-  categoryId: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -21,7 +20,7 @@ export interface CreateProductInput {
   brief?: string;
   description?: string;
   price: number;
-  categoryId?: number;
+  tagIds?: number[];
   status?: ProductStatus;
 }
 

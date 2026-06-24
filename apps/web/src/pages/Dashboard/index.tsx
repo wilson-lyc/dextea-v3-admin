@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
-import { UsersIcon, StoreIcon, Loader2Icon } from "lucide-react"
+import { UsersIcon, StoreIcon } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 
 import type { DashboardStats } from "@dextea/shared-types"
 import { getDashboardStats } from "@/services"
@@ -37,7 +38,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <Loader2Icon className="size-8 animate-spin text-muted-foreground" />
+              <Spinner className="size-8 text-muted-foreground" />
             ) : (
               <span className="text-3xl font-bold">{stats?.employeeCount ?? 0}</span>
             )}
@@ -53,7 +54,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <Loader2Icon className="size-8 animate-spin text-muted-foreground" />
+              <Spinner className="size-8 text-muted-foreground" />
             ) : (
               <span className="text-3xl font-bold">{stats?.storeCount ?? 0}</span>
             )}

@@ -2,16 +2,14 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import type { StoreStatus } from "@dextea/shared-types"
-import { STORE_STATUS, getStoreStatusLabel } from "@dextea/shared-types"
+import { STORE_STATUS } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+import { StatusSelect } from "@/components/status-select"
 import {
   Dialog,
   DialogContent,
@@ -28,13 +26,6 @@ interface EditStatusDialogProps {
   currentStatus: StoreStatus
   onUpdated: () => void
 }
-
-const STATUS_OPTIONS: { value: StoreStatus; label: string }[] = [
-  { value: STORE_STATUS.OPEN.value, label: STORE_STATUS.OPEN.label },
-  { value: STORE_STATUS.RESTING.value, label: STORE_STATUS.RESTING.label },
-  { value: STORE_STATUS.PREPARING.value, label: STORE_STATUS.PREPARING.label },
-  { value: STORE_STATUS.CLOSED.value, label: STORE_STATUS.CLOSED.label },
-]
 
 export function EditStatusDialog({ open, onOpenChange, storeId, currentStatus, onUpdated }: EditStatusDialogProps) {
   const [selected, setSelected] = useState<string>(String(currentStatus))
@@ -71,27 +62,20 @@ export function EditStatusDialog({ open, onOpenChange, storeId, currentStatus, o
           <DialogTitle>编辑门店状态</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-2">
-          <div className="flex flex-col gap-2">
-            <Label>
+        <FieldGroup className="py-2">
+          <Field>
+            <FieldLabel>
               门店状态 <span className="text-destructive">*</span>
-            </Label>
-            <Select value={selected} onValueChange={setSelected}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="请选择门店状态">
-                  {getStoreStatusLabel(Number(selected) as StoreStatus)}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={String(opt.value)}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+            </FieldLabel>
+            <StatusSelect
+              value={selected}
+              onValueChange={setSelected}
+              options={STORE_STATUS}
+              placeholder="请选择门店状态"
+              className="w-full"
+            />
+          </Field>
+        </FieldGroup>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

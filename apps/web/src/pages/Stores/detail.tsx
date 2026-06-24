@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { ArrowLeftIcon, Loader2Icon, PencilIcon, KeyRoundIcon } from "lucide-react"
+import { ArrowLeftIcon, PencilIcon, KeyRoundIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store, StoreStatus } from "@dextea/shared-types"
@@ -22,6 +22,7 @@ import {
   CardAction,
   CardContent,
 } from "@/components/ui/card"
+import { Spinner } from "@/components/ui/spinner"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Dialog,
@@ -106,7 +107,7 @@ export default function StoreDetailPage() {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2Icon className="size-6 animate-spin text-muted-foreground" />
+        <Spinner className="size-6 text-muted-foreground" />
       </div>
     )
   }

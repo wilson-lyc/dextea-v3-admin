@@ -5,15 +5,24 @@ import type { ProductStatus } from "@dextea/shared-types"
 import { PRODUCT_STATUS, PRODUCT_STATUS_VALUES } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { StatusSelect } from "@/components/status-select"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Dialog,
   DialogContent,
@@ -21,7 +30,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { createProduct } from "@/services"
+import { createProduct, getTags } from "@/services"
 
 interface CreateProductDialogProps {
   open: boolean
@@ -29,18 +38,18 @@ interface CreateProductDialogProps {
   onCreated: () => void
 }
 
-const CATEGORY_OPTIONS: { value: number; label: string }[] = [
-  { value: 0, label: "未分类" },
-]
-
 export function CreateProductDialog({ open, onOpenChange, onCreated }: CreateProductDialogProps) {
   const [formName, setFormName] = useState("")
   const [formBrief, setFormBrief] = useState("")
   const [formDescription, setFormDescription] = useState("")
   const [formPrice, setFormPrice] = useState("")
-  const [formCategoryId, setFormCategoryId] = useState("0")
   const [formStatus, setFormStatus] = useState(String(PRODUCT_STATUS.ON.value))
+  const [formTagIds, setFormTagIds] = useState<string[]>([])
+  const [allTags, setAllTags] = useState<{ id: number; name: string }[]>([])
   const [submitting, setSubmitting] = useState(false)
+
+  const [nameError, setNameError] = useState("")
+  const [priceError, setPriceError] = useState("")
 
   useEffect(() => {
     if (!open) {
@@ -48,22 +57,40 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
       setFormBrief("")
       setFormDescription("")
       setFormPrice("")
-      setFormCategoryId("0")
       setFormStatus(String(PRODUCT_STATUS.ON.value))
+      setFormTagIds([])
+      setNameError("")
+      setPriceError("")
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (open) {
+      getTags()
+        .then((res) => setAllTags(res.data))
+        .catch(() => {})
     }
   }, [open])
 
   const handleSubmit = async () => {
+    let hasError = false
+
     if (!formName) {
-      toast.error("商品名称不能为空")
-      return
+      setNameError("商品名称不能为空")
+      hasError = true
+    } else {
+      setNameError("")
     }
 
     const price = parseFloat(formPrice)
     if (formPrice !== "" && (isNaN(price) || price < 0)) {
-      toast.error("商品价格无效")
-      return
+      setPriceError("商品价格无效")
+      hasError = true
+    } else {
+      setPriceError("")
     }
+
+    if (hasError) return
 
     const status: ProductStatus = PRODUCT_STATUS_VALUES.includes(Number(formStatus) as ProductStatus)
       ? (Number(formStatus) as ProductStatus)
@@ -76,7 +103,7 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
         brief: formBrief,
         description: formDescription,
         price: formPrice !== "" ? price : 0,
-        categoryId: Number(formCategoryId),
+        tagIds: formTagIds.map(Number),
         status,
       })
       if (res.code === 0) {
@@ -100,31 +127,42 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
           <DialogTitle>新增商品</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-2">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="product-name">
+        <ScrollArea className="max-h-[60vh] p-[5px]">
+        <FieldGroup className="py-2">
+          <Field data-invalid={!!nameError || undefined}>
+            <FieldLabel htmlFor="product-name">
               商品名称 <span className="text-destructive">*</span>
-            </Label>
+            </FieldLabel>
             <Input
               id="product-name"
               placeholder="请输入商品名称"
               value={formName}
-              onChange={(e) => setFormName(e.target.value)}
+              onChange={(e) => {
+                setFormName(e.target.value)
+                if (nameError) setNameError("")
+              }}
+              aria-invalid={!!nameError || undefined}
             />
-          </div>
+            {nameError && <FieldError>{nameError}</FieldError>}
+          </Field>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="product-brief">简介</Label>
-            <Input
+          <Field>
+            <FieldLabel htmlFor="product-brief">
+              简介 <span className="text-destructive">*</span>
+            </FieldLabel>
+            <Textarea
               id="product-brief"
               placeholder="请输入商品简介"
               value={formBrief}
               onChange={(e) => setFormBrief(e.target.value)}
+              rows={2}
             />
-          </div>
+          </Field>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="product-description">描述</Label>
+          <Field>
+            <FieldLabel htmlFor="product-description">
+              描述 <span className="text-destructive">*</span>
+            </FieldLabel>
             <Textarea
               id="product-description"
               placeholder="请输入商品描述"
@@ -132,12 +170,12 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
               onChange={(e) => setFormDescription(e.target.value)}
               rows={3}
             />
-          </div>
+          </Field>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="product-price">
+          <Field data-invalid={!!priceError || undefined}>
+            <FieldLabel htmlFor="product-price">
               价格 <span className="text-destructive">*</span>
-            </Label>
+            </FieldLabel>
             <Input
               id="product-price"
               type="number"
@@ -145,43 +183,56 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
               step="0.01"
               placeholder="0.00"
               value={formPrice}
-              onChange={(e) => setFormPrice(e.target.value)}
+              onChange={(e) => {
+                setFormPrice(e.target.value)
+                if (priceError) setPriceError("")
+              }}
+              aria-invalid={!!priceError || undefined}
             />
-          </div>
+            {priceError && <FieldError>{priceError}</FieldError>}
+          </Field>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="product-category">分类</Label>
-            <Select value={formCategoryId} onValueChange={setFormCategoryId}>
-              <SelectTrigger id="product-category">
-                <SelectValue placeholder="请选择分类" />
-              </SelectTrigger>
-              <SelectContent>
-                {CATEGORY_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={String(opt.value)}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Field>
+            <FieldLabel>
+              标签 <span className="text-destructive">*</span>
+            </FieldLabel>
+            <Combobox value={formTagIds} onValueChange={setFormTagIds} multiple>
+              <ComboboxChips>
+                {formTagIds.map((id) => {
+                  const tag = allTags.find((t) => String(t.id) === id)
+                  return tag ? (
+                    <ComboboxChip key={id} value={id}>
+                      {tag.name}
+                    </ComboboxChip>
+                  ) : null
+                })}
+                <ComboboxChipsInput placeholder="搜索或选择标签..." />
+              </ComboboxChips>
+              <ComboboxContent>
+                <ComboboxList>
+                  {allTags.map((tag) => (
+                    <ComboboxItem key={tag.id} value={String(tag.id)}>
+                      {tag.name}
+                    </ComboboxItem>
+                  ))}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
+          </Field>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="product-status">状态</Label>
-            <Select value={formStatus} onValueChange={setFormStatus}>
-              <SelectTrigger id="product-status">
-                <SelectValue placeholder="请选择状态" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={String(PRODUCT_STATUS.ON.value)}>
-                  {PRODUCT_STATUS.ON.label}
-                </SelectItem>
-                <SelectItem value={String(PRODUCT_STATUS.OFF.value)}>
-                  {PRODUCT_STATUS.OFF.label}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+          <Field>
+            <FieldLabel htmlFor="product-status">
+              状态 <span className="text-destructive">*</span>
+            </FieldLabel>
+            <StatusSelect
+              value={formStatus}
+              onValueChange={setFormStatus}
+              options={PRODUCT_STATUS}
+              placeholder="请选择状态"
+            />
+          </Field>
+        </FieldGroup>
+        </ScrollArea>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

@@ -10,6 +10,8 @@ export const USER_STATUS = {
 
 export type UserStatus = number;
 
+export const USER_STATUS_VALUES: readonly UserStatus[] = [0, 1];
+
 export function getUserStatusLabel(status: UserStatus): string {
   return Object.values(USER_STATUS).find(e => e.value === status)!.label;
 }

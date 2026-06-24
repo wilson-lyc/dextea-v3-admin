@@ -4,7 +4,14 @@ import { EyeIcon, EyeOffIcon, LogInIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { initSystem } from "@/services"
@@ -41,7 +48,7 @@ export default function Initialization() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4">
-      <Card size="sm" className="w-full max-w-sm">
+      <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>系统初始化</CardTitle>
           <CardDescription>请设置管理员账号信息</CardDescription>
@@ -52,9 +59,9 @@ export default function Initialization() {
               e.preventDefault()
               handleInit()
             }}
-            className="flex flex-col gap-4"
+            className="flex flex-col gap-6"
           >
-            <div className="flex flex-col gap-2">
+            <div className="grid gap-2">
               <Label htmlFor="email">邮箱</Label>
               <Input
                 id="email"
@@ -62,19 +69,21 @@ export default function Initialization() {
                 placeholder="请输入邮箱"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="displayName">显示名称</Label>
+            <div className="grid gap-2">
+              <Label htmlFor="displayName">用户名</Label>
               <Input
                 id="displayName"
                 type="text"
-                placeholder="请输入显示名称"
+                placeholder="请输入用户名"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
+                required
               />
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="grid gap-2">
               <Label htmlFor="password">密码</Label>
               <div className="relative">
                 <Input
@@ -84,6 +93,7 @@ export default function Initialization() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pr-9"
+                  required
                 />
                 <button
                   type="button"
@@ -99,12 +109,14 @@ export default function Initialization() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="mt-2" disabled={loading}>
-              <LogInIcon data-icon="inline-start" />
-              {loading ? "初始化中..." : "初 始 化"}
-            </Button>
           </form>
         </CardContent>
+        <CardFooter>
+          <Button type="submit" className="w-full" disabled={loading} onClick={handleInit}>
+            <LogInIcon data-icon="inline-start" />
+            {loading ? "初始化中..." : "初 始 化"}
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   )

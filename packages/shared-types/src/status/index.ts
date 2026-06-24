@@ -1,4 +1,4 @@
-export { USER_STATUS, getUserStatusLabel } from './user.js';
+export { USER_STATUS, USER_STATUS_VALUES, getUserStatusLabel } from './user.js';
 export type { UserStatus } from './user.js';
 
 export { STORE_STATUS, STORE_STATUS_VALUES, getStoreStatusLabel } from './store.js';

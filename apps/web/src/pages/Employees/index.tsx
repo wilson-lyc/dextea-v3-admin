@@ -1,19 +1,18 @@
 import { useCallback, useEffect, useState } from "react"
-import { Loader2Icon, PlusIcon, PencilIcon, BanIcon, CheckCircleIcon } from "lucide-react"
+import { PlusIcon, PencilIcon, BanIcon, CheckCircleIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { User, UserStatus } from "@dextea/shared-types"
 import { USER_STATUS, getUserStatusLabel } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select"
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+import { StatusSelect } from "@/components/status-select"
 import {
   Dialog,
   DialogContent,
@@ -30,6 +29,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import { Spinner } from "@/components/ui/spinner"
 import { getUsers, createUser, updateUser, toggleUserStatus } from "@/services"
 
 type DialogMode = "create" | "edit"
@@ -47,6 +47,8 @@ export default function EmployeesPage() {
   const [formDisplayName, setFormDisplayName] = useState("")
   const [formStatus, setFormStatus] = useState<UserStatus>(0)
   const [submitting, setSubmitting] = useState(false)
+  const [emailError, setEmailError] = useState("")
+  const [nameError, setNameError] = useState("")
 
   // Password dialog state
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
@@ -76,6 +78,8 @@ export default function EmployeesPage() {
     setFormEmail("")
     setFormDisplayName("")
     setFormStatus(0)
+    setEmailError("")
+    setNameError("")
     setDialogOpen(true)
   }
 
@@ -86,15 +90,30 @@ export default function EmployeesPage() {
     setFormEmail(user.email)
     setFormDisplayName(user.displayName)
     setFormStatus(user.status)
+    setEmailError("")
+    setNameError("")
     setDialogOpen(true)
   }
 
   // Handle form submit
   const handleSubmit = async () => {
-    if (!formEmail || !formDisplayName) {
-      toast.error("请填写所有必填字段")
-      return
+    let hasError = false
+
+    if (!formEmail) {
+      setEmailError("邮箱不能为空")
+      hasError = true
+    } else {
+      setEmailError("")
     }
+
+    if (!formDisplayName) {
+      setNameError("用户名不能为空")
+      hasError = true
+    } else {
+      setNameError("")
+    }
+
+    if (hasError) return
 
     setSubmitting(true)
     try {
@@ -161,7 +180,7 @@ export default function EmployeesPage() {
       {/* Table */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2Icon className="size-6 animate-spin text-muted-foreground" />
+          <Spinner className="size-6 text-muted-foreground" />
         </div>
       ) : (
         <Table>
@@ -243,57 +262,67 @@ export default function EmployeesPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-col gap-4 py-2">
+          <FieldGroup className="py-2">
             {/* ID field (edit mode only) */}
             {dialogMode === "edit" && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="edit-id">ID</Label>
+              <Field data-disabled>
+                <FieldLabel htmlFor="edit-id">ID</FieldLabel>
                 <Input id="edit-id" value={editUserId ?? ""} disabled />
-              </div>
+              </Field>
             )}
 
             {/* Email */}
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="user-email">邮箱</Label>
+            <Field data-invalid={!!emailError || undefined}>
+              <FieldLabel htmlFor="user-email">
+                邮箱 <span className="text-destructive">*</span>
+              </FieldLabel>
               <Input
                 id="user-email"
                 type="email"
                 placeholder="请输入邮箱地址"
                 value={formEmail}
-                onChange={(e) => setFormEmail(e.target.value)}
+                onChange={(e) => {
+                  setFormEmail(e.target.value)
+                  if (emailError) setEmailError("")
+                }}
+                aria-invalid={!!emailError || undefined}
               />
-            </div>
+              {emailError && <FieldError>{emailError}</FieldError>}
+            </Field>
 
             {/* DisplayName */}
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="user-display-name">用户名</Label>
+            <Field data-invalid={!!nameError || undefined}>
+              <FieldLabel htmlFor="user-display-name">
+                用户名 <span className="text-destructive">*</span>
+              </FieldLabel>
               <Input
                 id="user-display-name"
                 placeholder="请输入用户名"
                 value={formDisplayName}
-                onChange={(e) => setFormDisplayName(e.target.value)}
+                onChange={(e) => {
+                  setFormDisplayName(e.target.value)
+                  if (nameError) setNameError("")
+                }}
+                aria-invalid={!!nameError || undefined}
               />
-            </div>
+              {nameError && <FieldError>{nameError}</FieldError>}
+            </Field>
 
             {/* Status (edit mode only) */}
             {dialogMode === "edit" && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="user-status">状态</Label>
-                <Select
-                  value={String(formStatus)}
-                  onValueChange={(val: string) => setFormStatus(Number(val) as UserStatus)}
-                >
-                  <SelectTrigger id="user-status" className="w-full">
-                     <SelectValue>{getUserStatusLabel(formStatus)}</SelectValue>
-                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={String(USER_STATUS.DISABLED.value)}>{USER_STATUS.DISABLED.label}</SelectItem>
-                    <SelectItem value={String(USER_STATUS.ACTIVE.value)}>{USER_STATUS.ACTIVE.label}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Field>
+                <FieldLabel htmlFor="user-status">
+                  状态 <span className="text-destructive">*</span>
+                </FieldLabel>
+                <StatusSelect
+                  value={formStatus}
+                  onValueChange={(val) => setFormStatus(Number(val) as UserStatus)}
+                  options={USER_STATUS}
+                  className="w-full"
+                />
+              </Field>
             )}
-          </div>
+          </FieldGroup>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>

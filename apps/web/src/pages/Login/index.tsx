@@ -4,7 +4,13 @@ import { EyeIcon, EyeOffIcon, LogInIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getInitStatus, login } from "@/services"
@@ -63,7 +69,7 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4">
-      <Card size="sm" className="w-full max-w-sm">
+      <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>登录</CardTitle>
         </CardHeader>
@@ -73,9 +79,9 @@ export default function Login() {
               e.preventDefault()
               handleLogin()
             }}
-            className="flex flex-col gap-4"
+            className="flex flex-col gap-6"
           >
-            <div className="flex flex-col gap-2">
+            <div className="grid gap-2">
               <Label htmlFor="account">账号</Label>
               <Input
                 id="account"
@@ -83,9 +89,10 @@ export default function Login() {
                 placeholder="请输入账号"
                 value={account}
                 onChange={(e) => setAccount(e.target.value)}
+                required
               />
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="grid gap-2">
               <Label htmlFor="password">密码</Label>
               <div className="relative">
                 <Input
@@ -95,6 +102,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pr-9"
+                  required
                 />
                 <button
                   type="button"
@@ -110,12 +118,14 @@ export default function Login() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="mt-2" onClick={handleLogin} disabled={loading}>
-              <LogInIcon data-icon="inline-start" />
-              {loading ? "登录中..." : "登 录"}
-            </Button>
           </form>
         </CardContent>
+        <CardFooter>
+          <Button type="submit" className="w-full" onClick={handleLogin} disabled={loading}>
+            <LogInIcon data-icon="inline-start" />
+            {loading ? "登录中..." : "登 录"}
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   )

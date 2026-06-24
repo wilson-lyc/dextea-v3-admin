@@ -4,7 +4,12 @@ import { toast } from "sonner"
 import type { Store } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
 import {
   Dialog,
   DialogContent,
@@ -28,20 +33,24 @@ export function EditBasicInfoDialog({ open, onOpenChange, store, onUpdated }: Ed
   const [email, setEmail] = useState(store.email)
   const [submitting, setSubmitting] = useState(false)
 
+  const [nameError, setNameError] = useState("")
+
   useEffect(() => {
     if (open) {
       setName(store.name)
       setPhone(store.phone)
       setBusinessHours(store.businessHours)
       setEmail(store.email)
+      setNameError("")
     }
   }, [open, store])
 
   const handleSubmit = async () => {
     if (!name) {
-      toast.error("门店名称不能为空")
+      setNameError("门店名称不能为空")
       return
     }
+    setNameError("")
 
     setSubmitting(true)
     try {
@@ -67,23 +76,26 @@ export function EditBasicInfoDialog({ open, onOpenChange, store, onUpdated }: Ed
           <DialogTitle>编辑基础信息</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-2">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="edit-store-name">
+        <FieldGroup className="py-2">
+          <Field data-invalid={!!nameError || undefined}>
+            <FieldLabel htmlFor="edit-store-name">
               门店名称 <span className="text-destructive">*</span>
-            </Label>
+            </FieldLabel>
             <Input
               id="edit-store-name"
               placeholder="请输入门店名称"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value)
+                if (nameError) setNameError("")
+              }}
+              aria-invalid={!!nameError || undefined}
             />
-          </div>
+            {nameError && <FieldError>{nameError}</FieldError>}
+          </Field>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="edit-store-email">
-              邮箱
-            </Label>
+          <Field>
+            <FieldLabel htmlFor="edit-store-email">邮箱</FieldLabel>
             <Input
               id="edit-store-email"
               type="email"
@@ -91,33 +103,33 @@ export function EditBasicInfoDialog({ open, onOpenChange, store, onUpdated }: Ed
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-          </div>
+          </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="edit-store-phone">
+            <Field>
+              <FieldLabel htmlFor="edit-store-phone">
                 联系电话 <span className="text-destructive">*</span>
-              </Label>
+              </FieldLabel>
               <Input
                 id="edit-store-phone"
                 placeholder="请输入联系电话"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="edit-store-hours">
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="edit-store-hours">
                 营业时间 <span className="text-destructive">*</span>
-              </Label>
+              </FieldLabel>
               <Input
                 id="edit-store-hours"
                 placeholder="例如：09:00-22:00"
                 value={businessHours}
                 onChange={(e) => setBusinessHours(e.target.value)}
               />
-            </div>
+            </Field>
           </div>
-        </div>
+        </FieldGroup>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Loader2Icon, PlusIcon, RefreshCwIcon, SearchIcon, SettingsIcon } from "lucide-react"
+import { PlusIcon, RefreshCwIcon, SearchIcon, SettingsIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store, StoreStatus } from "@dextea/shared-types"
@@ -31,6 +31,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { Spinner } from "@/components/ui/spinner"
 import { CreateStoreDialog } from "./components/CreateStoreDialog"
 
 const STATUS_CLASSES: Record<StoreStatus, string> = {
@@ -155,7 +156,7 @@ export default function StoresPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2Icon className="size-6 animate-spin text-muted-foreground" />
+          <Spinner className="size-6 text-muted-foreground" />
         </div>
       ) : (
         <TooltipProvider>

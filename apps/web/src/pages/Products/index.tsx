@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import {
-  Loader2Icon,
   PlusIcon,
   SearchIcon,
+  SettingsIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Product } from "@dextea/shared-types"
-import { PRODUCT_STATUS, getProductStatusLabel } from "@dextea/shared-types"
+import { getProductStatusLabel } from "@dextea/shared-types"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -20,6 +22,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { getProducts } from "@/services"
+import { Spinner } from "@/components/ui/spinner"
 import { CreateProductDialog } from "./components/CreateProductDialog"
 import {
   Pagination,
@@ -31,13 +34,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 
-const CATEGORY_LABEL: Record<number, string> = {
-  0: "未分类",
-}
-
-const STATUS_CLASSES: Record<number, string> = {
-  0: "text-muted-foreground",
-  1: "text-green-600 dark:text-green-400",
+const STATUS_BADGE: Record<number, React.ReactNode> = {
+  0: <Badge className="bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300">下架</Badge>,
+  1: <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">可售</Badge>,
 }
 
 export default function ProductsPage() {
@@ -49,6 +48,7 @@ export default function ProductsPage() {
   const [total, setTotal] = useState(0)
   const pageSize = 20
 
+  const navigate = useNavigate()
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const fetchProducts = useCallback(async (targetPage: number) => {
@@ -83,14 +83,6 @@ export default function ProductsPage() {
 
   const handleCreate = () => {
     setDialogOpen(true)
-  }
-
-  const handleEdit = (_product: Product) => {
-    // TODO: 编辑商品
-  }
-
-  const handleToggleStatus = (_product: Product) => {
-    // TODO: 上下架商品
   }
 
   return (
@@ -136,7 +128,7 @@ export default function ProductsPage() {
       {/* Table with scroll container */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2Icon className="size-6 animate-spin text-muted-foreground" />
+          <Spinner className="size-6 text-muted-foreground" />
         </div>
       ) : (
         <ScrollArea className="max-h-[calc(100vh-280px)]">
@@ -146,7 +138,6 @@ export default function ProductsPage() {
                 <TableHead>ID</TableHead>
                 <TableHead>商品名称</TableHead>
                 <TableHead>价格</TableHead>
-                <TableHead>分类</TableHead>
                 <TableHead>状态</TableHead>
                 <TableHead className="text-right">操作</TableHead>
               </TableRow>
@@ -154,7 +145,7 @@ export default function ProductsPage() {
             <TableBody>
               {products.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
                     暂无商品数据
                   </TableCell>
                 </TableRow>
@@ -164,27 +155,14 @@ export default function ProductsPage() {
                     <TableCell className="font-mono text-xs">{product.id}</TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>¥{product.price.toFixed(2)}</TableCell>
-                    <TableCell>{CATEGORY_LABEL[product.categoryId] ?? `分类${product.categoryId}`}</TableCell>
                     <TableCell>
-                      <span className={STATUS_CLASSES[product.status]}>
-                        {getProductStatusLabel(product.status)}
-                      </span>
+                      {STATUS_BADGE[product.status] ?? <Badge variant="outline">{getProductStatusLabel(product.status)}</Badge>}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button variant="outline" size="sm" onClick={() => handleEdit(product)}>
-                          编辑
-                        </Button>
-                        {product.status === PRODUCT_STATUS.ON.value ? (
-                          <Button variant="outline" size="sm" onClick={() => handleToggleStatus(product)}>
-                            下架
-                          </Button>
-                        ) : product.status === PRODUCT_STATUS.OFF.value ? (
-                          <Button variant="outline" size="sm" onClick={() => handleToggleStatus(product)}>
-                            上架
-                          </Button>
-                        ) : null}
-                      </div>
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/products/${product.id}`)}>
+                        <SettingsIcon data-icon="inline-start" />
+                        管理
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

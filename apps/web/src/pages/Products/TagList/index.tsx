@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useState } from "react"
-import { Loader2Icon, PlusIcon, PencilIcon, Trash2Icon } from "lucide-react"
+import { PlusIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { ProductTag, CreateTagInput, UpdateTagInput } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
 import {
   Dialog,
   DialogContent,
@@ -22,6 +26,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import { Spinner } from "@/components/ui/spinner"
 import { getTags, createTag, updateTag, deleteTag } from "@/services"
 
 type DialogMode = "create" | "edit"
@@ -152,7 +157,7 @@ export default function TagListPage() {
       {/* Table */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2Icon className="size-6 animate-spin text-muted-foreground" />
+          <Spinner className="size-6 text-muted-foreground" />
         </div>
       ) : (
         <Table>
@@ -210,20 +215,20 @@ export default function TagListPage() {
             <DialogTitle>{dialogMode === "create" ? "新增标签" : "编辑标签"}</DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col gap-4 py-2">
+          <FieldGroup className="py-2">
             {/* ID field (edit mode only) */}
             {dialogMode === "edit" && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="tag-id">ID</Label>
+              <Field data-disabled>
+                <FieldLabel htmlFor="tag-id">ID</FieldLabel>
                 <Input id="tag-id" value={editingTag?.id ?? ""} disabled />
-              </div>
+              </Field>
             )}
 
             {/* Name */}
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="tag-name">
+            <Field>
+              <FieldLabel htmlFor="tag-name">
                 标签名称 <span className="text-destructive">*</span>
-              </Label>
+              </FieldLabel>
               <Input
                 id="tag-name"
                 placeholder="请输入标签名称"
@@ -233,8 +238,8 @@ export default function TagListPage() {
                   if (e.key === "Enter") handleSubmit()
                 }}
               />
-            </div>
-          </div>
+            </Field>
+          </FieldGroup>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>

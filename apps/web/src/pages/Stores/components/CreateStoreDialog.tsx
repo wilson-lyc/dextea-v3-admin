@@ -5,7 +5,12 @@ import { AreaSelector } from "@/components/area"
 import type { AreaValue } from "@/components/area"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
 import {
   Dialog,
   DialogContent,
@@ -33,6 +38,9 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
   const [formEmail, setFormEmail] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
+  const [nameError, setNameError] = useState("")
+  const [accountError, setAccountError] = useState("")
+
   // Password display state
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
   const [initialPassword, setInitialPassword] = useState("")
@@ -48,6 +56,8 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
       setFormPhone("")
       setFormAccount("")
       setFormEmail("")
+      setNameError("")
+      setAccountError("")
     }
   }, [open])
 
@@ -58,14 +68,23 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
   }, [])
 
   const handleSubmit = async () => {
+    let hasError = false
+
     if (!formName) {
-      toast.error("门店名称不能为空")
-      return
+      setNameError("门店名称不能为空")
+      hasError = true
+    } else {
+      setNameError("")
     }
+
     if (!formAccount) {
-      toast.error("登录账号不能为空")
-      return
+      setAccountError("登录账号不能为空")
+      hasError = true
+    } else {
+      setAccountError("")
     }
+
+    if (hasError) return
 
     setSubmitting(true)
     try {
@@ -104,35 +123,43 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
             <DialogTitle>创建门店</DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col gap-4 py-2">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="store-name">
+          <FieldGroup className="py-2">
+            <Field data-invalid={!!nameError || undefined}>
+              <FieldLabel htmlFor="store-name">
                 门店名称 <span className="text-destructive">*</span>
-              </Label>
+              </FieldLabel>
               <Input
                 id="store-name"
                 placeholder="请输入门店名称"
                 value={formName}
-                onChange={(e) => setFormName(e.target.value)}
+                onChange={(e) => {
+                  setFormName(e.target.value)
+                  if (nameError) setNameError("")
+                }}
+                aria-invalid={!!nameError || undefined}
               />
-            </div>
+              {nameError && <FieldError>{nameError}</FieldError>}
+            </Field>
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="store-account">
+            <Field data-invalid={!!accountError || undefined}>
+              <FieldLabel htmlFor="store-account">
                 登录账号 <span className="text-destructive">*</span>
-              </Label>
+              </FieldLabel>
               <Input
                 id="store-account"
                 placeholder="请输入登录账号"
                 value={formAccount}
-                onChange={(e) => setFormAccount(e.target.value)}
+                onChange={(e) => {
+                  setFormAccount(e.target.value)
+                  if (accountError) setAccountError("")
+                }}
+                aria-invalid={!!accountError || undefined}
               />
-            </div>
+              {accountError && <FieldError>{accountError}</FieldError>}
+            </Field>
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="store-email">
-                邮箱
-              </Label>
+            <Field>
+              <FieldLabel htmlFor="store-email">邮箱</FieldLabel>
               <Input
                 id="store-email"
                 type="email"
@@ -140,50 +167,52 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
                 value={formEmail}
                 onChange={(e) => setFormEmail(e.target.value)}
               />
-            </div>
+            </Field>
 
-            <div className="flex flex-col gap-2">
-              <Label>省市区 <span className="text-destructive">*</span></Label>
+            <Field>
+              <FieldLabel>
+                省市区 <span className="text-destructive">*</span>
+              </FieldLabel>
               <AreaSelector key={open} onChange={handleAreaChange} />
-            </div>
+            </Field>
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="store-address">
+            <Field>
+              <FieldLabel htmlFor="store-address">
                 地址 <span className="text-destructive">*</span>
-              </Label>
+              </FieldLabel>
               <Input
                 id="store-address"
                 placeholder="请输入具体地址"
                 value={formAddress}
                 onChange={(e) => setFormAddress(e.target.value)}
               />
-            </div>
+            </Field>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="store-phone">
+              <Field>
+                <FieldLabel htmlFor="store-phone">
                   联系电话 <span className="text-destructive">*</span>
-                </Label>
+                </FieldLabel>
                 <Input
                   id="store-phone"
                   placeholder="请输入联系电话"
                   value={formPhone}
                   onChange={(e) => setFormPhone(e.target.value)}
                 />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="store-hours">
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="store-hours">
                   营业时间 <span className="text-destructive">*</span>
-                </Label>
+                </FieldLabel>
                 <Input
                   id="store-hours"
                   placeholder="例如：09:00-22:00"
                   value={formBusinessHours}
                   onChange={(e) => setFormBusinessHours(e.target.value)}
                 />
-              </div>
+              </Field>
             </div>
-          </div>
+          </FieldGroup>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>

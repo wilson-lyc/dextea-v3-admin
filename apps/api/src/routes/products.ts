@@ -77,7 +77,7 @@ export async function productRoutes(app: FastifyInstance) {
   }>('/products', async (request, reply) => {
     try {
       const db = await getDb();
-      const { name, brief, description, price, categoryId, status } = request.body;
+      const { name, brief, description, price, status } = request.body;
 
       if (!name) {
         throw new AppError(productErrors.NAME_REQUIRED);
@@ -92,7 +92,6 @@ export async function productRoutes(app: FastifyInstance) {
         brief: brief ?? '',
         description: description ?? '',
         price: price ?? 0,
-        categoryId: categoryId ?? 0,
         status: status ?? 1,
       });
 

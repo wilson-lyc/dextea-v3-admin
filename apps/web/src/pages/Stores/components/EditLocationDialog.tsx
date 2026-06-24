@@ -7,7 +7,11 @@ import { AreaSelector } from "@/components/area"
 import type { AreaValue } from "@/components/area"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
 import {
   Dialog,
   DialogContent,
@@ -96,39 +100,39 @@ export function EditLocationDialog({ open, onOpenChange, store, onUpdated }: Edi
           <DialogTitle>编辑门店位置</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-2">
-          <div className="flex flex-col gap-2">
-            <Label>
+        <FieldGroup className="py-2">
+          <Field>
+            <FieldLabel>
               省市区 <span className="text-destructive">*</span>
-            </Label>
+            </FieldLabel>
             <AreaSelector
               key={`edit-location-${store.id}-${open}`}
               value={{ province: store.province, city: store.city, district: store.district }}
               onChange={handleAreaChange}
             />
-          </div>
+          </Field>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="edit-store-address">
+          <Field>
+            <FieldLabel htmlFor="edit-store-address">
               具体地址 <span className="text-destructive">*</span>
-            </Label>
+            </FieldLabel>
             <Input
               id="edit-store-address"
               placeholder="请输入具体地址"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
             />
-          </div>
+          </Field>
 
-          <div className="flex flex-col gap-2">
-            <Label className="flex items-center gap-1">
+          <Field>
+            <FieldLabel className="flex items-center gap-1">
               定位坐标 <span className="text-destructive">*</span>
               <Tooltip>
                 <TooltipTrigger render={<CircleHelpIcon className="size-4 text-muted-foreground" />}>
                 </TooltipTrigger>
                 <TooltipContent>点击地图可修改定位坐标</TooltipContent>
               </Tooltip>
-            </Label>
+            </FieldLabel>
             <AmapMapPicker
               longitude={longitude || 116.397428}
               latitude={latitude || 39.90923}
@@ -136,8 +140,8 @@ export function EditLocationDialog({ open, onOpenChange, store, onUpdated }: Edi
               address={fullAddress}
               onPick={handlePick}
             />
-          </div>
-        </div>
+          </Field>
+        </FieldGroup>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

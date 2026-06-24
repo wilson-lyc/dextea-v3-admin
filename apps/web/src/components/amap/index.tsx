@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { Loader2Icon } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 import { http } from "@/services/http"
 import type { AmapConfig } from "@dextea/shared-types"
 
@@ -90,7 +90,7 @@ export default function AmapMap({ longitude, latitude, name, address }: Props) {
       <div ref={containerRef} className="h-60 w-full rounded-lg" />
       {status === "loading" && (
         <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-muted">
-          <Loader2Icon className="size-5 animate-spin text-muted-foreground" />
+          <Spinner className="size-5 text-muted-foreground" />
         </div>
       )}
       {status === "error" && (
