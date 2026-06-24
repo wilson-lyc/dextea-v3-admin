@@ -5,6 +5,7 @@ export { getInitStatus, initSystem } from './init'
 export { getUsers, createUser, updateUser, toggleUserStatus } from './user'
 export { getStores, getStore, createStore, updateStore, updateStoreStatus, updateStoreBasicInfo, updateStoreLocation } from './store'
 export { getProvinces, getChildren, resolveNames } from './area'
+export { getDashboardStats } from './dashboard'
 
 // Re-export shared types for page convenience
 export type {
@@ -25,4 +26,5 @@ export type {
   UpdateStoreStatusResponse,
   Division,
   AmapConfig,
+  DashboardStats,
 } from '@dextea/shared-types'

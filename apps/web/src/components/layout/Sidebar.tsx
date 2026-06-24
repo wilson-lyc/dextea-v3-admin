@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
   BookOpenIcon,
+  LayoutDashboardIcon,
   PackageIcon,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
@@ -16,6 +17,7 @@ import {
 import { cn } from "@/lib/utils"
 
 const navItems = [
+  { label: "工作台", icon: LayoutDashboardIcon, path: "/" },
   { label: "员工管理", icon: UsersIcon, path: "/employees" },
   { label: "门店管理", icon: StoreIcon, path: "/stores" },
   { label: "商品管理", icon: PackageIcon, path: "/products" },

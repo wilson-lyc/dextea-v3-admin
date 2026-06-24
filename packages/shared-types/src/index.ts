@@ -1,14 +1,3 @@
-// ──────────────────────────────────────────────
-// dextea-admin shared types
-//
-// 分层结构:
-//   status/  — 状态定义（类型 + 常量 + 标签，自包含）
-//   types/   — JSON 结构定义（接口，从 status/ 导入状态类型）
-//
-// 导入方式:
-//   import { USER_STATUS, User, type UserStatus } from '@dextea/shared-types'
-// ──────────────────────────────────────────────
-
 // ---- status layer ----
 export { USER_STATUS, USER_STATUS_LABEL, getUserStatusLabel } from './status/index.js';
 export type { UserStatus } from './status/index.js';
@@ -86,4 +75,8 @@ export type {
 export type {
   Order,
   OrderItem,
+} from './types/index.js';
+
+export type {
+  DashboardStats,
 } from './types/index.js';

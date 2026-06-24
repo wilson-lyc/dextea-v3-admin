@@ -1,6 +1,3 @@
-// ====== 状态封装 barrel ======
-// ──────────────────────────────
-
 export { USER_STATUS, USER_STATUS_LABEL, getUserStatusLabel } from './user.js';
 export type { UserStatus } from './user.js';
 

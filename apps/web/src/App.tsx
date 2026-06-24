@@ -4,6 +4,7 @@ import AppLayout from "@/components/layout/AppLayout"
 import Login from "@/pages/Login"
 import Initialization from "@/pages/Initialization"
 import Forbidden from "@/pages/Forbidden"
+import DashboardPage from "@/pages/Dashboard"
 import EmployeesPage from "@/pages/Employees"
 import StoresPage from "@/pages/Stores"
 import StoreDetailPage from "@/pages/Stores/detail"
@@ -11,14 +12,6 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/hooks/use-theme"
 import { setNavigate } from "@/services/navigation"
-
-function Home() {
-  return (
-    <div className="flex h-full items-center justify-center p-6 text-muted-foreground">
-      Welcome to dextea admin
-    </div>
-  )
-}
 
 function App() {
   const navigate = useNavigate()
@@ -36,7 +29,7 @@ function App() {
         <Route path="/403" element={<Forbidden />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<AppLayout />}>
-            <Route index element={<Home />} />
+            <Route index element={<DashboardPage />} />
             <Route path="employees" element={<EmployeesPage />} />
             <Route path="stores" element={<StoresPage />} />
             <Route path="stores/:id" element={<StoreDetailPage />} />

@@ -1,6 +1,3 @@
-// ====== JSON 结构定义 barrel ======
-// ──────────────────────────────
-
 export type { ApiResponse, PaginatedData, PaginatedResponse } from './api-response.js';
 export type { HealthResponse } from './health.js';
 export type { InitStatusData, InitRequest } from './init.js';
@@ -11,3 +8,4 @@ export type { Division, ResolveAreaRequest } from './area.js';
 export type { AmapConfig } from './config.js';
 export type { Product, ProductCategory } from './product.js';
 export type { Order, OrderItem } from './order.js';
+export type { DashboardStats } from './dashboard.js';

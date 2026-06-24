@@ -6,6 +6,7 @@ import { userRoutes } from './users.js';
 import { storeRoutes } from './stores.js';
 import { areaRoutes } from './areas.js';
 import { configRoutes } from './config.js';
+import { dashboardRoutes } from './dashboard.js';
 import { config } from '../config/index.js';
 import { authHook } from '../middleware/auth.js';
 
@@ -23,4 +24,5 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(storeRoutes, { prefix: config.apiPrefix });
   await app.register(areaRoutes, { prefix: config.apiPrefix });
   await app.register(configRoutes, { prefix: config.apiPrefix });
+  await app.register(dashboardRoutes, { prefix: config.apiPrefix });
 }
