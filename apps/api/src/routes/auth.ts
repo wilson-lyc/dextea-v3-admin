@@ -4,23 +4,28 @@ import { eq } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
 import { usersTable } from '../db/schema.js';
 import { verifyPassword } from '../utils/password.js';
+import { AppError } from '../errorcode/index.js';
+import { authErrors } from '../errorcode/auth.js';
+import type { ApiResponse, LoginRequest, LoginResponse } from '@dextea/shared-types';
 
 const TOKEN_PREFIX = 'dextea:admin:token:';
 const TOKEN_TTL = 60 * 30; // 30 minutes
 
 export async function authRoutes(app: FastifyInstance) {
+
+  /** 
+   * 用户登录
+   * url：/api/v1/auth/login 
+   */
   app.post<{
-    Body: { account: string; password: string };
+    Body: LoginRequest;
+    Reply: ApiResponse<LoginResponse>;
   }>('/auth/login', async (request, reply) => {
     try {
       const { account, password } = request.body;
 
       if (!account || !password) {
-        return reply.status(400).send({
-          code: 1,
-          data: null,
-          message: '请输入账号和密码',
-        });
+        throw new AppError(authErrors.MISSING_CREDENTIALS);
       }
 
       const db = await getDb();
@@ -34,30 +39,18 @@ export async function authRoutes(app: FastifyInstance) {
 
       const user = users[0];
       if (!user) {
-        return reply.status(401).send({
-          code: 1,
-          data: null,
-          message: '账号或密码错误',
-        });
+        throw new AppError(authErrors.INVALID_CREDENTIALS);
       }
 
       // Verify password
       const valid = await verifyPassword(password, user.password);
       if (!valid) {
-        return reply.status(401).send({
-          code: 1,
-          data: null,
-          message: '账号或密码错误',
-        });
+        throw new AppError(authErrors.INVALID_CREDENTIALS);
       }
 
       // Check if user is active
       if (user.status === 0) {
-        return reply.status(403).send({
-          code: 1,
-          data: null,
-          message: '该账号已被禁用',
-        });
+        throw new AppError(authErrors.ACCOUNT_DISABLED);
       }
 
       // Generate token and store in Redis
@@ -83,24 +76,20 @@ export async function authRoutes(app: FastifyInstance) {
         message: '登录成功',
       };
     } catch (error) {
+      if (error instanceof AppError) throw error;
       request.log.error(error);
-      return reply.status(500).send({
-        code: 1,
-        data: null,
-        message: '登录失败，请稍后重试',
-      });
+      throw new AppError(authErrors.LOGIN_FAILED);
     }
   });
 
-  // Logout — invalidate token
-  app.post('/auth/logout', async (request, reply) => {
+  /**
+   * 用户退出
+   * url：/api/v1/auth/logout
+   */
+  app.post<{ Reply: ApiResponse<null> }>('/auth/logout', async (request, reply) => {
     const authHeader = request.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return reply.status(401).send({
-        code: 1,
-        data: null,
-        message: '未提供有效的认证令牌',
-      });
+      throw new AppError(authErrors.INVALID_TOKEN);
     }
 
     try {
@@ -113,12 +102,9 @@ export async function authRoutes(app: FastifyInstance) {
         message: '已退出登录',
       };
     } catch (error) {
+      if (error instanceof AppError) throw error;
       request.log.error(error);
-      return reply.status(500).send({
-        code: 1,
-        data: null,
-        message: '退出登录失败',
-      });
+      throw new AppError(authErrors.LOGOUT_FAILED);
     }
   });
 }

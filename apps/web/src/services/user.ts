@@ -1,25 +1,15 @@
-import type { User, UserStatus, ApiResponse, PaginatedData } from '@dextea/shared-types'
+import type {
+  User,
+  UserStatus,
+  ApiResponse,
+  PaginatedData,
+  CreateUserInput,
+  UpdateUserInput,
+  CreateUserResponse,
+  UpdateUserResponse,
+  ToggleUserStatusResponse,
+} from '@dextea/shared-types'
 import { http } from './http'
-
-export interface CreateUserData {
-  email: string
-  displayName: string
-}
-
-export interface UpdateUserData {
-  email: string
-  displayName: string
-  status: UserStatus
-}
-
-export interface CreateUserResult {
-  user: User
-  initialPassword: string
-}
-
-export interface ToggleStatusResult {
-  status: UserStatus
-}
 
 /** GET /users (paginated) */
 export function getUsers(params?: { page?: number; pageSize?: number }) {
@@ -29,22 +19,25 @@ export function getUsers(params?: { page?: number; pageSize?: number }) {
 }
 
 /** POST /users */
-export function createUser(data: CreateUserData) {
+export function createUser(data: CreateUserInput) {
   return http
-    .post<ApiResponse<CreateUserResult>>('/users', data)
+    .post<ApiResponse<CreateUserResponse>>('/users', data)
     .then((res) => res.data)
 }
 
 /** PUT /users/:id */
-export function updateUser(id: number, data: UpdateUserData) {
+export function updateUser(id: number, data: UpdateUserInput) {
   return http
-    .put<ApiResponse<{ id: number }>>(`/users/${id}`, data)
+    .put<ApiResponse<UpdateUserResponse>>(`/users/${id}`, data)
     .then((res) => res.data)
 }
 
 /** PATCH /users/:id/status — toggle user enabled/disabled */
 export function toggleUserStatus(id: number) {
   return http
-    .patch<ApiResponse<ToggleStatusResult>>(`/users/${id}/status`)
+    .patch<ApiResponse<ToggleUserStatusResponse>>(`/users/${id}/status`)
     .then((res) => res.data)
 }
+
+// Re-export types used by pages
+export type { UserStatus }

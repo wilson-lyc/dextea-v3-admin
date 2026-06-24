@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Loader2Icon } from "lucide-react"
 import { http } from "@/services/http"
+import type { AmapConfig } from "@dextea/shared-types"
 
 interface Props {
   longitude: number
@@ -49,7 +50,6 @@ export default function AmapMap({ longitude, latitude, name, address }: Props) {
 
     ;(async () => {
       try {
-        type AmapConfig = { key: string; securityCode: string }
         const res = await http.get<{ code: number; data: AmapConfig }>("/config/amap-key")
         if (cancelled) return
 

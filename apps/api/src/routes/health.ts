@@ -1,7 +1,12 @@
 import type { FastifyInstance } from 'fastify';
+import type { HealthResponse } from '@dextea/shared-types';
 
 export async function healthRoutes(app: FastifyInstance) {
-  app.get('/health', {
+  /**
+   * 健康检查
+   * url：/health
+   */
+  app.get<{ Reply: HealthResponse }>('/health', {
     schema: {
       response: {
         200: {

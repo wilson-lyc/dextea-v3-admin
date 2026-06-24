@@ -3,10 +3,29 @@ import { eq, sql } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
 import { storesTable } from '../db/schema.js';
 import { geocode } from '../utils/geocode.js';
+import { AppError } from '../errorcode/index.js';
+import { storeErrors } from '../errorcode/stores.js';
+import type {
+  ApiResponse,
+  PaginatedData,
+  Store,
+  StoreQuery,
+  CreateStoreInput,
+  CreateStoreResponse,
+  UpdateStoreInput,
+  UpdateStoreResponse,
+  UpdateStoreStatusRequest,
+  UpdateStoreStatusResponse,
+} from '@dextea/shared-types';
 
 export async function storeRoutes(app: FastifyInstance) {
+  /**
+   * 门店列表
+   * url：/api/v1/stores
+   */
   app.get<{
-    Querystring: { page?: string; pageSize?: string; keyword?: string };
+    Querystring: StoreQuery;
+    Reply: ApiResponse<PaginatedData<Store>>;
   }>('/stores', async (request, reply) => {
     try {
       const db = await getDb();
@@ -46,17 +65,19 @@ export async function storeRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
+      if (error instanceof AppError) throw error;
       request.log.error(error);
-      return reply.status(500).send({
-        code: 1,
-        data: null,
-        message: '获取门店列表失败',
-      });
+      throw new AppError(storeErrors.LIST_FAILED);
     }
   });
 
+  /**
+   * 门店详情
+   * url：/api/v1/stores/:id
+   */
   app.get<{
     Params: { id: string };
+    Reply: ApiResponse<Store>;
   }>('/stores/:id', async (request, reply) => {
     try {
       const db = await getDb();
@@ -69,11 +90,7 @@ export async function storeRoutes(app: FastifyInstance) {
         .limit(1);
 
       if (store.length === 0) {
-        return reply.status(404).send({
-          code: 1,
-          data: null,
-          message: '门店不存在',
-        });
+        throw new AppError(storeErrors.STORE_NOT_FOUND);
       }
 
       return {
@@ -82,36 +99,26 @@ export async function storeRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
+      if (error instanceof AppError) throw error;
       request.log.error(error);
-      return reply.status(500).send({
-        code: 1,
-        data: null,
-        message: '获取门店信息失败',
-      });
+      throw new AppError(storeErrors.GET_FAILED);
     }
   });
 
+  /**
+   * 新增门店
+   * url：/api/v1/stores
+   */
   app.post<{
-    Body: {
-      name: string;
-      province: string;
-      city: string;
-      district: string;
-      address: string;
-      businessHours: string;
-      phone: string;
-    };
+    Body: CreateStoreInput;
+    Reply: ApiResponse<CreateStoreResponse>;
   }>('/stores', async (request, reply) => {
     try {
       const db = await getDb();
       const { name, province, city, district, address, businessHours, phone } = request.body;
 
       if (!name) {
-        return reply.status(400).send({
-          code: 1,
-          data: null,
-          message: '门店名称不能为空',
-        });
+        throw new AppError(storeErrors.NAME_REQUIRED);
       }
 
       // Auto-geocode from address
@@ -150,29 +157,20 @@ export async function storeRoutes(app: FastifyInstance) {
         message: '创建成功',
       };
     } catch (error) {
+      if (error instanceof AppError) throw error;
       request.log.error(error);
-      return reply.status(500).send({
-        code: 1,
-        data: null,
-        message: '创建门店失败',
-      });
+      throw new AppError(storeErrors.CREATE_FAILED);
     }
   });
 
+  /**
+   * 更新门店
+   * url：/api/v1/stores/:id
+   */
   app.put<{
     Params: { id: string };
-    Body: {
-      name: string;
-      province: string;
-      city: string;
-      district: string;
-      address: string;
-      status: number;
-      businessHours: string;
-      phone: string;
-      longitude?: number;
-      latitude?: number;
-    };
+    Body: UpdateStoreInput;
+    Reply: ApiResponse<UpdateStoreResponse>;
   }>('/stores/:id', async (request, reply) => {
     try {
       const db = await getDb();
@@ -180,11 +178,7 @@ export async function storeRoutes(app: FastifyInstance) {
       const { name, province, city, district, address, status, businessHours, phone, longitude, latitude } = request.body;
 
       if (!name) {
-        return reply.status(400).send({
-          code: 1,
-          data: null,
-          message: '门店名称不能为空',
-        });
+        throw new AppError(storeErrors.NAME_REQUIRED);
       }
 
       const store = await db
@@ -194,11 +188,7 @@ export async function storeRoutes(app: FastifyInstance) {
         .limit(1);
 
       if (store.length === 0) {
-        return reply.status(404).send({
-          code: 1,
-          data: null,
-          message: '门店不存在',
-        });
+        throw new AppError(storeErrors.STORE_NOT_FOUND);
       }
 
       await db
@@ -223,18 +213,20 @@ export async function storeRoutes(app: FastifyInstance) {
         message: '更新成功',
       };
     } catch (error) {
+      if (error instanceof AppError) throw error;
       request.log.error(error);
-      return reply.status(500).send({
-        code: 1,
-        data: null,
-        message: '更新门店失败',
-      });
+      throw new AppError(storeErrors.UPDATE_FAILED);
     }
   });
 
+  /**
+   * 更新门店状态
+   * url：/api/v1/stores/:id/status
+   */
   app.patch<{
     Params: { id: string };
-    Body: { status: number };
+    Body: UpdateStoreStatusRequest;
+    Reply: ApiResponse<UpdateStoreStatusResponse>;
   }>('/stores/:id/status', async (request, reply) => {
     try {
       const db = await getDb();
@@ -243,11 +235,7 @@ export async function storeRoutes(app: FastifyInstance) {
 
       const validStatuses = [0, 1, 2, 3];
       if (!validStatuses.includes(status)) {
-        return reply.status(400).send({
-          code: 1,
-          data: null,
-          message: '无效的状态值',
-        });
+        throw new AppError(storeErrors.INVALID_STATUS);
       }
 
       const store = await db
@@ -257,11 +245,7 @@ export async function storeRoutes(app: FastifyInstance) {
         .limit(1);
 
       if (store.length === 0) {
-        return reply.status(404).send({
-          code: 1,
-          data: null,
-          message: '门店不存在',
-        });
+        throw new AppError(storeErrors.STORE_NOT_FOUND);
       }
 
       await db
@@ -282,12 +266,9 @@ export async function storeRoutes(app: FastifyInstance) {
         message: `门店状态已更新为「${statusLabels[status] ?? '未知'}」`,
       };
     } catch (error) {
+      if (error instanceof AppError) throw error;
       request.log.error(error);
-      return reply.status(500).send({
-        code: 1,
-        data: null,
-        message: '更新门店状态失败',
-      });
+      throw new AppError(storeErrors.STATUS_UPDATE_FAILED);
     }
   });
 }

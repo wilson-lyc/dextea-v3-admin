@@ -3,10 +3,17 @@ import { eq } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
 import { configTable, usersTable } from '../db/schema.js';
 import { hashPassword } from '../utils/password.js';
+import { AppError } from '../errorcode/index.js';
+import { initErrors } from '../errorcode/init.js';
+import { userErrors } from '../errorcode/users.js';
+import type { ApiResponse, InitStatusData, InitRequest } from '@dextea/shared-types';
 
 export async function initRoutes(app: FastifyInstance) {
-  // Check if system is initialized
-  app.get('/init/status', async (_request, _reply) => {
+  /**
+   * 初始化状态
+   * url：/api/v1/init/status
+   */
+  app.get<{ Reply: ApiResponse<InitStatusData> }>('/init/status', async (_request, _reply) => {
     const db = await getDb();
     const record = await db
       .select()
@@ -17,10 +24,11 @@ export async function initRoutes(app: FastifyInstance) {
     return { code: 0, data: { initialized: record.length > 0 }, message: 'ok' };
   });
 
-  // Initialize system (create admin user)
-  app.post<{
-    Body: { email: string; password: string; displayName: string };
-  }>('/init', async (request, reply) => {
+  /**
+   * 系统初始化
+   * url：/api/v1/init
+   */
+  app.post<{ Body: InitRequest; Reply: ApiResponse<null> }>('/init', async (request, reply) => {
     try {
       const db = await getDb();
 
@@ -32,21 +40,13 @@ export async function initRoutes(app: FastifyInstance) {
         .limit(1);
 
       if (record.length > 0) {
-        return reply.status(400).send({
-          code: 1,
-          data: null,
-          message: '系统已初始化，请勿重复操作',
-        });
+        throw new AppError(initErrors.ALREADY_INITIALIZED);
       }
 
       const { email, password, displayName } = request.body;
 
       if (!email || !password || !displayName) {
-        return reply.status(400).send({
-          code: 1,
-          data: null,
-          message: '请填写所有必填字段',
-        });
+        throw new AppError(initErrors.MISSING_FIELDS);
       }
 
       // Check if email already exists
@@ -57,11 +57,7 @@ export async function initRoutes(app: FastifyInstance) {
         .limit(1);
 
       if (existingUser.length > 0) {
-        return reply.status(400).send({
-          code: 1,
-          data: null,
-          message: '该邮箱已被使用',
-        });
+        throw new AppError(initErrors.EMAIL_EXISTS);
       }
 
       // Create admin user
@@ -81,12 +77,9 @@ export async function initRoutes(app: FastifyInstance) {
 
       return { code: 0, data: null, message: '初始化成功' };
     } catch (error) {
+      if (error instanceof AppError) throw error;
       request.log.error(error);
-      return reply.status(500).send({
-        code: 1,
-        data: null,
-        message: '初始化失败，请检查数据库连接或稍后重试',
-      });
+      throw new AppError(initErrors.INIT_FAILED);
     }
   });
 }

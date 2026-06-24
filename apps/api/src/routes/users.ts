@@ -4,11 +4,28 @@ import { nanoid } from 'nanoid';
 import { getDb } from '../db/index.js';
 import { usersTable } from '../db/schema.js';
 import { hashPassword } from '../utils/password.js';
+import { AppError } from '../errorcode/index.js';
+import { userErrors } from '../errorcode/users.js';
+import type {
+  ApiResponse,
+  PaginatedData,
+  User,
+  UserQuery,
+  CreateUserInput,
+  CreateUserResponse,
+  UpdateUserInput,
+  UpdateUserResponse,
+  ToggleUserStatusResponse,
+} from '@dextea/shared-types';
 
 export async function userRoutes(app: FastifyInstance) {
-  // List users (paginated)
+  /**
+   * 用户列表
+   * url：/api/v1/users
+   */
   app.get<{
-    Querystring: { page?: string; pageSize?: string };
+    Querystring: UserQuery;
+    Reply: ApiResponse<PaginatedData<User>>;
   }>('/users', async (request, reply) => {
     try {
       const db = await getDb();
@@ -42,29 +59,26 @@ export async function userRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
+      if (error instanceof AppError) throw error;
       request.log.error(error);
-      return reply.status(500).send({
-        code: 1,
-        data: null,
-        message: '获取用户列表失败',
-      });
+      throw new AppError(userErrors.LIST_FAILED);
     }
   });
 
-  // Create user
+  /**
+   * 新增用户
+   * url：/api/v1/users
+   */
   app.post<{
-    Body: { email: string; displayName: string };
+    Body: CreateUserInput;
+    Reply: ApiResponse<CreateUserResponse>;
   }>('/users', async (request, reply) => {
     try {
       const db = await getDb();
       const { email, displayName } = request.body;
 
       if (!email || !displayName) {
-        return reply.status(400).send({
-          code: 1,
-          data: null,
-          message: '请填写所有必填字段',
-        });
+        throw new AppError(userErrors.MISSING_FIELDS);
       }
 
       // Check if email already exists
@@ -75,11 +89,7 @@ export async function userRoutes(app: FastifyInstance) {
         .limit(1);
 
       if (existingUser.length > 0) {
-        return reply.status(400).send({
-          code: 1,
-          data: null,
-          message: '该邮箱已被使用',
-        });
+        throw new AppError(userErrors.EMAIL_EXISTS);
       }
 
       // Generate random password (12 characters)
@@ -109,19 +119,20 @@ export async function userRoutes(app: FastifyInstance) {
         message: '创建成功',
       };
     } catch (error) {
+      if (error instanceof AppError) throw error;
       request.log.error(error);
-      return reply.status(500).send({
-        code: 1,
-        data: null,
-        message: '创建用户失败',
-      });
+      throw new AppError(userErrors.CREATE_FAILED);
     }
   });
 
-  // Update user
+  /**
+   * 更新用户
+   * url：/api/v1/users/:id
+   */
   app.put<{
     Params: { id: string };
-    Body: { email: string; displayName: string; status: number };
+    Body: UpdateUserInput;
+    Reply: ApiResponse<UpdateUserResponse>;
   }>('/users/:id', async (request, reply) => {
     try {
       const db = await getDb();
@@ -129,11 +140,7 @@ export async function userRoutes(app: FastifyInstance) {
       const { email, displayName, status } = request.body;
 
       if (!email || !displayName) {
-        return reply.status(400).send({
-          code: 1,
-          data: null,
-          message: '请填写所有必填字段',
-        });
+        throw new AppError(userErrors.MISSING_FIELDS);
       }
 
       // Check if user exists
@@ -144,11 +151,7 @@ export async function userRoutes(app: FastifyInstance) {
         .limit(1);
 
       if (user.length === 0) {
-        return reply.status(404).send({
-          code: 1,
-          data: null,
-          message: '用户不存在',
-        });
+        throw new AppError(userErrors.USER_NOT_FOUND);
       }
 
       // Check email uniqueness (excluding self)
@@ -159,11 +162,7 @@ export async function userRoutes(app: FastifyInstance) {
         .limit(1);
 
       if (existingEmail.length > 0 && existingEmail[0].id !== id) {
-        return reply.status(400).send({
-          code: 1,
-          data: null,
-          message: '该邮箱已被其他用户使用',
-        });
+        throw new AppError(userErrors.EMAIL_EXISTS_OTHER);
       }
 
       await db
@@ -186,18 +185,19 @@ export async function userRoutes(app: FastifyInstance) {
         message: '更新成功',
       };
     } catch (error) {
+      if (error instanceof AppError) throw error;
       request.log.error(error);
-      return reply.status(500).send({
-        code: 1,
-        data: null,
-        message: '更新用户失败',
-      });
+      throw new AppError(userErrors.UPDATE_FAILED);
     }
   });
 
-  // Toggle user status
+  /**
+   * 启用/禁用用户
+   * url：/api/v1/users/:id/status
+   */
   app.patch<{
     Params: { id: string };
+    Reply: ApiResponse<ToggleUserStatusResponse>;
   }>('/users/:id/status', async (request, reply) => {
     try {
       const db = await getDb();
@@ -210,11 +210,7 @@ export async function userRoutes(app: FastifyInstance) {
         .limit(1);
 
       if (user.length === 0) {
-        return reply.status(404).send({
-          code: 1,
-          data: null,
-          message: '用户不存在',
-        });
+        throw new AppError(userErrors.USER_NOT_FOUND);
       }
 
       const newStatus = user[0].status === 0 ? 1 : 0;
@@ -230,12 +226,9 @@ export async function userRoutes(app: FastifyInstance) {
         message: newStatus === 1 ? '已激活' : '已禁用',
       };
     } catch (error) {
+      if (error instanceof AppError) throw error;
       request.log.error(error);
-      return reply.status(500).send({
-        code: 1,
-        data: null,
-        message: '操作失败',
-      });
+      throw new AppError(userErrors.OPERATE_FAILED);
     }
   });
 }

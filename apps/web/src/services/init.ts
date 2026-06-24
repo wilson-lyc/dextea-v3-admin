@@ -1,15 +1,5 @@
-import type { ApiResponse } from '@dextea/shared-types'
+import type { ApiResponse, InitStatusData, InitRequest } from '@dextea/shared-types'
 import { http } from './http'
-
-export interface InitParams {
-  email: string
-  password: string
-  displayName: string
-}
-
-interface InitStatusData {
-  initialized: boolean
-}
 
 /** GET /init/status */
 export function getInitStatus() {
@@ -17,6 +7,6 @@ export function getInitStatus() {
 }
 
 /** POST /init */
-export function initSystem(params: InitParams) {
+export function initSystem(params: InitRequest) {
   return http.post<ApiResponse<null>>('/init', params).then((res) => res.data)
 }

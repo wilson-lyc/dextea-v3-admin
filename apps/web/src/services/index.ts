@@ -1,16 +1,28 @@
 export { http, API_BASE } from './http'
 
 export { login, logout } from './auth'
-export type { LoginParams, LoginData } from './auth'
-
 export { getInitStatus, initSystem } from './init'
-export type { InitParams } from './init'
-
 export { getUsers, createUser, updateUser, toggleUserStatus } from './user'
-export type { CreateUserData, UpdateUserData, CreateUserResult, ToggleStatusResult } from './user'
-
 export { getStores, getStore, createStore, updateStore, updateStoreStatus } from './store'
-export type { CreateStoreData, UpdateStoreData, UpdateStoreStatusResult } from './store'
-
 export { getProvinces, getChildren, resolveNames } from './area'
-export type { Division } from './area'
+
+// Re-export shared types for page convenience
+export type {
+  LoginRequest,
+  LoginResponse,
+  InitRequest,
+  InitStatusData,
+  CreateUserInput,
+  UpdateUserInput,
+  CreateUserResponse,
+  UpdateUserResponse,
+  ToggleUserStatusResponse,
+  CreateStoreInput,
+  UpdateStoreInput,
+  CreateStoreResponse,
+  UpdateStoreResponse,
+  UpdateStoreStatusRequest,
+  UpdateStoreStatusResponse,
+  Division,
+  AmapConfig,
+} from '@dextea/shared-types'

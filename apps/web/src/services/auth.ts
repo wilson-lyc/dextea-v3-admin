@@ -1,23 +1,9 @@
-import type { ApiResponse } from '@dextea/shared-types'
+import type { ApiResponse, LoginRequest, LoginResponse } from '@dextea/shared-types'
 import { http } from './http'
 
-export interface LoginParams {
-  account: string
-  password: string
-}
-
-export interface LoginData {
-  token: string
-  user: {
-    id: number
-    email: string
-    displayName: string
-  }
-}
-
 /** POST /auth/login */
-export function login(params: LoginParams) {
-  return http.post<ApiResponse<LoginData>>('/auth/login', params).then((res) => res.data)
+export function login(params: LoginRequest) {
+  return http.post<ApiResponse<LoginResponse>>('/auth/login', params).then((res) => res.data)
 }
 
 /** POST /auth/logout */
