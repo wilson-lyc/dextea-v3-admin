@@ -25,6 +25,7 @@ export function EditBasicInfoDialog({ open, onOpenChange, store, onUpdated }: Ed
   const [name, setName] = useState(store.name)
   const [phone, setPhone] = useState(store.phone)
   const [businessHours, setBusinessHours] = useState(store.businessHours)
+  const [email, setEmail] = useState(store.email)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export function EditBasicInfoDialog({ open, onOpenChange, store, onUpdated }: Ed
       setName(store.name)
       setPhone(store.phone)
       setBusinessHours(store.businessHours)
+      setEmail(store.email)
     }
   }, [open, store])
 
@@ -43,7 +45,7 @@ export function EditBasicInfoDialog({ open, onOpenChange, store, onUpdated }: Ed
 
     setSubmitting(true)
     try {
-      const res = await updateStoreBasicInfo(store.id, { name, phone, businessHours })
+      const res = await updateStoreBasicInfo(store.id, { name, phone, businessHours, email })
       if (res.code === 0) {
         toast.success(res.message)
         onOpenChange(false)
@@ -75,6 +77,19 @@ export function EditBasicInfoDialog({ open, onOpenChange, store, onUpdated }: Ed
               placeholder="请输入门店名称"
               value={name}
               onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="edit-store-email">
+              邮箱
+            </Label>
+            <Input
+              id="edit-store-email"
+              type="email"
+              placeholder="请输入邮箱地址"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
