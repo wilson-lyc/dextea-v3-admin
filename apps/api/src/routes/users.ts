@@ -17,6 +17,7 @@ import type {
   UpdateUserResponse,
   ToggleUserStatusResponse,
 } from '@dextea/shared-types';
+import { USER_STATUS } from '@dextea/shared-types';
 
 export async function userRoutes(app: FastifyInstance) {
   /**
@@ -100,7 +101,7 @@ export async function userRoutes(app: FastifyInstance) {
         email,
         password: hashedPassword,
         displayName,
-        status: 0, // Default disabled
+        status: USER_STATUS.DISABLED.value,
       });
 
       const insertId = Number(result[0]?.insertId ?? 0);
@@ -112,7 +113,7 @@ export async function userRoutes(app: FastifyInstance) {
             id: insertId,
             email,
             displayName,
-            status: 0 as const,
+            status: USER_STATUS.DISABLED.value,
           },
           initialPassword,
         },
@@ -213,7 +214,7 @@ export async function userRoutes(app: FastifyInstance) {
         throw new AppError(userErrors.USER_NOT_FOUND);
       }
 
-      const newStatus = user[0].status === 0 ? 1 : 0;
+      const newStatus = user[0].status === USER_STATUS.DISABLED.value ? USER_STATUS.ACTIVE.value : USER_STATUS.DISABLED.value;
 
       await db
         .update(usersTable)
@@ -223,7 +224,7 @@ export async function userRoutes(app: FastifyInstance) {
       return {
         code: 0,
         data: { status: newStatus },
-        message: newStatus === 1 ? '已激活' : '已禁用',
+        message: newStatus === USER_STATUS.ACTIVE.value ? '已激活' : '已禁用',
       };
     } catch (error) {
       if (error instanceof AppError) throw error;

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import type { StoreStatus } from "@dextea/shared-types"
-import { STORE_STATUS, STORE_STATUS_LABEL } from "@dextea/shared-types"
+import { STORE_STATUS, getStoreStatusLabel } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import {
@@ -30,10 +30,10 @@ interface EditStatusDialogProps {
 }
 
 const STATUS_OPTIONS: { value: StoreStatus; label: string }[] = [
-  { value: STORE_STATUS.OPEN, label: STORE_STATUS_LABEL[STORE_STATUS.OPEN] },
-  { value: STORE_STATUS.RESTING, label: STORE_STATUS_LABEL[STORE_STATUS.RESTING] },
-  { value: STORE_STATUS.PREPARING, label: STORE_STATUS_LABEL[STORE_STATUS.PREPARING] },
-  { value: STORE_STATUS.CLOSED, label: STORE_STATUS_LABEL[STORE_STATUS.CLOSED] },
+  { value: STORE_STATUS.OPEN.value, label: STORE_STATUS.OPEN.label },
+  { value: STORE_STATUS.RESTING.value, label: STORE_STATUS.RESTING.label },
+  { value: STORE_STATUS.PREPARING.value, label: STORE_STATUS.PREPARING.label },
+  { value: STORE_STATUS.CLOSED.value, label: STORE_STATUS.CLOSED.label },
 ]
 
 export function EditStatusDialog({ open, onOpenChange, storeId, currentStatus, onUpdated }: EditStatusDialogProps) {
@@ -79,7 +79,7 @@ export function EditStatusDialog({ open, onOpenChange, storeId, currentStatus, o
             <Select value={selected} onValueChange={setSelected}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="请选择门店状态">
-                  {STORE_STATUS_LABEL[Number(selected) as StoreStatus]}
+                  {getStoreStatusLabel(Number(selected) as StoreStatus)}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>

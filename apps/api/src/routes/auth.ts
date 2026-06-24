@@ -6,6 +6,7 @@ import { usersTable } from '../db/schema.js';
 import { verifyPassword } from '../utils/password.js';
 import { AppError } from '../errorcode/index.js';
 import { authErrors } from '../errorcode/auth.js';
+import { USER_STATUS } from '@dextea/shared-types';
 import type { ApiResponse, AuthMeResponse, LoginRequest, LoginResponse } from '@dextea/shared-types';
 
 const TOKEN_PREFIX = 'dextea:admin:token:';
@@ -64,7 +65,7 @@ export async function authRoutes(app: FastifyInstance) {
       }
 
       // Check if user is active
-      if (user.status === 0) {
+      if (user.status === USER_STATUS.DISABLED.value) {
         throw new AppError(authErrors.ACCOUNT_DISABLED);
       }
 

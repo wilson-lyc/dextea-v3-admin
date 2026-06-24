@@ -4,6 +4,7 @@ export { login, logout, getMe } from './auth'
 export { getInitStatus, initSystem } from './init'
 export { getUsers, createUser, updateUser, toggleUserStatus } from './user'
 export { getStores, getStore, createStore, updateStore, updateStoreStatus, updateStoreBasicInfo, updateStoreLocation, resetStorePassword, syncStoreLocations } from './store'
+export { getProducts, createProduct, updateProduct, toggleProductStatus } from './product'
 export { getProvinces, getChildren, resolveNames } from './area'
 export { getDashboardStats } from './dashboard'
 

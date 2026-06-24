@@ -8,6 +8,7 @@ import DashboardPage from "@/pages/Dashboard"
 import EmployeesPage from "@/pages/Employees"
 import StoresPage from "@/pages/Stores"
 import StoreDetailPage from "@/pages/Stores/detail"
+import ProductsPage from "@/pages/Products"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/hooks/use-theme"
@@ -33,6 +34,7 @@ function App() {
             <Route path="employees" element={<EmployeesPage />} />
             <Route path="stores" element={<StoresPage />} />
             <Route path="stores/:id" element={<StoreDetailPage />} />
+            <Route path="products" element={<ProductsPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

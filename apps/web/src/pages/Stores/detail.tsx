@@ -4,7 +4,7 @@ import { ArrowLeftIcon, Loader2Icon, PencilIcon, KeyRoundIcon } from "lucide-rea
 import { toast } from "sonner"
 
 import type { Store, StoreStatus } from "@dextea/shared-types"
-import { STORE_STATUS_LABEL } from "@dextea/shared-types"
+import { getStoreStatusLabel } from "@dextea/shared-types"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -166,7 +166,7 @@ export default function StoreDetailPage() {
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">当前状态</span>
                   <Badge className={STATUS_BADGE_CLASSES[store.status]}>
-                    {STORE_STATUS_LABEL[store.status]}
+                    {getStoreStatusLabel(store.status)}
                   </Badge>
               </div>
             </CardContent>

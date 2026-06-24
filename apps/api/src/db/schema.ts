@@ -7,9 +7,9 @@ import {
   bigint,
   text,
   double,
+  int,
   primaryKey,
 } from 'drizzle-orm/mysql-core';
-import type { UserStatus, StoreStatus } from '@dextea/shared-types';
 
 /**
  * 用户表
@@ -19,7 +19,7 @@ export const usersTable = mysqlTable('users', {
   email: varchar({ length: 255 }).notNull().unique(),
   password: varchar({ length: 255 }).notNull(),
   displayName: varchar('display_name', { length: 255 }).notNull(),
-  status: tinyint().$type<UserStatus>().notNull().default(1),
+  status: tinyint().notNull().default(1),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -31,7 +31,7 @@ export const rolesTable = mysqlTable('roles', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull().unique(),
   note: text(),
-  status: tinyint().$type<UserStatus>().notNull().default(1),
+  status: tinyint().notNull().default(1),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -102,7 +102,7 @@ export const storesTable = mysqlTable('stores', {
   district: varchar({ length: 100 }).notNull().default(''),
   address: varchar({ length: 500 }).notNull().default(''),
   // 门店状态：0 休息中、1 营业中、2 筹备中、3 已注销
-  status: tinyint().$type<StoreStatus>().notNull().default(2),
+  status: tinyint().notNull().default(2),
   businessHours: varchar('business_hours', { length: 255 }).notNull().default(''),
   phone: varchar({ length: 50 }).notNull().default(''),
   longitude: double().notNull().default(0),
@@ -110,6 +110,21 @@ export const storesTable = mysqlTable('stores', {
   account: varchar({ length: 255 }).notNull().unique(),
   password: varchar({ length: 255 }).notNull(),
   email: varchar({ length: 255 }).notNull().default(''),
+  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+});
+
+/**
+ * 商品表
+ */
+export const productsTable = mysqlTable('products', {
+  id: serial().primaryKey(),
+  name: varchar({ length: 255 }).notNull(),
+  brief: varchar('brief', { length: 500 }).notNull().default(''),
+  description: varchar({ length: 2000 }).notNull().default(''),
+  status: tinyint().notNull().default(1),
+  price: double().notNull().default(0),
+  categoryId: int('category_id').notNull().default(0),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });

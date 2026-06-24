@@ -3,7 +3,7 @@ import { Loader2Icon, PlusIcon, PencilIcon, BanIcon, CheckCircleIcon } from "luc
 import { toast } from "sonner"
 
 import type { User, UserStatus } from "@dextea/shared-types"
-import { USER_STATUS, USER_STATUS_LABEL } from "@dextea/shared-types"
+import { USER_STATUS, getUserStatusLabel } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -190,12 +190,12 @@ export default function EmployeesPage() {
                   <TableCell>
                     <span
                       className={
-                        user.status === USER_STATUS.ACTIVE
+                        user.status === USER_STATUS.ACTIVE.value
                           ? "text-green-600 dark:text-green-400"
                           : "text-muted-foreground"
                       }
                     >
-                      {USER_STATUS_LABEL[user.status]}
+                      {getUserStatusLabel(user.status)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
@@ -208,17 +208,17 @@ export default function EmployeesPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleToggleStatus(user)}
-                        className={user.status === USER_STATUS.ACTIVE ? "text-red-500 hover:text-red-500" : "text-green-600 hover:text-green-600"}
+                        className={user.status === USER_STATUS.ACTIVE.value ? "text-red-500 hover:text-red-500" : "text-green-600 hover:text-green-600"}
                       >
-                        {user.status === USER_STATUS.ACTIVE ? (
+                        {user.status === USER_STATUS.ACTIVE.value ? (
                           <>
                             <BanIcon data-icon="inline-start" />
-                            {USER_STATUS_LABEL[USER_STATUS.DISABLED]}
+                            {USER_STATUS.DISABLED.label}
                           </>
                         ) : (
                           <>
                             <CheckCircleIcon data-icon="inline-start" />
-                            {USER_STATUS_LABEL[USER_STATUS.ACTIVE]}
+                            {USER_STATUS.ACTIVE.label}
                           </>
                         )}
                       </Button>
@@ -284,11 +284,11 @@ export default function EmployeesPage() {
                   onValueChange={(val: string) => setFormStatus(Number(val) as UserStatus)}
                 >
                   <SelectTrigger id="user-status" className="w-full">
-                     <SelectValue>{USER_STATUS_LABEL[formStatus]}</SelectValue>
+                     <SelectValue>{getUserStatusLabel(formStatus)}</SelectValue>
                    </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={String(USER_STATUS.DISABLED)}>{USER_STATUS_LABEL[USER_STATUS.DISABLED]}</SelectItem>
-                    <SelectItem value={String(USER_STATUS.ACTIVE)}>{USER_STATUS_LABEL[USER_STATUS.ACTIVE]}</SelectItem>
+                    <SelectItem value={String(USER_STATUS.DISABLED.value)}>{USER_STATUS.DISABLED.label}</SelectItem>
+                    <SelectItem value={String(USER_STATUS.ACTIVE.value)}>{USER_STATUS.ACTIVE.label}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

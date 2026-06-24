@@ -4,7 +4,7 @@ import { Loader2Icon, PlusIcon, RefreshCwIcon, SearchIcon, SettingsIcon } from "
 import { toast } from "sonner"
 
 import type { Store, StoreStatus } from "@dextea/shared-types"
-import { STORE_STATUS_LABEL } from "@dextea/shared-types"
+import { getStoreStatusLabel } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -197,7 +197,7 @@ export default function StoresPage() {
                   <TableCell>{store.businessHours || "-"}</TableCell>
                   <TableCell>
                     <span className={STATUS_CLASSES[store.status]}>
-                      {STORE_STATUS_LABEL[store.status]}
+                      {getStoreStatusLabel(store.status)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
