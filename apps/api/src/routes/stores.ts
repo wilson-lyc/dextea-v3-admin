@@ -17,6 +17,10 @@ import type {
   UpdateStoreStatusRequest,
   UpdateStoreStatusResponse,
 } from '@dextea/shared-types';
+import {
+  STORE_STATUS_LABEL,
+  STORE_STATUS_VALUES,
+} from '@dextea/shared-types';
 
 export async function storeRoutes(app: FastifyInstance) {
   /**
@@ -233,7 +237,7 @@ export async function storeRoutes(app: FastifyInstance) {
       const id = parseInt(request.params.id, 10);
       const { status } = request.body;
 
-      const validStatuses = [0, 1, 2, 3];
+      const validStatuses = STORE_STATUS_VALUES;
       if (!validStatuses.includes(status)) {
         throw new AppError(storeErrors.INVALID_STATUS);
       }
@@ -253,17 +257,10 @@ export async function storeRoutes(app: FastifyInstance) {
         .set({ status })
         .where(eq(storesTable.id, id));
 
-      const statusLabels: Record<number, string> = {
-        0: '休息中',
-        1: '营业中',
-        2: '筹备中',
-        3: '门店已注销',
-      };
-
       return {
         code: 0,
         data: { status },
-        message: `门店状态已更新为「${statusLabels[status] ?? '未知'}」`,
+        message: `门店状态已更新为「${STORE_STATUS_LABEL[status] ?? '未知'}」`,
       };
     } catch (error) {
       if (error instanceof AppError) throw error;
