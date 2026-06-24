@@ -9,6 +9,8 @@ import type {
   UpdateStoreResponse,
   UpdateStoreStatusRequest,
   UpdateStoreStatusResponse,
+  UpdateStoreBasicInfoRequest,
+  UpdateStoreBasicInfoResponse,
 } from '@dextea/shared-types'
 import { http } from './http'
 
@@ -44,6 +46,13 @@ export function updateStore(id: number, data: UpdateStoreInput) {
 export function updateStoreStatus(id: number, data: UpdateStoreStatusRequest) {
   return http
     .patch<ApiResponse<UpdateStoreStatusResponse>>(`/stores/${id}/status`, data)
+    .then((res) => res.data)
+}
+
+/** PATCH /stores/:id/basic-info */
+export function updateStoreBasicInfo(id: number, data: UpdateStoreBasicInfoRequest) {
+  return http
+    .patch<ApiResponse<UpdateStoreBasicInfoResponse>>(`/stores/${id}/basic-info`, data)
     .then((res) => res.data)
 }
 

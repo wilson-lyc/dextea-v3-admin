@@ -51,4 +51,10 @@ export const storeErrors = {
     message: '更新门店状态失败',
     httpStatus: 500,
   } satisfies BizError,
+
+  BASIC_INFO_UPDATE_FAILED: {
+    code: 1308,
+    message: '更新门店基础信息失败',
+    httpStatus: 500,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

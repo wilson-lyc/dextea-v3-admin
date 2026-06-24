@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 import type { StoreStatus } from "@dextea/shared-types"
 import { STORE_STATUS, STORE_STATUS_LABEL } from "@dextea/shared-types"
@@ -18,11 +19,14 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { updateStoreStatus } from "@/services"
 
 interface EditStatusDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  storeId: number
   currentStatus: StoreStatus
+  onUpdated: () => void
 }
 
 const STATUS_OPTIONS: { value: StoreStatus; label: string }[] = [
@@ -32,8 +36,9 @@ const STATUS_OPTIONS: { value: StoreStatus; label: string }[] = [
   { value: STORE_STATUS.CLOSED, label: STORE_STATUS_LABEL[STORE_STATUS.CLOSED] },
 ]
 
-export function EditStatusDialog({ open, onOpenChange, currentStatus }: EditStatusDialogProps) {
+export function EditStatusDialog({ open, onOpenChange, storeId, currentStatus, onUpdated }: EditStatusDialogProps) {
   const [selected, setSelected] = useState<string>(String(currentStatus))
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -41,9 +46,22 @@ export function EditStatusDialog({ open, onOpenChange, currentStatus }: EditStat
     }
   }, [open, currentStatus])
 
-  const handleSubmit = () => {
-    // TODO: 调用 updateStoreStatus API
-    onOpenChange(false)
+  const handleSubmit = async () => {
+    setSubmitting(true)
+    try {
+      const res = await updateStoreStatus(storeId, { status: Number(selected) as StoreStatus })
+      if (res.code === 0) {
+        toast.success(res.message)
+        onOpenChange(false)
+        onUpdated()
+      } else {
+        toast.error(res.message)
+      }
+    } catch {
+      toast.error("更新门店状态失败")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -79,8 +97,8 @@ export function EditStatusDialog({ open, onOpenChange, currentStatus }: EditStat
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             取消
           </Button>
-          <Button onClick={handleSubmit}>
-            确定
+          <Button onClick={handleSubmit} disabled={submitting}>
+            {submitting ? "提交中..." : "确定"}
           </Button>
         </DialogFooter>
       </DialogContent>

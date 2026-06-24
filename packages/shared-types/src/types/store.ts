@@ -61,6 +61,16 @@ export interface UpdateStoreStatusResponse {
   status: StoreStatus;
 }
 
+export interface UpdateStoreBasicInfoRequest {
+  name: string;
+  phone: string;
+  businessHours: string;
+}
+
+export interface UpdateStoreBasicInfoResponse {
+  id: number;
+}
+
 /** Query string shape for GET /stores */
 export interface StoreQuery {
   page?: string;

@@ -16,6 +16,8 @@ import type {
   UpdateStoreResponse,
   UpdateStoreStatusRequest,
   UpdateStoreStatusResponse,
+  UpdateStoreBasicInfoRequest,
+  UpdateStoreBasicInfoResponse,
 } from '@dextea/shared-types';
 import {
   STORE_STATUS_LABEL,
@@ -220,6 +222,51 @@ export async function storeRoutes(app: FastifyInstance) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
       throw new AppError(storeErrors.UPDATE_FAILED);
+    }
+  });
+
+  /**
+   * 更新门店基础信息
+   * url：/api/v1/stores/:id/basic-info
+   */
+  app.patch<{
+    Params: { id: string };
+    Body: UpdateStoreBasicInfoRequest;
+    Reply: ApiResponse<UpdateStoreBasicInfoResponse>;
+  }>('/stores/:id/basic-info', async (request, reply) => {
+    try {
+      const db = await getDb();
+      const id = parseInt(request.params.id, 10);
+      const { name, phone, businessHours } = request.body;
+
+      if (!name) {
+        throw new AppError(storeErrors.NAME_REQUIRED);
+      }
+
+      const store = await db
+        .select()
+        .from(storesTable)
+        .where(eq(storesTable.id, id))
+        .limit(1);
+
+      if (store.length === 0) {
+        throw new AppError(storeErrors.STORE_NOT_FOUND);
+      }
+
+      await db
+        .update(storesTable)
+        .set({ name, phone, businessHours })
+        .where(eq(storesTable.id, id));
+
+      return {
+        code: 0,
+        data: { id },
+        message: '门店基础信息更新成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(storeErrors.BASIC_INFO_UPDATE_FAILED);
     }
   });
 

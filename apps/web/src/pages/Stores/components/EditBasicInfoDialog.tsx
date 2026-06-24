@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 import type { Store } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
@@ -11,17 +12,20 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { updateStoreBasicInfo } from "@/services"
 
 interface EditBasicInfoDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   store: Store
+  onUpdated: () => void
 }
 
-export function EditBasicInfoDialog({ open, onOpenChange, store }: EditBasicInfoDialogProps) {
+export function EditBasicInfoDialog({ open, onOpenChange, store, onUpdated }: EditBasicInfoDialogProps) {
   const [name, setName] = useState(store.name)
   const [phone, setPhone] = useState(store.phone)
   const [businessHours, setBusinessHours] = useState(store.businessHours)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -31,9 +35,27 @@ export function EditBasicInfoDialog({ open, onOpenChange, store }: EditBasicInfo
     }
   }, [open, store])
 
-  const handleSubmit = () => {
-    // TODO: 调用 updateStore API
-    onOpenChange(false)
+  const handleSubmit = async () => {
+    if (!name) {
+      toast.error("门店名称不能为空")
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const res = await updateStoreBasicInfo(store.id, { name, phone, businessHours })
+      if (res.code === 0) {
+        toast.success(res.message)
+        onOpenChange(false)
+        onUpdated()
+      } else {
+        toast.error(res.message)
+      }
+    } catch {
+      toast.error("更新门店基础信息失败")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -86,8 +108,8 @@ export function EditBasicInfoDialog({ open, onOpenChange, store }: EditBasicInfo
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             取消
           </Button>
-          <Button onClick={handleSubmit}>
-            确定
+          <Button onClick={handleSubmit} disabled={submitting}>
+            {submitting ? "提交中..." : "确定"}
           </Button>
         </DialogFooter>
       </DialogContent>

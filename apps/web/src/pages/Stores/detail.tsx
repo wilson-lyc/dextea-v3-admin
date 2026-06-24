@@ -225,12 +225,15 @@ export default function StoreDetailPage() {
           <EditStatusDialog
             open={statusDialogOpen}
             onOpenChange={setStatusDialogOpen}
+            storeId={store.id}
             currentStatus={store.status}
+            onUpdated={fetchStore}
           />
           <EditBasicInfoDialog
             open={basicInfoDialogOpen}
             onOpenChange={setBasicInfoDialogOpen}
             store={store}
+            onUpdated={fetchStore}
           />
           <EditLocationDialog
             open={locationDialogOpen}

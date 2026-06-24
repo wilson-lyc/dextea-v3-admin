@@ -2,19 +2,11 @@ import { useCallback, useEffect, useState } from "react"
 import { CircleHelpIcon } from "lucide-react"
 
 import type { Store } from "@dextea/shared-types"
-import type { Division } from "@/services"
+import { AreaSelector } from "@/components/area"
+import type { AreaValue } from "@/components/area"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxTrigger,
-} from "@/components/ui/combobox"
 import {
   Dialog,
   DialogContent,
@@ -27,7 +19,6 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip"
-import { getProvinces, getChildren } from "@/services"
 import AmapMapPicker from "@/components/amap/amap-map-picker"
 
 interface EditLocationDialogProps {
@@ -44,14 +35,7 @@ export function EditLocationDialog({ open, onOpenChange, store }: EditLocationDi
   const [longitude, setLongitude] = useState(store.longitude)
   const [latitude, setLatitude] = useState(store.latitude)
 
-  const [provinces, setProvinces] = useState<Division[]>([])
-  const [cities, setCities] = useState<Division[]>([])
-  const [districts, setDistricts] = useState<Division[]>([])
-  const [selectedProvince, setSelectedProvince] = useState<Division | null>(null)
-  const [selectedCity, setSelectedCity] = useState<Division | null>(null)
-  const [selectedDistrict, setSelectedDistrict] = useState<Division | null>(null)
-  const [areasLoading, setAreasLoading] = useState(false)
-
+  // 弹窗打开时从 store 同步省市区字段
   useEffect(() => {
     if (!open) return
 
@@ -61,62 +45,13 @@ export function EditLocationDialog({ open, onOpenChange, store }: EditLocationDi
     setAddress(store.address)
     setLongitude(store.longitude)
     setLatitude(store.latitude)
-    setSelectedProvince(null)
-    setSelectedCity(null)
-    setSelectedDistrict(null)
-    setCities([])
-    setDistricts([])
-
-    setAreasLoading(true)
-    getProvinces().then((res) => {
-      if (res.code === 0) {
-        setProvinces(res.data)
-        const matched = res.data.find((p) => p.name === store.province)
-        if (matched) setSelectedProvince(matched)
-      }
-      setAreasLoading(false)
-    })
   }, [open, store.province, store.city, store.district, store.address, store.longitude, store.latitude])
 
-  useEffect(() => {
-    if (!selectedProvince) {
-      setCities([])
-      setSelectedCity(null)
-      setDistricts([])
-      setSelectedDistrict(null)
-      return
-    }
-
-    setProvince(selectedProvince.name)
-    getChildren(selectedProvince.code).then((res) => {
-      if (res.code === 0) {
-        setCities(res.data)
-        const matched = res.data.find((c) => c.name === store.city)
-        if (matched) setSelectedCity(matched)
-      }
-    })
-  }, [selectedProvince])
-
-  useEffect(() => {
-    if (!selectedCity) {
-      setDistricts([])
-      setSelectedDistrict(null)
-      return
-    }
-
-    setCity(selectedCity.name)
-    getChildren(selectedCity.code).then((res) => {
-      if (res.code === 0) {
-        setDistricts(res.data)
-        const matched = res.data.find((d) => d.name === store.district)
-        if (matched) setSelectedDistrict(matched)
-      }
-    })
-  }, [selectedCity])
-
-  useEffect(() => {
-    setDistrict(selectedDistrict?.name ?? "")
-  }, [selectedDistrict])
+  const handleAreaChange = useCallback((value: AreaValue) => {
+    setProvince(value.province)
+    setCity(value.city)
+    setDistrict(value.district)
+  }, [])
 
   const handlePick = useCallback((lng: number, lat: number) => {
     setLongitude(lng)
@@ -142,83 +77,11 @@ export function EditLocationDialog({ open, onOpenChange, store }: EditLocationDi
             <Label>
               省市区 <span className="text-destructive">*</span>
             </Label>
-            <div className="grid grid-cols-3 gap-3">
-              <Combobox
-                items={provinces}
-                value={selectedProvince}
-                onValueChange={setSelectedProvince}
-                itemToStringValue={(item: Division | null) => item?.name ?? ""}
-              >
-                <ComboboxTrigger
-                  render={
-                    <Button variant="outline" className="w-full justify-between font-normal" disabled={areasLoading} />
-                  }
-                >
-                  {selectedProvince ? selectedProvince.name : <span className="text-muted-foreground">选择省</span>}
-                </ComboboxTrigger>
-                <ComboboxContent>
-                  <ComboboxInput showTrigger={false} placeholder="搜索省..." />
-                  <ComboboxEmpty>未找到</ComboboxEmpty>
-                  <ComboboxList>
-                    {(item: Division) => (
-                      <ComboboxItem key={item.code} value={item}>
-                        {item.name}
-                      </ComboboxItem>
-                    )}
-                  </ComboboxList>
-                </ComboboxContent>
-              </Combobox>
-              <Combobox
-                items={cities}
-                value={selectedCity}
-                onValueChange={setSelectedCity}
-                itemToStringValue={(item: Division | null) => item?.name ?? ""}
-              >
-                <ComboboxTrigger
-                  render={
-                    <Button variant="outline" className="w-full justify-between font-normal" disabled={!selectedProvince} />
-                  }
-                >
-                  {selectedCity ? selectedCity.name : <span className="text-muted-foreground">选择市</span>}
-                </ComboboxTrigger>
-                <ComboboxContent>
-                  <ComboboxInput showTrigger={false} placeholder="搜索市..." />
-                  <ComboboxEmpty>未找到</ComboboxEmpty>
-                  <ComboboxList>
-                    {(item: Division) => (
-                      <ComboboxItem key={item.code} value={item}>
-                        {item.name}
-                      </ComboboxItem>
-                    )}
-                  </ComboboxList>
-                </ComboboxContent>
-              </Combobox>
-              <Combobox
-                items={districts}
-                value={selectedDistrict}
-                onValueChange={setSelectedDistrict}
-                itemToStringValue={(item: Division | null) => item?.name ?? ""}
-              >
-                <ComboboxTrigger
-                  render={
-                    <Button variant="outline" className="w-full justify-between font-normal" disabled={!selectedCity} />
-                  }
-                >
-                  {selectedDistrict ? selectedDistrict.name : <span className="text-muted-foreground">选择区</span>}
-                </ComboboxTrigger>
-                <ComboboxContent>
-                  <ComboboxInput showTrigger={false} placeholder="搜索区..." />
-                  <ComboboxEmpty>未找到</ComboboxEmpty>
-                  <ComboboxList>
-                    {(item: Division) => (
-                      <ComboboxItem key={item.code} value={item}>
-                        {item.name}
-                      </ComboboxItem>
-                    )}
-                  </ComboboxList>
-                </ComboboxContent>
-              </Combobox>
-            </div>
+            <AreaSelector
+              key={`edit-location-${store.id}-${open}`}
+              value={{ province: store.province, city: store.city, district: store.district }}
+              onChange={handleAreaChange}
+            />
           </div>
 
           <div className="flex flex-col gap-2">
