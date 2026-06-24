@@ -1,18 +1,17 @@
-// ====== 商品（预留） ======
+// ====== 商品 ======
 // JSON 结构定义，状态类型从 status/ 导入
 // ──────────────────────────────
 
 import type { ProductStatus } from '../status/product.js';
 
-export type ProductCategory = 'coffee' | 'tea' | 'pastry' | 'other';
-
 export interface Product {
-  id: string;
-  shopId: string;
+  id: number;
   name: string;
-  price: number;
-  category: ProductCategory;
+  brief: string;
+  description: string;
   status: ProductStatus;
+  price: number;
+  categoryId: number;
   createdAt: string;
   updatedAt: string;
 }

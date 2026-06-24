@@ -29,7 +29,7 @@ export interface CreateUserResponse {
     id: number;
     email: string;
     displayName: string;
-    status: 0;
+    status: UserStatus;
   };
   initialPassword: string;
 }

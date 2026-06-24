@@ -1,17 +1,17 @@
-// ====== 商品状态（预留） ======
-// 'available'=上架  'unavailable'=下架  'deleted'=已删除
-// ──────────────────────────────
-
-export type ProductStatus = 'available' | 'unavailable' | 'deleted';
+/**
+ * 商品状态
+ * 0=下架  1=可售
+ */
 
 export const PRODUCT_STATUS = {
-  AVAILABLE: 'available',
-  UNAVAILABLE: 'unavailable',
-  DELETED: 'deleted',
+  OFF: { key: 'off', label: '下架', value: 0 },
+  ON: { key: 'on', label: '可售', value: 1 },
 } as const;
 
-export const PRODUCT_STATUS_LABEL: Record<ProductStatus, string> = {
-  available: '上架',
-  unavailable: '下架',
-  deleted: '已删除',
-} as const;
+export type ProductStatus = number;
+
+export const PRODUCT_STATUS_VALUES: readonly ProductStatus[] = [0, 1];
+
+export function getProductStatusLabel(status: ProductStatus): string {
+  return Object.values(PRODUCT_STATUS).find(e => e.value === status)!.label;
+}

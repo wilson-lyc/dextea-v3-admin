@@ -1,19 +1,15 @@
-// ====== 用户状态 ======
-// 0=禁用  1=激活
-// ──────────────────────────────
-
-export type UserStatus = 0 | 1;
+/**
+ * 用户状态
+ * 0=禁用  1=激活
+ */
 
 export const USER_STATUS = {
-  DISABLED: 0,
-  ACTIVE: 1,
+  DISABLED: { key: 'disabled', label: '禁用', value: 0 },
+  ACTIVE: { key: 'active', label: '激活', value: 1 },
 } as const;
 
-export const USER_STATUS_LABEL: Record<UserStatus, string> = {
-  [USER_STATUS.DISABLED]: '禁用',
-  [USER_STATUS.ACTIVE]: '激活',
-} as const;
+export type UserStatus = number;
 
 export function getUserStatusLabel(status: UserStatus): string {
-  return USER_STATUS_LABEL[status];
+  return Object.values(USER_STATUS).find(e => e.value === status)!.label;
 }
