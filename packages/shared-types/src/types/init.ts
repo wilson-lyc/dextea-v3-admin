@@ -1,4 +1,5 @@
 // ====== 管理员初始化 ======
+// ──────────────────────────────
 
 export interface InitStatusData {
   initialized: boolean;

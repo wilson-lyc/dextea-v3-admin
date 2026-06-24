@@ -1,4 +1,5 @@
 // ====== 行政区划 ======
+// ──────────────────────────────
 
 export interface Division {
   code: string;

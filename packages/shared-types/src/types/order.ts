@@ -1,6 +1,8 @@
 // ====== 订单（预留） ======
+// JSON 结构定义，状态类型从 status/ 导入
+// ──────────────────────────────
 
-export type OrderStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
+import type { OrderStatus } from '../status/order.js';
 
 export interface OrderItem {
   productId: string;

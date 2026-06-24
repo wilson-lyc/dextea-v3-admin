@@ -1,6 +1,8 @@
 // ====== 门店 ======
-// 0休息中 1营业中 2筹备中 3门店已注销
-export type StoreStatus = 0 | 1 | 2 | 3;
+// JSON 结构定义，状态类型从 status/ 导入
+// ──────────────────────────────
+
+import type { StoreStatus } from '../status/store.js';
 
 export interface Store {
   id: number;
