@@ -107,6 +107,9 @@ export const storesTable = mysqlTable('stores', {
   phone: varchar({ length: 50 }).notNull().default(''),
   longitude: double().notNull().default(0),
   latitude: double().notNull().default(0),
+  account: varchar({ length: 255 }).notNull().unique(),
+  password: varchar({ length: 255 }).notNull(),
+  email: varchar({ length: 255 }).notNull().default(''),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
