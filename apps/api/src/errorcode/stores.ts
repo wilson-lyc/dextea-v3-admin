@@ -63,4 +63,28 @@ export const storeErrors = {
     message: '更新门店位置失败',
     httpStatus: 500,
   } satisfies BizError,
+
+  SYNC_FAILED: {
+    code: 1310,
+    message: '同步门店定位数据失败',
+    httpStatus: 500,
+  } satisfies BizError,
+
+  ACCOUNT_REQUIRED: {
+    code: 1313,
+    message: '门店登录账号不能为空',
+    httpStatus: 400,
+  } satisfies BizError,
+
+  ACCOUNT_EXISTS: {
+    code: 1314,
+    message: '该登录账号已被使用',
+    httpStatus: 400,
+  } satisfies BizError,
+
+  RESET_PASSWORD_FAILED: {
+    code: 1315,
+    message: '重置密码失败',
+    httpStatus: 500,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;
