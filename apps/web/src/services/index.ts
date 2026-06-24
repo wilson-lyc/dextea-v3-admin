@@ -5,6 +5,7 @@ export { getInitStatus, initSystem } from './init'
 export { getUsers, createUser, updateUser, toggleUserStatus } from './user'
 export { getStores, getStore, createStore, updateStore, updateStoreStatus, updateStoreBasicInfo, updateStoreLocation, resetStorePassword, syncStoreLocations } from './store'
 export { getProducts, createProduct, updateProduct, toggleProductStatus } from './product'
+export { getTags, createTag, updateTag, deleteTag } from './tag'
 export { getProvinces, getChildren, resolveNames } from './area'
 export { getDashboardStats } from './dashboard'
 
@@ -28,4 +29,7 @@ export type {
   Division,
   AmapConfig,
   DashboardStats,
+  ProductTag,
+  CreateTagInput,
+  UpdateTagInput,
 } from '@dextea/shared-types'

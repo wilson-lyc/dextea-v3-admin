@@ -20,6 +20,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { getProducts } from "@/services"
+import { CreateProductDialog } from "./components/CreateProductDialog"
 import {
   Pagination,
   PaginationContent,
@@ -81,7 +82,7 @@ export default function ProductsPage() {
   }
 
   const handleCreate = () => {
-    // TODO: 创建商品
+    setDialogOpen(true)
   }
 
   const handleEdit = (_product: Product) => {
@@ -259,6 +260,12 @@ export default function ProductsPage() {
           </PaginationContent>
         </Pagination>
       )}
+
+      <CreateProductDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onCreated={() => fetchProducts(page)}
+      />
     </div>
   )
 }

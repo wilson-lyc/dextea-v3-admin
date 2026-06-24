@@ -68,6 +68,15 @@ export type {
 
 export type {
   Product,
+  CreateProductInput,
+  CreateProductResponse,
+  ProductQuery,
+} from './types/index.js';
+
+export type {
+  ProductTag,
+  CreateTagInput,
+  UpdateTagInput,
 } from './types/index.js';
 
 export type {

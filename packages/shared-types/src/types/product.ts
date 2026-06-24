@@ -15,3 +15,22 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CreateProductInput {
+  name: string;
+  brief?: string;
+  description?: string;
+  price: number;
+  categoryId?: number;
+  status?: ProductStatus;
+}
+
+export interface CreateProductResponse {
+  id: number;
+}
+
+export interface ProductQuery {
+  page?: string;
+  pageSize?: string;
+  keyword?: string;
+}

@@ -9,6 +9,7 @@
  *   1400-1499  地区服务
  *   1500-1599  系统初始化
  *   1600-1699  系统配置
+ *   1700-1799  商品标签
  */
 
 export interface BizError {
@@ -48,3 +49,5 @@ export { storeErrors } from './stores.js';
 export { areaErrors } from './areas.js';
 export { initErrors } from './init.js';
 export { configErrors } from './config.js';
+export { productErrors } from './products.js';
+export { tagErrors } from './tags.js';

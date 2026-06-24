@@ -6,6 +6,7 @@ export type { User, CreateUserInput, UpdateUserInput, CreateUserResponse, Update
 export type { Store, CreateStoreInput, UpdateStoreInput, CreateStoreResponse, UpdateStoreResponse, UpdateStoreStatusRequest, UpdateStoreStatusResponse, UpdateStoreBasicInfoRequest, UpdateStoreBasicInfoResponse, UpdateStoreLocationRequest, UpdateStoreLocationResponse, ResetStorePasswordResponse, StoreQuery } from './store.js';
 export type { Division, ResolveAreaRequest } from './area.js';
 export type { AmapConfig } from './config.js';
-export type { Product } from './product.js';
+export type { Product, CreateProductInput, CreateProductResponse, ProductQuery } from './product.js';
+export type { ProductTag, CreateTagInput, UpdateTagInput } from './tag.js';
 export type { Order, OrderItem } from './order.js';
 export type { DashboardStats } from './dashboard.js';

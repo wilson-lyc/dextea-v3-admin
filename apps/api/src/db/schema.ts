@@ -128,3 +128,27 @@ export const productsTable = mysqlTable('products', {
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
+
+/**
+ * 商品标签表
+ */
+export const productTagsTable = mysqlTable('product_tags', {
+  id: serial().primaryKey(),
+  name: varchar({ length: 255 }).notNull().unique(),
+  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+});
+
+/**
+ * 商品-标签关联表
+ */
+export const productTagRelationsTable = mysqlTable(
+  'product_tag_relations',
+  {
+    productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
+    tagId: bigint('tag_id', { mode: 'number', unsigned: true }).notNull(),
+  },
+  (table) => ({
+    primaryKey: primaryKey({ columns: [table.productId, table.tagId] }),
+  }),
+);
