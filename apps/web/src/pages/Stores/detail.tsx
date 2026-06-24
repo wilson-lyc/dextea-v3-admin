@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { ArrowLeftIcon, Loader2Icon, PencilIcon } from "lucide-react"
+import { ArrowLeftIcon, Loader2Icon, PencilIcon, KeyRoundIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store, StoreStatus } from "@dextea/shared-types"
@@ -23,8 +23,15 @@ import {
   CardContent,
 } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import AmapMap from "@/components/amap"
-import { getStore } from "@/services"
+import { getStore, resetStorePassword } from "@/services"
 import { EditStatusDialog } from "./components/EditStatusDialog"
 import { EditBasicInfoDialog } from "./components/EditBasicInfoDialog"
 import { EditLocationDialog } from "./components/EditLocationDialog"
@@ -56,6 +63,8 @@ export default function StoreDetailPage() {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false)
   const [basicInfoDialogOpen, setBasicInfoDialogOpen] = useState(false)
   const [locationDialogOpen, setLocationDialogOpen] = useState(false)
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
+  const [newPassword, setNewPassword] = useState("")
 
   const fetchStore = async () => {
     if (!id) return
@@ -71,6 +80,22 @@ export default function StoreDetailPage() {
       toast.error("获取门店信息失败")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleResetPassword = async () => {
+    if (!id) return
+    try {
+      const res = await resetStorePassword(Number(id))
+      if (res.code === 0) {
+        setNewPassword(res.data.newPassword)
+        setPasswordDialogOpen(true)
+        fetchStore()
+      } else {
+        toast.error(res.message)
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "重置密码失败")
     }
   }
 
@@ -155,12 +180,22 @@ export default function StoreDetailPage() {
                   <PencilIcon data-icon="inline-start" />
                   编辑
                 </Button>
+                <Button variant="ghost" size="sm" onClick={handleResetPassword}>
+                  <KeyRoundIcon data-icon="inline-start" />
+                  重置密码
+                </Button>
               </CardAction>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
                 <span className="text-sm text-muted-foreground">门店名称</span>
                 <span className="text-sm">{store.name}</span>
+
+                <span className="text-sm text-muted-foreground">登录账号</span>
+                <span className="text-sm font-mono">{store.account}</span>
+
+                <span className="text-sm text-muted-foreground">邮箱</span>
+                <span className="text-sm">{store.email || "-"}</span>
 
                 <span className="text-sm text-muted-foreground">联系电话</span>
                 <span className="text-sm">{store.phone || "-"}</span>
@@ -219,6 +254,30 @@ export default function StoreDetailPage() {
           </Card>
         </div>
       </ScrollArea>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>密码重置成功</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col items-center gap-3 py-4">
+            <div className="rounded-lg border bg-muted px-6 py-3 font-mono text-lg tracking-widest">
+              {newPassword}
+            </div>
+            <p className="text-xs text-destructive font-medium">
+              此密码仅显示一次，关闭后将不再显示
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button onClick={() => setPasswordDialogOpen(false)}>
+              我已保存，关闭
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {store && (
         <>
