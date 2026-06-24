@@ -53,6 +53,9 @@ export default function StoreDetailPage() {
   const { id } = useParams<{ id: string }>()
   const [store, setStore] = useState<Store | null>(null)
   const [loading, setLoading] = useState(true)
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false)
+  const [basicInfoDialogOpen, setBasicInfoDialogOpen] = useState(false)
+  const [locationDialogOpen, setLocationDialogOpen] = useState(false)
 
   const fetchStore = async () => {
     if (!id) return
@@ -128,7 +131,7 @@ export default function StoreDetailPage() {
             <CardHeader>
               <CardTitle>门店状态</CardTitle>
               <CardAction>
-                <Button variant="ghost" size="sm" onClick={() => {}}>
+                <Button variant="ghost" size="sm" onClick={() => setStatusDialogOpen(true)}>
                   <PencilIcon data-icon="inline-start" />
                   编辑
                 </Button>
@@ -148,7 +151,7 @@ export default function StoreDetailPage() {
             <CardHeader>
               <CardTitle>基础信息</CardTitle>
               <CardAction>
-                <Button variant="ghost" size="sm" onClick={() => {}}>
+                <Button variant="ghost" size="sm" onClick={() => setBasicInfoDialogOpen(true)}>
                   <PencilIcon data-icon="inline-start" />
                   编辑
                 </Button>
@@ -172,7 +175,7 @@ export default function StoreDetailPage() {
             <CardHeader>
               <CardTitle>门店位置</CardTitle>
               <CardAction>
-                <Button variant="ghost" size="sm" onClick={() => {}}>
+                <Button variant="ghost" size="sm" onClick={() => setLocationDialogOpen(true)}>
                   <PencilIcon data-icon="inline-start" />
                   编辑
                 </Button>
@@ -216,6 +219,26 @@ export default function StoreDetailPage() {
           </Card>
         </div>
       </ScrollArea>
+
+      {store && (
+        <>
+          <EditStatusDialog
+            open={statusDialogOpen}
+            onOpenChange={setStatusDialogOpen}
+            currentStatus={store.status}
+          />
+          <EditBasicInfoDialog
+            open={basicInfoDialogOpen}
+            onOpenChange={setBasicInfoDialogOpen}
+            store={store}
+          />
+          <EditLocationDialog
+            open={locationDialogOpen}
+            onOpenChange={setLocationDialogOpen}
+            store={store}
+          />
+        </>
+      )}
     </div>
   )
 }
