@@ -55,6 +55,7 @@ export type {
   UpdateStoreBasicInfoResponse,
   UpdateStoreLocationRequest,
   UpdateStoreLocationResponse,
+  ResetStorePasswordResponse,
   StoreQuery,
 } from './types/index.js';
 

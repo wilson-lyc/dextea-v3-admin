@@ -1,7 +1,3 @@
-// ====== 门店 ======
-// JSON 结构定义，状态类型从 status/ 导入
-// ──────────────────────────────
-
 import type { StoreStatus } from '../status/store.js';
 
 export interface Store {
@@ -16,6 +12,8 @@ export interface Store {
   phone: string;
   longitude: number;
   latitude: number;
+  account: string;
+  email: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -28,6 +26,8 @@ export interface CreateStoreInput {
   address: string;
   businessHours: string;
   phone: string;
+  account: string;
+  email: string;
   longitude?: number;
   latitude?: number;
 }
@@ -47,6 +47,7 @@ export interface UpdateStoreInput {
 
 export interface CreateStoreResponse {
   id: number;
+  initialPassword: string;
 }
 
 export interface UpdateStoreResponse {
@@ -65,6 +66,7 @@ export interface UpdateStoreBasicInfoRequest {
   name: string;
   phone: string;
   businessHours: string;
+  email: string;
 }
 
 export interface UpdateStoreBasicInfoResponse {
@@ -82,6 +84,10 @@ export interface UpdateStoreLocationRequest {
 
 export interface UpdateStoreLocationResponse {
   id: number;
+}
+
+export interface ResetStorePasswordResponse {
+  newPassword: string;
 }
 
 /** Query string shape for GET /stores */
