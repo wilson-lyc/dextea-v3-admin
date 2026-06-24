@@ -63,6 +63,8 @@ export type {
   UpdateStoreStatusResponse,
   UpdateStoreBasicInfoRequest,
   UpdateStoreBasicInfoResponse,
+  UpdateStoreLocationRequest,
+  UpdateStoreLocationResponse,
   StoreQuery,
 } from './types/index.js';
 

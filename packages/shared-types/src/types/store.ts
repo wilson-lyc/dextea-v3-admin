@@ -71,6 +71,19 @@ export interface UpdateStoreBasicInfoResponse {
   id: number;
 }
 
+export interface UpdateStoreLocationRequest {
+  province: string;
+  city: string;
+  district: string;
+  address: string;
+  longitude: number;
+  latitude: number;
+}
+
+export interface UpdateStoreLocationResponse {
+  id: number;
+}
+
 /** Query string shape for GET /stores */
 export interface StoreQuery {
   page?: string;

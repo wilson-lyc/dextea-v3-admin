@@ -239,6 +239,7 @@ export default function StoreDetailPage() {
             open={locationDialogOpen}
             onOpenChange={setLocationDialogOpen}
             store={store}
+            onUpdated={fetchStore}
           />
         </>
       )}

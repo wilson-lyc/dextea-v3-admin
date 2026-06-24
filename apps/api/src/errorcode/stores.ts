@@ -57,4 +57,10 @@ export const storeErrors = {
     message: '更新门店基础信息失败',
     httpStatus: 500,
   } satisfies BizError,
+
+  LOCATION_UPDATE_FAILED: {
+    code: 1309,
+    message: '更新门店位置失败',
+    httpStatus: 500,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

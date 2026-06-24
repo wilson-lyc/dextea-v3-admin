@@ -3,7 +3,7 @@ export { http, API_BASE } from './http'
 export { login, logout } from './auth'
 export { getInitStatus, initSystem } from './init'
 export { getUsers, createUser, updateUser, toggleUserStatus } from './user'
-export { getStores, getStore, createStore, updateStore, updateStoreStatus, updateStoreBasicInfo } from './store'
+export { getStores, getStore, createStore, updateStore, updateStoreStatus, updateStoreBasicInfo, updateStoreLocation } from './store'
 export { getProvinces, getChildren, resolveNames } from './area'
 
 // Re-export shared types for page convenience

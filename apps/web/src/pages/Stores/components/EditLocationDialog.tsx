@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { CircleHelpIcon } from "lucide-react"
+import { toast } from "sonner"
 
 import type { Store } from "@dextea/shared-types"
 import { AreaSelector } from "@/components/area"
@@ -19,21 +20,24 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip"
+import { updateStoreLocation } from "@/services"
 import AmapMapPicker from "@/components/amap/amap-map-picker"
 
 interface EditLocationDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   store: Store
+  onUpdated: () => void
 }
 
-export function EditLocationDialog({ open, onOpenChange, store }: EditLocationDialogProps) {
+export function EditLocationDialog({ open, onOpenChange, store, onUpdated }: EditLocationDialogProps) {
   const [province, setProvince] = useState(store.province)
   const [city, setCity] = useState(store.city)
   const [district, setDistrict] = useState(store.district)
   const [address, setAddress] = useState(store.address)
   const [longitude, setLongitude] = useState(store.longitude)
   const [latitude, setLatitude] = useState(store.latitude)
+  const [submitting, setSubmitting] = useState(false)
 
   // 弹窗打开时从 store 同步省市区字段
   useEffect(() => {
@@ -60,9 +64,29 @@ export function EditLocationDialog({ open, onOpenChange, store }: EditLocationDi
 
   const fullAddress = [province, city, district, address].filter(Boolean).join(" ")
 
-  const handleSubmit = () => {
-    // TODO: 调用 updateStore API
-    onOpenChange(false)
+  const handleSubmit = async () => {
+    setSubmitting(true)
+    try {
+      const res = await updateStoreLocation(store.id, {
+        province,
+        city,
+        district,
+        address,
+        longitude,
+        latitude,
+      })
+      if (res.code === 0) {
+        toast.success(res.message)
+        onOpenChange(false)
+        onUpdated()
+      } else {
+        toast.error(res.message)
+      }
+    } catch {
+      toast.error("更新门店位置失败")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -119,8 +143,8 @@ export function EditLocationDialog({ open, onOpenChange, store }: EditLocationDi
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             取消
           </Button>
-          <Button onClick={handleSubmit}>
-            确定
+          <Button onClick={handleSubmit} disabled={submitting}>
+            {submitting ? "提交中..." : "确定"}
           </Button>
         </DialogFooter>
       </DialogContent>
