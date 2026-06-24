@@ -1,0 +1,119 @@
+import { useEffect, useRef, useState } from "react"
+import { Loader2Icon } from "lucide-react"
+import { http } from "@/services/http"
+import type { AmapConfig } from "@dextea/shared-types"
+
+interface Props {
+  longitude: number
+  latitude: number
+  name: string
+  address: string
+  onPick?: (lng: number, lat: number) => void
+}
+
+let scriptLoaded = false
+let scriptLoading: Promise<void> | null = null
+
+function loadAmapScript(key: string, securityCode: string): Promise<void> {
+  if (scriptLoaded) return Promise.resolve()
+  if (scriptLoading) return scriptLoading
+
+  scriptLoading = new Promise((resolve, reject) => {
+    window._AMapSecurityConfig = {
+      securityJsCode: securityCode,
+    }
+
+    const script = document.createElement("script")
+    script.src = `https://webapi.amap.com/maps?v=2.0&key=${key}`
+    script.async = true
+    script.onload = () => {
+      scriptLoaded = true
+      resolve()
+    }
+    script.onerror = () => {
+      scriptLoading = null
+      reject(new Error("高德地图脚本加载失败"))
+    }
+    document.head.appendChild(script)
+  })
+
+  return scriptLoading
+}
+
+export default function AmapMapPicker({ longitude, latitude, name, address, onPick }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<AMap.Map | null>(null)
+  const markerRef = useRef<AMap.Marker | null>(null)
+  const onPickRef = useRef(onPick)
+  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading")
+
+  onPickRef.current = onPick
+
+  useEffect(() => {
+    let map: AMap.Map | null = null
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        const res = await http.get<{ code: number; data: AmapConfig }>("/config/amap-key")
+        if (cancelled) return
+
+        const { key, securityCode } = res.data.data
+        if (!key || !securityCode) {
+          setStatus("error")
+          return
+        }
+
+        await loadAmapScript(key, securityCode)
+        if (cancelled || !containerRef.current) return
+
+        map = new AMap.Map(containerRef.current, {
+          center: [longitude, latitude],
+          zoom: 16,
+        })
+        mapRef.current = map
+
+        const marker = new AMap.Marker({
+          position: [longitude, latitude],
+          title: name || "门店位置",
+        })
+        map.add(marker)
+        markerRef.current = marker
+
+        if (onPickRef.current) {
+          map.on("click", (e: { lnglat: { getLng(): number; getLat(): number } }) => {
+            const lng = e.lnglat.getLng()
+            const lat = e.lnglat.getLat()
+            marker.setPosition([lng, lat])
+            onPickRef.current?.(lng, lat)
+          })
+        }
+
+        setStatus("ready")
+      } catch {
+        if (!cancelled) setStatus("error")
+      }
+    })()
+
+    return () => {
+      cancelled = true
+      map?.destroy()
+    }
+  }, [])
+
+  return (
+    <div className="relative">
+      <div ref={containerRef} className="h-60 w-full rounded-lg" />
+      {status === "loading" && (
+        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-muted">
+          <Loader2Icon className="size-5 animate-spin text-muted-foreground" />
+        </div>
+      )}
+      {status === "error" && (
+        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-muted text-sm text-muted-foreground">
+          地图加载失败
+        </div>
+      )}
+    </div>
+  )
+}
