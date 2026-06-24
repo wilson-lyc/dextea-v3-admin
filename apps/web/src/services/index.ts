@@ -3,7 +3,7 @@ export { http, API_BASE } from './http'
 export { login, logout, getMe } from './auth'
 export { getInitStatus, initSystem } from './init'
 export { getUsers, createUser, updateUser, toggleUserStatus } from './user'
-export { getStores, getStore, createStore, updateStore, updateStoreStatus, updateStoreBasicInfo, updateStoreLocation, resetStorePassword } from './store'
+export { getStores, getStore, createStore, updateStore, updateStoreStatus, updateStoreBasicInfo, updateStoreLocation, resetStorePassword, syncStoreLocations } from './store'
 export { getProvinces, getChildren, resolveNames } from './area'
 export { getDashboardStats } from './dashboard'
 

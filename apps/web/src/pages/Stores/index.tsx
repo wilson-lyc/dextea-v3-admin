@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Loader2Icon, PlusIcon, SearchIcon } from "lucide-react"
+import { Loader2Icon, PlusIcon, RefreshCwIcon, SearchIcon, SettingsIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store, StoreStatus } from "@dextea/shared-types"
@@ -21,7 +21,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-import { getStores } from "@/services"
+import { getStores, syncStoreLocations } from "@/services"
 import {
   Pagination,
   PaginationContent,
@@ -51,6 +51,7 @@ export default function StoresPage() {
   const pageSize = 20
 
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [syncing, setSyncing] = useState(false)
 
   const fetchStores = useCallback(async (targetPage: number) => {
     setLoading(true)
@@ -78,6 +79,31 @@ export default function StoresPage() {
     setSearchKeyword(keyword)
   }
 
+  const handleSync = async () => {
+    setSyncing(true)
+    const startTime = Date.now()
+    let message = ""
+    let isError = false
+    try {
+      const res = await syncStoreLocations()
+      message = res.message
+    } catch (err) {
+      message = err instanceof Error ? err.message : "同步门店定位数据失败"
+      isError = true
+    } finally {
+      const elapsed = Date.now() - startTime
+      const remaining = Math.max(0, 5000 - elapsed)
+      setTimeout(() => {
+        setSyncing(false)
+        if (isError) {
+          toast.error(message)
+        } else {
+          toast.success(message)
+        }
+      }, remaining)
+    }
+  }
+
   const fullAddress = (store: Store) => {
     return [store.province, store.city, store.district, store.address]
       .filter(Boolean)
@@ -87,10 +113,16 @@ export default function StoresPage() {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
-        <Button onClick={() => setDialogOpen(true)}>
-          <PlusIcon data-icon="inline-start" />
-          创建门店
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setDialogOpen(true)}>
+            <PlusIcon data-icon="inline-start" />
+            创建门店
+          </Button>
+          <Button variant="outline" onClick={handleSync} disabled={syncing}>
+            <RefreshCwIcon data-icon="inline-start" className={syncing ? "animate-spin" : ""} />
+            数据同步
+          </Button>
+        </div>
         <div className="flex items-center gap-2">
           <div className="relative max-w-sm">
             <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -170,6 +202,7 @@ export default function StoresPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="outline" size="sm" onClick={() => navigate(`/stores/${store.id}`)}>
+                      <SettingsIcon data-icon="inline-start" />
                       管理
                     </Button>
                   </TableCell>

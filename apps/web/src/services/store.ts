@@ -73,5 +73,12 @@ export function resetStorePassword(id: number) {
     .then((res) => res.data)
 }
 
+/** POST /stores/sync-locations — 同步门店定位数据到 Redis */
+export function syncStoreLocations() {
+  return http
+    .post<ApiResponse<{ synced: number }>>('/stores/sync-locations')
+    .then((res) => res.data)
+}
+
 // Re-export types used by pages
 export type { StoreStatus }

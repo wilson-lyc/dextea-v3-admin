@@ -123,7 +123,7 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
               </Label>
               <Input
                 id="store-account"
-                placeholder="请输入登录账号（全局唯一）"
+                placeholder="请输入登录账号"
                 value={formAccount}
                 onChange={(e) => setFormAccount(e.target.value)}
               />
@@ -149,7 +149,7 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="store-address">
-                具体地址 <span className="text-destructive">*</span>
+                地址 <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="store-address"

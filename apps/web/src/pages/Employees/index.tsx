@@ -205,10 +205,10 @@ export default function EmployeesPage() {
                         编辑
                       </Button>
                       <Button
-                        variant={user.status === USER_STATUS.ACTIVE ? "destructive" : "default"}
+                        variant="outline"
                         size="sm"
                         onClick={() => handleToggleStatus(user)}
-                        className={user.status === USER_STATUS.DISABLED ? "bg-green-600 hover:bg-green-700" : ""}
+                        className={user.status === USER_STATUS.ACTIVE ? "text-red-500 hover:text-red-500" : "text-green-600 hover:text-green-600"}
                       >
                         {user.status === USER_STATUS.ACTIVE ? (
                           <>
