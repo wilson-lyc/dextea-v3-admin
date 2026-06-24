@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { CircleHelpIcon } from "lucide-react"
 
 import type { Store } from "@dextea/shared-types"
 import type { Division } from "@/services"
@@ -21,7 +22,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip"
 import { getProvinces, getChildren } from "@/services"
+import AmapMapPicker from "@/components/amap/amap-map-picker"
 
 interface EditLocationDialogProps {
   open: boolean
@@ -34,6 +41,8 @@ export function EditLocationDialog({ open, onOpenChange, store }: EditLocationDi
   const [city, setCity] = useState(store.city)
   const [district, setDistrict] = useState(store.district)
   const [address, setAddress] = useState(store.address)
+  const [longitude, setLongitude] = useState(store.longitude)
+  const [latitude, setLatitude] = useState(store.latitude)
 
   const [provinces, setProvinces] = useState<Division[]>([])
   const [cities, setCities] = useState<Division[]>([])
@@ -50,6 +59,8 @@ export function EditLocationDialog({ open, onOpenChange, store }: EditLocationDi
     setCity(store.city)
     setDistrict(store.district)
     setAddress(store.address)
+    setLongitude(store.longitude)
+    setLatitude(store.latitude)
     setSelectedProvince(null)
     setSelectedCity(null)
     setSelectedDistrict(null)
@@ -65,7 +76,7 @@ export function EditLocationDialog({ open, onOpenChange, store }: EditLocationDi
       }
       setAreasLoading(false)
     })
-  }, [open, store.province, store.city, store.district, store.address])
+  }, [open, store.province, store.city, store.district, store.address, store.longitude, store.latitude])
 
   useEffect(() => {
     if (!selectedProvince) {
@@ -107,6 +118,13 @@ export function EditLocationDialog({ open, onOpenChange, store }: EditLocationDi
     setDistrict(selectedDistrict?.name ?? "")
   }, [selectedDistrict])
 
+  const handlePick = useCallback((lng: number, lat: number) => {
+    setLongitude(lng)
+    setLatitude(lat)
+  }, [])
+
+  const fullAddress = [province, city, district, address].filter(Boolean).join(" ")
+
   const handleSubmit = () => {
     // TODO: 调用 updateStore API
     onOpenChange(false)
@@ -121,7 +139,9 @@ export function EditLocationDialog({ open, onOpenChange, store }: EditLocationDi
 
         <div className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-2">
-            <Label>省市区</Label>
+            <Label>
+              省市区 <span className="text-destructive">*</span>
+            </Label>
             <div className="grid grid-cols-3 gap-3">
               <Combobox
                 items={provinces}
@@ -202,12 +222,32 @@ export function EditLocationDialog({ open, onOpenChange, store }: EditLocationDi
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="edit-store-address">具体地址</Label>
+            <Label htmlFor="edit-store-address">
+              具体地址 <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="edit-store-address"
               placeholder="请输入具体地址"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label className="flex items-center gap-1">
+              定位坐标 <span className="text-destructive">*</span>
+              <Tooltip>
+                <TooltipTrigger render={<CircleHelpIcon className="size-4 text-muted-foreground" />}>
+                </TooltipTrigger>
+                <TooltipContent>点击地图可修改定位坐标</TooltipContent>
+              </Tooltip>
+            </Label>
+            <AmapMapPicker
+              longitude={longitude || 116.397428}
+              latitude={latitude || 39.90923}
+              name={store.name}
+              address={fullAddress}
+              onPick={handlePick}
             />
           </div>
         </div>

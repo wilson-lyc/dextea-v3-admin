@@ -58,7 +58,9 @@ export function EditBasicInfoDialog({ open, onOpenChange, store }: EditBasicInfo
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="edit-store-phone">联系电话</Label>
+              <Label htmlFor="edit-store-phone">
+                联系电话 <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="edit-store-phone"
                 placeholder="请输入联系电话"
@@ -67,7 +69,9 @@ export function EditBasicInfoDialog({ open, onOpenChange, store }: EditBasicInfo
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="edit-store-hours">营业时间</Label>
+              <Label htmlFor="edit-store-hours">
+                营业时间 <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="edit-store-hours"
                 placeholder="例如：09:00-22:00"

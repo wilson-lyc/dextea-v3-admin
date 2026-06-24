@@ -23,7 +23,7 @@ import {
   CardContent,
 } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import AmapMap from "@/components/amap-map"
+import AmapMap from "@/components/amap"
 import { getStore } from "@/services"
 import { EditStatusDialog } from "./components/EditStatusDialog"
 import { EditBasicInfoDialog } from "./components/EditBasicInfoDialog"

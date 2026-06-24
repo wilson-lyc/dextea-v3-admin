@@ -55,10 +55,14 @@ export function EditStatusDialog({ open, onOpenChange, currentStatus }: EditStat
 
         <div className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-2">
-            <Label>门店状态</Label>
+            <Label>
+              门店状态 <span className="text-destructive">*</span>
+            </Label>
             <Select value={selected} onValueChange={setSelected}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="请选择门店状态" />
+                <SelectValue placeholder="请选择门店状态">
+                  {STORE_STATUS_LABEL[Number(selected) as StoreStatus]}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {STATUS_OPTIONS.map((opt) => (
