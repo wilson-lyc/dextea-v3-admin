@@ -6,6 +6,7 @@ import type { ProductCustomizationStatus } from '../status/product-customization
 export interface ProductCustomization {
   id: number;
   name: string;
+  displayName: string;
   status: ProductCustomizationStatus;
   createdAt: string;
   updatedAt: string;
@@ -13,6 +14,7 @@ export interface ProductCustomization {
 
 export interface CreateProductCustomizationInput {
   name: string;
+  displayName: string;
 }
 
 export type ProductCustomizationQuery = {

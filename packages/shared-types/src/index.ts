@@ -100,3 +100,9 @@ export type {
   CreateProductCustomizationInput,
   ProductCustomizationQuery,
 } from './types/index.js';
+
+export type {
+  CustomizationOption,
+  CreateCustomizationOptionInput,
+  UpdateCustomizationOptionInput,
+} from './types/index.js';

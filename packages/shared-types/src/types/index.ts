@@ -11,3 +11,4 @@ export type { ProductTag, CreateTagInput, UpdateTagInput, TagQuery } from './tag
 export type { Order, OrderItem } from './order.js';
 export type { DashboardStats } from './dashboard.js';
 export type { ProductCustomization, CreateProductCustomizationInput, ProductCustomizationQuery } from './product-customization.js';
+export type { CustomizationOption, CreateCustomizationOptionInput, UpdateCustomizationOptionInput } from './customization-option.js';
