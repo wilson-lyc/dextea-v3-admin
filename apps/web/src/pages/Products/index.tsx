@@ -139,13 +139,14 @@ export default function ProductsPage() {
                 <TableHead>商品名称</TableHead>
                 <TableHead>价格</TableHead>
                 <TableHead>状态</TableHead>
+                <TableHead>标签</TableHead>
                 <TableHead className="text-right">操作</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {products.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                     暂无商品数据
                   </TableCell>
                 </TableRow>
@@ -157,6 +158,17 @@ export default function ProductsPage() {
                     <TableCell>¥{product.price.toFixed(2)}</TableCell>
                     <TableCell>
                       {STATUS_BADGE[product.status] ?? <Badge variant="outline">{getProductStatusLabel(product.status)}</Badge>}
+                    </TableCell>
+                    <TableCell>
+                      {product.tags && product.tags.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {product.tags.map(tag => (
+                            <Badge key={tag.id} variant="outline">{tag.name}</Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="outline" size="sm" onClick={() => navigate(`/products/${product.id}`)}>

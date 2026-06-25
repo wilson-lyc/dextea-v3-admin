@@ -3,6 +3,7 @@
 // ──────────────────────────────
 
 import type { ProductStatus } from '../status/product.js';
+import type { ProductTag } from './tag.js';
 
 export interface Product {
   id: number;
@@ -11,6 +12,7 @@ export interface Product {
   description: string;
   status: ProductStatus;
   price: number;
+  tags?: ProductTag[];
   createdAt: string;
   updatedAt: string;
 }

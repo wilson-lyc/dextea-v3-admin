@@ -9,6 +9,7 @@ import EmployeesPage from "@/pages/Employees"
 import StoresPage from "@/pages/Stores"
 import StoreDetailPage from "@/pages/Stores/detail"
 import ProductsPage from "@/pages/Products"
+import ProductDetailPage from "@/pages/Products/detail"
 import TagListPage from "@/pages/Products/TagList"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { Toaster } from "@/components/ui/sonner"
@@ -36,6 +37,7 @@ function App() {
             <Route path="stores" element={<StoresPage />} />
             <Route path="stores/:id" element={<StoreDetailPage />} />
             <Route path="products" element={<ProductsPage />} />
+            <Route path="products/:id" element={<ProductDetailPage />} />
             <Route path="products/tags" element={<TagListPage />} />
           </Route>
         </Route>

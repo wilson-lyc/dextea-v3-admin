@@ -51,4 +51,22 @@ export const productErrors = {
     message: '商品价格无效',
     httpStatus: 400,
   } satisfies BizError,
+
+  TAG_ADD_FAILED: {
+    code: 1808,
+    message: '添加商品标签失败',
+    httpStatus: 500,
+  } satisfies BizError,
+
+  TAG_REMOVE_FAILED: {
+    code: 1809,
+    message: '删除商品标签失败',
+    httpStatus: 500,
+  } satisfies BizError,
+
+  TAG_ALREADY_EXISTS: {
+    code: 1810,
+    message: '该标签已关联此商品',
+    httpStatus: 409,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

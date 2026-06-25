@@ -216,14 +216,6 @@ export default function TagListPage() {
           </DialogHeader>
 
           <FieldGroup className="py-2">
-            {/* ID field (edit mode only) */}
-            {dialogMode === "edit" && (
-              <Field data-disabled>
-                <FieldLabel htmlFor="tag-id">ID</FieldLabel>
-                <Input id="tag-id" value={editingTag?.id ?? ""} disabled />
-              </Field>
-            )}
-
             {/* Name */}
             <Field>
               <FieldLabel htmlFor="tag-name">
