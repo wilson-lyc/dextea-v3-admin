@@ -3,6 +3,8 @@ import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { CustomizationOption } from "@dextea/shared-types"
+import { CUSTOMIZATION_OPTION_STATUS } from "@dextea/shared-types"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -20,6 +22,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Field,
   FieldGroup,
@@ -40,9 +49,10 @@ type OptionForm = {
   name: string
   price: string
   sort: string
+  status: string
 }
 
-const emptyForm = (): OptionForm => ({ name: "", price: "0", sort: "0" })
+const emptyForm = (): OptionForm => ({ name: "", price: "0", sort: "0", status: "0" })
 
 export default function CustomizationOptionsPanel({ customizationId }: CustomizationOptionsPanelProps) {
   const [options, setOptions] = useState<CustomizationOption[]>([])
@@ -108,7 +118,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
 
   const openEdit = (option: CustomizationOption) => {
     setEditingOption(option)
-    setEditForm({ name: option.name, price: String(option.price), sort: String(option.sort) })
+    setEditForm({ name: option.name, price: String(option.price), sort: String(option.sort), status: String(option.status) })
   }
 
   const handleUpdate = async () => {
@@ -124,6 +134,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
         name: editForm.name.trim(),
         price: Number(editForm.price) || 0,
         sort: Number(editForm.sort) || 0,
+        status: Number(editForm.status) as CustomizationOption["status"],
       })
       if (res.code === 0) {
         toast.success(res.message)
@@ -174,13 +185,14 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               <TableHead>名称</TableHead>
               <TableHead className="w-28">价格</TableHead>
               <TableHead className="w-20">排序</TableHead>
+              <TableHead className="w-20">状态</TableHead>
               <TableHead className="w-28 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {options.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                   暂未添加客制化选项
                 </TableCell>
               </TableRow>
@@ -191,6 +203,17 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
                   <TableCell>{o.name}</TableCell>
                   <TableCell className="font-mono text-xs">¥{Number(o.price).toFixed(2)}</TableCell>
                   <TableCell className="font-mono text-xs">{o.sort}</TableCell>
+                  <TableCell>
+                    <Badge
+                      className={
+                        o.status === CUSTOMIZATION_OPTION_STATUS.OFF.value
+                          ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-red-200 dark:ring-red-800/30"
+                          : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-green-200 dark:ring-green-800/30"
+                      }
+                    >
+                      {o.status === CUSTOMIZATION_OPTION_STATUS.OFF.value ? "下架" : "启用"}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
                       <Button variant="outline" size="sm" onClick={() => openEdit(o)}>
@@ -315,6 +338,26 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
                 value={editForm.sort}
                 onChange={(e) => setEditForm((f) => ({ ...f, sort: e.target.value }))}
               />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="edit-option-status">状态</FieldLabel>
+              <Select
+                value={editForm.status}
+                onValueChange={(v) => setEditForm((f) => ({ ...f, status: v }))}
+              >
+                <SelectTrigger id="edit-option-status">
+                  <SelectValue placeholder="请选择状态">
+                    {Number(editForm.status) === CUSTOMIZATION_OPTION_STATUS.OFF.value ? "下架" : "启用"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(CUSTOMIZATION_OPTION_STATUS).map((opt) => (
+                    <SelectItem key={opt.value} value={String(opt.value)}>
+                      {opt.value === 0 ? "下架" : "启用"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
           </FieldGroup>
 

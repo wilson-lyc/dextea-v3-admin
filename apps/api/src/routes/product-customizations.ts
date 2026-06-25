@@ -528,40 +528,41 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         required: ['id'],
       },
       body: {
-        type: 'object',
-        properties: {
-          name: { type: 'string', minLength: 1, description: '客制化项目名称' },
-          displayName: { type: 'string', minLength: 1, description: '展示名称' },
-        },
-        required: ['name', 'displayName'],
-      },
-      response: {
-        200: {
           type: 'object',
           properties: {
-            code: { type: 'integer', description: '业务状态码，0=成功' },
-            data: {
-              type: 'object',
-              properties: {
-                id: { type: 'integer' },
-                name: { type: 'string' },
-                displayName: { type: 'string' },
-                status: { type: 'integer' },
-                createdAt: { type: 'string' },
-                updatedAt: { type: 'string' },
+            name: { type: 'string', minLength: 1, description: '客制化项目名称' },
+            displayName: { type: 'string', minLength: 1, description: '展示名称' },
+            status: { type: 'integer', description: '0=下架 1=启用' },
+          },
+          required: ['name', 'displayName'],
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              code: { type: 'integer', description: '业务状态码，0=成功' },
+              data: {
+                type: 'object',
+                properties: {
+                  id: { type: 'integer' },
+                  name: { type: 'string' },
+                  displayName: { type: 'string' },
+                  status: { type: 'integer' },
+                  createdAt: { type: 'string' },
+                  updatedAt: { type: 'string' },
+                },
               },
+              message: { type: 'string' },
             },
-            message: { type: 'string' },
           },
         },
-      },
-      security: [{ bearerAuth: [] }],
+        security: [{ bearerAuth: [] }],
     },
   }, async (request) => {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '客制化项目ID');
-      const { name, displayName } = request.body;
+      const { name, displayName, status } = request.body;
 
       const trimmedName = name.trim();
       const trimmedDisplayName = displayName.trim();
@@ -578,12 +579,15 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         throw new AppError(productCustomizationErrors.NOT_FOUND);
       }
 
+      const updateData: Record<string, unknown> = {
+        name: trimmedName,
+        displayName: trimmedDisplayName,
+      };
+      if (status !== undefined) updateData.status = status;
+
       await db
         .update(productCustomizationsTable)
-        .set({
-          name: trimmedName,
-          displayName: trimmedDisplayName,
-        })
+        .set(updateData)
         .where(eq(productCustomizationsTable.id, id));
 
       const [updated] = await db

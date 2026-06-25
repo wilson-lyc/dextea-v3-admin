@@ -20,6 +20,7 @@ export interface CreateProductCustomizationInput {
 export interface UpdateProductCustomizationInput {
   name: string;
   displayName: string;
+  status?: ProductCustomizationStatus;
 }
 
 export type ProductCustomizationQuery = {
