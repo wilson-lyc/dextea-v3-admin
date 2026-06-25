@@ -27,6 +27,15 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import { getTags, createTag, updateTag, deleteTag } from "@/services"
 
 type DialogMode = "create" | "edit"
@@ -34,6 +43,9 @@ type DialogMode = "create" | "edit"
 export default function TagListPage() {
   const [tags, setTags] = useState<ProductTag[]>([])
   const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const pageSize = 20
 
   // Create / Edit dialog state
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -47,11 +59,13 @@ export default function TagListPage() {
   const [deletingTag, setDeletingTag] = useState<ProductTag | null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  const fetchTags = useCallback(async () => {
+  const fetchTags = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
-      const res = await getTags()
-      setTags(res.data)
+      const res = await getTags({ page: targetPage, pageSize })
+      setTags(res.data.items)
+      setTotal(res.data.total)
+      setPage(res.data.page)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "获取标签列表失败")
     } finally {
@@ -60,7 +74,7 @@ export default function TagListPage() {
   }, [])
 
   useEffect(() => {
-    fetchTags()
+    fetchTags(1)
   }, [fetchTags])
 
   // Open create dialog
@@ -206,6 +220,60 @@ export default function TagListPage() {
             )}
           </TableBody>
         </Table>
+      )}
+
+      {/* Pagination */}
+      {!loading && tags.length > 0 && (
+        <Pagination className="justify-end">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchTags(page - 1) }}
+                text="上一页"
+              />
+            </PaginationItem>
+            {(() => {
+              const totalPages = Math.ceil(total / pageSize)
+              const pages: (number | "...")[] = []
+              if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i)
+              } else {
+                pages.push(1)
+                if (page > 3) pages.push("...")
+                for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+                  pages.push(i)
+                }
+                if (page < totalPages - 2) pages.push("...")
+                pages.push(totalPages)
+              }
+              return pages.map((p, idx) =>
+                p === "..." ? (
+                  <PaginationItem key={`ellipsis-${idx}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={p}>
+                    <PaginationLink
+                      href="#"
+                      isActive={p === page}
+                      onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchTags(p) }}
+                    >
+                      {p}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              )
+            })()}
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < Math.ceil(total / pageSize)) fetchTags(page + 1) }}
+                text="下一页"
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
 
       {/* Create / Edit Dialog */}

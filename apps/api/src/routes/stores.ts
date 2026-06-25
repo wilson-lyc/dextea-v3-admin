@@ -25,9 +25,16 @@ import type {
   ResetStorePasswordResponse,
 } from '@dextea/shared-types';
 import {
+  STORE_STATUS,
   STORE_STATUS_VALUES,
-  getStoreStatusLabel,
 } from '@dextea/shared-types';
+
+const STORE_STATUS_LABEL: Record<number, string> = {
+  [STORE_STATUS.RESTING.value]: '休息中',
+  [STORE_STATUS.OPEN.value]: '营业中',
+  [STORE_STATUS.PREPARING.value]: '筹备中',
+  [STORE_STATUS.CLOSED.value]: '已注销',
+};
 
 export async function storeRoutes(app: FastifyInstance) {
   /**
@@ -420,7 +427,7 @@ export async function storeRoutes(app: FastifyInstance) {
       return {
         code: 0,
         data: { status },
-        message: `门店状态已更新为「${getStoreStatusLabel(status)}」`,
+        message: `门店状态已更新为「${STORE_STATUS_LABEL[status] ?? status}」`,
       };
     } catch (error) {
       if (error instanceof AppError) throw error;

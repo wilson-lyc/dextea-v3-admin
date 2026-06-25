@@ -3,7 +3,12 @@ import { PlusIcon, PencilIcon, BanIcon, CheckCircleIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { User, UserStatus } from "@dextea/shared-types"
-import { USER_STATUS, getUserStatusLabel } from "@dextea/shared-types"
+import { USER_STATUS } from "@dextea/shared-types"
+
+const USER_STATUS_LABEL: Record<number, string> = {
+  [USER_STATUS.DISABLED.value]: "禁用",
+  [USER_STATUS.ACTIVE.value]: "激活",
+}
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -12,7 +17,13 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
-import { StatusSelect } from "@/components/status-select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Dialog,
   DialogContent,
@@ -30,6 +41,15 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import { getUsers, createUser, updateUser, toggleUserStatus } from "@/services"
 
 type DialogMode = "create" | "edit"
@@ -37,7 +57,9 @@ type DialogMode = "create" | "edit"
 export default function EmployeesPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
+  const pageSize = 20
 
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -54,12 +76,13 @@ export default function EmployeesPage() {
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
   const [initialPassword, setInitialPassword] = useState("")
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
-      const res = await getUsers()
+      const res = await getUsers({ page: targetPage, pageSize })
       setUsers(res.data.items)
       setTotal(res.data.total)
+      setPage(res.data.page)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "获取用户列表失败")
     } finally {
@@ -68,7 +91,7 @@ export default function EmployeesPage() {
   }, [])
 
   useEffect(() => {
-    fetchUsers()
+    fetchUsers(1)
   }, [fetchUsers])
 
   // Open create dialog
@@ -214,7 +237,7 @@ export default function EmployeesPage() {
                           : "text-muted-foreground"
                       }
                     >
-                      {getUserStatusLabel(user.status)}
+                      {USER_STATUS_LABEL[user.status]}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
@@ -232,12 +255,12 @@ export default function EmployeesPage() {
                         {user.status === USER_STATUS.ACTIVE.value ? (
                           <>
                             <BanIcon data-icon="inline-start" />
-                            {USER_STATUS.DISABLED.label}
+                            禁用
                           </>
                         ) : (
                           <>
                             <CheckCircleIcon data-icon="inline-start" />
-                            {USER_STATUS.ACTIVE.label}
+                            激活
                           </>
                         )}
                       </Button>
@@ -248,6 +271,60 @@ export default function EmployeesPage() {
             )}
           </TableBody>
         </Table>
+      )}
+
+      {/* Pagination */}
+      {!loading && users.length > 0 && (
+        <Pagination className="justify-end">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchUsers(page - 1) }}
+                text="上一页"
+              />
+            </PaginationItem>
+            {(() => {
+              const totalPages = Math.ceil(total / pageSize)
+              const pages: (number | "...")[] = []
+              if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i)
+              } else {
+                pages.push(1)
+                if (page > 3) pages.push("...")
+                for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+                  pages.push(i)
+                }
+                if (page < totalPages - 2) pages.push("...")
+                pages.push(totalPages)
+              }
+              return pages.map((p, idx) =>
+                p === "..." ? (
+                  <PaginationItem key={`ellipsis-${idx}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={p}>
+                    <PaginationLink
+                      href="#"
+                      isActive={p === page}
+                      onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchUsers(p) }}
+                    >
+                      {p}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              )
+            })()}
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < Math.ceil(total / pageSize)) fetchUsers(page + 1) }}
+                text="下一页"
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
 
       {/* Create / Edit Dialog */}
@@ -314,12 +391,23 @@ export default function EmployeesPage() {
                 <FieldLabel htmlFor="user-status">
                   状态 <span className="text-destructive">*</span>
                 </FieldLabel>
-                <StatusSelect
-                  value={formStatus}
+                <Select
+                  value={String(formStatus)}
                   onValueChange={(val) => setFormStatus(Number(val) as UserStatus)}
-                  options={USER_STATUS}
-                  className="w-full"
-                />
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="请选择状态">
+                      {USER_STATUS_LABEL[formStatus]}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(USER_STATUS).map((opt) => (
+                      <SelectItem key={opt.value} value={String(opt.value)}>
+                        {USER_STATUS_LABEL[opt.value]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
             )}
           </FieldGroup>

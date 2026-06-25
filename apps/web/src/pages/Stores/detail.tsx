@@ -4,7 +4,14 @@ import { ArrowLeftIcon, PencilIcon, KeyRoundIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store, StoreStatus } from "@dextea/shared-types"
-import { getStoreStatusLabel } from "@dextea/shared-types"
+import { STORE_STATUS } from "@dextea/shared-types"
+
+const STORE_STATUS_LABEL: Record<number, string> = {
+  [STORE_STATUS.RESTING.value]: "休息中",
+  [STORE_STATUS.OPEN.value]: "营业中",
+  [STORE_STATUS.PREPARING.value]: "筹备中",
+  [STORE_STATUS.CLOSED.value]: "已注销",
+}
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -167,7 +174,7 @@ export default function StoreDetailPage() {
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">当前状态</span>
                   <Badge className={STATUS_BADGE_CLASSES[store.status]}>
-                    {getStoreStatusLabel(store.status)}
+                    {STORE_STATUS_LABEL[store.status]}
                   </Badge>
               </div>
             </CardContent>

@@ -4,7 +4,14 @@ import { PlusIcon, RefreshCwIcon, SearchIcon, SettingsIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store, StoreStatus } from "@dextea/shared-types"
-import { getStoreStatusLabel } from "@dextea/shared-types"
+import { STORE_STATUS } from "@dextea/shared-types"
+
+const STORE_STATUS_LABEL: Record<number, string> = {
+  [STORE_STATUS.RESTING.value]: "休息中",
+  [STORE_STATUS.OPEN.value]: "营业中",
+  [STORE_STATUS.PREPARING.value]: "筹备中",
+  [STORE_STATUS.CLOSED.value]: "已注销",
+}
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -198,7 +205,7 @@ export default function StoresPage() {
                   <TableCell>{store.businessHours || "-"}</TableCell>
                   <TableCell>
                     <span className={STATUS_CLASSES[store.status]}>
-                      {getStoreStatusLabel(store.status)}
+                      {STORE_STATUS_LABEL[store.status]}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
@@ -215,7 +222,7 @@ export default function StoresPage() {
         </TooltipProvider>
       )}
 
-      {!loading && (
+      {!loading && stores.length > 0 && (
         <Pagination className="justify-end">
           <PaginationContent>
             <PaginationItem>

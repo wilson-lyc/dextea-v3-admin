@@ -1,5 +1,6 @@
 import type {
   ApiResponse,
+  PaginatedData,
   ProductTag,
   CreateTagInput,
   UpdateTagInput,
@@ -7,8 +8,8 @@ import type {
 import { http } from "./http"
 
 /** GET /tags — 获取商品标签列表 */
-export function getTags() {
-  return http.get<ApiResponse<ProductTag[]>>("/tags").then((res) => res.data)
+export function getTags(params?: { page?: number; pageSize?: number }) {
+  return http.get<ApiResponse<PaginatedData<ProductTag>>>("/tags", { params }).then((res) => res.data)
 }
 
 /** POST /tags — 新增标签 */

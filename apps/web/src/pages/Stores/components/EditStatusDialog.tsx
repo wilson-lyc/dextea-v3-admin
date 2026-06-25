@@ -9,7 +9,13 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
-import { StatusSelect } from "@/components/status-select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Dialog,
   DialogContent,
@@ -67,13 +73,30 @@ export function EditStatusDialog({ open, onOpenChange, storeId, currentStatus, o
             <FieldLabel>
               门店状态 <span className="text-destructive">*</span>
             </FieldLabel>
-            <StatusSelect
-              value={selected}
-              onValueChange={setSelected}
-              options={STORE_STATUS}
-              placeholder="请选择门店状态"
-              className="w-full"
-            />
+            <Select value={selected} onValueChange={setSelected}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="请选择门店状态">
+                  {({
+                    [STORE_STATUS.RESTING.value]: '休息中',
+                    [STORE_STATUS.OPEN.value]: '营业中',
+                    [STORE_STATUS.PREPARING.value]: '筹备中',
+                    [STORE_STATUS.CLOSED.value]: '已注销',
+                  } as Record<number, string>)[Number(selected)]}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(STORE_STATUS).map((opt) => (
+                  <SelectItem key={opt.value} value={String(opt.value)}>
+                    {({
+                      [STORE_STATUS.RESTING.value]: '休息中',
+                      [STORE_STATUS.OPEN.value]: '营业中',
+                      [STORE_STATUS.PREPARING.value]: '筹备中',
+                      [STORE_STATUS.CLOSED.value]: '已注销',
+                    } as Record<number, string>)[opt.value]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
         </FieldGroup>
 

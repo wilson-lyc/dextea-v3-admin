@@ -1,17 +1,17 @@
 // ---- status layer ----
-export { USER_STATUS, USER_STATUS_VALUES, getUserStatusLabel } from './status/index.js';
+export { USER_STATUS, USER_STATUS_VALUES } from './status/index.js';
 export type { UserStatus } from './status/index.js';
 
-export { STORE_STATUS, STORE_STATUS_VALUES, getStoreStatusLabel } from './status/index.js';
+export { STORE_STATUS, STORE_STATUS_VALUES } from './status/index.js';
 export type { StoreStatus } from './status/index.js';
 
-export { PRODUCT_STATUS, PRODUCT_STATUS_VALUES, getProductStatusLabel } from './status/index.js';
+export { PRODUCT_STATUS, PRODUCT_STATUS_VALUES } from './status/index.js';
 export type { ProductStatus } from './status/index.js';
 
-export { PRODUCT_CUSTOMIZATION_STATUS, PRODUCT_CUSTOMIZATION_STATUS_VALUES, getProductCustomizationStatusLabel } from './status/index.js';
+export { PRODUCT_CUSTOMIZATION_STATUS, PRODUCT_CUSTOMIZATION_STATUS_VALUES } from './status/index.js';
 export type { ProductCustomizationStatus } from './status/index.js';
 
-export { CUSTOMIZATION_OPTION_STATUS, CUSTOMIZATION_OPTION_STATUS_VALUES, getCustomizationOptionStatusLabel } from './status/index.js';
+export { CUSTOMIZATION_OPTION_STATUS, CUSTOMIZATION_OPTION_STATUS_VALUES } from './status/index.js';
 export type { CustomizationOptionStatus } from './status/index.js';
 
 
@@ -83,6 +83,7 @@ export type {
   ProductTag,
   CreateTagInput,
   UpdateTagInput,
+  TagQuery,
 } from './types/index.js';
 
 export type {
@@ -92,4 +93,10 @@ export type {
 
 export type {
   DashboardStats,
+} from './types/index.js';
+
+export type {
+  ProductCustomization,
+  CreateProductCustomizationInput,
+  ProductCustomizationQuery,
 } from './types/index.js';

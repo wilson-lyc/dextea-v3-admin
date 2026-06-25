@@ -8,6 +8,7 @@ export { getProducts, getProductBasicInfo, getProductTags, createProduct, update
 export { getTags, createTag, updateTag, deleteTag } from './tag'
 export { getProvinces, getChildren, resolveNames } from './area'
 export { getDashboardStats } from './dashboard'
+export { getProductCustomizations, getProductCustomization, createProductCustomization, getBoundProducts, bindProduct, unbindProduct } from './product-customization'
 
 // Re-export shared types for page convenience
 export type {

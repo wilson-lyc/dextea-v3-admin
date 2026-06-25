@@ -6,29 +6,44 @@ import { AppError } from '../errorcode/index.js';
 import { tagErrors } from '../errorcode/tags.js';
 import type {
   ApiResponse,
+  PaginatedData,
   ProductTag,
   CreateTagInput,
   UpdateTagInput,
+  TagQuery,
 } from '@dextea/shared-types';
 
 export async function tagRoutes(app: FastifyInstance) {
   /**
-   * 获取商品标签列表
+   * 商品标签列表
    * GET /api/v1/tags
    */
   app.get<{
-    Reply: ApiResponse<ProductTag[]>;
+    Querystring: TagQuery;
+    Reply: ApiResponse<PaginatedData<ProductTag>>;
   }>('/tags', async (request) => {
     try {
       const db = await getDb();
+      const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
+      const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
+      const offset = (page - 1) * pageSize;
+
+      const countResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(productTagsTable);
+
+      const total = Number(countResult[0]?.count ?? 0);
+
       const items = await db
         .select()
         .from(productTagsTable)
-        .orderBy(productTagsTable.id);
+        .orderBy(productTagsTable.id)
+        .limit(pageSize)
+        .offset(offset);
 
       return {
         code: 0,
-        data: items,
+        data: { items, total, page, pageSize },
         message: 'ok',
       };
     } catch (error) {

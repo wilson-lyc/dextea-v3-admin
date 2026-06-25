@@ -2,7 +2,12 @@ import { useCallback, useEffect, useState } from "react"
 import { PencilIcon } from "lucide-react"
 
 import type { Product, ProductStatus } from "@dextea/shared-types"
-import { getProductStatusLabel } from "@dextea/shared-types"
+import { PRODUCT_STATUS } from "@dextea/shared-types"
+
+const PRODUCT_STATUS_LABEL: Record<number, string> = {
+  [PRODUCT_STATUS.OFF.value]: "下架",
+  [PRODUCT_STATUS.ON.value]: "可售",
+}
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -103,7 +108,7 @@ export default function BasicInfoPanel({ productId }: BasicInfoPanelProps) {
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">当前状态</span>
             <Badge className={STATUS_BADGE_CLASSES[product.status]}>
-              {getProductStatusLabel(product.status)}
+              {PRODUCT_STATUS_LABEL[product.status]}
             </Badge>
           </div>
         </CardContent>

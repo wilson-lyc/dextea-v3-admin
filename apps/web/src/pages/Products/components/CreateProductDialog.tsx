@@ -6,7 +6,13 @@ import { PRODUCT_STATUS, PRODUCT_STATUS_VALUES } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { StatusSelect } from "@/components/status-select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Combobox,
   ComboboxChip,
@@ -224,12 +230,20 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
             <FieldLabel htmlFor="product-status">
               状态 <span className="text-destructive">*</span>
             </FieldLabel>
-            <StatusSelect
-              value={formStatus}
-              onValueChange={setFormStatus}
-              options={PRODUCT_STATUS}
-              placeholder="请选择状态"
-            />
+            <Select value={formStatus} onValueChange={setFormStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="请选择状态">
+                  {formStatus === String(PRODUCT_STATUS.OFF.value) ? '下架' : '可售'}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(PRODUCT_STATUS).map((opt) => (
+                  <SelectItem key={opt.value} value={String(opt.value)}>
+                    {opt.value === 0 ? '下架' : '可售'}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
         </FieldGroup>
         </ScrollArea>

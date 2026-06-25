@@ -16,7 +16,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { StatusSelect } from "@/components/status-select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { updateProduct } from "@/services"
 
 interface EditStatusDialogProps {
@@ -65,13 +71,20 @@ export function EditStatusDialog({ open, onOpenChange, productId, currentStatus,
         <FieldGroup className="py-2">
           <Field>
             <FieldLabel>状态</FieldLabel>
-            <StatusSelect
-              value={selected}
-              onValueChange={setSelected}
-              options={PRODUCT_STATUS}
-              placeholder="请选择状态"
-              className="w-full"
-            />
+            <Select value={selected} onValueChange={setSelected}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="请选择状态">
+                  {selected === String(PRODUCT_STATUS.OFF.value) ? '下架' : '可售'}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(PRODUCT_STATUS).map((opt) => (
+                  <SelectItem key={opt.value} value={String(opt.value)}>
+                    {opt.value === 0 ? '下架' : '可售'}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
         </FieldGroup>
 

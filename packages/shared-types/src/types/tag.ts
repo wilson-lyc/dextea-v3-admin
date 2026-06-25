@@ -18,3 +18,8 @@ export interface CreateTagInput {
 export interface UpdateTagInput {
   name: string;
 }
+
+export type TagQuery = {
+  page?: string;
+  pageSize?: string;
+};

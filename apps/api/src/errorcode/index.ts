@@ -51,3 +51,4 @@ export { initErrors } from './init.js';
 export { configErrors } from './config.js';
 export { productErrors } from './products.js';
 export { tagErrors } from './tags.js';
+export { productCustomizationErrors } from './product-customizations.js';

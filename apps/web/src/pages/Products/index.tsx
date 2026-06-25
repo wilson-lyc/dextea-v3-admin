@@ -8,7 +8,7 @@ import {
 import { toast } from "sonner"
 
 import type { Product } from "@dextea/shared-types"
-import { getProductStatusLabel } from "@dextea/shared-types"
+import { PRODUCT_STATUS } from "@dextea/shared-types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -157,7 +157,7 @@ export default function ProductsPage() {
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>¥{product.price.toFixed(2)}</TableCell>
                     <TableCell>
-                      {STATUS_BADGE[product.status] ?? <Badge variant="outline">{getProductStatusLabel(product.status)}</Badge>}
+                      {STATUS_BADGE[product.status]}
                     </TableCell>
                     <TableCell>
                       {product.tags && product.tags.length > 0 ? (
@@ -185,7 +185,7 @@ export default function ProductsPage() {
       )}
 
       {/* Pagination */}
-      {!loading && (
+      {!loading && products.length > 0 && (
         <Pagination className="justify-end">
           <PaginationContent>
             <PaginationItem>

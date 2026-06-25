@@ -73,10 +73,6 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
         <div className="py-12 text-center text-sm text-muted-foreground">
           加载中...
         </div>
-      ) : tags.length === 0 ? (
-        <div className="py-12 text-center text-sm text-muted-foreground">
-          暂无标签
-        </div>
       ) : (
         <Table>
           <TableHeader>
@@ -86,21 +82,29 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tags.map((tag) => (
-              <TableRow key={tag.id}>
-                <TableCell className="font-medium">{tag.name}</TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-500 hover:text-red-500"
-                    onClick={() => handleRemoveTag(tag.id)}
-                  >
-                    <Trash2Icon className="size-4" />
-                  </Button>
+            {tags.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={2} className="py-8 text-center text-muted-foreground">
+                  暂无标签
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              tags.map((tag) => (
+                <TableRow key={tag.id}>
+                  <TableCell className="font-medium">{tag.name}</TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-500 hover:text-red-500"
+                      onClick={() => handleRemoveTag(tag.id)}
+                    >
+                      <Trash2Icon className="size-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       )}
