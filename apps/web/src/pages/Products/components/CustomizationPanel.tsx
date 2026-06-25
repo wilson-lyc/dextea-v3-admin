@@ -1,9 +1,19 @@
 import { useCallback, useEffect, useState } from "react"
-import { LinkIcon, SettingsIcon, Trash2Icon } from "lucide-react"
+import { LinkIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -13,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { getBoundCustomizations, addProductCustomization, removeProductCustomization } from "@/services"
+import { getBoundCustomizations, addProductCustomization, removeProductCustomization, updateProductCustomizationSort } from "@/services"
 
 interface CustomizationPanelProps {
   productId: number
@@ -23,14 +33,23 @@ interface BoundCustomization {
   customizationId: number
   customizationName: string
   displayName: string
+  sort: number
 }
 
 export default function CustomizationPanel({ productId }: CustomizationPanelProps) {
   const navigate = useNavigate()
   const [customizations, setCustomizations] = useState<BoundCustomization[]>([])
   const [loading, setLoading] = useState(true)
-  const [inputValue, setInputValue] = useState("")
+
+  const [bindOpen, setBindOpen] = useState(false)
+  const [bindCustomizationId, setBindCustomizationId] = useState("")
+  const [bindSort, setBindSort] = useState("0")
   const [binding, setBinding] = useState(false)
+
+  const [editOpen, setEditOpen] = useState(false)
+  const [editCustomization, setEditCustomization] = useState<BoundCustomization | null>(null)
+  const [editSort, setEditSort] = useState("0")
+  const [editing, setEditing] = useState(false)
 
   const fetchCustomizations = useCallback(async () => {
     setLoading(true)
@@ -53,7 +72,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
   }, [fetchCustomizations])
 
   const handleBind = async () => {
-    const customizationId = Number(inputValue)
+    const customizationId = Number(bindCustomizationId)
     if (!customizationId || customizationId <= 0) {
       toast.error("请输入有效的客制化项目ID")
       return
@@ -61,10 +80,12 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
 
     setBinding(true)
     try {
-      const res = await addProductCustomization(productId, customizationId)
+      const res = await addProductCustomization(productId, customizationId, Number(bindSort) || 0)
       if (res.code === 0) {
         toast.success(res.message)
-        setInputValue("")
+        setBindOpen(false)
+        setBindCustomizationId("")
+        setBindSort("0")
         await fetchCustomizations()
       } else {
         toast.error(res.message)
@@ -90,22 +111,69 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
     }
   }
 
+  const openEditDialog = (item: BoundCustomization) => {
+    setEditCustomization(item)
+    setEditSort(String(item.sort))
+    setEditOpen(true)
+  }
+
+  const handleEditSort = async () => {
+    if (!editCustomization) return
+
+    setEditing(true)
+    try {
+      const res = await updateProductCustomizationSort(productId, editCustomization.customizationId, Number(editSort) || 0)
+      if (res.code === 0) {
+        toast.success(res.message)
+        setEditOpen(false)
+        setEditCustomization(null)
+        await fetchCustomizations()
+      } else {
+        toast.error(res.message)
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "更新排序失败")
+    } finally {
+      setEditing(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <Input
-          placeholder="输入客制化项目ID"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleBind()
-          }}
-          className="w-48"
-        />
-        <Button onClick={handleBind} disabled={binding}>
-          <LinkIcon data-icon="inline-start" />
-          {binding ? "绑定中..." : "绑定"}
-        </Button>
+      <div>
+        <Dialog open={bindOpen} onOpenChange={setBindOpen}>
+          <DialogTrigger render={<Button><LinkIcon data-icon="inline-start" />绑定新项目</Button>} />
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>绑定新客制化项目</DialogTitle>
+              <DialogDescription>输入客制化项目ID和排序序号即可绑定到该商品。</DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-4 py-2">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium">客制化项目ID</label>
+                <Input
+                  placeholder="输入客制化项目ID"
+                  value={bindCustomizationId}
+                  onChange={(e) => setBindCustomizationId(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium">排序序号</label>
+                <Input
+                  placeholder="默认 0"
+                  value={bindSort}
+                  onChange={(e) => setBindSort(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose render={<Button variant="outline">取消</Button>} />
+              <Button onClick={handleBind} disabled={binding}>
+                {binding ? "绑定中..." : "确定"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {loading ? (
@@ -117,15 +185,16 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
           <TableHeader>
             <TableRow>
               <TableHead className="w-28">项目ID</TableHead>
-              <TableHead className="w-1/2">名称</TableHead>
-              <TableHead className="w-1/2">展示名称</TableHead>
-              <TableHead className="w-36 text-right">操作</TableHead>
+              <TableHead className="w-2/5">名称</TableHead>
+              <TableHead className="w-2/5">展示名称</TableHead>
+              <TableHead className="w-20">排序</TableHead>
+              <TableHead className="w-52 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {customizations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
                   暂未绑定客制化项目
                 </TableCell>
               </TableRow>
@@ -135,6 +204,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                   <TableCell className="font-mono text-xs">{c.customizationId}</TableCell>
                   <TableCell>{c.customizationName}</TableCell>
                   <TableCell>{c.displayName || "-"}</TableCell>
+                  <TableCell className="font-mono text-xs">{c.sort}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
                       <Button
@@ -142,8 +212,16 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                         size="sm"
                         onClick={() => navigate(`/products/customization/${c.customizationId}`)}
                       >
-                        <SettingsIcon className="size-4" />
-                        管理
+                        <LinkIcon data-icon="inline-start" />
+                        查看项目
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditDialog(c)}
+                      >
+                        <PencilIcon data-icon="inline-start" />
+                        编辑
                       </Button>
                       <Button
                         variant="outline"
@@ -162,6 +240,33 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
           </TableBody>
         </Table>
       )}
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑排序</DialogTitle>
+            <DialogDescription>
+              修改客制化项目「{editCustomization?.customizationName}」在当前商品中的排序序号。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-2">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">排序序号</label>
+              <Input
+                placeholder="排序序号"
+                value={editSort}
+                onChange={(e) => setEditSort(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline">取消</Button>} />
+            <Button onClick={handleEditSort} disabled={editing}>
+              {editing ? "保存中..." : "保存"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

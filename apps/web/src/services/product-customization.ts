@@ -24,6 +24,7 @@ export function createProductCustomization(data: CreateProductCustomizationInput
 interface BoundProduct {
   productId: number
   productName: string
+  sort: number
 }
 
 /** GET /product-customizations/:id/products */
@@ -32,8 +33,13 @@ export function getBoundProducts(customizationId: number) {
 }
 
 /** POST /product-customizations/:id/products */
-export function bindProduct(customizationId: number, productId: number) {
-  return http.post<ApiResponse<null>>(`/product-customizations/${customizationId}/products`, { productId }).then((res) => res.data)
+export function bindProduct(customizationId: number, productId: number, sort?: number) {
+  return http.post<ApiResponse<null>>(`/product-customizations/${customizationId}/products`, { productId, sort }).then((res) => res.data)
+}
+
+/** PATCH /product-customizations/:id/products/:productId/sort */
+export function updateBoundProductSort(customizationId: number, productId: number, sort: number) {
+  return http.patch<ApiResponse<null>>(`/product-customizations/${customizationId}/products/${productId}/sort`, { sort }).then((res) => res.data)
 }
 
 /** DELETE /product-customizations/:id/products/:productId */

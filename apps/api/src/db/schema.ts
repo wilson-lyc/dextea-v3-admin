@@ -171,6 +171,7 @@ export const productCustomizationRelationsTable = mysqlTable(
   {
     productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
     customizationId: bigint('customization_id', { mode: 'number', unsigned: true }).notNull(),
+    sort: tinyint().notNull().default(0),
   },
   (table) => ({
     primaryKey: primaryKey({ columns: [table.productId, table.customizationId] }),
@@ -185,6 +186,7 @@ export const customizationOptionsTable = mysqlTable('customization_options', {
   customizationId: bigint('customization_id', { mode: 'number', unsigned: true }).notNull(),
   name: varchar({ length: 255 }).notNull(),
   price: double().notNull().default(0),
+  sort: tinyint().notNull().default(0),
   status: tinyint().notNull().default(0),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),

@@ -52,6 +52,7 @@ export function removeProductTag(productId: number, tagId: number) {
 interface BoundCustomization {
   customizationId: number
   customizationName: string
+  sort: number
 }
 
 /** GET /products/:id/customizations — 获取商品绑定的客制化项目 */
@@ -60,9 +61,16 @@ export function getBoundCustomizations(productId: number) {
 }
 
 /** POST /products/:id/customizations — 绑定客制化项目到商品 */
-export function addProductCustomization(productId: number, customizationId: number) {
+export function addProductCustomization(productId: number, customizationId: number, sort?: number) {
   return http
-    .post<ApiResponse<null>>(`/products/${productId}/customizations`, { customizationId })
+    .post<ApiResponse<null>>(`/products/${productId}/customizations`, { customizationId, sort })
+    .then((res) => res.data)
+}
+
+/** PATCH /products/:id/customizations/:customizationId/sort — 更新客制化项目绑定排序 */
+export function updateProductCustomizationSort(productId: number, customizationId: number, sort: number) {
+  return http
+    .patch<ApiResponse<null>>(`/products/${productId}/customizations/${customizationId}/sort`, { sort })
     .then((res) => res.data)
 }
 

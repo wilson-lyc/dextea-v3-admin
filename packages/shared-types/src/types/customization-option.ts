@@ -8,6 +8,7 @@ export interface CustomizationOption {
   customizationId: number;
   name: string;
   price: number;
+  sort: number;
   status: CustomizationOptionStatus;
   createdAt: string;
   updatedAt: string;
@@ -16,10 +17,12 @@ export interface CustomizationOption {
 export interface CreateCustomizationOptionInput {
   name: string;
   price?: number;
+  sort?: number;
 }
 
 export interface UpdateCustomizationOptionInput {
   name?: string;
   price?: number;
+  sort?: number;
   status?: CustomizationOptionStatus;
 }

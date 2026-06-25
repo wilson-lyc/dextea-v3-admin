@@ -646,7 +646,7 @@ export async function productRoutes(app: FastifyInstance) {
   /** 获取商品绑定的客制化项目列表 */
   app.get<{
     Params: { id: string };
-    Reply: ApiResponse<{ customizationId: number; customizationName: string; displayName: string }[]>;
+    Reply: ApiResponse<{ customizationId: number; customizationName: string; displayName: string; sort: number }[]>;
   }>('/products/:id/customizations', {
     schema: {
       description: '获取商品绑定的客制化项目列表',
@@ -671,6 +671,7 @@ export async function productRoutes(app: FastifyInstance) {
                   customizationId: { type: 'integer' },
                   customizationName: { type: 'string' },
                   displayName: { type: 'string' },
+                  sort: { type: 'integer' },
                 },
               },
             },
@@ -690,6 +691,7 @@ export async function productRoutes(app: FastifyInstance) {
           customizationId: productCustomizationRelationsTable.customizationId,
           customizationName: productCustomizationsTable.name,
           displayName: productCustomizationsTable.displayName,
+          sort: productCustomizationRelationsTable.sort,
         })
         .from(productCustomizationRelationsTable)
         .innerJoin(
@@ -697,7 +699,7 @@ export async function productRoutes(app: FastifyInstance) {
           eq(productCustomizationRelationsTable.customizationId, productCustomizationsTable.id),
         )
         .where(eq(productCustomizationRelationsTable.productId, productId))
-        .orderBy(productCustomizationRelationsTable.customizationId);
+        .orderBy(productCustomizationRelationsTable.sort, productCustomizationRelationsTable.customizationId);
 
       return {
         code: 0,
@@ -714,7 +716,7 @@ export async function productRoutes(app: FastifyInstance) {
   /** 绑定客制化项目到商品 */
   app.post<{
     Params: { id: string };
-    Body: { customizationId: number };
+    Body: { customizationId: number; sort?: number };
     Reply: ApiResponse<null>;
   }>('/products/:id/customizations', {
     schema: {
@@ -731,6 +733,7 @@ export async function productRoutes(app: FastifyInstance) {
         type: 'object',
         properties: {
           customizationId: { type: 'integer', description: '客制化项目ID' },
+          sort: { type: 'integer', description: '排序序号' },
         },
         required: ['customizationId'],
       },
@@ -751,6 +754,7 @@ export async function productRoutes(app: FastifyInstance) {
       const db = await getDb();
       const productId = parsePositiveInt(request.params.id, '商品ID');
       const customizationId = parsePositiveInt(String(request.body.customizationId), '客制化项目ID');
+      const sort = request.body.sort;
 
       // 检查商品是否存在
       const [product] = await db
@@ -787,7 +791,7 @@ export async function productRoutes(app: FastifyInstance) {
         throw new AppError(productErrors.CUSTOMIZATION_ALREADY_BOUND);
       }
 
-      await db.insert(productCustomizationRelationsTable).values({ productId, customizationId });
+      await db.insert(productCustomizationRelationsTable).values({ productId, customizationId, sort: sort ?? 0 });
 
       return {
         code: 0,
@@ -798,6 +802,80 @@ export async function productRoutes(app: FastifyInstance) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
       throw new AppError(productErrors.CUSTOMIZATION_BIND_FAILED);
+    }
+  });
+
+  /** 更新客制化项目绑定排序 */
+  app.patch<{
+    Params: { id: string; customizationId: string };
+    Body: { sort: number };
+    Reply: ApiResponse<null>;
+  }>('/products/:id/customizations/:customizationId/sort', {
+    schema: {
+      description: '更新客制化项目绑定排序',
+      tags: ['Products'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '商品ID' },
+          customizationId: { type: 'string', minLength: 1, description: '客制化项目ID' },
+        },
+        required: ['id', 'customizationId'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          sort: { type: 'integer', description: '排序序号' },
+        },
+        required: ['sort'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const productId = parsePositiveInt(request.params.id, '商品ID');
+      const customizationId = parsePositiveInt(request.params.customizationId, '客制化项目ID');
+      const { sort } = request.body;
+
+      const [existing] = await db
+        .select()
+        .from(productCustomizationRelationsTable)
+        .where(
+          sql`${productCustomizationRelationsTable.productId} = ${productId} and ${productCustomizationRelationsTable.customizationId} = ${customizationId}`,
+        )
+        .limit(1);
+
+      if (!existing) {
+        throw new AppError(productErrors.CUSTOMIZATION_BIND_NOT_FOUND);
+      }
+
+      await db
+        .update(productCustomizationRelationsTable)
+        .set({ sort })
+        .where(
+          sql`${productCustomizationRelationsTable.productId} = ${productId} and ${productCustomizationRelationsTable.customizationId} = ${customizationId}`,
+        );
+
+      return {
+        code: 0,
+        data: null,
+        message: '更新排序成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productErrors.CUSTOMIZATION_SORT_UPDATE_FAILED);
     }
   });
 

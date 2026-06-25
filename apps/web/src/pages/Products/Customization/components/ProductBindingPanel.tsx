@@ -1,9 +1,19 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { LinkIcon, SettingsIcon, Trash2Icon } from "lucide-react"
+import { LinkIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -13,7 +23,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { getBoundProducts, bindProduct, unbindProduct } from "@/services"
+import { getBoundProducts, bindProduct, unbindProduct, updateBoundProductSort } from "@/services"
+
+interface BoundProduct {
+  productId: number
+  productName: string
+  sort: number
+}
 
 interface ProductBindingPanelProps {
   customizationId: number
@@ -21,10 +37,18 @@ interface ProductBindingPanelProps {
 
 export default function ProductBindingPanel({ customizationId }: ProductBindingPanelProps) {
   const navigate = useNavigate()
-  const [products, setProducts] = useState<{ productId: number; productName: string }[]>([])
+  const [products, setProducts] = useState<BoundProduct[]>([])
   const [loading, setLoading] = useState(true)
-  const [inputValue, setInputValue] = useState("")
+
+  const [bindOpen, setBindOpen] = useState(false)
+  const [bindProductId, setBindProductId] = useState("")
+  const [bindSort, setBindSort] = useState("0")
   const [binding, setBinding] = useState(false)
+
+  const [editOpen, setEditOpen] = useState(false)
+  const [editProduct, setEditProduct] = useState<BoundProduct | null>(null)
+  const [editSort, setEditSort] = useState("0")
+  const [editing, setEditing] = useState(false)
 
   const fetchProducts = useCallback(async () => {
     setLoading(true)
@@ -47,7 +71,7 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
   }, [fetchProducts])
 
   const handleBind = async () => {
-    const productId = Number(inputValue)
+    const productId = Number(bindProductId)
     if (!productId || productId <= 0) {
       toast.error("请输入有效的商品ID")
       return
@@ -55,10 +79,12 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
 
     setBinding(true)
     try {
-      const res = await bindProduct(customizationId, productId)
+      const res = await bindProduct(customizationId, productId, Number(bindSort) || 0)
       if (res.code === 0) {
         toast.success(res.message)
-        setInputValue("")
+        setBindOpen(false)
+        setBindProductId("")
+        setBindSort("0")
         await fetchProducts()
       } else {
         toast.error(res.message)
@@ -86,22 +112,70 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
     }
   }
 
+  const openEditDialog = (product: BoundProduct) => {
+    setEditProduct(product)
+    setEditSort(String(product.sort))
+    setEditOpen(true)
+  }
+
+  const handleEditSort = async () => {
+    if (!editProduct) return
+
+    setEditing(true)
+    try {
+      const res = await updateBoundProductSort(customizationId, editProduct.productId, Number(editSort) || 0)
+      if (res.code === 0) {
+        toast.success(res.message)
+        setEditOpen(false)
+        setEditProduct(null)
+        await fetchProducts()
+      } else {
+        toast.error(res.message)
+      }
+    } catch (err) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      toast.error(msg ?? (err instanceof Error ? err.message : "更新排序失败"))
+    } finally {
+      setEditing(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <Input
-          placeholder="输入商品ID"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleBind()
-          }}
-          className="w-48"
-        />
-        <Button onClick={handleBind} disabled={binding}>
-          <LinkIcon data-icon="inline-start" />
-          {binding ? "绑定中..." : "绑定"}
-        </Button>
+      <div>
+        <Dialog open={bindOpen} onOpenChange={setBindOpen}>
+          <DialogTrigger render={<Button><LinkIcon data-icon="inline-start" />绑定新商品</Button>} />
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>绑定新商品</DialogTitle>
+              <DialogDescription>输入商品ID和排序序号即可将商品绑定到该客制化项目。</DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-4 py-2">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium">商品ID</label>
+                <Input
+                  placeholder="输入商品ID"
+                  value={bindProductId}
+                  onChange={(e) => setBindProductId(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium">排序序号</label>
+                <Input
+                  placeholder="默认 0"
+                  value={bindSort}
+                  onChange={(e) => setBindSort(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose render={<Button variant="outline">取消</Button>} />
+              <Button onClick={handleBind} disabled={binding}>
+                {binding ? "绑定中..." : "确定"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {loading ? (
@@ -114,13 +188,14 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
             <TableRow>
               <TableHead className="w-24">商品ID</TableHead>
               <TableHead>商品名称</TableHead>
-              <TableHead className="w-24 text-right">操作</TableHead>
+              <TableHead className="w-20">排序</TableHead>
+              <TableHead className="w-48 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {products.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
                   暂未绑定商品
                 </TableCell>
               </TableRow>
@@ -129,11 +204,16 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
                 <TableRow key={p.productId}>
                   <TableCell className="font-mono text-xs">{p.productId}</TableCell>
                   <TableCell>{p.productName}</TableCell>
+                  <TableCell className="font-mono text-xs">{p.sort}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Button variant="outline" size="sm" onClick={() => navigate(`/products/${p.productId}`)}>
-                        <SettingsIcon data-icon="inline-start" />
-                        管理
+                        <LinkIcon data-icon="inline-start" />
+                        查看商品
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(p)}>
+                        <PencilIcon data-icon="inline-start" />
+                        编辑
                       </Button>
                       <Button
                         variant="outline"
@@ -142,7 +222,7 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
                         onClick={() => handleUnbind(p.productId)}
                       >
                         <Trash2Icon className="size-4" data-icon="inline-start" />
-                          解绑
+                        解绑
                       </Button>
                     </div>
                   </TableCell>
@@ -152,6 +232,33 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
           </TableBody>
         </Table>
       )}
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑排序</DialogTitle>
+            <DialogDescription>
+              修改商品「{editProduct?.productName}」在当前客制化项目中的排序序号。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-2">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">排序序号</label>
+              <Input
+                placeholder="排序序号"
+                value={editSort}
+                onChange={(e) => setEditSort(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline">取消</Button>} />
+            <Button onClick={handleEditSort} disabled={editing}>
+              {editing ? "保存中..." : "保存"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

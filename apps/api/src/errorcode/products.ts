@@ -99,4 +99,16 @@ export const productErrors = {
     message: '获取绑定的客制化项目列表失败',
     httpStatus: 200,
   } satisfies BizError,
+
+  CUSTOMIZATION_BIND_NOT_FOUND: {
+    code: 10816,
+    message: '客制化项目绑定关系不存在',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  CUSTOMIZATION_SORT_UPDATE_FAILED: {
+    code: 10817,
+    message: '更新客制化项目绑定排序失败',
+    httpStatus: 200,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

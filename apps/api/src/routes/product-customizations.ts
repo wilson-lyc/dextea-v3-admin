@@ -262,13 +262,14 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
             code: { type: 'integer', description: '业务状态码，0=成功' },
             data: {
               type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  productId: { type: 'integer' },
-                  productName: { type: 'string' },
+                items: {
+                  type: 'object',
+                  properties: {
+                    productId: { type: 'integer' },
+                    productName: { type: 'string' },
+                    sort: { type: 'integer' },
+                  },
                 },
-              },
             },
             message: { type: 'string' },
           },
@@ -285,11 +286,12 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         .select({
           productId: productCustomizationRelationsTable.productId,
           productName: productsTable.name,
+          sort: productCustomizationRelationsTable.sort,
         })
         .from(productCustomizationRelationsTable)
         .innerJoin(productsTable, eq(productCustomizationRelationsTable.productId, productsTable.id))
         .where(eq(productCustomizationRelationsTable.customizationId, customizationId))
-        .orderBy(productCustomizationRelationsTable.productId);
+        .orderBy(productCustomizationRelationsTable.sort, productCustomizationRelationsTable.productId);
 
       return {
         code: 0,
@@ -306,7 +308,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
   /** 绑定商品到客制化项目 */
   app.post<{
     Params: { id: string };
-    Body: { productId: number };
+    Body: { productId: number; sort?: number };
     Reply: ApiResponse<null>;
   }>('/product-customizations/:id/products', {
     schema: {
@@ -323,6 +325,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         type: 'object',
         properties: {
           productId: { type: 'integer', description: '商品ID' },
+          sort: { type: 'integer', description: '排序序号' },
         },
         required: ['productId'],
       },
@@ -342,7 +345,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
-      const { productId } = request.body;
+      const { productId, sort } = request.body;
 
       // 检查商品是否存在
       const [product] = await db
@@ -368,7 +371,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         throw new AppError(productCustomizationErrors.PRODUCT_ALREADY_BOUND);
       }
 
-      await db.insert(productCustomizationRelationsTable).values({ productId, customizationId });
+      await db.insert(productCustomizationRelationsTable).values({ productId, customizationId, sort: sort ?? 0 });
 
       return {
         code: 0,
@@ -379,6 +382,80 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
       throw new AppError(productCustomizationErrors.BIND_FAILED);
+    }
+  });
+
+  /** 更新商品绑定排序 */
+  app.patch<{
+    Params: { id: string; productId: string };
+    Body: { sort: number };
+    Reply: ApiResponse<null>;
+  }>('/product-customizations/:id/products/:productId/sort', {
+    schema: {
+      description: '更新商品绑定排序',
+      tags: ['Product Customizations'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '客制化项目ID' },
+          productId: { type: 'string', minLength: 1, description: '商品ID' },
+        },
+        required: ['id', 'productId'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          sort: { type: 'integer', description: '排序序号' },
+        },
+        required: ['sort'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
+      const productId = parsePositiveInt(request.params.productId, '商品ID');
+      const { sort } = request.body;
+
+      const [existing] = await db
+        .select()
+        .from(productCustomizationRelationsTable)
+        .where(
+          sql`${productCustomizationRelationsTable.productId} = ${productId} and ${productCustomizationRelationsTable.customizationId} = ${customizationId}`,
+        )
+        .limit(1);
+
+      if (!existing) {
+        throw new AppError(productCustomizationErrors.BIND_NOT_FOUND);
+      }
+
+      await db
+        .update(productCustomizationRelationsTable)
+        .set({ sort })
+        .where(
+          sql`${productCustomizationRelationsTable.productId} = ${productId} and ${productCustomizationRelationsTable.customizationId} = ${customizationId}`,
+        );
+
+      return {
+        code: 0,
+        data: null,
+        message: '更新排序成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productCustomizationErrors.BIND_SORT_UPDATE_FAILED);
     }
   });
 
@@ -556,6 +633,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
                   customizationId: { type: 'integer' },
                   name: { type: 'string' },
                   price: { type: 'number' },
+                  sort: { type: 'integer' },
                   status: { type: 'integer' },
                   createdAt: { type: 'string' },
                   updatedAt: { type: 'string' },
@@ -577,7 +655,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         .select()
         .from(customizationOptionsTable)
         .where(eq(customizationOptionsTable.customizationId, customizationId))
-        .orderBy(customizationOptionsTable.id);
+        .orderBy(customizationOptionsTable.sort, customizationOptionsTable.id);
 
       return {
         code: 0,
@@ -627,6 +705,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
                 customizationId: { type: 'integer' },
                 name: { type: 'string' },
                 price: { type: 'number' },
+                sort: { type: 'integer' },
                 status: { type: 'integer' },
                 createdAt: { type: 'string' },
                 updatedAt: { type: 'string' },
@@ -642,7 +721,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
-      const { name, price } = request.body;
+      const { name, price, sort } = request.body;
 
       const trimmedName = name.trim();
       validateMaxLength(trimmedName, 255, '客制化选项名称');
@@ -651,6 +730,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         customizationId,
         name: trimmedName,
         price: price ?? 0,
+        sort: sort ?? 0,
       });
 
       const insertId = Number(result[0]?.insertId ?? 0);
@@ -691,29 +771,31 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         required: ['id', 'optionId'],
       },
       body: {
-        type: 'object',
-        properties: {
-          name: { type: 'string', minLength: 1 },
-          price: { type: 'number' },
-          status: { type: 'integer' },
-        },
-      },
-      response: {
-        200: {
           type: 'object',
           properties: {
-            code: { type: 'integer' },
-            data: {
-              type: 'object',
-              properties: {
-                id: { type: 'integer' },
-                customizationId: { type: 'integer' },
-                name: { type: 'string' },
-                price: { type: 'number' },
-                status: { type: 'integer' },
-                createdAt: { type: 'string' },
-                updatedAt: { type: 'string' },
-              },
+            name: { type: 'string', minLength: 1 },
+            price: { type: 'number' },
+            sort: { type: 'integer' },
+            status: { type: 'integer' },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              code: { type: 'integer' },
+              data: {
+                type: 'object',
+                properties: {
+                  id: { type: 'integer' },
+                  customizationId: { type: 'integer' },
+                  name: { type: 'string' },
+                  price: { type: 'number' },
+                  sort: { type: 'integer' },
+                  status: { type: 'integer' },
+                  createdAt: { type: 'string' },
+                  updatedAt: { type: 'string' },
+                },
             },
             message: { type: 'string' },
           },
@@ -726,7 +808,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
       const db = await getDb();
       const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
       const optionId = parsePositiveInt(request.params.optionId, '客制化选项ID');
-      const { name, price, status } = request.body;
+      const { name, price, sort, status } = request.body;
 
       const [existing] = await db
         .select()
@@ -745,6 +827,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         updateData.name = trimmedName;
       }
       if (price !== undefined) updateData.price = price;
+      if (sort !== undefined) updateData.sort = sort;
       if (status !== undefined) updateData.status = status;
 
       await db

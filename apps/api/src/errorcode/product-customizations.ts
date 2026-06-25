@@ -99,4 +99,16 @@ export const productCustomizationErrors = {
     message: '删除客制化选项失败',
     httpStatus: 200,
   } satisfies BizError,
+
+  BIND_NOT_FOUND: {
+    code: 10916,
+    message: '商品绑定关系不存在',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  BIND_SORT_UPDATE_FAILED: {
+    code: 10917,
+    message: '更新商品绑定排序失败',
+    httpStatus: 200,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

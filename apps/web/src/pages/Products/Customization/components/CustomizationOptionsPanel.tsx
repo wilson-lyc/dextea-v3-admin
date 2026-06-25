@@ -39,9 +39,10 @@ interface CustomizationOptionsPanelProps {
 type OptionForm = {
   name: string
   price: string
+  sort: string
 }
 
-const emptyForm = (): OptionForm => ({ name: "", price: "0" })
+const emptyForm = (): OptionForm => ({ name: "", price: "0", sort: "0" })
 
 export default function CustomizationOptionsPanel({ customizationId }: CustomizationOptionsPanelProps) {
   const [options, setOptions] = useState<CustomizationOption[]>([])
@@ -88,6 +89,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
       const res = await createCustomizationOption(customizationId, {
         name: createForm.name.trim(),
         price: Number(createForm.price) || 0,
+        sort: Number(createForm.sort) || 0,
       })
       if (res.code === 0) {
         toast.success(res.message)
@@ -106,7 +108,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
 
   const openEdit = (option: CustomizationOption) => {
     setEditingOption(option)
-    setEditForm({ name: option.name, price: String(option.price) })
+    setEditForm({ name: option.name, price: String(option.price), sort: String(option.sort) })
   }
 
   const handleUpdate = async () => {
@@ -121,6 +123,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
       const res = await updateCustomizationOption(customizationId, editingOption.id, {
         name: editForm.name.trim(),
         price: Number(editForm.price) || 0,
+        sort: Number(editForm.sort) || 0,
       })
       if (res.code === 0) {
         toast.success(res.message)
@@ -170,13 +173,14 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               <TableHead className="w-20">ID</TableHead>
               <TableHead>名称</TableHead>
               <TableHead className="w-28">价格</TableHead>
+              <TableHead className="w-20">排序</TableHead>
               <TableHead className="w-28 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {options.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
                   暂未添加客制化选项
                 </TableCell>
               </TableRow>
@@ -186,6 +190,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
                   <TableCell className="font-mono text-xs">{o.id}</TableCell>
                   <TableCell>{o.name}</TableCell>
                   <TableCell className="font-mono text-xs">¥{Number(o.price).toFixed(2)}</TableCell>
+                  <TableCell className="font-mono text-xs">{o.sort}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
                       <Button variant="outline" size="sm" onClick={() => openEdit(o)}>
@@ -243,6 +248,18 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
                 onChange={(e) => setCreateForm((f) => ({ ...f, price: e.target.value }))}
               />
             </Field>
+            <Field>
+              <FieldLabel htmlFor="option-sort">排序序号</FieldLabel>
+              <Input
+                id="option-sort"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="0"
+                value={createForm.sort}
+                onChange={(e) => setCreateForm((f) => ({ ...f, sort: e.target.value }))}
+              />
+            </Field>
           </FieldGroup>
 
           <DialogFooter>
@@ -286,6 +303,17 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
                 step="0.5"
                 value={editForm.price}
                 onChange={(e) => setEditForm((f) => ({ ...f, price: e.target.value }))}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="edit-option-sort">排序序号</FieldLabel>
+              <Input
+                id="edit-option-sort"
+                type="number"
+                min="0"
+                step="1"
+                value={editForm.sort}
+                onChange={(e) => setEditForm((f) => ({ ...f, sort: e.target.value }))}
               />
             </Field>
           </FieldGroup>
