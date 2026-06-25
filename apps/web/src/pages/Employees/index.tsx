@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { PlusIcon, PencilIcon, BanIcon, CheckCircleIcon } from "lucide-react"
+import { PlusIcon, PencilIcon, BanIcon, CheckCircleIcon, UsersIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { User, UserStatus } from "@dextea/shared-types"
@@ -41,6 +41,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
+import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   Pagination,
   PaginationContent,
@@ -205,6 +206,13 @@ export default function EmployeesPage() {
         <div className="flex items-center justify-center py-12">
           <Spinner className="size-6 text-muted-foreground" />
         </div>
+      ) : users.length === 0 ? (
+        <Empty>
+          <EmptyMedia variant="icon">
+            <UsersIcon className="size-4" />
+          </EmptyMedia>
+          <EmptyTitle>暂无员工数据</EmptyTitle>
+        </Empty>
       ) : (
         <Table>
           <TableHeader>
@@ -217,14 +225,7 @@ export default function EmployeesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
-                  暂无员工数据
-                </TableCell>
-              </TableRow>
-            ) : (
-              users.map((user) => (
+            {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-mono text-xs">{user.id}</TableCell>
                   <TableCell>{user.email}</TableCell>

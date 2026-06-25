@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react"
-import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { ListIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { CustomizationOption } from "@dextea/shared-types"
 import { CUSTOMIZATION_OPTION_STATUS } from "@dextea/shared-types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -169,14 +170,25 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
       <div className="flex items-center justify-between">
         <Button onClick={() => setCreateOpen(true)}>
           <PlusIcon data-icon="inline-start" />
-          添加选项
+          新建选项
         </Button>
+        {!loading && <span className="text-sm text-muted-foreground">共 {options.length} 个选项</span>}
       </div>
 
       {loading ? (
         <div className="py-8 text-center text-sm text-muted-foreground">
           加载中...
         </div>
+      ) : options.length === 0 ? (
+        <Empty>
+          <EmptyMedia variant="icon">
+            <ListIcon className="size-4" />
+          </EmptyMedia>
+          <EmptyTitle>暂无客制化选项</EmptyTitle>
+          <Button onClick={() => setCreateOpen(true)}>
+            立即添加
+          </Button>
+        </Empty>
       ) : (
         <Table>
           <TableHeader>
@@ -190,49 +202,41 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
             </TableRow>
           </TableHeader>
           <TableBody>
-            {options.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                  暂未添加客制化选项
+            {options.map((o) => (
+              <TableRow key={o.id}>
+                <TableCell className="font-mono text-xs">{o.id}</TableCell>
+                <TableCell>{o.name}</TableCell>
+                <TableCell className="font-mono text-xs">¥{Number(o.price).toFixed(2)}</TableCell>
+                <TableCell className="font-mono text-xs">{o.sort}</TableCell>
+                <TableCell>
+                  <Badge
+                    className={
+                      o.status === CUSTOMIZATION_OPTION_STATUS.OFF.value
+                        ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-red-200 dark:ring-red-800/30"
+                        : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-green-200 dark:ring-green-800/30"
+                    }
+                  >
+                    {o.status === CUSTOMIZATION_OPTION_STATUS.OFF.value ? "下架" : "启用"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="outline" size="sm" onClick={() => openEdit(o)}>
+                      <PencilIcon className="size-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-500 hover:text-red-500"
+                      onClick={() => handleDelete(o.id)}
+                    >
+                      <Trash2Icon className="size-4" data-icon="inline-start" />
+                      删除
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
-            ) : (
-              options.map((o) => (
-                <TableRow key={o.id}>
-                  <TableCell className="font-mono text-xs">{o.id}</TableCell>
-                  <TableCell>{o.name}</TableCell>
-                  <TableCell className="font-mono text-xs">¥{Number(o.price).toFixed(2)}</TableCell>
-                  <TableCell className="font-mono text-xs">{o.sort}</TableCell>
-                  <TableCell>
-                    <Badge
-                      className={
-                        o.status === CUSTOMIZATION_OPTION_STATUS.OFF.value
-                          ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-red-200 dark:ring-red-800/30"
-                          : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-green-200 dark:ring-green-800/30"
-                      }
-                    >
-                      {o.status === CUSTOMIZATION_OPTION_STATUS.OFF.value ? "下架" : "启用"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button variant="outline" size="sm" onClick={() => openEdit(o)}>
-                        <PencilIcon className="size-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-500 hover:text-red-500"
-                        onClick={() => handleDelete(o.id)}
-                      >
-                        <Trash2Icon className="size-4" data-icon="inline-start" />
-                        删除
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
+            ))}
           </TableBody>
         </Table>
       )}

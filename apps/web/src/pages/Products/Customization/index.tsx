@@ -1,11 +1,19 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { PlusIcon, SettingsIcon, BanIcon, CheckCircleIcon } from "lucide-react"
+import { PlusIcon, SearchIcon, SettingsIcon, BanIcon, CheckCircleIcon, ListIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { ProductCustomization } from "@dextea/shared-types"
 import { PRODUCT_CUSTOMIZATION_STATUS } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -16,6 +24,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
+import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   Pagination,
   PaginationContent,
@@ -28,6 +37,14 @@ import {
 import { getProductCustomizations, updateProductCustomization } from "@/services"
 import { CreateCustomizationDialog } from "./components/CreateCustomizationDialog"
 
+const STATUS_OPTIONS = [
+  { label: "全部", value: "" },
+  ...Object.values(PRODUCT_CUSTOMIZATION_STATUS).map((s) => ({
+    label: s.key === "off" ? "下架" : "启用",
+    value: String(s.value),
+  })),
+]
+
 export default function CustomizationPage() {
   const navigate = useNavigate()
   const [items, setItems] = useState<ProductCustomization[]>([])
@@ -37,10 +54,24 @@ export default function CustomizationPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const pageSize = 20
 
-  const fetchItems = useCallback(async (targetPage: number) => {
+  const [keyword, setKeyword] = useState("")
+  const [searchKeyword, setSearchKeyword] = useState("")
+  const [filterStatus, setFilterStatus] = useState("")
+
+  const fetchItems = useCallback(async (targetPage: number, kw?: string, st?: string) => {
     setLoading(true)
     try {
-      const res = await getProductCustomizations({ page: targetPage, pageSize })
+      const params: { page: number; pageSize: number; keyword?: string; status?: number } = {
+        page: targetPage,
+        pageSize,
+      }
+      if (kw) {
+        params.keyword = kw
+      }
+      if (st && st !== "") {
+        params.status = Number(st)
+      }
+      const res = await getProductCustomizations(params)
       if (res.code === 0) {
         setItems(res.data.items)
         setTotal(res.data.total)
@@ -53,11 +84,25 @@ export default function CustomizationPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [pageSize])
 
   useEffect(() => {
     fetchItems(1)
   }, [fetchItems])
+
+  const handleSearch = () => {
+    setSearchKeyword(keyword)
+    fetchItems(1, keyword, filterStatus)
+  }
+
+  const handleClear = () => {
+    setKeyword("")
+    setSearchKeyword("")
+    setFilterStatus("")
+    fetchItems(1)
+  }
+
+  const hasFilters = searchKeyword !== "" || filterStatus !== ""
 
   const handleCreated = () => {
     setDialogOpen(false)
@@ -69,14 +114,57 @@ export default function CustomizationPage() {
       <div className="flex items-center justify-between">
         <Button onClick={() => setDialogOpen(true)}>
           <PlusIcon data-icon="inline-start" />
-          新建客制化项目
+          新建客制化
         </Button>
+        <div className="flex items-center gap-2">
+          <div className="relative max-w-sm">
+            <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="搜索名称、展示名称"
+              className="pl-8"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch()
+              }}
+            />
+          </div>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-28">
+              <SelectValue placeholder="状态">
+                {STATUS_OPTIONS.find((o) => o.value === filterStatus)?.label}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="secondary" onClick={handleSearch}>
+            搜索
+          </Button>
+          {hasFilters && (
+            <Button variant="ghost" onClick={handleClear}>
+              清除
+            </Button>
+          )}
+        </div>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Spinner className="size-6 text-muted-foreground" />
         </div>
+      ) : items.length === 0 ? (
+        <Empty>
+          <EmptyMedia variant="icon">
+            <ListIcon className="size-4" />
+          </EmptyMedia>
+          <EmptyTitle>暂无客制化项目</EmptyTitle>
+        </Empty>
       ) : (
         <Table className="table-fixed">
           <TableHeader>
@@ -85,23 +173,18 @@ export default function CustomizationPage() {
               <TableHead className="w-2/5">名称</TableHead>
               <TableHead className="w-2/5">展示名称</TableHead>
               <TableHead className="w-32">状态</TableHead>
+              <TableHead className="w-28 text-center">绑定商品</TableHead>
+              <TableHead className="w-20 text-center">选项</TableHead>
               <TableHead className="w-36 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
-                  暂无客制化项目
-                </TableCell>
-              </TableRow>
-            ) : (
-              items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-mono text-xs">{item.id}</TableCell>
-                  <TableCell>{item.name}</TableCell>
-                  <TableCell>{item.displayName || "-"}</TableCell>
-                  <TableCell>
+            {items.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell className="font-mono text-xs">{item.id}</TableCell>
+                <TableCell>{item.name}</TableCell>
+                <TableCell>{item.displayName || "-"}</TableCell>
+                <TableCell>
                     <Badge
                       className={
                         item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value
@@ -112,6 +195,8 @@ export default function CustomizationPage() {
                       {item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "下架" : "启用"}
                     </Badge>
                   </TableCell>
+                  <TableCell className="text-center font-mono text-xs">{item.boundCount}</TableCell>
+                  <TableCell className="text-center font-mono text-xs">{item.optionCount}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
                       <Button

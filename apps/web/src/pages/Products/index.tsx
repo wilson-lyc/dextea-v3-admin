@@ -4,6 +4,7 @@ import {
   PlusIcon,
   SearchIcon,
   SettingsIcon,
+  PackageIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/table"
 import { getProducts } from "@/services"
 import { Spinner } from "@/components/ui/spinner"
+import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { CreateProductDialog } from "./components/CreateProductDialog"
 import {
   Pagination,
@@ -130,6 +132,13 @@ export default function ProductsPage() {
         <div className="flex items-center justify-center py-12">
           <Spinner className="size-6 text-muted-foreground" />
         </div>
+      ) : products.length === 0 ? (
+        <Empty>
+          <EmptyMedia variant="icon">
+            <PackageIcon className="size-4" />
+          </EmptyMedia>
+          <EmptyTitle>暂无商品数据</EmptyTitle>
+        </Empty>
       ) : (
         <ScrollArea className="max-h-[calc(100vh-280px)]">
           <Table>
@@ -144,41 +153,33 @@ export default function ProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                    暂无商品数据
+              {products.map((product) => (
+                <TableRow key={product.id}>
+                  <TableCell className="font-mono text-xs">{product.id}</TableCell>
+                  <TableCell>{product.name}</TableCell>
+                  <TableCell>¥{product.price.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {STATUS_BADGE[product.status]}
+                  </TableCell>
+                  <TableCell>
+                    {product.tags && product.tags.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {product.tags.map(tag => (
+                          <Badge key={tag.id} variant="outline">{tag.name}</Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/products/${product.id}`)}>
+                      <SettingsIcon data-icon="inline-start" />
+                      管理
+                    </Button>
                   </TableCell>
                 </TableRow>
-              ) : (
-                products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-mono text-xs">{product.id}</TableCell>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell>¥{product.price.toFixed(2)}</TableCell>
-                    <TableCell>
-                      {STATUS_BADGE[product.status]}
-                    </TableCell>
-                    <TableCell>
-                      {product.tags && product.tags.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {product.tags.map(tag => (
-                            <Badge key={tag.id} variant="outline">{tag.name}</Badge>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="outline" size="sm" onClick={() => navigate(`/products/${product.id}`)}>
-                        <SettingsIcon data-icon="inline-start" />
-                        管理
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
+              ))}
             </TableBody>
           </Table>
         </ScrollArea>

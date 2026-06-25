@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { PlusIcon, RefreshCwIcon, SearchIcon, SettingsIcon } from "lucide-react"
+import { PlusIcon, RefreshCwIcon, SearchIcon, SettingsIcon, Building2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store, StoreStatus } from "@dextea/shared-types"
@@ -39,6 +39,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Spinner } from "@/components/ui/spinner"
+import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { CreateStoreDialog } from "./components/CreateStoreDialog"
 
 const STATUS_CLASSES: Record<StoreStatus, string> = {
@@ -165,6 +166,13 @@ export default function StoresPage() {
         <div className="flex items-center justify-center py-12">
           <Spinner className="size-6 text-muted-foreground" />
         </div>
+      ) : stores.length === 0 ? (
+        <Empty>
+          <EmptyMedia variant="icon">
+            <Building2Icon className="size-4" />
+          </EmptyMedia>
+          <EmptyTitle>暂无门店数据</EmptyTitle>
+        </Empty>
       ) : (
         <TooltipProvider>
         <Table>
@@ -180,43 +188,35 @@ export default function StoresPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {stores.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
-                  暂无门店数据
+            {stores.map((store) => (
+              <TableRow key={store.id}>
+                <TableCell className="font-mono text-xs">{store.id}</TableCell>
+                <TableCell>{store.name}</TableCell>
+                <TableCell className="max-w-60 truncate">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>{fullAddress(store)}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{fullAddress(store)}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TableCell>
+                <TableCell>{store.phone || "-"}</TableCell>
+                <TableCell>{store.businessHours || "-"}</TableCell>
+                <TableCell>
+                  <span className={STATUS_CLASSES[store.status]}>
+                    {STORE_STATUS_LABEL[store.status]}
+                  </span>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button variant="outline" size="sm" onClick={() => navigate(`/stores/${store.id}`)}>
+                    <SettingsIcon data-icon="inline-start" />
+                    管理
+                  </Button>
                 </TableCell>
               </TableRow>
-            ) : (
-              stores.map((store) => (
-                <TableRow key={store.id}>
-                  <TableCell className="font-mono text-xs">{store.id}</TableCell>
-                  <TableCell>{store.name}</TableCell>
-                  <TableCell className="max-w-60 truncate">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span>{fullAddress(store)}</span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{fullAddress(store)}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell>{store.phone || "-"}</TableCell>
-                  <TableCell>{store.businessHours || "-"}</TableCell>
-                  <TableCell>
-                    <span className={STATUS_CLASSES[store.status]}>
-                      {STORE_STATUS_LABEL[store.status]}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm" onClick={() => navigate(`/stores/${store.id}`)}>
-                      <SettingsIcon data-icon="inline-start" />
-                      管理
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
+            ))}
           </TableBody>
         </Table>
         </TooltipProvider>

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react"
-import { LinkIcon, PencilIcon, Trash2Icon } from "lucide-react"
+import { LinkIcon, PencilIcon, Trash2Icon, ListIcon } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   Dialog,
   DialogTrigger,
@@ -180,6 +181,13 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         <div className="py-12 text-center text-sm text-muted-foreground">
           加载中...
         </div>
+      ) : customizations.length === 0 ? (
+        <Empty>
+          <EmptyMedia variant="icon">
+            <ListIcon className="size-4" />
+          </EmptyMedia>
+          <EmptyTitle>暂未绑定客制化项目</EmptyTitle>
+        </Empty>
       ) : (
         <Table>
           <TableHeader>
@@ -192,51 +200,43 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
             </TableRow>
           </TableHeader>
           <TableBody>
-            {customizations.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
-                  暂未绑定客制化项目
+            {customizations.map((c) => (
+              <TableRow key={c.customizationId}>
+                <TableCell className="font-mono text-xs">{c.customizationId}</TableCell>
+                <TableCell>{c.customizationName}</TableCell>
+                <TableCell>{c.displayName || "-"}</TableCell>
+                <TableCell className="font-mono text-xs">{c.sort}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/products/customization/${c.customizationId}`)}
+                    >
+                      <LinkIcon data-icon="inline-start" />
+                      查看项目
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditDialog(c)}
+                    >
+                      <PencilIcon data-icon="inline-start" />
+                      编辑
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-500 hover:text-red-500"
+                      onClick={() => handleUnbind(c.customizationId)}
+                    >
+                      <Trash2Icon className="size-4" data-icon="inline-start" />
+                      解绑
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
-            ) : (
-              customizations.map((c) => (
-                <TableRow key={c.customizationId}>
-                  <TableCell className="font-mono text-xs">{c.customizationId}</TableCell>
-                  <TableCell>{c.customizationName}</TableCell>
-                  <TableCell>{c.displayName || "-"}</TableCell>
-                  <TableCell className="font-mono text-xs">{c.sort}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/products/customization/${c.customizationId}`)}
-                      >
-                        <LinkIcon data-icon="inline-start" />
-                        查看项目
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditDialog(c)}
-                      >
-                        <PencilIcon data-icon="inline-start" />
-                        编辑
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-500 hover:text-red-500"
-                        onClick={() => handleUnbind(c.customizationId)}
-                      >
-                        <Trash2Icon className="size-4" data-icon="inline-start" />
-                        解绑
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
+            ))}
           </TableBody>
         </Table>
       )}

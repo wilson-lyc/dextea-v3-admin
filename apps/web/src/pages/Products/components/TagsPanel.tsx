@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react"
-import { PlusIcon, Trash2Icon } from "lucide-react"
+import { PlusIcon, Trash2Icon, TagIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { ProductTag } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
+import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   Table,
   TableBody,
@@ -73,6 +74,13 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
         <div className="py-12 text-center text-sm text-muted-foreground">
           加载中...
         </div>
+      ) : tags.length === 0 ? (
+        <Empty>
+          <EmptyMedia variant="icon">
+            <TagIcon className="size-4" />
+          </EmptyMedia>
+          <EmptyTitle>暂无标签</EmptyTitle>
+        </Empty>
       ) : (
         <Table>
           <TableHeader>
@@ -82,30 +90,22 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tags.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={2} className="py-8 text-center text-muted-foreground">
-                  暂无标签
+            {tags.map((tag) => (
+              <TableRow key={tag.id}>
+                <TableCell>{tag.name}</TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-500 hover:text-red-500"
+                    onClick={() => handleRemoveTag(tag.id)}
+                  >
+                    <Trash2Icon className="size-4" data-icon="inline-start" />
+                      解绑
+                  </Button>
                 </TableCell>
               </TableRow>
-            ) : (
-              tags.map((tag) => (
-                <TableRow key={tag.id}>
-                  <TableCell>{tag.name}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-red-500 hover:text-red-500"
-                      onClick={() => handleRemoveTag(tag.id)}
-                    >
-                      <Trash2Icon className="size-4" data-icon="inline-start" />
-                        解绑
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
+            ))}
           </TableBody>
         </Table>
       )}

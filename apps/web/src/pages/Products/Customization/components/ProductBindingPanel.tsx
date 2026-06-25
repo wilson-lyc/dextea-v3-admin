@@ -4,6 +4,7 @@ import { LinkIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   Dialog,
   DialogTrigger,
@@ -142,9 +143,10 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <Dialog open={bindOpen} onOpenChange={setBindOpen}>
-          <DialogTrigger render={<Button><LinkIcon data-icon="inline-start" />绑定新商品</Button>} />
+      <div className="flex items-center justify-between">
+        <div>
+          <Dialog open={bindOpen} onOpenChange={setBindOpen}>
+            <DialogTrigger render={<Button><LinkIcon data-icon="inline-start" />绑定新商品</Button>} />
           <DialogContent>
             <DialogHeader>
               <DialogTitle>绑定新商品</DialogTitle>
@@ -177,11 +179,20 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
           </DialogContent>
         </Dialog>
       </div>
+        {!loading && <span className="text-sm text-muted-foreground">共 {products.length} 个商品</span>}
+      </div>
 
       {loading ? (
         <div className="py-8 text-center text-sm text-muted-foreground">
           加载中...
         </div>
+      ) : products.length === 0 ? (
+        <Empty>
+          <EmptyMedia variant="icon">
+            <LinkIcon className="size-4" />
+          </EmptyMedia>
+          <EmptyTitle>暂未绑定商品</EmptyTitle>
+        </Empty>
       ) : (
         <Table>
           <TableHeader>
@@ -193,42 +204,34 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
-                  暂未绑定商品
+            {products.map((p) => (
+              <TableRow key={p.productId}>
+                <TableCell className="font-mono text-xs">{p.productId}</TableCell>
+                <TableCell>{p.productName}</TableCell>
+                <TableCell className="font-mono text-xs">{p.sort}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/products/${p.productId}`)}>
+                      <LinkIcon data-icon="inline-start" />
+                      查看商品
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => openEditDialog(p)}>
+                      <PencilIcon data-icon="inline-start" />
+                      排序
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-500 hover:text-red-500"
+                      onClick={() => handleUnbind(p.productId)}
+                    >
+                      <Trash2Icon className="size-4" data-icon="inline-start" />
+                      解绑
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
-            ) : (
-              products.map((p) => (
-                <TableRow key={p.productId}>
-                  <TableCell className="font-mono text-xs">{p.productId}</TableCell>
-                  <TableCell>{p.productName}</TableCell>
-                  <TableCell className="font-mono text-xs">{p.sort}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button variant="outline" size="sm" onClick={() => navigate(`/products/${p.productId}`)}>
-                        <LinkIcon data-icon="inline-start" />
-                        查看商品
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(p)}>
-                        <PencilIcon data-icon="inline-start" />
-                        编辑
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-500 hover:text-red-500"
-                        onClick={() => handleUnbind(p.productId)}
-                      >
-                        <Trash2Icon className="size-4" data-icon="inline-start" />
-                        解绑
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
+            ))}
           </TableBody>
         </Table>
       )}
@@ -238,7 +241,7 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
           <DialogHeader>
             <DialogTitle>编辑排序</DialogTitle>
             <DialogDescription>
-              修改商品「{editProduct?.productName}」在当前客制化项目中的排序序号。
+              修改当前客制化项目在商品「{editProduct?.productName}」中的排序序号。
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-2">

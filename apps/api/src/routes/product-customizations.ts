@@ -36,6 +36,8 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         properties: {
           page: { type: 'string', description: '页码' },
           pageSize: { type: 'string', description: '每页数量' },
+          keyword: { type: 'string', description: '搜索关键词（名称/展示名称）' },
+          status: { type: 'string', description: '状态筛选 0=下架 1=启用' },
         },
       },
       response: {
@@ -55,6 +57,8 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
                       name: { type: 'string' },
                       displayName: { type: 'string' },
                       status: { type: 'integer', description: '0=下架 1=启用' },
+                      boundCount: { type: 'integer', description: '绑定项目数' },
+                      optionCount: { type: 'integer', description: '选项数' },
                       createdAt: { type: 'string' },
                       updatedAt: { type: 'string' },
                     },
@@ -77,16 +81,42 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
       const offset = (page - 1) * pageSize;
+      const keyword = request.query.keyword;
+      const status = request.query.status;
+
+      const conditions: ReturnType<typeof sql>[] = [];
+      if (keyword) {
+        const pattern = `%${keyword}%`;
+        conditions.push(sql`(${productCustomizationsTable.name} like ${pattern} or ${productCustomizationsTable.displayName} like ${pattern})`);
+      }
+      if (status !== undefined && status !== '') {
+        conditions.push(eq(productCustomizationsTable.status, parseInt(status, 10)));
+      }
+
+      const whereClause = conditions.length > 0
+        ? sql`${conditions.reduce((acc, c) => sql`${acc} and ${c}`)}`
+        : undefined;
 
       const countResult = await db
         .select({ count: sql<number>`count(*)` })
-        .from(productCustomizationsTable);
+        .from(productCustomizationsTable)
+        .where(whereClause);
 
       const total = Number(countResult[0]?.count ?? 0);
 
       const items = await db
-        .select()
+        .select({
+          id: productCustomizationsTable.id,
+          name: productCustomizationsTable.name,
+          displayName: productCustomizationsTable.displayName,
+          status: productCustomizationsTable.status,
+          boundCount: sql<number>`(select count(*) from ${productCustomizationRelationsTable} where ${productCustomizationRelationsTable.customizationId} = ${productCustomizationsTable.id})`,
+          optionCount: sql<number>`(select count(*) from ${customizationOptionsTable} where ${customizationOptionsTable.customizationId} = ${productCustomizationsTable.id})`,
+          createdAt: productCustomizationsTable.createdAt,
+          updatedAt: productCustomizationsTable.updatedAt,
+        })
         .from(productCustomizationsTable)
+        .where(whereClause)
         .orderBy(productCustomizationsTable.id)
         .limit(pageSize)
         .offset(offset);

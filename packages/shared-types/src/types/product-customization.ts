@@ -8,6 +8,8 @@ export interface ProductCustomization {
   name: string;
   displayName: string;
   status: ProductCustomizationStatus;
+  boundCount: number;
+  optionCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -26,4 +28,6 @@ export interface UpdateProductCustomizationInput {
 export type ProductCustomizationQuery = {
   page?: string;
   pageSize?: string;
+  keyword?: string;
+  status?: string;
 };

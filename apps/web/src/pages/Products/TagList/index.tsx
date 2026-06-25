@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { PlusIcon, PencilIcon, Trash2Icon } from "lucide-react"
+import { PlusIcon, PencilIcon, Trash2Icon, TagIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { ProductTag, CreateTagInput, UpdateTagInput } from "@dextea/shared-types"
@@ -27,6 +27,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
+import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   Pagination,
   PaginationContent,
@@ -173,6 +174,13 @@ export default function TagListPage() {
         <div className="flex items-center justify-center py-12">
           <Spinner className="size-6 text-muted-foreground" />
         </div>
+      ) : tags.length === 0 ? (
+        <Empty>
+          <EmptyMedia variant="icon">
+            <TagIcon className="size-4" />
+          </EmptyMedia>
+          <EmptyTitle>暂无标签数据</EmptyTitle>
+        </Empty>
       ) : (
         <Table>
           <TableHeader>
@@ -183,35 +191,28 @@ export default function TagListPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tags.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} className="py-8 text-center text-muted-foreground">
-                  暂无标签数据
-                </TableCell>
-              </TableRow>
-            ) : (
-              tags.map((tag) => (
-                <TableRow key={tag.id}>
-                  <TableCell className="font-mono text-xs">{tag.id}</TableCell>
-                  <TableCell>{tag.name}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditDialog(tag)}
-                      >
-                        <PencilIcon data-icon="inline-start" />
-                        编辑
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-500 hover:text-red-500"
-                        onClick={() => openDeleteDialog(tag)}
-                      >
-                        <Trash2Icon data-icon="inline-start" />
-                        删除
+            {tags.map((tag) => (
+              <TableRow key={tag.id}>
+                <TableCell className="font-mono text-xs">{tag.id}</TableCell>
+                <TableCell>{tag.name}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditDialog(tag)}
+                    >
+                      <PencilIcon data-icon="inline-start" />
+                      编辑
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-500 hover:text-red-500"
+                      onClick={() => openDeleteDialog(tag)}
+                    >
+                      <Trash2Icon data-icon="inline-start" />
+                      删除
                       </Button>
                     </div>
                   </TableCell>

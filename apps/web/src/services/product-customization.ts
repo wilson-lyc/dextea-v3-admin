@@ -2,7 +2,7 @@ import type { ApiResponse, PaginatedData, ProductCustomization, CreateProductCus
 import { http } from "./http"
 
 /** GET /product-customizations */
-export function getProductCustomizations(params?: { page?: number; pageSize?: number }) {
+export function getProductCustomizations(params?: { page?: number; pageSize?: number; keyword?: string; status?: number }) {
   return http.get<ApiResponse<PaginatedData<ProductCustomization>>>("/product-customizations", { params }).then((res) => res.data)
 }
 
