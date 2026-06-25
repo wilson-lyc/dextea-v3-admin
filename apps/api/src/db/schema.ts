@@ -19,7 +19,7 @@ export const usersTable = mysqlTable('users', {
   email: varchar({ length: 255 }).notNull().unique(),
   password: varchar({ length: 255 }).notNull(),
   displayName: varchar('display_name', { length: 255 }).notNull(),
-  status: tinyint().notNull().default(1),
+  status: tinyint().notNull().default(0),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -31,7 +31,7 @@ export const rolesTable = mysqlTable('roles', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull().unique(),
   note: text(),
-  status: tinyint().notNull().default(1),
+  status: tinyint().notNull().default(0),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -54,8 +54,8 @@ export const permissionsTable = mysqlTable(
 /**
  * 用户-角色关联表
  */
-export const userRolesTable = mysqlTable(
-  'user_roles',
+export const userRoleRelationsTable = mysqlTable(
+  'user_role_relations',
   {
     userId: bigint('user_id', { mode: 'number', unsigned: true }).notNull(),
     roleId: bigint('role_id', { mode: 'number', unsigned: true }).notNull(),
@@ -68,8 +68,8 @@ export const userRolesTable = mysqlTable(
 /**
  * 角色-权限关联表
  */
-export const rolePermissionsTable = mysqlTable(
-  'role_permissions',
+export const rolePermissionRelationsTable = mysqlTable(
+  'role_permission_relations',
   {
     roleId: bigint('role_id', { mode: 'number', unsigned: true }).notNull(),
     permissionId: bigint('permission_id', { mode: 'number', unsigned: true }).notNull(),
@@ -101,7 +101,6 @@ export const storesTable = mysqlTable('stores', {
   city: varchar({ length: 100 }).notNull().default(''),
   district: varchar({ length: 100 }).notNull().default(''),
   address: varchar({ length: 500 }).notNull().default(''),
-  // 门店状态：0 休息中、1 营业中、2 筹备中、3 已注销
   status: tinyint().notNull().default(2),
   businessHours: varchar('business_hours', { length: 255 }).notNull().default(''),
   phone: varchar({ length: 50 }).notNull().default(''),
@@ -122,7 +121,7 @@ export const productsTable = mysqlTable('products', {
   name: varchar({ length: 255 }).notNull(),
   brief: varchar('brief', { length: 500 }).notNull().default(''),
   description: varchar({ length: 2000 }).notNull().default(''),
-  status: tinyint().notNull().default(1),
+  status: tinyint().notNull().default(0),
   price: double().notNull().default(0),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
@@ -151,3 +150,41 @@ export const productTagRelationsTable = mysqlTable(
     primaryKey: primaryKey({ columns: [table.productId, table.tagId] }),
   }),
 );
+
+/**
+ * 客制化项目表
+ */
+export const productCustomizationsTable = mysqlTable('product_customizations', {
+  id: serial().primaryKey(),
+  name: varchar({ length: 255 }).notNull(),
+  status: tinyint().notNull().default(0),
+  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+});
+
+/**
+ * 商品-客制化关联表
+ */
+export const productCustomizationRelationsTable = mysqlTable(
+  'product_customization_relations',
+  {
+    productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
+    customizationId: bigint('customization_id', { mode: 'number', unsigned: true }).notNull(),
+  },
+  (table) => ({
+    primaryKey: primaryKey({ columns: [table.productId, table.customizationId] }),
+  }),
+);
+
+/**
+ * 客制化选项表
+ */
+export const customizationOptionsTable = mysqlTable('customization_options', {
+  id: serial().primaryKey(),
+  customizationId: bigint('customization_id', { mode: 'number', unsigned: true }).notNull(),
+  name: varchar({ length: 255 }).notNull(),
+  price: double().notNull().default(0),
+  status: tinyint().notNull().default(0),
+  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+});

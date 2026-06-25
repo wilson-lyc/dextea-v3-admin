@@ -8,6 +8,12 @@ export type { StoreStatus } from './status/index.js';
 export { PRODUCT_STATUS, PRODUCT_STATUS_VALUES, getProductStatusLabel } from './status/index.js';
 export type { ProductStatus } from './status/index.js';
 
+export { PRODUCT_CUSTOMIZATION_STATUS, PRODUCT_CUSTOMIZATION_STATUS_VALUES, getProductCustomizationStatusLabel } from './status/index.js';
+export type { ProductCustomizationStatus } from './status/index.js';
+
+export { CUSTOMIZATION_OPTION_STATUS, CUSTOMIZATION_OPTION_STATUS_VALUES, getCustomizationOptionStatusLabel } from './status/index.js';
+export type { CustomizationOptionStatus } from './status/index.js';
+
 
 // ---- types layer ----
 export type {

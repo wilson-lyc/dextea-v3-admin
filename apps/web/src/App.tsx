@@ -11,6 +11,7 @@ import StoreDetailPage from "@/pages/Stores/detail"
 import ProductsPage from "@/pages/Products"
 import ProductDetailPage from "@/pages/Products/detail"
 import TagListPage from "@/pages/Products/TagList"
+import CustomizationPage from "@/pages/Products/Customization"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/hooks/use-theme"
@@ -39,6 +40,7 @@ function App() {
             <Route path="products" element={<ProductsPage />} />
             <Route path="products/:id" element={<ProductDetailPage />} />
             <Route path="products/tags" element={<TagListPage />} />
+            <Route path="products/customization" element={<CustomizationPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
