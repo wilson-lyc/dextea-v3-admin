@@ -48,3 +48,27 @@ export function removeProductTag(productId: number, tagId: number) {
     .delete<ApiResponse<null>>(`/products/${productId}/tags/${tagId}`)
     .then((res) => res.data)
 }
+
+interface BoundCustomization {
+  customizationId: number
+  customizationName: string
+}
+
+/** GET /products/:id/customizations — 获取商品绑定的客制化项目 */
+export function getBoundCustomizations(productId: number) {
+  return http.get<ApiResponse<BoundCustomization[]>>(`/products/${productId}/customizations`).then((res) => res.data)
+}
+
+/** POST /products/:id/customizations — 绑定客制化项目到商品 */
+export function addProductCustomization(productId: number, customizationId: number) {
+  return http
+    .post<ApiResponse<null>>(`/products/${productId}/customizations`, { customizationId })
+    .then((res) => res.data)
+}
+
+/** DELETE /products/:id/customizations/:customizationId — 从商品移除客制化项目 */
+export function removeProductCustomization(productId: number, customizationId: number) {
+  return http
+    .delete<ApiResponse<null>>(`/products/${productId}/customizations/${customizationId}`)
+    .then((res) => res.data)
+}

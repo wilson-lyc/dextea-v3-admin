@@ -1,4 +1,4 @@
-import type { ApiResponse, PaginatedData, ProductCustomization, CreateProductCustomizationInput } from "@dextea/shared-types"
+import type { ApiResponse, PaginatedData, ProductCustomization, CreateProductCustomizationInput, CustomizationOption, CreateCustomizationOptionInput, UpdateCustomizationOptionInput } from "@dextea/shared-types"
 import { http } from "./http"
 
 /** GET /product-customizations */
@@ -34,4 +34,26 @@ export function bindProduct(customizationId: number, productId: number) {
 /** DELETE /product-customizations/:id/products/:productId */
 export function unbindProduct(customizationId: number, productId: number) {
   return http.delete<ApiResponse<null>>(`/product-customizations/${customizationId}/products/${productId}`).then((res) => res.data)
+}
+
+// ──── 客制化选项 ────
+
+/** GET /product-customizations/:id/options */
+export function getCustomizationOptions(customizationId: number) {
+  return http.get<ApiResponse<CustomizationOption[]>>(`/product-customizations/${customizationId}/options`).then((res) => res.data)
+}
+
+/** POST /product-customizations/:id/options */
+export function createCustomizationOption(customizationId: number, data: CreateCustomizationOptionInput) {
+  return http.post<ApiResponse<CustomizationOption>>(`/product-customizations/${customizationId}/options`, data).then((res) => res.data)
+}
+
+/** PUT /product-customizations/:id/options/:optionId */
+export function updateCustomizationOption(customizationId: number, optionId: number, data: UpdateCustomizationOptionInput) {
+  return http.put<ApiResponse<CustomizationOption>>(`/product-customizations/${customizationId}/options/${optionId}`, data).then((res) => res.data)
+}
+
+/** DELETE /product-customizations/:id/options/:optionId */
+export function deleteCustomizationOption(customizationId: number, optionId: number) {
+  return http.delete<ApiResponse<null>>(`/product-customizations/${customizationId}/options/${optionId}`).then((res) => res.data)
 }
