@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/tabs"
 import { getProductCustomization } from "@/services"
 import ProductBindingPanel from "./components/ProductBindingPanel"
+import CustomizationOptionsPanel from "./components/CustomizationOptionsPanel"
 
 export default function CustomizationDetailPage() {
   const navigate = useNavigate()
@@ -63,8 +64,8 @@ export default function CustomizationDetailPage() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">客制化项目不存在</p>
-        <Button variant="outline" onClick={() => navigate("/products/customization")}>
-          返回客制化列表
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          返回
         </Button>
       </div>
     )
@@ -74,7 +75,7 @@ export default function CustomizationDetailPage() {
     <div className="flex h-full flex-col gap-3">
       <div className="shrink-0 px-6 pt-6">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/products/customization")}>
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeftIcon data-icon="inline-start" />
             返回
           </Button>
@@ -105,7 +106,9 @@ export default function CustomizationDetailPage() {
             <TabsContent value="products" className="mt-6">
               {id && <ProductBindingPanel customizationId={Number(id)} />}
             </TabsContent>
-            <TabsContent value="options" className="mt-6" />
+            <TabsContent value="options" className="mt-6">
+              {id && <CustomizationOptionsPanel customizationId={Number(id)} />}
+            </TabsContent>
           </Tabs>
         </div>
       </ScrollArea>

@@ -123,8 +123,8 @@ export default function StoreDetailPage() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">门店不存在</p>
-        <Button variant="outline" onClick={() => navigate("/stores")}>
-          返回门店列表
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          返回
         </Button>
       </div>
     )
@@ -138,7 +138,7 @@ export default function StoreDetailPage() {
     <div className="flex h-full flex-col gap-3">
       <div className="shrink-0 px-6 pt-6">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/stores")}>
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeftIcon data-icon="inline-start" />
             返回
           </Button>
