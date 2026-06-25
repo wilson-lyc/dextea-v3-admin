@@ -126,7 +126,7 @@ export async function tagRoutes(app: FastifyInstance) {
       },
       security: [{ bearerAuth: [] }],
     },
-  }, async (request, reply) => {
+  }, async (request) => {
     try {
       const db = await getDb();
       const { name } = request.body;
@@ -151,7 +151,6 @@ export async function tagRoutes(app: FastifyInstance) {
 
       const insertId = Number(result[0]?.insertId ?? 0);
 
-      reply.code(201);
       return {
         code: 0,
         data: { id: insertId, name: trimmedName },

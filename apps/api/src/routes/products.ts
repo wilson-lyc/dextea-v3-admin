@@ -10,6 +10,7 @@ import {
 } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { productErrors } from '../errorcode/products.js';
+import { tagErrors } from '../errorcode/tags.js';
 import { parsePositiveInt, validateMaxLength, validatePrice, validateStatus } from '../utils/validation.js';
 import type {
   ApiResponse,
@@ -560,7 +561,7 @@ export async function productRoutes(app: FastifyInstance) {
         .limit(1);
 
       if (!tag) {
-        throw new AppError(productErrors.PRODUCT_NOT_FOUND);
+        throw new AppError(tagErrors.TAG_NOT_FOUND);
       }
 
       // 检查是否已关联

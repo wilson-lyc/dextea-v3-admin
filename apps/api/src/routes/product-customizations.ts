@@ -179,7 +179,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         required: ['name', 'displayName'],
       },
       response: {
-        201: {
+        200: {
           type: 'object',
           properties: {
             code: { type: 'integer', description: '业务状态码，0=成功' },
@@ -200,7 +200,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
       },
       security: [{ bearerAuth: [] }],
     },
-  }, async (request, reply) => {
+  }, async (request) => {
     try {
       const db = await getDb();
       const { name, displayName } = request.body;
@@ -223,7 +223,6 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         .where(eq(productCustomizationsTable.id, insertId))
         .limit(1);
 
-      reply.code(201);
       return {
         code: 0,
         data: created,

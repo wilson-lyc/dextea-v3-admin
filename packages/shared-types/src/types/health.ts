@@ -1,7 +1,11 @@
 // ====== 健康检查 ======
 // ──────────────────────────────
 
-export interface HealthResponse {
+import type { ApiResponse } from './api-response.js';
+
+export interface HealthData {
   status: string;
   timestamp: string;
 }
+
+export type HealthResponse = ApiResponse<HealthData>;

@@ -1,9 +1,9 @@
 import type { FastifyInstance } from 'fastify';
-import type { HealthResponse } from '@dextea/shared-types';
+import type { ApiResponse } from '@dextea/shared-types';
 
 export async function healthRoutes(app: FastifyInstance) {
   /** 健康检查 */
-  app.get<{ Reply: HealthResponse }>('/health', {
+  app.get<{ Reply: ApiResponse<{ status: string; timestamp: string }> }>('/health', {
     schema: {
       description: '健康检查',
       tags: ['Health'],
@@ -26,8 +26,12 @@ export async function healthRoutes(app: FastifyInstance) {
     },
   }, async () => {
     return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
+      code: 0,
+      data: {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+      },
+      message: 'ok',
     };
   });
 }

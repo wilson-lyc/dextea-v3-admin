@@ -32,14 +32,19 @@ export async function initRoutes(app: FastifyInstance) {
       },
     },
   }, async (_request, _reply) => {
-    const db = await getDb();
-    const record = await db
-      .select()
-      .from(configTable)
-      .where(eq(configTable.key, 'Initialized'))
-      .limit(1);
+    try {
+      const db = await getDb();
+      const record = await db
+        .select()
+        .from(configTable)
+        .where(eq(configTable.key, 'Initialized'))
+        .limit(1);
 
-    return { code: 0, data: { initialized: record.length > 0 }, message: 'ok' };
+      return { code: 0, data: { initialized: record.length > 0 }, message: 'ok' };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(initErrors.INIT_FAILED);
+    }
   });
 
   /** 系统初始化 */
