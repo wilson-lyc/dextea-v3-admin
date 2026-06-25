@@ -10,6 +10,12 @@ export const productCustomizationErrors = {
     httpStatus: 400,
   } satisfies BizError,
 
+  DISPLAY_NAME_REQUIRED: {
+    code: 1809,
+    message: '请输入展示名称',
+    httpStatus: 400,
+  } satisfies BizError,
+
   NOT_FOUND: {
     code: 1801,
     message: '客制化项目不存在',

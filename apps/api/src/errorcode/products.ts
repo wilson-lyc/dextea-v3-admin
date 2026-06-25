@@ -69,4 +69,34 @@ export const productErrors = {
     message: '该标签已关联此商品',
     httpStatus: 409,
   } satisfies BizError,
+
+  CUSTOMIZATION_NOT_FOUND: {
+    code: 1811,
+    message: '客制化项目不存在',
+    httpStatus: 404,
+  } satisfies BizError,
+
+  CUSTOMIZATION_ALREADY_BOUND: {
+    code: 1812,
+    message: '该客制化项目已绑定此商品',
+    httpStatus: 409,
+  } satisfies BizError,
+
+  CUSTOMIZATION_BIND_FAILED: {
+    code: 1813,
+    message: '绑定客制化项目失败',
+    httpStatus: 500,
+  } satisfies BizError,
+
+  CUSTOMIZATION_UNBIND_FAILED: {
+    code: 1814,
+    message: '解绑客制化项目失败',
+    httpStatus: 500,
+  } satisfies BizError,
+
+  CUSTOMIZATION_LIST_FAILED: {
+    code: 1815,
+    message: '获取绑定的客制化项目列表失败',
+    httpStatus: 500,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

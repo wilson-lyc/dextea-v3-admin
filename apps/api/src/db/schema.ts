@@ -157,6 +157,7 @@ export const productTagRelationsTable = mysqlTable(
 export const productCustomizationsTable = mysqlTable('product_customizations', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull(),
+  displayName: varchar('display_name', { length: 255 }).notNull().default(''),
   status: tinyint().notNull().default(0),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
