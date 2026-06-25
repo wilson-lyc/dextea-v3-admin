@@ -81,13 +81,14 @@ export default function CustomizationPage() {
             <TableRow>
               <TableHead className="w-20">ID</TableHead>
               <TableHead>名称</TableHead>
+              <TableHead className="w-48">展示名称</TableHead>
               <TableHead className="w-36 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
                   暂无客制化项目
                 </TableCell>
               </TableRow>
@@ -96,6 +97,7 @@ export default function CustomizationPage() {
                 <TableRow key={item.id}>
                   <TableCell className="font-mono text-xs">{item.id}</TableCell>
                   <TableCell className="font-medium">{item.name}</TableCell>
+                  <TableCell className="text-muted-foreground">{item.displayName || "-"}</TableCell>
                   <TableCell className="text-right">
                     <Button
                       variant="outline"
