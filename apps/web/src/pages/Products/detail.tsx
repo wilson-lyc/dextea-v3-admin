@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { ArrowLeftIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
-import { toast } from "sonner"
+import { ArrowLeftIcon } from "lucide-react"
 
-import type { Product, ProductStatus } from "@dextea/shared-types"
-import { getProductStatusLabel } from "@dextea/shared-types"
+import type { Product } from "@dextea/shared-types"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -14,93 +12,41 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardAction,
-  CardContent,
-} from "@/components/ui/card"
-import {
-  Table,
-  TableHeader,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-} from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { getProduct, removeProductTag } from "@/services"
-import { EditStatusDialog } from "./components/EditStatusDialog"
-import { EditBasicInfoDialog } from "./components/EditBasicInfoDialog"
-import { AddTagDialog } from "./components/AddTagDialog"
-
-function formatDate(iso: string) {
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return iso
-  return d.toLocaleString("zh-CN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
-
-const STATUS_BADGE_CLASSES: Record<ProductStatus, string> = {
-  0: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-red-200 dark:ring-red-800/30",
-  1: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-green-200 dark:ring-green-800/30",
-}
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
+import { getProductBasicInfo } from "@/services"
+import BasicInfoPanel from "./components/BasicInfoPanel"
+import TagsPanel from "./components/TagsPanel"
+import CustomizationPanel from "./components/CustomizationPanel"
 
 export default function ProductDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
-  const [product, setProduct] = useState<Product | null>(null)
+  const [productName, setProductName] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-
-  const [statusDialogOpen, setStatusDialogOpen] = useState(false)
-  const [infoDialogOpen, setInfoDialogOpen] = useState(false)
-  const [addTagDialogOpen, setAddTagDialogOpen] = useState(false)
-
-  const fetchProduct = async () => {
-    if (!id) return
-    setLoading(true)
-    try {
-      const res = await getProduct(Number(id))
-      if (res.code === 0) {
-        setProduct(res.data)
-      } else {
-        toast.error(res.message)
-      }
-    } catch {
-      toast.error("获取商品信息失败")
-    } finally {
-      setLoading(false)
-    }
-  }
+  const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
-    fetchProduct()
+    if (!id) return
+    setLoading(true)
+    getProductBasicInfo(Number(id))
+      .then((res) => {
+        if (res.code === 0) {
+          setProductName(res.data.name)
+        } else {
+          setNotFound(true)
+        }
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false))
   }, [id])
 
-  const handleRemoveTag = async (tagId: number) => {
-    if (!product) return
-    try {
-      const res = await removeProductTag(product.id, tagId)
-      if (res.code === 0) {
-        toast.success(res.message)
-        await fetchProduct()
-      } else {
-        toast.error(res.message)
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "删除标签失败")
-    }
-  }
-
-  // ── Render ──
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -109,7 +55,7 @@ export default function ProductDetailPage() {
     )
   }
 
-  if (!product) {
+  if (notFound || !productName) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">商品不存在</p>
@@ -137,7 +83,7 @@ export default function ProductDetailPage() {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{product.name}</BreadcrumbPage>
+                <BreadcrumbPage>{productName}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -145,147 +91,28 @@ export default function ProductDetailPage() {
       </div>
 
       <ScrollArea className="flex-1 min-h-0">
-        <div className="flex flex-col gap-6 px-6 pb-6 pt-3">
-          {/* ── 商品状态 ── */}
-          <Card>
-            <CardHeader>
-              <CardTitle>商品状态</CardTitle>
-              <CardAction>
-                <Button variant="ghost" size="sm" onClick={() => setStatusDialogOpen(true)}>
-                  <PencilIcon data-icon="inline-start" />
-                  编辑
-                </Button>
-              </CardAction>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">当前状态</span>
-                <Badge className={STATUS_BADGE_CLASSES[product.status]}>
-                  {getProductStatusLabel(product.status)}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex flex-col px-6 pb-6 pt-3">
+          <Tabs defaultValue="basic">
+            <TabsList variant="line">
+              <TabsTrigger value="basic">基础信息</TabsTrigger>
+              <TabsTrigger value="tags">标签</TabsTrigger>
+              <TabsTrigger value="customization">客制化</TabsTrigger>
+            </TabsList>
 
-          {/* ── 基础信息 ── */}
-          <Card>
-            <CardHeader>
-              <CardTitle>基础信息</CardTitle>
-              <CardAction>
-                <Button variant="ghost" size="sm" onClick={() => setInfoDialogOpen(true)}>
-                  <PencilIcon data-icon="inline-start" />
-                  编辑
-                </Button>
-              </CardAction>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
-                <span className="text-sm text-muted-foreground">商品名称</span>
-                <span className="text-sm">{product.name}</span>
+            <TabsContent value="basic" className="mt-6 flex flex-col gap-6">
+              {id && <BasicInfoPanel productId={id} />}
+            </TabsContent>
 
-                <span className="text-sm text-muted-foreground">简介</span>
-                <span className="text-sm">{product.brief || "-"}</span>
+            <TabsContent value="tags" className="mt-6 flex flex-col gap-6">
+              {id && <TagsPanel productId={Number(id)} />}
+            </TabsContent>
 
-                <span className="text-sm text-muted-foreground">描述</span>
-                <span className="text-sm">{product.description || "-"}</span>
-
-                <span className="text-sm text-muted-foreground">价格</span>
-                <span className="text-sm">¥{product.price.toFixed(2)}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* ── 标签 ── */}
-          <Card>
-            <CardHeader>
-              <CardTitle>标签</CardTitle>
-              <CardAction>
-                <Button variant="ghost" size="sm" onClick={() => setAddTagDialogOpen(true)}>
-                  <PlusIcon data-icon="inline-start" />
-                  新增
-                </Button>
-              </CardAction>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>标签名称</TableHead>
-                    <TableHead className="w-24 text-right">操作</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {!product.tags || product.tags.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={2} className="py-8 text-center text-muted-foreground">
-                        暂无标签
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    product.tags.map((tag) => (
-                      <TableRow key={tag.id}>
-                        <TableCell className="font-medium">{tag.name}</TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-500 hover:text-red-500"
-                            onClick={() => handleRemoveTag(tag.id)}
-                          >
-                            <Trash2Icon className="size-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
-          {/* ── 维护记录 ── */}
-          <Card>
-            <CardHeader>
-              <CardTitle>维护记录</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
-                <span className="text-sm text-muted-foreground">创建时间</span>
-                <span className="text-sm">{formatDate(product.createdAt)}</span>
-
-                <span className="text-sm text-muted-foreground">更新时间</span>
-                <span className="text-sm">{formatDate(product.updatedAt)}</span>
-              </div>
-            </CardContent>
-          </Card>
+            <TabsContent value="customization" className="mt-6">
+              <CustomizationPanel />
+            </TabsContent>
+          </Tabs>
         </div>
       </ScrollArea>
-
-      {product && id && (
-        <>
-          <EditStatusDialog
-            open={statusDialogOpen}
-            onOpenChange={setStatusDialogOpen}
-            productId={id}
-            currentStatus={product.status}
-            onUpdated={fetchProduct}
-          />
-          <EditBasicInfoDialog
-            open={infoDialogOpen}
-            onOpenChange={setInfoDialogOpen}
-            productId={id}
-            product={product}
-            onUpdated={fetchProduct}
-          />
-          <AddTagDialog
-            open={addTagDialogOpen}
-            onOpenChange={setAddTagDialogOpen}
-            productId={product.id}
-            existingTagIds={product.tags?.map((t) => t.id) ?? []}
-            onAdded={fetchProduct}
-          />
-        </>
-      )}
     </div>
   )
 }

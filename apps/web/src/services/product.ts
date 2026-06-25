@@ -1,4 +1,4 @@
-import type { Product, ProductStatus, ApiResponse, PaginatedData, CreateProductInput, CreateProductResponse } from "@dextea/shared-types"
+import type { Product, ProductTag, ProductStatus, ApiResponse, PaginatedData, CreateProductInput, CreateProductResponse } from "@dextea/shared-types"
 import { http } from "./http"
 
 /** GET /products (paginated) */
@@ -8,9 +8,9 @@ export function getProducts(params?: { page?: number; pageSize?: number; keyword
     .then((res) => res.data)
 }
 
-/** GET /products/:id */
-export function getProduct(id: number) {
-  return http.get<ApiResponse<Product>>(`/products/${id}`).then((res) => res.data)
+/** GET /products/:id/basic-info */
+export function getProductBasicInfo(id: number) {
+  return http.get<ApiResponse<Product>>(`/products/${id}/basic-info`).then((res) => res.data)
 }
 
 /** POST /products */
@@ -35,6 +35,11 @@ export function addProductTag(productId: number, tagId: number) {
   return http
     .post<ApiResponse<null>>(`/products/${productId}/tags`, { tagId })
     .then((res) => res.data)
+}
+
+/** GET /products/:id/tags — 获取商品标签 */
+export function getProductTags(productId: number) {
+  return http.get<ApiResponse<ProductTag[]>>(`/products/${productId}/tags`).then((res) => res.data)
 }
 
 /** DELETE /products/:id/tags/:tagId — 从商品移除标签 */

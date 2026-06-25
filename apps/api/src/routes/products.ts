@@ -8,6 +8,7 @@ import type {
   ApiResponse,
   PaginatedData,
   Product,
+  ProductTag,
   ProductQuery,
   CreateProductInput,
   CreateProductResponse,
@@ -144,13 +145,13 @@ export async function productRoutes(app: FastifyInstance) {
   });
 
   /**
-   * 商品详情
-   * url：/api/v1/products/:id
+   * 商品基础信息
+   * GET /api/v1/products/:id/basic-info
    */
   app.get<{
     Params: { id: string };
     Reply: ApiResponse<Product>;
-  }>('/products/:id', async (request, reply) => {
+  }>('/products/:id/basic-info', async (request, reply) => {
     try {
       const db = await getDb();
       const id = Number(request.params.id);
@@ -165,6 +166,30 @@ export async function productRoutes(app: FastifyInstance) {
         throw new AppError(productErrors.PRODUCT_NOT_FOUND);
       }
 
+      return {
+        code: 0,
+        data: product as Product,
+        message: 'ok',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productErrors.LIST_FAILED);
+    }
+  });
+
+  /**
+   * 商品标签列表
+   * GET /api/v1/products/:id/tags
+   */
+  app.get<{
+    Params: { id: string };
+    Reply: ApiResponse<ProductTag[]>;
+  }>('/products/:id/tags', async (request) => {
+    try {
+      const db = await getDb();
+      const id = Number(request.params.id);
+
       const tags = await db
         .select({
           id: productTagsTable.id,
@@ -172,13 +197,12 @@ export async function productRoutes(app: FastifyInstance) {
         })
         .from(productTagRelationsTable)
         .innerJoin(productTagsTable, eq(productTagRelationsTable.tagId, productTagsTable.id))
-        .where(eq(productTagRelationsTable.productId, id));
-
-      (product as Product).tags = tags;
+        .where(eq(productTagRelationsTable.productId, id))
+        .orderBy(productTagsTable.id);
 
       return {
         code: 0,
-        data: product as Product,
+        data: tags,
         message: 'ok',
       };
     } catch (error) {
@@ -239,17 +263,6 @@ export async function productRoutes(app: FastifyInstance) {
         .from(productsTable)
         .where(eq(productsTable.id, id))
         .limit(1);
-
-      const tags = await db
-        .select({
-          id: productTagsTable.id,
-          name: productTagsTable.name,
-        })
-        .from(productTagRelationsTable)
-        .innerJoin(productTagsTable, eq(productTagRelationsTable.tagId, productTagsTable.id))
-        .where(eq(productTagRelationsTable.productId, id));
-
-      (updated as Product).tags = tags;
 
       return {
         code: 0,
