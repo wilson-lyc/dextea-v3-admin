@@ -6,6 +6,7 @@ import {
 } from '@aurouscia/china-areas/dist/index.js';
 import { AppError } from '../errorcode/index.js';
 import { areaErrors } from '../errorcode/areas.js';
+import { validateRequired } from '../utils/validation.js';
 import type { ApiResponse, Division, ResolveAreaRequest } from '@dextea/shared-types';
 
 export async function areaRoutes(app: FastifyInstance) {
@@ -33,6 +34,7 @@ export async function areaRoutes(app: FastifyInstance) {
   }>('/areas/:code/children', async (request, reply) => {
     try {
       const { code } = request.params;
+      validateRequired(code, '地区编码');
       const children = getDivisionChildren(code);
       return { code: 0, data: children, message: 'ok' };
     } catch (error) {
@@ -51,6 +53,10 @@ export async function areaRoutes(app: FastifyInstance) {
   }>('/areas/resolve', async (request, reply) => {
     try {
       const { names } = request.body;
+      validateRequired(names, '地区名称列表');
+      if (!Array.isArray(names) || names.length === 0) {
+        throw new AppError(areaErrors.RESOLVE_FAILED);
+      }
       const result = matchDivisionByNames(names);
       return { code: 0, data: result, message: 'ok' };
     } catch (error) {

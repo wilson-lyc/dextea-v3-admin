@@ -4,6 +4,7 @@ import { getDb } from '../db/index.js';
 import { productTagsTable } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { tagErrors } from '../errorcode/tags.js';
+import { parsePositiveInt, validateMaxLength } from '../utils/validation.js';
 import type {
   ApiResponse,
   PaginatedData,
@@ -70,6 +71,7 @@ export async function tagRoutes(app: FastifyInstance) {
       }
 
       const trimmedName = name.trim();
+      validateMaxLength(trimmedName, 255, '标签名称');
 
       // 检查名称重复
       const [existing] = await db
@@ -112,11 +114,7 @@ export async function tagRoutes(app: FastifyInstance) {
   }>('/tags/:id', async (request) => {
     try {
       const db = await getDb();
-      const id = parseInt(request.params.id, 10);
-
-      if (isNaN(id)) {
-        throw new AppError(tagErrors.TAG_NOT_FOUND);
-      }
+      const id = parsePositiveInt(request.params.id, '标签ID');
 
       const { name } = request.body;
 
@@ -125,6 +123,7 @@ export async function tagRoutes(app: FastifyInstance) {
       }
 
       const trimmedName = name.trim();
+      validateMaxLength(trimmedName, 255, '标签名称');
 
       // 检查标签是否存在
       const [tag] = await db
@@ -175,11 +174,7 @@ export async function tagRoutes(app: FastifyInstance) {
   }>('/tags/:id', async (request) => {
     try {
       const db = await getDb();
-      const id = parseInt(request.params.id, 10);
-
-      if (isNaN(id)) {
-        throw new AppError(tagErrors.TAG_NOT_FOUND);
-      }
+      const id = parsePositiveInt(request.params.id, '标签ID');
 
       // 检查标签是否存在
       const [tag] = await db

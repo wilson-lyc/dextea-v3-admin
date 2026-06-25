@@ -6,6 +6,7 @@ import { hashPassword } from '../utils/password.js';
 import { AppError } from '../errorcode/index.js';
 import { initErrors } from '../errorcode/init.js';
 import { userErrors } from '../errorcode/users.js';
+import { validateRequired, validateEmail, validatePassword, validateMaxLength } from '../utils/validation.js';
 import type { ApiResponse, InitStatusData, InitRequest } from '@dextea/shared-types';
 
 export async function initRoutes(app: FastifyInstance) {
@@ -45,9 +46,12 @@ export async function initRoutes(app: FastifyInstance) {
 
       const { email, password, displayName } = request.body;
 
-      if (!email || !password || !displayName) {
-        throw new AppError(initErrors.MISSING_FIELDS);
-      }
+      validateRequired(email, '邮箱');
+      validateRequired(password, '密码');
+      validateRequired(displayName, '显示名称');
+      validateEmail(email);
+      validatePassword(password);
+      validateMaxLength(displayName, 255, '显示名称');
 
       // Check if email already exists
       const existingUser = await db

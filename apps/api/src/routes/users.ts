@@ -6,6 +6,7 @@ import { usersTable } from '../db/schema.js';
 import { hashPassword } from '../utils/password.js';
 import { AppError } from '../errorcode/index.js';
 import { userErrors } from '../errorcode/users.js';
+import { parsePositiveInt, validateRequired, validateEmail, validateMaxLength, validateStatus } from '../utils/validation.js';
 import type {
   ApiResponse,
   PaginatedData,
@@ -17,7 +18,7 @@ import type {
   UpdateUserResponse,
   ToggleUserStatusResponse,
 } from '@dextea/shared-types';
-import { USER_STATUS } from '@dextea/shared-types';
+import { USER_STATUS, USER_STATUS_VALUES } from '@dextea/shared-types';
 
 export async function userRoutes(app: FastifyInstance) {
   /**
@@ -78,9 +79,10 @@ export async function userRoutes(app: FastifyInstance) {
       const db = await getDb();
       const { email, displayName } = request.body;
 
-      if (!email || !displayName) {
-        throw new AppError(userErrors.MISSING_FIELDS);
-      }
+      validateRequired(email, '邮箱');
+      validateRequired(displayName, '显示名称');
+      validateEmail(email);
+      validateMaxLength(displayName, 255, '显示名称');
 
       // Check if email already exists
       const existingUser = await db
@@ -137,11 +139,15 @@ export async function userRoutes(app: FastifyInstance) {
   }>('/users/:id', async (request, reply) => {
     try {
       const db = await getDb();
-      const id = parseInt(request.params.id, 10);
+      const id = parsePositiveInt(request.params.id, '用户ID');
       const { email, displayName, status } = request.body;
 
-      if (!email || !displayName) {
-        throw new AppError(userErrors.MISSING_FIELDS);
+      validateRequired(email, '邮箱');
+      validateRequired(displayName, '显示名称');
+      validateEmail(email);
+      validateMaxLength(displayName, 255, '显示名称');
+      if (status !== undefined) {
+        validateStatus(status, USER_STATUS_VALUES, '用户状态');
       }
 
       // Check if user exists
@@ -202,7 +208,7 @@ export async function userRoutes(app: FastifyInstance) {
   }>('/users/:id/status', async (request, reply) => {
     try {
       const db = await getDb();
-      const id = parseInt(request.params.id, 10);
+      const id = parsePositiveInt(request.params.id, '用户ID');
 
       const user = await db
         .select()

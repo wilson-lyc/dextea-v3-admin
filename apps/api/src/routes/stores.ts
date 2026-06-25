@@ -7,6 +7,7 @@ import { geocode } from '../utils/geocode.js';
 import { hashPassword } from '../utils/password.js';
 import { AppError } from '../errorcode/index.js';
 import { storeErrors } from '../errorcode/stores.js';
+import { parsePositiveInt, validateRequired, validateEmail, validatePhone, validateMaxLength, validateLongitude, validateLatitude } from '../utils/validation.js';
 import type {
   ApiResponse,
   PaginatedData,
@@ -99,7 +100,7 @@ export async function storeRoutes(app: FastifyInstance) {
   }>('/stores/:id', async (request, reply) => {
     try {
       const db = await getDb();
-      const id = parseInt(request.params.id, 10);
+      const id = parsePositiveInt(request.params.id, '门店ID');
 
       const store = await db
         .select()
@@ -142,6 +143,15 @@ export async function storeRoutes(app: FastifyInstance) {
       if (!account) {
         throw new AppError(storeErrors.ACCOUNT_REQUIRED);
       }
+
+      validateMaxLength(name, 255, '门店名称');
+      validateMaxLength(account, 255, '登录账号');
+      validateMaxLength(province, 100, '省份');
+      validateMaxLength(city, 100, '城市');
+      validateMaxLength(district, 100, '区县');
+      validateMaxLength(address, 500, '详细地址');
+      validatePhone(phone);
+      validateEmail(email, '门店邮箱');
 
       const existingStore = await db
         .select()
@@ -210,12 +220,19 @@ export async function storeRoutes(app: FastifyInstance) {
   }>('/stores/:id', async (request, reply) => {
     try {
       const db = await getDb();
-      const id = parseInt(request.params.id, 10);
+      const id = parsePositiveInt(request.params.id, '门店ID');
       const { name, province, city, district, address, status, businessHours, phone, longitude, latitude } = request.body;
 
       if (!name) {
         throw new AppError(storeErrors.NAME_REQUIRED);
       }
+
+      validateMaxLength(name, 255, '门店名称');
+      validateMaxLength(province, 100, '省份');
+      validateMaxLength(city, 100, '城市');
+      validateMaxLength(district, 100, '区县');
+      validateMaxLength(address, 500, '详细地址');
+      validatePhone(phone);
 
       const store = await db
         .select()
@@ -266,12 +283,16 @@ export async function storeRoutes(app: FastifyInstance) {
   }>('/stores/:id/basic-info', async (request, reply) => {
     try {
       const db = await getDb();
-      const id = parseInt(request.params.id, 10);
+      const id = parsePositiveInt(request.params.id, '门店ID');
       const { name, phone, businessHours, email } = request.body;
 
       if (!name) {
         throw new AppError(storeErrors.NAME_REQUIRED);
       }
+
+      validateMaxLength(name, 255, '门店名称');
+      validatePhone(phone);
+      validateEmail(email, '门店邮箱');
 
       const store = await db
         .select()
@@ -311,8 +332,15 @@ export async function storeRoutes(app: FastifyInstance) {
   }>('/stores/:id/location', async (request, reply) => {
     try {
       const db = await getDb();
-      const id = parseInt(request.params.id, 10);
+      const id = parsePositiveInt(request.params.id, '门店ID');
       const { province, city, district, address, longitude, latitude } = request.body;
+
+      validateMaxLength(province, 100, '省份');
+      validateMaxLength(city, 100, '城市');
+      validateMaxLength(district, 100, '区县');
+      validateMaxLength(address, 500, '详细地址');
+      validateLongitude(longitude);
+      validateLatitude(latitude);
 
       const store = await db
         .select()
@@ -401,7 +429,7 @@ export async function storeRoutes(app: FastifyInstance) {
   }>('/stores/:id/status', async (request, reply) => {
     try {
       const db = await getDb();
-      const id = parseInt(request.params.id, 10);
+      const id = parsePositiveInt(request.params.id, '门店ID');
       const { status } = request.body;
 
       const validStatuses = STORE_STATUS_VALUES;
@@ -446,7 +474,7 @@ export async function storeRoutes(app: FastifyInstance) {
   }>('/stores/:id/reset-password', async (request, reply) => {
     try {
       const db = await getDb();
-      const id = parseInt(request.params.id, 10);
+      const id = parsePositiveInt(request.params.id, '门店ID');
 
       const store = await db
         .select()

@@ -6,6 +6,7 @@ import { usersTable } from '../db/schema.js';
 import { verifyPassword } from '../utils/password.js';
 import { AppError } from '../errorcode/index.js';
 import { authErrors } from '../errorcode/auth.js';
+import { validateRequired, validateEmail, validatePassword } from '../utils/validation.js';
 import { USER_STATUS } from '@dextea/shared-types';
 import type { ApiResponse, AuthMeResponse, LoginRequest, LoginResponse } from '@dextea/shared-types';
 
@@ -40,9 +41,10 @@ export async function authRoutes(app: FastifyInstance) {
     try {
       const { account, password } = request.body;
 
-      if (!account || !password) {
-        throw new AppError(authErrors.MISSING_CREDENTIALS);
-      }
+      validateRequired(account, '账号');
+      validateRequired(password, '密码');
+      validateEmail(account, '账号');
+      validatePassword(password);
 
       const db = await getDb();
 
