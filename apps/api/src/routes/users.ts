@@ -6,7 +6,7 @@ import { usersTable } from '../db/schema.js';
 import { hashPassword } from '../utils/password.js';
 import { AppError } from '../errorcode/index.js';
 import { userErrors } from '../errorcode/users.js';
-import { parsePositiveInt, validateRequired, validateEmail, validateMaxLength, validateStatus } from '../utils/validation.js';
+import { parsePositiveInt, validateEmail, validateMaxLength, validateStatus } from '../utils/validation.js';
 import type {
   ApiResponse,
   PaginatedData,
@@ -21,14 +21,55 @@ import type {
 import { USER_STATUS, USER_STATUS_VALUES } from '@dextea/shared-types';
 
 export async function userRoutes(app: FastifyInstance) {
-  /**
-   * 用户列表
-   * url：/api/v1/users
-   */
+  /** 用户列表 */
   app.get<{
     Querystring: UserQuery;
     Reply: ApiResponse<PaginatedData<User>>;
-  }>('/users', async (request, reply) => {
+  }>('/users', {
+    schema: {
+      description: '获取用户列表',
+      tags: ['Users'],
+      querystring: {
+        type: 'object',
+        properties: {
+          page: { type: 'string', description: '页码' },
+          pageSize: { type: 'string', description: '每页数量' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'integer' },
+                      email: { type: 'string' },
+                      displayName: { type: 'string' },
+                      status: { type: 'integer', description: '0=禁用 1=激活' },
+                      createdAt: { type: 'string' },
+                      updatedAt: { type: 'string' },
+                    },
+                  },
+                },
+                total: { type: 'integer' },
+                page: { type: 'integer' },
+                pageSize: { type: 'integer' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
@@ -67,24 +108,57 @@ export async function userRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 新增用户
-   * url：/api/v1/users
-   */
+  /** 新增用户 */
   app.post<{
     Body: CreateUserInput;
     Reply: ApiResponse<CreateUserResponse>;
-  }>('/users', async (request, reply) => {
+  }>('/users', {
+    schema: {
+      description: '新增用户',
+      tags: ['Users'],
+      body: {
+        type: 'object',
+        properties: {
+          email: { type: 'string', minLength: 1, description: '邮箱' },
+          displayName: { type: 'string', minLength: 1, description: '显示名称' },
+        },
+        required: ['email', 'displayName'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                user: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'integer' },
+                    email: { type: 'string' },
+                    displayName: { type: 'string' },
+                    status: { type: 'integer', description: '0=禁用 1=激活' },
+                  },
+                },
+                initialPassword: { type: 'string', description: '初始密码' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
       const { email, displayName } = request.body;
 
-      validateRequired(email, '邮箱');
-      validateRequired(displayName, '显示名称');
       validateEmail(email);
       validateMaxLength(displayName, 255, '显示名称');
 
-      // Check if email already exists
+
       const existingUser = await db
         .select()
         .from(usersTable)
@@ -95,7 +169,7 @@ export async function userRoutes(app: FastifyInstance) {
         throw new AppError(userErrors.EMAIL_EXISTS);
       }
 
-      // Generate random password (12 characters)
+      // 生成随机密码（12位）
       const initialPassword = nanoid(12);
       const hashedPassword = await hashPassword(initialPassword);
 
@@ -128,22 +202,57 @@ export async function userRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 更新用户
-   * url：/api/v1/users/:id
-   */
+  /** 更新用户 */
   app.put<{
     Params: { id: string };
     Body: UpdateUserInput;
     Reply: ApiResponse<UpdateUserResponse>;
-  }>('/users/:id', async (request, reply) => {
+  }>('/users/:id', {
+    schema: {
+      description: '更新用户',
+      tags: ['Users'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '用户ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          email: { type: 'string', minLength: 1, description: '邮箱' },
+          displayName: { type: 'string', minLength: 1, description: '显示名称' },
+          status: { type: 'integer', description: '0=禁用 1=激活' },
+        },
+        required: ['email', 'displayName', 'status'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                email: { type: 'string' },
+                displayName: { type: 'string' },
+                status: { type: 'integer', description: '0=禁用 1=激活' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '用户ID');
       const { email, displayName, status } = request.body;
 
-      validateRequired(email, '邮箱');
-      validateRequired(displayName, '显示名称');
       validateEmail(email);
       validateMaxLength(displayName, 255, '显示名称');
       if (status !== undefined) {
@@ -198,14 +307,39 @@ export async function userRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 启用/禁用用户
-   * url：/api/v1/users/:id/status
-   */
+  /** 启用/禁用用户 */
   app.patch<{
     Params: { id: string };
     Reply: ApiResponse<ToggleUserStatusResponse>;
-  }>('/users/:id/status', async (request, reply) => {
+  }>('/users/:id/status', {
+    schema: {
+      description: '启用或禁用用户',
+      tags: ['Users'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '用户ID' },
+        },
+        required: ['id'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                status: { type: 'integer', description: '0=禁用 1=激活' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '用户ID');

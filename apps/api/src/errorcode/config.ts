@@ -5,14 +5,14 @@ import type { BizError } from './index.js';
  */
 export const configErrors = {
   GET_FAILED: {
-    code: 1600,
+    code: 10600,
     message: '获取配置信息失败',
-    httpStatus: 500,
+    httpStatus: 200,
   } satisfies BizError,
 
   CONFIG_NOT_FOUND: {
-    code: 1601,
+    code: 10601,
     message: '配置项不存在',
-    httpStatus: 404,
+    httpStatus: 200,
   } satisfies BizError,
 } as const satisfies Record<string, BizError>;

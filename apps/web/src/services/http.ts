@@ -24,7 +24,7 @@ http.interceptors.response.use(
   (error) => {
     if (error.response) {
       const status = error.response.status
-      if ((status === 401) || (status === 403 && error.response.data?.code === 1103)) {
+      if ((status === 401) || (status === 403 && error.response.data?.code === 10103)) {
         toast.error('登录已过期，请重新登录')
         redirectToLogin()
       } else if (status === 403) {

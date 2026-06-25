@@ -2,13 +2,36 @@ import type { FastifyInstance } from 'fastify';
 import { sql } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
 import { usersTable, storesTable } from '../db/schema.js';
-import { AppError } from '../errorcode/index.js';
+import { AppError, systemErrors } from '../errorcode/index.js';
 import type { ApiResponse, DashboardStats } from '@dextea/shared-types';
 
 export async function dashboardRoutes(app: FastifyInstance) {
+  /** 仪表盘统计数据 */
   app.get<{
     Reply: ApiResponse<DashboardStats>;
-  }>('/dashboard/stats', async (request, reply) => {
+  }>('/dashboard/stats', {
+    schema: {
+      description: '获取仪表盘统计数据',
+      tags: ['Dashboard'],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                employeeCount: { type: 'integer', description: '员工数量' },
+                storeCount: { type: 'integer', description: '门店数量' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
 
@@ -28,7 +51,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
     } catch (error) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
-      throw new AppError({ code: 50000, message: '获取统计数据失败', httpStatus: 500 });
+      throw new AppError(systemErrors.DASHBOARD_STATS_FAILED);
     }
   });
 }

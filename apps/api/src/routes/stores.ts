@@ -38,14 +38,65 @@ const STORE_STATUS_LABEL: Record<number, string> = {
 };
 
 export async function storeRoutes(app: FastifyInstance) {
-  /**
-   * 门店列表
-   * url：/api/v1/stores
-   */
+  /** 门店列表 */
   app.get<{
     Querystring: StoreQuery;
     Reply: ApiResponse<PaginatedData<Store>>;
-  }>('/stores', async (request, reply) => {
+  }>('/stores', {
+    schema: {
+      description: '门店列表',
+      tags: ['Stores'],
+      querystring: {
+        type: 'object',
+        properties: {
+          page: { type: 'string', description: '页码' },
+          pageSize: { type: 'string', description: '每页条数' },
+          keyword: { type: 'string', description: '搜索关键词' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'integer' },
+                      name: { type: 'string' },
+                      province: { type: 'string' },
+                      city: { type: 'string' },
+                      district: { type: 'string' },
+                      address: { type: 'string' },
+                      status: { type: 'integer', description: '0=休息中 1=营业中 2=筹备中 3=已注销' },
+                      businessHours: { type: 'string' },
+                      phone: { type: 'string' },
+                      longitude: { type: 'number' },
+                      latitude: { type: 'number' },
+                      account: { type: 'string' },
+                      email: { type: 'string' },
+                      createdAt: { type: 'string' },
+                      updatedAt: { type: 'string' },
+                    },
+                  },
+                },
+                total: { type: 'integer' },
+                page: { type: 'integer' },
+                pageSize: { type: 'integer' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
@@ -90,14 +141,53 @@ export async function storeRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 门店详情
-   * url：/api/v1/stores/:id
-   */
+  /** 门店详情 */
   app.get<{
     Params: { id: string };
     Reply: ApiResponse<Store>;
-  }>('/stores/:id', async (request, reply) => {
+  }>('/stores/:id', {
+    schema: {
+      description: '门店详情',
+      tags: ['Stores'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '门店ID' },
+        },
+        required: ['id'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                name: { type: 'string' },
+                province: { type: 'string' },
+                city: { type: 'string' },
+                district: { type: 'string' },
+                address: { type: 'string' },
+                status: { type: 'integer', description: '0=休息中 1=营业中 2=筹备中 3=已注销' },
+                businessHours: { type: 'string' },
+                phone: { type: 'string' },
+                longitude: { type: 'number' },
+                latitude: { type: 'number' },
+                account: { type: 'string' },
+                email: { type: 'string' },
+                createdAt: { type: 'string' },
+                updatedAt: { type: 'string' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '门店ID');
@@ -124,25 +214,53 @@ export async function storeRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 新增门店
-   * url：/api/v1/stores
-   */
+  /** 新增门店 */
   app.post<{
     Body: CreateStoreInput;
     Reply: ApiResponse<CreateStoreResponse>;
-  }>('/stores', async (request, reply) => {
+  }>('/stores', {
+    schema: {
+      description: '新增门店',
+      tags: ['Stores'],
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', minLength: 1, description: '门店名称' },
+          province: { type: 'string', description: '省份' },
+          city: { type: 'string', description: '城市' },
+          district: { type: 'string', description: '区县' },
+          address: { type: 'string', description: '详细地址' },
+          businessHours: { type: 'string', description: '营业时间' },
+          phone: { type: 'string', minLength: 1, description: '联系电话' },
+          account: { type: 'string', minLength: 1, description: '登录账号' },
+          email: { type: 'string', description: '邮箱' },
+          longitude: { type: 'number', description: '经度' },
+          latitude: { type: 'number', description: '纬度' },
+        },
+        required: ['name', 'account', 'phone'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                initialPassword: { type: 'string' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
       const { name, province, city, district, address, businessHours, phone, account, email } = request.body;
-
-      if (!name) {
-        throw new AppError(storeErrors.NAME_REQUIRED);
-      }
-
-      if (!account) {
-        throw new AppError(storeErrors.ACCOUNT_REQUIRED);
-      }
 
       validateMaxLength(name, 255, '门店名称');
       validateMaxLength(account, 255, '登录账号');
@@ -209,23 +327,60 @@ export async function storeRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 更新门店
-   * url：/api/v1/stores/:id
-   */
+  /** 更新门店 */
   app.put<{
     Params: { id: string };
     Body: UpdateStoreInput;
     Reply: ApiResponse<UpdateStoreResponse>;
-  }>('/stores/:id', async (request, reply) => {
+  }>('/stores/:id', {
+    schema: {
+      description: '更新门店',
+      tags: ['Stores'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '门店ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', minLength: 1, description: '门店名称' },
+          province: { type: 'string', description: '省份' },
+          city: { type: 'string', description: '城市' },
+          district: { type: 'string', description: '区县' },
+          address: { type: 'string', description: '详细地址' },
+          status: { type: 'integer', description: '0=休息中 1=营业中 2=筹备中 3=已注销' },
+          businessHours: { type: 'string', description: '营业时间' },
+          phone: { type: 'string', description: '联系电话' },
+          longitude: { type: 'number', description: '经度' },
+          latitude: { type: 'number', description: '纬度' },
+        },
+        required: ['name'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '门店ID');
       const { name, province, city, district, address, status, businessHours, phone, longitude, latitude } = request.body;
-
-      if (!name) {
-        throw new AppError(storeErrors.NAME_REQUIRED);
-      }
 
       validateMaxLength(name, 255, '门店名称');
       validateMaxLength(province, 100, '省份');
@@ -272,23 +427,54 @@ export async function storeRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 更新门店基础信息
-   * url：/api/v1/stores/:id/basic-info
-   */
+  /** 更新门店基础信息 */
   app.patch<{
     Params: { id: string };
     Body: UpdateStoreBasicInfoRequest;
     Reply: ApiResponse<UpdateStoreBasicInfoResponse>;
-  }>('/stores/:id/basic-info', async (request, reply) => {
+  }>('/stores/:id/basic-info', {
+    schema: {
+      description: '更新门店基础信息',
+      tags: ['Stores'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '门店ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', minLength: 1, description: '门店名称' },
+          phone: { type: 'string', description: '联系电话' },
+          businessHours: { type: 'string', description: '营业时间' },
+          email: { type: 'string', description: '邮箱' },
+        },
+        required: ['name'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '门店ID');
       const { name, phone, businessHours, email } = request.body;
-
-      if (!name) {
-        throw new AppError(storeErrors.NAME_REQUIRED);
-      }
 
       validateMaxLength(name, 255, '门店名称');
       validatePhone(phone);
@@ -321,15 +507,52 @@ export async function storeRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 更新门店位置
-   * url：/api/v1/stores/:id/location
-   */
+  /** 更新门店位置 */
   app.patch<{
     Params: { id: string };
     Body: UpdateStoreLocationRequest;
     Reply: ApiResponse<UpdateStoreLocationResponse>;
-  }>('/stores/:id/location', async (request, reply) => {
+  }>('/stores/:id/location', {
+    schema: {
+      description: '更新门店位置',
+      tags: ['Stores'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '门店ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          province: { type: 'string', description: '省份' },
+          city: { type: 'string', description: '城市' },
+          district: { type: 'string', description: '区县' },
+          address: { type: 'string', description: '详细地址' },
+          longitude: { type: 'number', description: '经度' },
+          latitude: { type: 'number', description: '纬度' },
+        },
+        required: [],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '门店ID');
@@ -378,14 +601,31 @@ export async function storeRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 同步门店定位数据到 Redis
-   * url：/api/v1/stores/sync-locations
-   * POST - 清除 Redis 中的门店定位数据，从 MySQL 重新同步
-   */
+  /** 同步门店定位数据到 Redis */
   app.post<{
     Reply: ApiResponse<{ synced: number }>;
-  }>('/stores/sync-locations', async (request, reply) => {
+  }>('/stores/sync-locations', {
+    schema: {
+      description: '同步门店定位数据到 Redis',
+      tags: ['Stores'],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                synced: { type: 'integer' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
 
@@ -418,15 +658,47 @@ export async function storeRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 更新门店状态
-   * url：/api/v1/stores/:id/status
-   */
+  /** 更新门店状态 */
   app.patch<{
     Params: { id: string };
     Body: UpdateStoreStatusRequest;
     Reply: ApiResponse<UpdateStoreStatusResponse>;
-  }>('/stores/:id/status', async (request, reply) => {
+  }>('/stores/:id/status', {
+    schema: {
+      description: '更新门店状态',
+      tags: ['Stores'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '门店ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          status: { type: 'integer', description: '0=休息中 1=营业中 2=筹备中 3=已注销' },
+        },
+        required: ['status'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                status: { type: 'integer', description: '0=休息中 1=营业中 2=筹备中 3=已注销' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '门店ID');
@@ -464,14 +736,39 @@ export async function storeRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 重置门店密码
-   * url：/api/v1/stores/:id/reset-password
-   */
+  /** 重置门店密码 */
   app.post<{
     Params: { id: string };
     Reply: ApiResponse<ResetStorePasswordResponse>;
-  }>('/stores/:id/reset-password', async (request, reply) => {
+  }>('/stores/:id/reset-password', {
+    schema: {
+      description: '重置门店密码',
+      tags: ['Stores'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '门店ID' },
+        },
+        required: ['id'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                newPassword: { type: 'string' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '门店ID');

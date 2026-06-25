@@ -10,6 +10,7 @@ const AUTH_WHITELIST = [
   '/health',
   '/api/v1/auth/login',
   '/api/v1/init',
+  '/api/v1/docs',
 ] as const;
 
 function isWhitelisted(pathname: string): boolean {

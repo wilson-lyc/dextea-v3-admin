@@ -10,11 +10,28 @@ import { validateRequired, validateEmail, validatePassword, validateMaxLength } 
 import type { ApiResponse, InitStatusData, InitRequest } from '@dextea/shared-types';
 
 export async function initRoutes(app: FastifyInstance) {
-  /**
-   * 初始化状态
-   * url：/api/v1/init/status
-   */
-  app.get<{ Reply: ApiResponse<InitStatusData> }>('/init/status', async (_request, _reply) => {
+  /** 初始化状态 */
+  app.get<{ Reply: ApiResponse<InitStatusData> }>('/init/status', {
+    schema: {
+      description: '获取系统初始化状态',
+      tags: ['System Init'],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                initialized: { type: 'boolean' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+    },
+  }, async (_request, _reply) => {
     const db = await getDb();
     const record = await db
       .select()
@@ -25,15 +42,35 @@ export async function initRoutes(app: FastifyInstance) {
     return { code: 0, data: { initialized: record.length > 0 }, message: 'ok' };
   });
 
-  /**
-   * 系统初始化
-   * url：/api/v1/init
-   */
-  app.post<{ Body: InitRequest; Reply: ApiResponse<null> }>('/init', async (request, reply) => {
+  /** 系统初始化 */
+  app.post<{ Body: InitRequest; Reply: ApiResponse<null> }>('/init', {
+    schema: {
+      description: '系统初始化（创建管理员账号）',
+      tags: ['System Init'],
+      body: {
+        type: 'object',
+        properties: {
+          email: { type: 'string', minLength: 1, description: '管理员邮箱' },
+          password: { type: 'string', minLength: 1, description: '密码' },
+          displayName: { type: 'string', minLength: 1, description: '显示名称' },
+        },
+        required: ['email', 'password', 'displayName'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
 
-      // Check if already initialized
       const record = await db
         .select()
         .from(configTable)
@@ -46,14 +83,10 @@ export async function initRoutes(app: FastifyInstance) {
 
       const { email, password, displayName } = request.body;
 
-      validateRequired(email, '邮箱');
-      validateRequired(password, '密码');
-      validateRequired(displayName, '显示名称');
       validateEmail(email);
       validatePassword(password);
       validateMaxLength(displayName, 255, '显示名称');
 
-      // Check if email already exists
       const existingUser = await db
         .select()
         .from(usersTable)
@@ -64,7 +97,6 @@ export async function initRoutes(app: FastifyInstance) {
         throw new AppError(initErrors.EMAIL_EXISTS);
       }
 
-      // Create admin user
       const hashedPassword = await hashPassword(password);
       await db.insert(usersTable).values({
         email,
@@ -72,7 +104,6 @@ export async function initRoutes(app: FastifyInstance) {
         displayName,
       });
 
-      // Set Initialized config
       await db.insert(configTable).values({
         key: 'Initialized',
         value: 'true',

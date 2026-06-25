@@ -5,26 +5,26 @@ import type { BizError } from './index.js';
  */
 export const initErrors = {
   ALREADY_INITIALIZED: {
-    code: 1500,
+    code: 10500,
     message: '系统已初始化，请勿重复操作',
-    httpStatus: 400,
+    httpStatus: 200,
   } satisfies BizError,
 
   INIT_FAILED: {
-    code: 1501,
+    code: 10501,
     message: '初始化失败，请检查数据库连接或稍后重试',
-    httpStatus: 500,
+    httpStatus: 200,
   } satisfies BizError,
 
   MISSING_FIELDS: {
-    code: 1502,
+    code: 10502,
     message: '请填写所有必填字段',
-    httpStatus: 400,
+    httpStatus: 200,
   } satisfies BizError,
 
   EMAIL_EXISTS: {
-    code: 1503,
+    code: 10503,
     message: '该邮箱已被使用',
-    httpStatus: 400,
+    httpStatus: 200,
   } satisfies BizError,
 } as const satisfies Record<string, BizError>;

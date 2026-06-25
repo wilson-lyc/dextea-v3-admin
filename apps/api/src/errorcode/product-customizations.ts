@@ -1,66 +1,66 @@
 import type { BizError } from './index.js';
 
 /**
- * 客制化项目错误码 (1800-1899)
+ * 客制化项目错误码 (10900-10999)
  */
 export const productCustomizationErrors = {
   NAME_REQUIRED: {
-    code: 1800,
+    code: 10900,
     message: '请输入客制化项目名称',
-    httpStatus: 400,
+    httpStatus: 200,
   } satisfies BizError,
 
   DISPLAY_NAME_REQUIRED: {
-    code: 1809,
+    code: 10909,
     message: '请输入展示名称',
-    httpStatus: 400,
+    httpStatus: 200,
   } satisfies BizError,
 
   NOT_FOUND: {
-    code: 1801,
+    code: 10901,
     message: '客制化项目不存在',
-    httpStatus: 404,
+    httpStatus: 200,
   } satisfies BizError,
 
   LIST_FAILED: {
-    code: 1802,
+    code: 10902,
     message: '获取客制化项目列表失败',
-    httpStatus: 500,
+    httpStatus: 200,
   } satisfies BizError,
 
   CREATE_FAILED: {
-    code: 1803,
+    code: 10903,
     message: '创建客制化项目失败',
-    httpStatus: 500,
+    httpStatus: 200,
   } satisfies BizError,
 
   PRODUCT_NOT_FOUND: {
-    code: 1804,
+    code: 10904,
     message: '商品不存在',
-    httpStatus: 404,
+    httpStatus: 200,
   } satisfies BizError,
 
   PRODUCT_ALREADY_BOUND: {
-    code: 1805,
+    code: 10905,
     message: '该商品已绑定此客制化项目',
-    httpStatus: 400,
+    httpStatus: 200,
   } satisfies BizError,
 
   BIND_FAILED: {
-    code: 1806,
+    code: 10906,
     message: '绑定商品失败',
-    httpStatus: 500,
+    httpStatus: 200,
   } satisfies BizError,
 
   UNBIND_FAILED: {
-    code: 1807,
+    code: 10907,
     message: '解绑商品失败',
-    httpStatus: 500,
+    httpStatus: 200,
   } satisfies BizError,
 
   BIND_LIST_FAILED: {
-    code: 1808,
+    code: 10908,
     message: '获取绑定的商品列表失败',
-    httpStatus: 500,
+    httpStatus: 200,
   } satisfies BizError,
 } as const satisfies Record<string, BizError>;

@@ -15,14 +15,53 @@ import type {
 } from '@dextea/shared-types';
 
 export async function tagRoutes(app: FastifyInstance) {
-  /**
-   * 商品标签列表
-   * GET /api/v1/tags
-   */
+  /** 商品标签列表 */
   app.get<{
     Querystring: TagQuery;
     Reply: ApiResponse<PaginatedData<ProductTag>>;
-  }>('/tags', async (request) => {
+  }>('/tags', {
+    schema: {
+      description: '获取商品标签列表',
+      tags: ['Tags'],
+      querystring: {
+        type: 'object',
+        properties: {
+          page: { type: 'string', description: '页码' },
+          pageSize: { type: 'string', description: '每页数量' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'integer' },
+                      name: { type: 'string' },
+                      createdAt: { type: 'string' },
+                      updatedAt: { type: 'string' },
+                    },
+                  },
+                },
+                total: { type: 'integer' },
+                page: { type: 'integer' },
+                pageSize: { type: 'integer' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
     try {
       const db = await getDb();
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
@@ -54,21 +93,43 @@ export async function tagRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 新增商品标签
-   * POST /api/v1/tags
-   */
+  /** 新增商品标签 */
   app.post<{
     Body: CreateTagInput;
     Reply: ApiResponse<ProductTag>;
-  }>('/tags', async (request, reply) => {
+  }>('/tags', {
+    schema: {
+      description: '新增商品标签',
+      tags: ['Tags'],
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', minLength: 1, description: '标签名称' },
+        },
+        required: ['name'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                name: { type: 'string' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
       const { name } = request.body;
-
-      if (!name || !name.trim()) {
-        throw new AppError(tagErrors.NAME_REQUIRED);
-      }
 
       const trimmedName = name.trim();
       validateMaxLength(trimmedName, 255, '标签名称');
@@ -103,24 +164,53 @@ export async function tagRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 更新商品标签
-   * PUT /api/v1/tags/:id
-   */
+  /** 更新商品标签 */
   app.put<{
     Params: { id: string };
     Body: UpdateTagInput;
     Reply: ApiResponse<ProductTag>;
-  }>('/tags/:id', async (request) => {
+  }>('/tags/:id', {
+    schema: {
+      description: '更新商品标签',
+      tags: ['Tags'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '标签ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', minLength: 1, description: '标签名称' },
+        },
+        required: ['name'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                name: { type: 'string' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '标签ID');
 
       const { name } = request.body;
-
-      if (!name || !name.trim()) {
-        throw new AppError(tagErrors.NAME_REQUIRED);
-      }
 
       const trimmedName = name.trim();
       validateMaxLength(trimmedName, 255, '标签名称');
@@ -164,14 +254,34 @@ export async function tagRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 删除商品标签
-   * DELETE /api/v1/tags/:id
-   */
+  /** 删除商品标签 */
   app.delete<{
     Params: { id: string };
     Reply: ApiResponse<null>;
-  }>('/tags/:id', async (request) => {
+  }>('/tags/:id', {
+    schema: {
+      description: '删除商品标签',
+      tags: ['Tags'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '标签ID' },
+        },
+        required: ['id'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: { type: 'null', description: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '标签ID');

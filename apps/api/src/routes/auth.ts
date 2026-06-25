@@ -11,15 +11,40 @@ import { USER_STATUS } from '@dextea/shared-types';
 import type { ApiResponse, AuthMeResponse, LoginRequest, LoginResponse } from '@dextea/shared-types';
 
 const TOKEN_PREFIX = 'dextea:admin:token:';
-const TOKEN_TTL = 60 * 30; // 30 minutes
+const TOKEN_TTL = 60 * 30; // 30 分钟
 
 export async function authRoutes(app: FastifyInstance) {
 
-  /** 
-   * 获取当前用户信息
-   * url：/api/v1/auth/me
-   */
-  app.get<{ Reply: ApiResponse<AuthMeResponse> }>('/auth/me', async (request, reply) => {
+  /** 获取当前用户信息 */
+  app.get<{ Reply: ApiResponse<AuthMeResponse> }>('/auth/me', {
+    schema: {
+      description: '获取当前登录用户信息',
+      tags: ['Auth'],
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                user: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'integer' },
+                    email: { type: 'string' },
+                    displayName: { type: 'string' },
+                  },
+                },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
     const { userId, email, displayName } = request.authUser!;
     return {
       code: 0,
@@ -30,25 +55,55 @@ export async function authRoutes(app: FastifyInstance) {
     };
   });
 
-  /**
-   * 用户登录
-   * url：/api/v1/auth/login
-   */
+  /** 用户登录 */
   app.post<{
     Body: LoginRequest;
     Reply: ApiResponse<LoginResponse>;
-  }>('/auth/login', async (request, reply) => {
+  }>('/auth/login', {
+    schema: {
+      description: '用户登录',
+      tags: ['Auth'],
+      body: {
+        type: 'object',
+        properties: {
+          account: { type: 'string', minLength: 1, description: '账号（邮箱）' },
+          password: { type: 'string', minLength: 1, description: '密码' },
+        },
+        required: ['account', 'password'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                token: { type: 'string' },
+                user: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'integer' },
+                    email: { type: 'string' },
+                    displayName: { type: 'string' },
+                  },
+                },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
     try {
       const { account, password } = request.body;
 
-      validateRequired(account, '账号');
-      validateRequired(password, '密码');
       validateEmail(account, '账号');
       validatePassword(password);
 
       const db = await getDb();
 
-      // Find user by email (account is email)
       const users = await db
         .select()
         .from(usersTable)
@@ -60,18 +115,15 @@ export async function authRoutes(app: FastifyInstance) {
         throw new AppError(authErrors.INVALID_CREDENTIALS);
       }
 
-      // Verify password
       const valid = await verifyPassword(password, user.password);
       if (!valid) {
         throw new AppError(authErrors.INVALID_CREDENTIALS);
       }
 
-      // Check if user is active
       if (user.status === USER_STATUS.DISABLED.value) {
         throw new AppError(authErrors.ACCOUNT_DISABLED);
       }
 
-      // Generate token and store in Redis
       const token = randomUUID();
       const sessionData = JSON.stringify({
         userId: user.id,
@@ -100,11 +152,24 @@ export async function authRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 用户退出
-   * url：/api/v1/auth/logout
-   */
-  app.post<{ Reply: ApiResponse<null> }>('/auth/logout', async (request, reply) => {
+  /** 用户退出 */
+  app.post<{ Reply: ApiResponse<null> }>('/auth/logout', {
+    schema: {
+      description: '用户退出登录',
+      tags: ['Auth'],
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
     const authHeader = request.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new AppError(authErrors.INVALID_TOKEN);

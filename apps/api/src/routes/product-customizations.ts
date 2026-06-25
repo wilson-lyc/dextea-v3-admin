@@ -18,14 +18,55 @@ import type {
 } from '@dextea/shared-types';
 
 export async function productCustomizationRoutes(app: FastifyInstance) {
-  /**
-   * 客制化项目列表
-   * GET /api/v1/product-customizations
-   */
+  /** 客制化项目列表 */
   app.get<{
     Querystring: ProductCustomizationQuery;
     Reply: ApiResponse<PaginatedData<ProductCustomization>>;
-  }>('/product-customizations', async (request) => {
+  }>('/product-customizations', {
+    schema: {
+      description: '客制化项目列表',
+      tags: ['Product Customizations'],
+      querystring: {
+        type: 'object',
+        properties: {
+          page: { type: 'string', description: '页码' },
+          pageSize: { type: 'string', description: '每页数量' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'integer' },
+                      name: { type: 'string' },
+                      displayName: { type: 'string' },
+                      status: { type: 'integer', description: '0=下架 1=启用' },
+                      createdAt: { type: 'string' },
+                      updatedAt: { type: 'string' },
+                    },
+                  },
+                },
+                total: { type: 'integer' },
+                page: { type: 'integer' },
+                pageSize: { type: 'integer' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
     try {
       const db = await getDb();
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
@@ -57,14 +98,44 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 客制化项目详情
-   * GET /api/v1/product-customizations/:id
-   */
+  /** 客制化项目详情 */
   app.get<{
     Params: { id: string };
     Reply: ApiResponse<ProductCustomization>;
-  }>('/product-customizations/:id', async (request) => {
+  }>('/product-customizations/:id', {
+    schema: {
+      description: '客制化项目详情',
+      tags: ['Product Customizations'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '客制化项目ID' },
+        },
+        required: ['id'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                name: { type: 'string' },
+                displayName: { type: 'string' },
+                status: { type: 'integer', description: '0=下架 1=启用' },
+                createdAt: { type: 'string' },
+                updatedAt: { type: 'string' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '客制化项目ID');
@@ -91,25 +162,48 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 创建客制化项目
-   * POST /api/v1/product-customizations
-   */
+  /** 创建客制化项目 */
   app.post<{
     Body: CreateProductCustomizationInput;
     Reply: ApiResponse<ProductCustomization>;
-  }>('/product-customizations', async (request, reply) => {
+  }>('/product-customizations', {
+    schema: {
+      description: '创建客制化项目',
+      tags: ['Product Customizations'],
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', minLength: 1, description: '客制化项目名称' },
+          displayName: { type: 'string', minLength: 1, description: '展示名称' },
+        },
+        required: ['name', 'displayName'],
+      },
+      response: {
+        201: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                name: { type: 'string' },
+                displayName: { type: 'string' },
+                status: { type: 'integer', description: '0=下架 1=启用' },
+                createdAt: { type: 'string' },
+                updatedAt: { type: 'string' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     try {
       const db = await getDb();
       const { name, displayName } = request.body;
-
-      if (!name || !name.trim()) {
-        throw new AppError(productCustomizationErrors.NAME_REQUIRED);
-      }
-
-      if (!displayName || !displayName.trim()) {
-        throw new AppError(productCustomizationErrors.DISPLAY_NAME_REQUIRED);
-      }
 
       const trimmedName = name.trim();
       const trimmedDisplayName = displayName.trim();
@@ -142,14 +236,43 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 获取绑定的商品列表
-   * GET /api/v1/product-customizations/:id/products
-   */
+  /** 获取绑定的商品列表 */
   app.get<{
     Params: { id: string };
     Reply: ApiResponse<{ productId: number; productName: string }[]>;
-  }>('/product-customizations/:id/products', async (request) => {
+  }>('/product-customizations/:id/products', {
+    schema: {
+      description: '获取绑定的商品列表',
+      tags: ['Product Customizations'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '客制化项目ID' },
+        },
+        required: ['id'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  productId: { type: 'integer' },
+                  productName: { type: 'string' },
+                },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
     try {
       const db = await getDb();
       const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
@@ -176,15 +299,42 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 绑定商品到客制化项目
-   * POST /api/v1/product-customizations/:id/products
-   */
+  /** 绑定商品到客制化项目 */
   app.post<{
     Params: { id: string };
     Body: { productId: number };
     Reply: ApiResponse<null>;
-  }>('/product-customizations/:id/products', async (request) => {
+  }>('/product-customizations/:id/products', {
+    schema: {
+      description: '绑定商品到客制化项目',
+      tags: ['Product Customizations'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '客制化项目ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          productId: { type: 'integer', description: '商品ID' },
+        },
+        required: ['productId'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
     try {
       const db = await getDb();
       const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
@@ -228,14 +378,35 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
     }
   });
 
-  /**
-   * 解绑商品
-   * DELETE /api/v1/product-customizations/:id/products/:productId
-   */
+  /** 解绑商品 */
   app.delete<{
     Params: { id: string; productId: string };
     Reply: ApiResponse<null>;
-  }>('/product-customizations/:id/products/:productId', async (request) => {
+  }>('/product-customizations/:id/products/:productId', {
+    schema: {
+      description: '解绑商品',
+      tags: ['Product Customizations'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '客制化项目ID' },
+          productId: { type: 'string', minLength: 1, description: '商品ID' },
+        },
+        required: ['id', 'productId'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
     try {
       const db = await getDb();
       const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
