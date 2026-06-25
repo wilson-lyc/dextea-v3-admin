@@ -190,7 +190,7 @@ export default function StoresPage() {
               stores.map((store) => (
                 <TableRow key={store.id}>
                   <TableCell className="font-mono text-xs">{store.id}</TableCell>
-                  <TableCell className="font-medium">{store.name}</TableCell>
+                  <TableCell>{store.name}</TableCell>
                   <TableCell className="max-w-60 truncate">
                     <Tooltip>
                       <TooltipTrigger asChild>

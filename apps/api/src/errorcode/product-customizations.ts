@@ -63,4 +63,40 @@ export const productCustomizationErrors = {
     message: '获取绑定的商品列表失败',
     httpStatus: 200,
   } satisfies BizError,
+
+  UPDATE_FAILED: {
+    code: 10910,
+    message: '更新客制化项目失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  OPTIONS_LIST_FAILED: {
+    code: 10911,
+    message: '获取客制化选项列表失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  OPTION_NOT_FOUND: {
+    code: 10912,
+    message: '客制化选项不存在',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  OPTION_CREATE_FAILED: {
+    code: 10913,
+    message: '创建客制化选项失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  OPTION_UPDATE_FAILED: {
+    code: 10914,
+    message: '更新客制化选项失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  OPTION_DELETE_FAILED: {
+    code: 10915,
+    message: '删除客制化选项失败',
+    httpStatus: 200,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

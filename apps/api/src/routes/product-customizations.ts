@@ -5,6 +5,7 @@ import {
   productCustomizationsTable,
   productCustomizationRelationsTable,
   productsTable,
+  customizationOptionsTable,
 } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { productCustomizationErrors } from '../errorcode/product-customizations.js';
@@ -14,7 +15,11 @@ import type {
   PaginatedData,
   ProductCustomization,
   CreateProductCustomizationInput,
+  UpdateProductCustomizationInput,
   ProductCustomizationQuery,
+  CustomizationOption,
+  CreateCustomizationOptionInput,
+  UpdateCustomizationOptionInput,
 } from '@dextea/shared-types';
 
 export async function productCustomizationRoutes(app: FastifyInstance) {
@@ -426,6 +431,402 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
       throw new AppError(productCustomizationErrors.UNBIND_FAILED);
+    }
+  });
+
+  /** 更新客制化项目基础信息 */
+  app.patch<{
+    Params: { id: string };
+    Body: UpdateProductCustomizationInput;
+    Reply: ApiResponse<ProductCustomization>;
+  }>('/product-customizations/:id', {
+    schema: {
+      description: '更新客制化项目基础信息',
+      tags: ['Product Customizations'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '客制化项目ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', minLength: 1, description: '客制化项目名称' },
+          displayName: { type: 'string', minLength: 1, description: '展示名称' },
+        },
+        required: ['name', 'displayName'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                name: { type: 'string' },
+                displayName: { type: 'string' },
+                status: { type: 'integer' },
+                createdAt: { type: 'string' },
+                updatedAt: { type: 'string' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const id = parsePositiveInt(request.params.id, '客制化项目ID');
+      const { name, displayName } = request.body;
+
+      const trimmedName = name.trim();
+      const trimmedDisplayName = displayName.trim();
+      validateMaxLength(trimmedName, 255, '客制化项目名称');
+      validateMaxLength(trimmedDisplayName, 255, '展示名称');
+
+      const [existing] = await db
+        .select()
+        .from(productCustomizationsTable)
+        .where(eq(productCustomizationsTable.id, id))
+        .limit(1);
+
+      if (!existing) {
+        throw new AppError(productCustomizationErrors.NOT_FOUND);
+      }
+
+      await db
+        .update(productCustomizationsTable)
+        .set({
+          name: trimmedName,
+          displayName: trimmedDisplayName,
+        })
+        .where(eq(productCustomizationsTable.id, id));
+
+      const [updated] = await db
+        .select()
+        .from(productCustomizationsTable)
+        .where(eq(productCustomizationsTable.id, id))
+        .limit(1);
+
+      return {
+        code: 0,
+        data: updated,
+        message: '更新成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productCustomizationErrors.UPDATE_FAILED);
+    }
+  });
+
+  /** 获取客制化选项列表 */
+  app.get<{
+    Params: { id: string };
+    Reply: ApiResponse<CustomizationOption[]>;
+  }>('/product-customizations/:id/options', {
+    schema: {
+      description: '获取客制化选项列表',
+      tags: ['Product Customizations'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '客制化项目ID' },
+        },
+        required: ['id'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'integer' },
+                  customizationId: { type: 'integer' },
+                  name: { type: 'string' },
+                  price: { type: 'number' },
+                  status: { type: 'integer' },
+                  createdAt: { type: 'string' },
+                  updatedAt: { type: 'string' },
+                },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
+
+      const options = await db
+        .select()
+        .from(customizationOptionsTable)
+        .where(eq(customizationOptionsTable.customizationId, customizationId))
+        .orderBy(customizationOptionsTable.id);
+
+      return {
+        code: 0,
+        data: options,
+        message: 'ok',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productCustomizationErrors.OPTIONS_LIST_FAILED);
+    }
+  });
+
+  /** 创建客制化选项 */
+  app.post<{
+    Params: { id: string };
+    Body: CreateCustomizationOptionInput;
+    Reply: ApiResponse<CustomizationOption>;
+  }>('/product-customizations/:id/options', {
+    schema: {
+      description: '创建客制化选项',
+      tags: ['Product Customizations'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '客制化项目ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', minLength: 1 },
+          price: { type: 'number' },
+        },
+        required: ['name'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                customizationId: { type: 'integer' },
+                name: { type: 'string' },
+                price: { type: 'number' },
+                status: { type: 'integer' },
+                createdAt: { type: 'string' },
+                updatedAt: { type: 'string' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
+      const { name, price } = request.body;
+
+      const trimmedName = name.trim();
+      validateMaxLength(trimmedName, 255, '客制化选项名称');
+
+      const result = await db.insert(customizationOptionsTable).values({
+        customizationId,
+        name: trimmedName,
+        price: price ?? 0,
+      });
+
+      const insertId = Number(result[0]?.insertId ?? 0);
+
+      const [created] = await db
+        .select()
+        .from(customizationOptionsTable)
+        .where(eq(customizationOptionsTable.id, insertId))
+        .limit(1);
+
+      return {
+        code: 0,
+        data: created,
+        message: '创建成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productCustomizationErrors.OPTION_CREATE_FAILED);
+    }
+  });
+
+  /** 更新客制化选项 */
+  app.put<{
+    Params: { id: string; optionId: string };
+    Body: UpdateCustomizationOptionInput;
+    Reply: ApiResponse<CustomizationOption>;
+  }>('/product-customizations/:id/options/:optionId', {
+    schema: {
+      description: '更新客制化选项',
+      tags: ['Product Customizations'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '客制化项目ID' },
+          optionId: { type: 'string', minLength: 1, description: '客制化选项ID' },
+        },
+        required: ['id', 'optionId'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', minLength: 1 },
+          price: { type: 'number' },
+          status: { type: 'integer' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                customizationId: { type: 'integer' },
+                name: { type: 'string' },
+                price: { type: 'number' },
+                status: { type: 'integer' },
+                createdAt: { type: 'string' },
+                updatedAt: { type: 'string' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
+      const optionId = parsePositiveInt(request.params.optionId, '客制化选项ID');
+      const { name, price, status } = request.body;
+
+      const [existing] = await db
+        .select()
+        .from(customizationOptionsTable)
+        .where(eq(customizationOptionsTable.id, optionId))
+        .limit(1);
+
+      if (!existing || existing.customizationId !== customizationId) {
+        throw new AppError(productCustomizationErrors.OPTION_NOT_FOUND);
+      }
+
+      const updateData: Record<string, unknown> = {};
+      if (name !== undefined) {
+        const trimmedName = name.trim();
+        validateMaxLength(trimmedName, 255, '客制化选项名称');
+        updateData.name = trimmedName;
+      }
+      if (price !== undefined) updateData.price = price;
+      if (status !== undefined) updateData.status = status;
+
+      await db
+        .update(customizationOptionsTable)
+        .set(updateData)
+        .where(eq(customizationOptionsTable.id, optionId));
+
+      const [updated] = await db
+        .select()
+        .from(customizationOptionsTable)
+        .where(eq(customizationOptionsTable.id, optionId))
+        .limit(1);
+
+      return {
+        code: 0,
+        data: updated,
+        message: '更新成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productCustomizationErrors.OPTION_UPDATE_FAILED);
+    }
+  });
+
+  /** 删除客制化选项 */
+  app.delete<{
+    Params: { id: string; optionId: string };
+    Reply: ApiResponse<null>;
+  }>('/product-customizations/:id/options/:optionId', {
+    schema: {
+      description: '删除客制化选项',
+      tags: ['Product Customizations'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '客制化项目ID' },
+          optionId: { type: 'string', minLength: 1, description: '客制化选项ID' },
+        },
+        required: ['id', 'optionId'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
+      const optionId = parsePositiveInt(request.params.optionId, '客制化选项ID');
+
+      const [existing] = await db
+        .select()
+        .from(customizationOptionsTable)
+        .where(eq(customizationOptionsTable.id, optionId))
+        .limit(1);
+
+      if (!existing || existing.customizationId !== customizationId) {
+        throw new AppError(productCustomizationErrors.OPTION_NOT_FOUND);
+      }
+
+      await db
+        .delete(customizationOptionsTable)
+        .where(eq(customizationOptionsTable.id, optionId));
+
+      return {
+        code: 0,
+        data: null,
+        message: '删除成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productCustomizationErrors.OPTION_DELETE_FAILED);
     }
   });
 }

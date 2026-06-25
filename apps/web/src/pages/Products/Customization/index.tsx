@@ -79,9 +79,9 @@ export default function CustomizationPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-20">ID</TableHead>
-              <TableHead>名称</TableHead>
-              <TableHead className="w-48">展示名称</TableHead>
+              <TableHead className="w-28">项目ID</TableHead>
+              <TableHead className="w-1/2">名称</TableHead>
+              <TableHead className="w-1/2">展示名称</TableHead>
               <TableHead className="w-36 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
@@ -96,8 +96,8 @@ export default function CustomizationPage() {
               items.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-mono text-xs">{item.id}</TableCell>
-                  <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{item.displayName || "-"}</TableCell>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell>{item.displayName || "-"}</TableCell>
                   <TableCell className="text-right">
                     <Button
                       variant="outline"

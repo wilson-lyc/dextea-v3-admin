@@ -91,15 +91,16 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
             ) : (
               tags.map((tag) => (
                 <TableRow key={tag.id}>
-                  <TableCell className="font-medium">{tag.name}</TableCell>
+                  <TableCell>{tag.name}</TableCell>
                   <TableCell className="text-right">
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       className="text-red-500 hover:text-red-500"
                       onClick={() => handleRemoveTag(tag.id)}
                     >
-                      <Trash2Icon className="size-4" />
+                      <Trash2Icon className="size-4" data-icon="inline-start" />
+                        解绑
                     </Button>
                   </TableCell>
                 </TableRow>

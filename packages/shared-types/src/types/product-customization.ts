@@ -17,6 +17,11 @@ export interface CreateProductCustomizationInput {
   displayName: string;
 }
 
+export interface UpdateProductCustomizationInput {
+  name: string;
+  displayName: string;
+}
+
 export type ProductCustomizationQuery = {
   page?: string;
   pageSize?: string;

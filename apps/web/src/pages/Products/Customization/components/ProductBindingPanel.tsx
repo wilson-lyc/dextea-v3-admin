@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
-import { LinkIcon, Trash2Icon } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { LinkIcon, SettingsIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -19,6 +20,7 @@ interface ProductBindingPanelProps {
 }
 
 export default function ProductBindingPanel({ customizationId }: ProductBindingPanelProps) {
+  const navigate = useNavigate()
   const [products, setProducts] = useState<{ productId: number; productName: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [inputValue, setInputValue] = useState("")
@@ -126,16 +128,23 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
               products.map((p) => (
                 <TableRow key={p.productId}>
                   <TableCell className="font-mono text-xs">{p.productId}</TableCell>
-                  <TableCell className="font-medium">{p.productName}</TableCell>
+                  <TableCell>{p.productName}</TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-500 hover:text-red-500"
-                      onClick={() => handleUnbind(p.productId)}
-                    >
-                      <Trash2Icon className="size-4" />
-                    </Button>
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/products/${p.productId}`)}>
+                        <SettingsIcon data-icon="inline-start" />
+                        管理
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-500 hover:text-red-500"
+                        onClick={() => handleUnbind(p.productId)}
+                      >
+                        <Trash2Icon className="size-4" data-icon="inline-start" />
+                          解绑
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

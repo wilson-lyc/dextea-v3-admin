@@ -1,4 +1,4 @@
-import type { ApiResponse, PaginatedData, ProductCustomization, CreateProductCustomizationInput, CustomizationOption, CreateCustomizationOptionInput, UpdateCustomizationOptionInput } from "@dextea/shared-types"
+import type { ApiResponse, PaginatedData, ProductCustomization, CreateProductCustomizationInput, UpdateProductCustomizationInput, CustomizationOption, CreateCustomizationOptionInput, UpdateCustomizationOptionInput } from "@dextea/shared-types"
 import { http } from "./http"
 
 /** GET /product-customizations */
@@ -9,6 +9,11 @@ export function getProductCustomizations(params?: { page?: number; pageSize?: nu
 /** GET /product-customizations/:id */
 export function getProductCustomization(id: number) {
   return http.get<ApiResponse<ProductCustomization>>(`/product-customizations/${id}`).then((res) => res.data)
+}
+
+/** PATCH /product-customizations/:id */
+export function updateProductCustomization(id: number, data: UpdateProductCustomizationInput) {
+  return http.patch<ApiResponse<ProductCustomization>>(`/product-customizations/${id}`, data).then((res) => res.data)
 }
 
 /** POST /product-customizations */

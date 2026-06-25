@@ -184,20 +184,21 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               options.map((o) => (
                 <TableRow key={o.id}>
                   <TableCell className="font-mono text-xs">{o.id}</TableCell>
-                  <TableCell className="font-medium">{o.name}</TableCell>
+                  <TableCell>{o.name}</TableCell>
                   <TableCell className="font-mono text-xs">¥{Number(o.price).toFixed(2)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(o)}>
+                      <Button variant="outline" size="sm" onClick={() => openEdit(o)}>
                         <PencilIcon className="size-4" />
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         className="text-red-500 hover:text-red-500"
                         onClick={() => handleDelete(o.id)}
                       >
-                        <Trash2Icon className="size-4" />
+                        <Trash2Icon className="size-4" data-icon="inline-start" />
+                        删除
                       </Button>
                     </div>
                   </TableCell>

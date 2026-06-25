@@ -98,6 +98,7 @@ export type {
 export type {
   ProductCustomization,
   CreateProductCustomizationInput,
+  UpdateProductCustomizationInput,
   ProductCustomizationQuery,
 } from './types/index.js';
 

@@ -145,8 +145,8 @@ export default function StoreDetailPage() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link to="/stores">门店管理</Link>
+                <BreadcrumbLink render={<Link to="/stores" />}>
+                  门店管理
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />

@@ -154,7 +154,7 @@ export default function ProductsPage() {
                 products.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell className="font-mono text-xs">{product.id}</TableCell>
-                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>{product.name}</TableCell>
                     <TableCell>¥{product.price.toFixed(2)}</TableCell>
                     <TableCell>
                       {STATUS_BADGE[product.status]}

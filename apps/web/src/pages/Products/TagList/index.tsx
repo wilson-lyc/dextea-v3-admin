@@ -193,7 +193,7 @@ export default function TagListPage() {
               tags.map((tag) => (
                 <TableRow key={tag.id}>
                   <TableCell className="font-mono text-xs">{tag.id}</TableCell>
-                  <TableCell className="font-medium">{tag.name}</TableCell>
+                  <TableCell>{tag.name}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Button

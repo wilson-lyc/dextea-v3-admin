@@ -116,9 +116,9 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-24">客制化ID</TableHead>
-              <TableHead>名称</TableHead>
-              <TableHead className="w-44">展示名称</TableHead>
+              <TableHead className="w-28">项目ID</TableHead>
+              <TableHead className="w-1/2">名称</TableHead>
+              <TableHead className="w-1/2">展示名称</TableHead>
               <TableHead className="w-36 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
@@ -133,12 +133,12 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
               customizations.map((c) => (
                 <TableRow key={c.customizationId}>
                   <TableCell className="font-mono text-xs">{c.customizationId}</TableCell>
-                  <TableCell className="font-medium">{c.customizationName}</TableCell>
-                  <TableCell className="text-muted-foreground">{c.displayName || "-"}</TableCell>
+                  <TableCell>{c.customizationName}</TableCell>
+                  <TableCell>{c.displayName || "-"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => navigate(`/products/customization/${c.customizationId}`)}
                       >
@@ -146,12 +146,13 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                         管理
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         className="text-red-500 hover:text-red-500"
                         onClick={() => handleUnbind(c.customizationId)}
                       >
-                        <Trash2Icon className="size-4" />
+                        <Trash2Icon className="size-4" data-icon="inline-start" />
+                        解绑
                       </Button>
                     </div>
                   </TableCell>
