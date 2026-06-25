@@ -8,6 +8,7 @@ import {
 } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { productCustomizationErrors } from '../errorcode/product-customizations.js';
+import { parsePositiveInt, validateMaxLength } from '../utils/validation.js';
 import type {
   ApiResponse,
   PaginatedData,
@@ -66,7 +67,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
   }>('/product-customizations/:id', async (request) => {
     try {
       const db = await getDb();
-      const id = Number(request.params.id);
+      const id = parsePositiveInt(request.params.id, '客制化项目ID');
 
       const [item] = await db
         .select()
@@ -100,14 +101,24 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
   }>('/product-customizations', async (request, reply) => {
     try {
       const db = await getDb();
-      const { name } = request.body;
+      const { name, displayName } = request.body;
 
       if (!name || !name.trim()) {
         throw new AppError(productCustomizationErrors.NAME_REQUIRED);
       }
 
+      if (!displayName || !displayName.trim()) {
+        throw new AppError(productCustomizationErrors.DISPLAY_NAME_REQUIRED);
+      }
+
+      const trimmedName = name.trim();
+      const trimmedDisplayName = displayName.trim();
+      validateMaxLength(trimmedName, 255, '客制化项目名称');
+      validateMaxLength(trimmedDisplayName, 255, '展示名称');
+
       const result = await db.insert(productCustomizationsTable).values({
-        name: name.trim(),
+        name: trimmedName,
+        displayName: trimmedDisplayName,
       });
 
       const insertId = Number(result[0]?.insertId ?? 0);
@@ -141,7 +152,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
   }>('/product-customizations/:id/products', async (request) => {
     try {
       const db = await getDb();
-      const customizationId = Number(request.params.id);
+      const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
 
       const rows = await db
         .select({
@@ -176,7 +187,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
   }>('/product-customizations/:id/products', async (request) => {
     try {
       const db = await getDb();
-      const customizationId = Number(request.params.id);
+      const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
       const { productId } = request.body;
 
       // 检查商品是否存在
@@ -227,8 +238,8 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
   }>('/product-customizations/:id/products/:productId', async (request) => {
     try {
       const db = await getDb();
-      const customizationId = Number(request.params.id);
-      const productId = Number(request.params.productId);
+      const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
+      const productId = parsePositiveInt(request.params.productId, '商品ID');
 
       await db
         .delete(productCustomizationRelationsTable)

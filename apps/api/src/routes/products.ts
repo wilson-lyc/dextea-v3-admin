@@ -1,9 +1,16 @@
 import type { FastifyInstance } from 'fastify';
 import { eq, inArray, sql } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import { productsTable, productTagRelationsTable, productTagsTable } from '../db/schema.js';
+import {
+  productsTable,
+  productTagRelationsTable,
+  productTagsTable,
+  productCustomizationsTable,
+  productCustomizationRelationsTable,
+} from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { productErrors } from '../errorcode/products.js';
+import { parsePositiveInt, validateMaxLength, validatePrice, validateStatus } from '../utils/validation.js';
 import type {
   ApiResponse,
   PaginatedData,
@@ -13,6 +20,7 @@ import type {
   CreateProductInput,
   CreateProductResponse,
 } from '@dextea/shared-types';
+import { PRODUCT_STATUS_VALUES } from '@dextea/shared-types';
 
 
 export async function productRoutes(app: FastifyInstance) {
@@ -109,8 +117,15 @@ export async function productRoutes(app: FastifyInstance) {
         throw new AppError(productErrors.NAME_REQUIRED);
       }
 
-      if (price !== undefined && price < 0) {
-        throw new AppError(productErrors.PRICE_INVALID);
+      validateMaxLength(name, 255, '商品名称');
+      validateMaxLength(brief, 500, '简介');
+      validateMaxLength(description, 2000, '描述');
+
+      if (price !== undefined) {
+        validatePrice(price);
+      }
+      if (status !== undefined) {
+        validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
       }
 
       const result = await db.insert(productsTable).values({
@@ -154,7 +169,7 @@ export async function productRoutes(app: FastifyInstance) {
   }>('/products/:id/basic-info', async (request, reply) => {
     try {
       const db = await getDb();
-      const id = Number(request.params.id);
+      const id = parsePositiveInt(request.params.id, '商品ID');
 
       const [product] = await db
         .select()
@@ -188,7 +203,7 @@ export async function productRoutes(app: FastifyInstance) {
   }>('/products/:id/tags', async (request) => {
     try {
       const db = await getDb();
-      const id = Number(request.params.id);
+      const id = parsePositiveInt(request.params.id, '商品ID');
 
       const tags = await db
         .select({
@@ -223,7 +238,7 @@ export async function productRoutes(app: FastifyInstance) {
   }>('/products/:id', async (request) => {
     try {
       const db = await getDb();
-      const id = Number(request.params.id);
+      const id = parsePositiveInt(request.params.id, '商品ID');
       const { name, brief, description, price, status } = request.body;
 
       const [product] = await db
@@ -236,12 +251,18 @@ export async function productRoutes(app: FastifyInstance) {
         throw new AppError(productErrors.PRODUCT_NOT_FOUND);
       }
 
-      if (name !== undefined && !name) {
-        throw new AppError(productErrors.NAME_REQUIRED);
+      if (name !== undefined) {
+        if (!name) throw new AppError(productErrors.NAME_REQUIRED);
+        validateMaxLength(name, 255, '商品名称');
       }
+      validateMaxLength(brief, 500, '简介');
+      validateMaxLength(description, 2000, '描述');
 
-      if (price !== undefined && price < 0) {
-        throw new AppError(productErrors.PRICE_INVALID);
+      if (price !== undefined) {
+        validatePrice(price);
+      }
+      if (status !== undefined) {
+        validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
       }
 
       const updateData: Partial<typeof productsTable.$inferInsert> = {};
@@ -287,7 +308,7 @@ export async function productRoutes(app: FastifyInstance) {
   }>('/products/:id/tags', async (request) => {
     try {
       const db = await getDb();
-      const productId = Number(request.params.id);
+      const productId = parsePositiveInt(request.params.id, '商品ID');
       const { tagId } = request.body;
 
       // 检查商品是否存在
@@ -349,8 +370,8 @@ export async function productRoutes(app: FastifyInstance) {
   }>('/products/:id/tags/:tagId', async (request) => {
     try {
       const db = await getDb();
-      const productId = Number(request.params.id);
-      const tagId = Number(request.params.tagId);
+      const productId = parsePositiveInt(request.params.id, '商品ID');
+      const tagId = parsePositiveInt(request.params.tagId, '标签ID');
 
       await db
         .delete(productTagRelationsTable)
@@ -367,6 +388,138 @@ export async function productRoutes(app: FastifyInstance) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
       throw new AppError(productErrors.TAG_REMOVE_FAILED);
+    }
+  });
+
+  /**
+   * 获取商品绑定的客制化项目列表
+   * GET /api/v1/products/:id/customizations
+   */
+  app.get<{
+    Params: { id: string };
+    Reply: ApiResponse<{ customizationId: number; customizationName: string; displayName: string }[]>;
+  }>('/products/:id/customizations', async (request) => {
+    try {
+      const db = await getDb();
+      const productId = parsePositiveInt(request.params.id, '商品ID');
+
+      const rows = await db
+        .select({
+          customizationId: productCustomizationRelationsTable.customizationId,
+          customizationName: productCustomizationsTable.name,
+          displayName: productCustomizationsTable.displayName,
+        })
+        .from(productCustomizationRelationsTable)
+        .innerJoin(
+          productCustomizationsTable,
+          eq(productCustomizationRelationsTable.customizationId, productCustomizationsTable.id),
+        )
+        .where(eq(productCustomizationRelationsTable.productId, productId))
+        .orderBy(productCustomizationRelationsTable.customizationId);
+
+      return {
+        code: 0,
+        data: rows,
+        message: 'ok',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productErrors.CUSTOMIZATION_LIST_FAILED);
+    }
+  });
+
+  /**
+   * 绑定客制化项目到商品
+   * POST /api/v1/products/:id/customizations
+   */
+  app.post<{
+    Params: { id: string };
+    Body: { customizationId: number };
+    Reply: ApiResponse<null>;
+  }>('/products/:id/customizations', async (request) => {
+    try {
+      const db = await getDb();
+      const productId = parsePositiveInt(request.params.id, '商品ID');
+      const customizationId = parsePositiveInt(String(request.body.customizationId), '客制化项目ID');
+
+      // 检查商品是否存在
+      const [product] = await db
+        .select({ id: productsTable.id })
+        .from(productsTable)
+        .where(eq(productsTable.id, productId))
+        .limit(1);
+
+      if (!product) {
+        throw new AppError(productErrors.PRODUCT_NOT_FOUND);
+      }
+
+      // 检查客制化项目是否存在
+      const [customization] = await db
+        .select({ id: productCustomizationsTable.id })
+        .from(productCustomizationsTable)
+        .where(eq(productCustomizationsTable.id, customizationId))
+        .limit(1);
+
+      if (!customization) {
+        throw new AppError(productErrors.CUSTOMIZATION_NOT_FOUND);
+      }
+
+      // 检查是否已绑定
+      const [existing] = await db
+        .select()
+        .from(productCustomizationRelationsTable)
+        .where(
+          sql`${productCustomizationRelationsTable.productId} = ${productId} and ${productCustomizationRelationsTable.customizationId} = ${customizationId}`,
+        )
+        .limit(1);
+
+      if (existing) {
+        throw new AppError(productErrors.CUSTOMIZATION_ALREADY_BOUND);
+      }
+
+      await db.insert(productCustomizationRelationsTable).values({ productId, customizationId });
+
+      return {
+        code: 0,
+        data: null,
+        message: '绑定成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productErrors.CUSTOMIZATION_BIND_FAILED);
+    }
+  });
+
+  /**
+   * 解绑客制化项目
+   * DELETE /api/v1/products/:id/customizations/:customizationId
+   */
+  app.delete<{
+    Params: { id: string; customizationId: string };
+    Reply: ApiResponse<null>;
+  }>('/products/:id/customizations/:customizationId', async (request) => {
+    try {
+      const db = await getDb();
+      const productId = parsePositiveInt(request.params.id, '商品ID');
+      const customizationId = parsePositiveInt(request.params.customizationId, '客制化项目ID');
+
+      await db
+        .delete(productCustomizationRelationsTable)
+        .where(
+          sql`${productCustomizationRelationsTable.productId} = ${productId} and ${productCustomizationRelationsTable.customizationId} = ${customizationId}`,
+        );
+
+      return {
+        code: 0,
+        data: null,
+        message: '解绑成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productErrors.CUSTOMIZATION_UNBIND_FAILED);
     }
   });
 }
