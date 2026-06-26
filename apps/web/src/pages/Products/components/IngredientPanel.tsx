@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { LinkIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -49,6 +50,7 @@ interface IngredientPanelProps {
 }
 
 export default function IngredientPanel({ productId }: IngredientPanelProps) {
+  const navigate = useNavigate()
   const [ingredients, setIngredients] = useState<BoundIngredient[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -271,6 +273,10 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
                   <TableCell className="font-mono text-xs">{item.quantity}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/products/ingredients/${item.ingredientId}`)}>
+                        <LinkIcon data-icon="inline-start" />
+                        查看原料
+                      </Button>
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
                         <PencilIcon data-icon="inline-start" />
                         编辑

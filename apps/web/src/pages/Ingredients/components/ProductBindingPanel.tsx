@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { LinkIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -49,6 +50,7 @@ interface ProductBindingPanelProps {
 }
 
 export default function ProductBindingPanel({ ingredientId, unit }: ProductBindingPanelProps) {
+  const navigate = useNavigate()
   const [products, setProducts] = useState<BoundProduct[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -262,6 +264,10 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
                   <TableCell className="font-mono text-xs">{p.quantity}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/products/${p.productId}`)}>
+                        <LinkIcon data-icon="inline-start" />
+                        查看商品
+                      </Button>
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(p)}>
                         <PencilIcon data-icon="inline-start" />
                         编辑

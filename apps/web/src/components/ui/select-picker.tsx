@@ -2,12 +2,15 @@
 
 import * as React from "react"
 
+import { cn } from "@/lib/utils"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "@/components/ui/select"
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox"
 
 export interface SelectOption {
   label: string
@@ -31,25 +34,35 @@ export function SelectPicker({
   className,
   disabled,
 }: SelectPickerProps) {
-  const selectedLabel = React.useMemo(() => {
-    const option = options.find((opt) => opt.value === value)
-    return option?.label ?? ""
-  }, [options, value])
+  const selected = React.useMemo(
+    () => options.find((opt) => opt.value === value) ?? null,
+    [options, value],
+  )
 
   return (
-    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-      <SelectTrigger className={className}>
-        <span className="flex flex-1 text-left data-placeholder:text-muted-foreground">
-          {selectedLabel || placeholder}
-        </span>
-      </SelectTrigger>
-      <SelectContent>
-        {options.map((opt) => (
-          <SelectItem key={opt.value} value={opt.value}>
-            {opt.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <Combobox
+      items={options}
+      itemToStringValue={(opt: SelectOption) => opt.label}
+      value={selected}
+      onValueChange={(opt: SelectOption | null) => {
+        if (opt) onValueChange(opt.value)
+      }}
+      disabled={disabled}
+    >
+      <ComboboxInput
+        placeholder={placeholder}
+        className={cn(className)}
+      />
+      <ComboboxContent>
+        <ComboboxEmpty>未找到匹配项</ComboboxEmpty>
+        <ComboboxList>
+          {(opt: SelectOption) => (
+            <ComboboxItem key={opt.value} value={opt}>
+              {opt.label}
+            </ComboboxItem>
+          )}
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
   )
 }
