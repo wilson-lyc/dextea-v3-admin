@@ -208,6 +208,23 @@ export const ingredientsTable = mysqlTable('ingredients', {
 });
 
 /**
+ * 客制化选项-原料关联表
+ */
+export const customizationOptionIngredientRelationsTable = mysqlTable(
+  'customization_option_ingredient_relations',
+  {
+    optionId: bigint('option_id', { mode: 'number', unsigned: true }).notNull(),
+    ingredientId: bigint('ingredient_id', { mode: 'number', unsigned: true }).notNull(),
+    quantity: double().notNull().default(0),
+    createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    primaryKey: primaryKey({ columns: [table.optionId, table.ingredientId], name: 'opt_ing_pk' }),
+  }),
+);
+
+/**
  * 客制化选项表
  */
 export const customizationOptionsTable = mysqlTable('customization_options', {

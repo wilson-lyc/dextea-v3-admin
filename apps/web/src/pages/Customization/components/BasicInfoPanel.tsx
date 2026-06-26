@@ -26,13 +26,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SelectPicker } from "@/components/ui/select-picker"
 import { updateProductCustomization } from "@/services"
 
 interface BasicInfoPanelProps {
@@ -254,20 +248,16 @@ export default function BasicInfoPanel({ item, onUpdated }: BasicInfoPanelProps)
               <FieldLabel>
                 项目状态 <span className="text-destructive">*</span>
               </FieldLabel>
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="请选择状态">
-                    {STATUS_LABEL[Number(selectedStatus)]}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(PRODUCT_CUSTOMIZATION_STATUS).map((opt) => (
-                    <SelectItem key={opt.value} value={String(opt.value)}>
-                      {STATUS_LABEL[opt.value]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SelectPicker
+                options={Object.values(PRODUCT_CUSTOMIZATION_STATUS).map((s) => ({
+                  label: STATUS_LABEL[s.value],
+                  value: String(s.value),
+                }))}
+                value={selectedStatus}
+                onValueChange={setSelectedStatus}
+                placeholder="请选择状态"
+                className="w-full"
+              />
             </Field>
           </FieldGroup>
 

@@ -7,13 +7,7 @@ import type { ProductCustomization } from "@dextea/shared-types"
 import { PRODUCT_CUSTOMIZATION_STATUS } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SelectPicker } from "@/components/ui/select-picker"
 import {
   Table,
   TableBody,
@@ -129,20 +123,13 @@ export default function CustomizationPage() {
               }}
             />
           </div>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-28">
-              <SelectValue placeholder="状态">
-                {STATUS_OPTIONS.find((o) => o.value === filterStatus)?.label}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SelectPicker
+            options={STATUS_OPTIONS}
+            value={filterStatus}
+            onValueChange={setFilterStatus}
+            placeholder="状态"
+            className="w-28"
+          />
           <Button variant="secondary" onClick={handleSearch}>
             搜索
           </Button>

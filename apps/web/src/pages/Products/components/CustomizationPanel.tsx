@@ -147,7 +147,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
           <DialogContent>
             <DialogHeader>
               <DialogTitle>绑定新客制化项目</DialogTitle>
-              <DialogDescription>输入客制化项目ID和排序序号即可绑定到该商品。</DialogDescription>
+              <DialogDescription>输入客制化项目ID和排序序号即可绑定到该商品</DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-4 py-2">
               <div className="flex flex-col gap-1.5">
@@ -246,7 +246,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
           <DialogHeader>
             <DialogTitle>编辑排序</DialogTitle>
             <DialogDescription>
-              修改客制化项目「{editCustomization?.customizationName}」在当前商品中的排序序号。
+              修改客制化项目「{editCustomization?.customizationName}」在当前商品中的排序序号
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-2">

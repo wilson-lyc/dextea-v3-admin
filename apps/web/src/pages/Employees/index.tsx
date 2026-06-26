@@ -17,13 +17,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SelectPicker } from "@/components/ui/select-picker"
 import {
   Dialog,
   DialogContent,
@@ -335,8 +329,8 @@ export default function EmployeesPage() {
             <DialogTitle>{dialogMode === "create" ? "创建用户" : "编辑用户"}</DialogTitle>
             <DialogDescription>
               {dialogMode === "create"
-                ? "填写新用户的信息，创建后系统将自动生成初始密码。"
-                : "修改用户的信息。"}
+                ? "填写新用户的信息，创建后系统将自动生成初始密码"
+                : "修改用户的信息"}
             </DialogDescription>
           </DialogHeader>
 
@@ -392,23 +386,16 @@ export default function EmployeesPage() {
                 <FieldLabel htmlFor="user-status">
                   状态 <span className="text-destructive">*</span>
                 </FieldLabel>
-                <Select
+                <SelectPicker
+                  options={Object.values(USER_STATUS).map((s) => ({
+                    label: USER_STATUS_LABEL[s.value],
+                    value: String(s.value),
+                  }))}
                   value={String(formStatus)}
                   onValueChange={(val) => setFormStatus(Number(val) as UserStatus)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="请选择状态">
-                      {USER_STATUS_LABEL[formStatus]}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(USER_STATUS).map((opt) => (
-                      <SelectItem key={opt.value} value={String(opt.value)}>
-                        {USER_STATUS_LABEL[opt.value]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="请选择状态"
+                  className="w-full"
+                />
               </Field>
             )}
           </FieldGroup>

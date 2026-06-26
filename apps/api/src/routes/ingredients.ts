@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { eq, sql } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import { ingredientsTable } from '../db/schema.js';
+import { ingredientsTable, productsTable, productIngredientRelationsTable, customizationOptionIngredientRelationsTable } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { ingredientErrors } from '../errorcode/ingredients.js';
 import { parsePositiveInt, validateMaxLength, validateStatus } from '../utils/validation.js';
@@ -52,6 +52,8 @@ export async function ingredientRoutes(app: FastifyInstance) {
                       name: { type: 'string' },
                       unit: { type: 'string' },
                       status: { type: 'integer', description: '0=下架 1=启用' },
+                      boundCount: { type: 'integer', description: '商品绑定数' },
+                      optionCount: { type: 'integer', description: '客制化选项绑定数' },
                       createdAt: { type: 'string' },
                       updatedAt: { type: 'string' },
                     },
@@ -77,7 +79,16 @@ export async function ingredientRoutes(app: FastifyInstance) {
       const keyword = request.query.keyword;
 
       let query = db
-        .select()
+        .select({
+          id: ingredientsTable.id,
+          name: ingredientsTable.name,
+          unit: ingredientsTable.unit,
+          status: ingredientsTable.status,
+          boundCount: sql<number>`(select count(*) from ${productIngredientRelationsTable} where ${productIngredientRelationsTable.ingredientId} = ${ingredientsTable.id})`,
+          optionCount: sql<number>`(select count(*) from ${customizationOptionIngredientRelationsTable} where ${customizationOptionIngredientRelationsTable.ingredientId} = ${ingredientsTable.id})`,
+          createdAt: ingredientsTable.createdAt,
+          updatedAt: ingredientsTable.updatedAt,
+        })
         .from(ingredientsTable)
         .$dynamic();
 
@@ -422,6 +433,302 @@ export async function ingredientRoutes(app: FastifyInstance) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
       throw new AppError(ingredientErrors.STATUS_UPDATE_FAILED);
+    }
+  });
+
+  /** 获取绑定商品列表 */
+  app.get<{
+    Querystring: { page?: string; pageSize?: string };
+    Params: { id: string };
+    Reply: ApiResponse<PaginatedData<{ productId: number; productName: string; quantity: number }>>;
+  }>('/ingredients/:id/products', {
+    schema: {
+      description: '获取绑定商品列表',
+      tags: ['Ingredients'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '原料ID' },
+        },
+        required: ['id'],
+      },
+      querystring: {
+        type: 'object',
+        properties: {
+          page: { type: 'string', description: '页码' },
+          pageSize: { type: 'string', description: '每页数量' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: {
+              type: 'object',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      productId: { type: 'integer' },
+                      productName: { type: 'string' },
+                      quantity: { type: 'number' },
+                    },
+                  },
+                },
+                total: { type: 'integer' },
+                page: { type: 'integer' },
+                pageSize: { type: 'integer' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const ingredientId = parsePositiveInt(request.params.id, '原料ID');
+      const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
+      const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
+      const offset = (page - 1) * pageSize;
+
+      const rows = await db
+        .select({
+          productId: productIngredientRelationsTable.productId,
+          productName: productsTable.name,
+          quantity: productIngredientRelationsTable.quantity,
+        })
+        .from(productIngredientRelationsTable)
+        .innerJoin(productsTable, eq(productIngredientRelationsTable.productId, productsTable.id))
+        .where(eq(productIngredientRelationsTable.ingredientId, ingredientId))
+        .orderBy(productIngredientRelationsTable.productId)
+        .limit(pageSize)
+        .offset(offset);
+
+      const countResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(productIngredientRelationsTable)
+        .where(eq(productIngredientRelationsTable.ingredientId, ingredientId));
+      const total = Number(countResult[0]?.count ?? 0);
+
+      return {
+        code: 0,
+        data: { items: rows, total, page, pageSize },
+        message: 'ok',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(ingredientErrors.BIND_LIST_FAILED);
+    }
+  });
+
+  /** 绑定商品 */
+  app.post<{
+    Params: { id: string };
+    Body: { productId: number; quantity: number };
+    Reply: ApiResponse<null>;
+  }>('/ingredients/:id/products', {
+    schema: {
+      description: '绑定商品到原料',
+      tags: ['Ingredients'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '原料ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          productId: { type: 'integer', description: '商品ID' },
+          quantity: { type: 'number', description: '用量' },
+        },
+        required: ['productId'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const ingredientId = parsePositiveInt(request.params.id, '原料ID');
+      const { productId, quantity } = request.body;
+
+      const [product] = await db
+        .select({ id: productsTable.id })
+        .from(productsTable)
+        .where(eq(productsTable.id, productId))
+        .limit(1);
+
+      if (!product) {
+        throw new AppError(ingredientErrors.PRODUCT_NOT_FOUND);
+      }
+
+      const [existing] = await db
+        .select()
+        .from(productIngredientRelationsTable)
+        .where(
+          sql`${productIngredientRelationsTable.productId} = ${productId} and ${productIngredientRelationsTable.ingredientId} = ${ingredientId}`,
+        )
+        .limit(1);
+
+      if (existing) {
+        throw new AppError(ingredientErrors.PRODUCT_ALREADY_BOUND);
+      }
+
+      await db.insert(productIngredientRelationsTable).values({ productId, ingredientId, quantity: quantity ?? 0 });
+
+      return {
+        code: 0,
+        data: null,
+        message: '绑定成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(ingredientErrors.BIND_FAILED);
+    }
+  });
+
+  /** 更新绑定用量 */
+  app.patch<{
+    Params: { id: string; productId: string };
+    Body: { quantity: number };
+    Reply: ApiResponse<null>;
+  }>('/ingredients/:id/products/:productId/quantity', {
+    schema: {
+      description: '更新绑定用量',
+      tags: ['Ingredients'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '原料ID' },
+          productId: { type: 'string', minLength: 1, description: '商品ID' },
+        },
+        required: ['id', 'productId'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          quantity: { type: 'number', description: '用量' },
+        },
+        required: ['quantity'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const ingredientId = parsePositiveInt(request.params.id, '原料ID');
+      const productId = parsePositiveInt(request.params.productId, '商品ID');
+      const { quantity } = request.body;
+
+      const [existing] = await db
+        .select()
+        .from(productIngredientRelationsTable)
+        .where(
+          sql`${productIngredientRelationsTable.productId} = ${productId} and ${productIngredientRelationsTable.ingredientId} = ${ingredientId}`,
+        )
+        .limit(1);
+
+      if (!existing) {
+        throw new AppError(ingredientErrors.BIND_NOT_FOUND);
+      }
+
+      await db
+        .update(productIngredientRelationsTable)
+        .set({ quantity })
+        .where(
+          sql`${productIngredientRelationsTable.productId} = ${productId} and ${productIngredientRelationsTable.ingredientId} = ${ingredientId}`,
+        );
+
+      return {
+        code: 0,
+        data: null,
+        message: '更新用量成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(ingredientErrors.BIND_QUANTITY_UPDATE_FAILED);
+    }
+  });
+
+  /** 解绑商品 */
+  app.delete<{
+    Params: { id: string; productId: string };
+    Reply: ApiResponse<null>;
+  }>('/ingredients/:id/products/:productId', {
+    schema: {
+      description: '解绑商品',
+      tags: ['Ingredients'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '原料ID' },
+          productId: { type: 'string', minLength: 1, description: '商品ID' },
+        },
+        required: ['id', 'productId'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const ingredientId = parsePositiveInt(request.params.id, '原料ID');
+      const productId = parsePositiveInt(request.params.productId, '商品ID');
+
+      await db
+        .delete(productIngredientRelationsTable)
+        .where(
+          sql`${productIngredientRelationsTable.productId} = ${productId} and ${productIngredientRelationsTable.ingredientId} = ${ingredientId}`,
+        );
+
+      return {
+        code: 0,
+        data: null,
+        message: '解绑成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(ingredientErrors.UNBIND_FAILED);
     }
   });
 }

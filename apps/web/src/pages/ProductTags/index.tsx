@@ -319,7 +319,7 @@ export default function TagListPage() {
           <DialogHeader>
             <DialogTitle>确认删除</DialogTitle>
             <DialogDescription>
-              确定要删除标签「{deletingTag?.name}」吗？此操作不可撤销。
+              确定要删除标签「{deletingTag?.name}」吗？此操作不可撤销
             </DialogDescription>
           </DialogHeader>
 

@@ -51,4 +51,46 @@ export const ingredientErrors = {
     message: '更新原料状态失败',
     httpStatus: 200,
   } satisfies BizError,
+
+  PRODUCT_ALREADY_BOUND: {
+    code: 11008,
+    message: '该商品已绑定此原料',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  BIND_NOT_FOUND: {
+    code: 11009,
+    message: '绑定关系不存在',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  PRODUCT_NOT_FOUND: {
+    code: 11010,
+    message: '商品不存在',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  BIND_LIST_FAILED: {
+    code: 11011,
+    message: '获取绑定商品列表失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  BIND_FAILED: {
+    code: 11012,
+    message: '绑定商品失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  BIND_QUANTITY_UPDATE_FAILED: {
+    code: 11013,
+    message: '更新用量失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  UNBIND_FAILED: {
+    code: 11014,
+    message: '解绑失败',
+    httpStatus: 200,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

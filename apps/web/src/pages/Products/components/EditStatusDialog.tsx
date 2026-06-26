@@ -16,13 +16,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SelectPicker } from "@/components/ui/select-picker"
 import { updateProduct } from "@/services"
 
 interface EditStatusDialogProps {
@@ -71,20 +65,16 @@ export function EditStatusDialog({ open, onOpenChange, productId, currentStatus,
         <FieldGroup className="py-2">
           <Field>
             <FieldLabel>状态</FieldLabel>
-            <Select value={selected} onValueChange={setSelected}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="请选择状态">
-                  {selected === String(PRODUCT_STATUS.OFF.value) ? '下架' : '可售'}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(PRODUCT_STATUS).map((opt) => (
-                  <SelectItem key={opt.value} value={String(opt.value)}>
-                    {opt.value === 0 ? '下架' : '可售'}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SelectPicker
+              options={[
+                { label: '下架', value: String(PRODUCT_STATUS.OFF.value) },
+                { label: '可售', value: String(PRODUCT_STATUS.ON.value) },
+              ]}
+              value={selected}
+              onValueChange={setSelected}
+              placeholder="请选择状态"
+              className="w-full"
+            />
           </Field>
         </FieldGroup>
 

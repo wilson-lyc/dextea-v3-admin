@@ -138,6 +138,8 @@ export default function IngredientsPage() {
                 <TableHead>ID</TableHead>
                 <TableHead>名称</TableHead>
                 <TableHead>单位</TableHead>
+                <TableHead>商品绑定</TableHead>
+                <TableHead>客制化选项绑定</TableHead>
                 <TableHead>状态</TableHead>
                 <TableHead className="text-right">操作</TableHead>
               </TableRow>
@@ -145,7 +147,7 @@ export default function IngredientsPage() {
             <TableBody>
               {ingredients.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-48 text-center">
+                  <TableCell colSpan={7} className="h-48 text-center">
                     <Empty>
                       <EmptyMedia variant="icon">
                         <FlaskConicalIcon className="size-4" />
@@ -163,6 +165,8 @@ export default function IngredientsPage() {
                     <TableCell className="font-mono text-xs">{ingredient.id}</TableCell>
                     <TableCell>{ingredient.name}</TableCell>
                     <TableCell>{ingredient.unit}</TableCell>
+                    <TableCell>{ingredient.boundCount}</TableCell>
+                    <TableCell>{ingredient.optionCount}</TableCell>
                     <TableCell>
                       <span className={STATUS_TEXT[ingredient.status]?.className ?? ""}>
                         {STATUS_TEXT[ingredient.status]?.label ?? "—"}

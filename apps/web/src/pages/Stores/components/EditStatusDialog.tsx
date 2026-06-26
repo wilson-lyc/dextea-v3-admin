@@ -9,13 +9,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SelectPicker } from "@/components/ui/select-picker"
 import {
   Dialog,
   DialogContent,
@@ -73,30 +67,18 @@ export function EditStatusDialog({ open, onOpenChange, storeId, currentStatus, o
             <FieldLabel>
               门店状态 <span className="text-destructive">*</span>
             </FieldLabel>
-            <Select value={selected} onValueChange={setSelected}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="请选择门店状态">
-                  {({
-                    [STORE_STATUS.RESTING.value]: '休息中',
-                    [STORE_STATUS.OPEN.value]: '营业中',
-                    [STORE_STATUS.PREPARING.value]: '筹备中',
-                    [STORE_STATUS.CLOSED.value]: '已注销',
-                  } as Record<number, string>)[Number(selected)]}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(STORE_STATUS).map((opt) => (
-                  <SelectItem key={opt.value} value={String(opt.value)}>
-                    {({
-                      [STORE_STATUS.RESTING.value]: '休息中',
-                      [STORE_STATUS.OPEN.value]: '营业中',
-                      [STORE_STATUS.PREPARING.value]: '筹备中',
-                      [STORE_STATUS.CLOSED.value]: '已注销',
-                    } as Record<number, string>)[opt.value]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SelectPicker
+              options={[
+                { label: '休息中', value: String(STORE_STATUS.RESTING.value) },
+                { label: '营业中', value: String(STORE_STATUS.OPEN.value) },
+                { label: '筹备中', value: String(STORE_STATUS.PREPARING.value) },
+                { label: '已注销', value: String(STORE_STATUS.CLOSED.value) },
+              ]}
+              value={selected}
+              onValueChange={setSelected}
+              placeholder="请选择门店状态"
+              className="w-full"
+            />
           </Field>
         </FieldGroup>
 

@@ -31,7 +31,7 @@ http.interceptors.response.use(
     if (error.response) {
       const status = error.response.status
       if (status === 401 || (status === 403 && error.response.data?.code === 10103)) {
-        toast.error('登录已过期，请重新登录')
+        toast.error('登录失效，请重新登录')
         redirectToLogin()
         return Promise.reject(error)
       }

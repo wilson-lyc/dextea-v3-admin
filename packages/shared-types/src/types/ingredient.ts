@@ -8,6 +8,8 @@ export interface Ingredient {
   name: string;
   unit: string;
   status: IngredientStatus;
+  boundCount: number;
+  optionCount: number;
   createdAt: string;
   updatedAt: string;
 }

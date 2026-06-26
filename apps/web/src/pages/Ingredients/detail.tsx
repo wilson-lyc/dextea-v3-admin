@@ -103,7 +103,7 @@ export default function IngredientDetailPage() {
             </TabsContent>
 
             <TabsContent value="product-binding" className="mt-6">
-              {id && <ProductBindingPanel ingredientId={Number(id)} />}
+              {id && <ProductBindingPanel ingredientId={Number(id)} unit={ingredient.unit} />}
             </TabsContent>
 
             <TabsContent value="customization-binding" className="mt-6">

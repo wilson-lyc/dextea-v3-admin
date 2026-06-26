@@ -25,7 +25,7 @@ export const authErrors = {
   INVALID_TOKEN: {
     code: 10103,
     message: '未提供有效的认证令牌',
-    httpStatus: 200,
+    httpStatus: 401,
   } satisfies BizError,
 
   LOGIN_FAILED: {
@@ -43,6 +43,6 @@ export const authErrors = {
   TOKEN_EXPIRED: {
     code: 10106,
     message: '认证令牌已过期，请重新登录',
-    httpStatus: 200,
+    httpStatus: 401,
   } satisfies BizError,
 } as const satisfies Record<string, BizError>;

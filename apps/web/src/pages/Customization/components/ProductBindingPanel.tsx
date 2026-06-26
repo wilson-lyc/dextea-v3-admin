@@ -150,7 +150,7 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
           <DialogContent>
             <DialogHeader>
               <DialogTitle>绑定新商品</DialogTitle>
-              <DialogDescription>输入商品ID和排序序号即可将商品绑定到该客制化项目。</DialogDescription>
+              <DialogDescription>输入商品ID和排序序号即可将商品绑定到该客制化项目</DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-4 py-2">
               <div className="flex flex-col gap-1.5">
@@ -241,7 +241,7 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
           <DialogHeader>
             <DialogTitle>编辑排序</DialogTitle>
             <DialogDescription>
-              修改当前客制化项目在商品「{editProduct?.productName}」中的排序序号。
+              修改当前客制化项目在商品「{editProduct?.productName}」中的排序序号
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-2">
