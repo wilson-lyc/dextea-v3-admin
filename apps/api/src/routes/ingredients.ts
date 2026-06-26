@@ -731,4 +731,57 @@ export async function ingredientRoutes(app: FastifyInstance) {
       throw new AppError(ingredientErrors.UNBIND_FAILED);
     }
   });
+
+  /** 原料选项（供 SelectPicker 使用） */
+  app.get<{
+    Reply: ApiResponse<Array<{ label: string; value: string; unit: string }>>;
+  }>('/ingredients/options', {
+    schema: {
+      description: '原料选项列表',
+      tags: ['Ingredients'],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  label: { type: 'string' },
+                  value: { type: 'string' },
+                  unit: { type: 'string' },
+                },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const rows = await db
+        .select({
+          label: ingredientsTable.name,
+          value: sql<string>`cast(${ingredientsTable.id} as char)`,
+          unit: ingredientsTable.unit,
+        })
+        .from(ingredientsTable)
+        .orderBy(ingredientsTable.id);
+
+      return {
+        code: 0,
+        data: rows,
+        message: 'ok',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(ingredientErrors.LIST_FAILED);
+    }
+  });
 }

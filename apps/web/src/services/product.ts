@@ -37,9 +37,9 @@ export function addProductTag(productId: number, tagId: number) {
     .then((res) => res.data)
 }
 
-/** GET /products/:id/tags — 获取商品标签 */
-export function getProductTags(productId: number) {
-  return http.get<ApiResponse<ProductTag[]>>(`/products/${productId}/tags`).then((res) => res.data)
+/** GET /products/:id/tags — 获取商品标签（分页） */
+export function getProductTags(productId: number, params?: { page?: number; pageSize?: number }) {
+  return http.get<ApiResponse<PaginatedData<ProductTag>>>(`/products/${productId}/tags`, { params }).then((res) => res.data)
 }
 
 /** DELETE /products/:id/tags/:tagId — 从商品移除标签 */
@@ -52,12 +52,13 @@ export function removeProductTag(productId: number, tagId: number) {
 interface BoundCustomization {
   customizationId: number
   customizationName: string
+  displayName: string
   sort: number
 }
 
-/** GET /products/:id/customizations — 获取商品绑定的客制化项目 */
-export function getBoundCustomizations(productId: number) {
-  return http.get<ApiResponse<BoundCustomization[]>>(`/products/${productId}/customizations`).then((res) => res.data)
+/** GET /products/:id/customizations — 获取商品绑定的客制化项目（分页） */
+export function getBoundCustomizations(productId: number, params?: { page?: number; pageSize?: number }) {
+  return http.get<ApiResponse<PaginatedData<BoundCustomization>>>(`/products/${productId}/customizations`, { params }).then((res) => res.data)
 }
 
 /** POST /products/:id/customizations — 绑定客制化项目到商品 */
@@ -79,4 +80,41 @@ export function removeProductCustomization(productId: number, customizationId: n
   return http
     .delete<ApiResponse<null>>(`/products/${productId}/customizations/${customizationId}`)
     .then((res) => res.data)
+}
+
+interface BoundIngredient {
+  ingredientId: number
+  ingredientName: string
+  unit: string
+  quantity: number
+}
+
+/** GET /products/:id/ingredients — 获取商品绑定的原料 */
+export function getProductBoundIngredients(productId: number, params?: { page?: number; pageSize?: number }) {
+  return http.get<ApiResponse<PaginatedData<BoundIngredient>>>(`/products/${productId}/ingredients`, { params }).then((res) => res.data)
+}
+
+/** POST /products/:id/ingredients — 绑定原料到商品 */
+export function bindIngredientToProduct(productId: number, ingredientId: number, quantity: number) {
+  return http.post<ApiResponse<null>>(`/products/${productId}/ingredients`, { ingredientId, quantity }).then((res) => res.data)
+}
+
+/** PATCH /products/:id/ingredients/:ingredientId/quantity — 更新原料绑定用量 */
+export function updateProductIngredientQuantity(productId: number, ingredientId: number, quantity: number) {
+  return http.patch<ApiResponse<null>>(`/products/${productId}/ingredients/${ingredientId}/quantity`, { quantity }).then((res) => res.data)
+}
+
+/** DELETE /products/:id/ingredients/:ingredientId — 从商品移除原料 */
+export function unbindIngredientFromProduct(productId: number, ingredientId: number) {
+  return http.delete<ApiResponse<null>>(`/products/${productId}/ingredients/${ingredientId}`).then((res) => res.data)
+}
+
+interface ProductOption {
+  label: string
+  value: string
+}
+
+/** GET /products/options */
+export function getProductOptions() {
+  return http.get<ApiResponse<ProductOption[]>>("/products/options").then((res) => res.data)
 }

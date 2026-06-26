@@ -5,6 +5,7 @@ import { toast } from "sonner"
 import type { ProductTag } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Table,
   TableBody,
@@ -13,6 +14,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import { getProductTags, removeProductTag } from "@/services"
 import { AddTagDialog } from "./AddTagDialog"
 
@@ -23,14 +33,19 @@ interface TagsPanelProps {
 export default function TagsPanel({ productId }: TagsPanelProps) {
   const [tags, setTags] = useState<ProductTag[]>([])
   const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const pageSize = 20
   const [addTagDialogOpen, setAddTagDialogOpen] = useState(false)
 
-  const fetchTags = useCallback(async () => {
+  const fetchTags = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
-      const res = await getProductTags(productId)
+      const res = await getProductTags(productId, { page: targetPage, pageSize })
       if (res.code === 0) {
-        setTags(res.data)
+        setTags(res.data.items)
+        setTotal(res.data.total)
+        setPage(targetPage)
       } else {
         toast.error(res.message)
       }
@@ -39,10 +54,10 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
     } finally {
       setLoading(false)
     }
-  }, [productId])
+  }, [productId, pageSize])
 
   useEffect(() => {
-    fetchTags()
+    fetchTags(1)
   }, [fetchTags])
 
   const handleRemoveTag = async (tagId: number) => {
@@ -50,7 +65,7 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
       const res = await removeProductTag(productId, tagId)
       if (res.code === 0) {
         toast.success(res.message)
-        await fetchTags()
+        await fetchTags(page)
       } else {
         toast.error(res.message)
       }
@@ -62,26 +77,16 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
   const existingTagIds = tags.map((t) => t.id)
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <Button onClick={() => setAddTagDialogOpen(true)}>
           <PlusIcon data-icon="inline-start" />
           新增标签
         </Button>
+        {!loading && <span className="text-sm text-muted-foreground">共 {total} 个标签</span>}
       </div>
 
-      {loading ? (
-        <div className="py-12 text-center text-sm text-muted-foreground">
-          加载中...
-        </div>
-      ) : tags.length === 0 ? (
-        <Empty>
-          <EmptyMedia variant="icon">
-            <TagIcon className="size-4" />
-          </EmptyMedia>
-          <EmptyTitle>暂无标签</EmptyTitle>
-        </Empty>
-      ) : (
+      <ScrollArea className="max-h-[calc(100vh-480px)]">
         <Table>
           <TableHeader>
             <TableRow>
@@ -90,24 +95,113 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tags.map((tag) => (
-              <TableRow key={tag.id}>
-                <TableCell>{tag.name}</TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-500 hover:text-red-500"
-                    onClick={() => handleRemoveTag(tag.id)}
-                  >
-                    <Trash2Icon className="size-4" data-icon="inline-start" />
-                      解绑
-                  </Button>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={2} className="h-32 text-center text-sm text-muted-foreground">
+                  加载中...
                 </TableCell>
               </TableRow>
-            ))}
+            ) : tags.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={2} className="h-48 text-center">
+                  <Empty>
+                    <EmptyMedia variant="icon">
+                      <TagIcon className="size-4" />
+                    </EmptyMedia>
+                    <EmptyTitle>暂无标签</EmptyTitle>
+                    <Button onClick={() => setAddTagDialogOpen(true)}>
+                      立即添加
+                    </Button>
+                  </Empty>
+                </TableCell>
+              </TableRow>
+            ) : (
+              tags.map((tag) => (
+                <TableRow key={tag.id}>
+                  <TableCell>{tag.name}</TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-500 hover:text-red-500"
+                      onClick={() => handleRemoveTag(tag.id)}
+                    >
+                      <Trash2Icon className="size-4" data-icon="inline-start" />
+                      解绑
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
+      </ScrollArea>
+
+      {/* Pagination */}
+      {!loading && tags.length > 0 && (
+        <Pagination className="justify-end">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e: React.MouseEvent) => {
+                  e.preventDefault()
+                  if (page > 1) fetchTags(page - 1)
+                }}
+                text="上一页"
+              />
+            </PaginationItem>
+            {(() => {
+              const totalPages = Math.ceil(total / pageSize)
+              const pages: (number | "...")[] = []
+              if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i)
+              } else {
+                pages.push(1)
+                if (page > 3) pages.push("...")
+                for (
+                  let i = Math.max(2, page - 1);
+                  i <= Math.min(totalPages - 1, page + 1);
+                  i++
+                ) {
+                  pages.push(i)
+                }
+                if (page < totalPages - 2) pages.push("...")
+                pages.push(totalPages)
+              }
+              return pages.map((p, idx) =>
+                p === "..." ? (
+                  <PaginationItem key={`e-${idx}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={p}>
+                    <PaginationLink
+                      href="#"
+                      isActive={p === page}
+                      onClick={(e: React.MouseEvent) => {
+                        e.preventDefault()
+                        fetchTags(p)
+                      }}
+                    >
+                      {p}
+                    </PaginationLink>
+                  </PaginationItem>
+                ),
+              )
+            })()}
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e: React.MouseEvent) => {
+                  e.preventDefault()
+                  if (page < Math.ceil(total / pageSize)) fetchTags(page + 1)
+                }}
+                text="下一页"
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
 
       <AddTagDialog
@@ -115,8 +209,8 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
         onOpenChange={setAddTagDialogOpen}
         productId={productId}
         existingTagIds={existingTagIds}
-        onAdded={fetchTags}
+        onAdded={() => fetchTags(page)}
       />
-    </>
+    </div>
   )
 }

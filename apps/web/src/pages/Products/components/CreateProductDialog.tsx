@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { SelectPicker } from "@/components/ui/select-picker"
+import { StatusSelectPicker } from "@/components/ui/status-select-picker"
 import {
   Combobox,
   ComboboxChip,
@@ -224,11 +225,9 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
             <FieldLabel htmlFor="product-status">
               状态 <span className="text-destructive">*</span>
             </FieldLabel>
-            <SelectPicker
-              options={[
-                { label: '下架', value: String(PRODUCT_STATUS.OFF.value) },
-                { label: '可售', value: String(PRODUCT_STATUS.ON.value) },
-              ]}
+            <StatusSelectPicker
+              statusEnum={PRODUCT_STATUS}
+              labels={{ [PRODUCT_STATUS.OFF.value]: "下架", [PRODUCT_STATUS.ON.value]: "可售" }}
               value={formStatus}
               onValueChange={setFormStatus}
               placeholder="请选择状态"

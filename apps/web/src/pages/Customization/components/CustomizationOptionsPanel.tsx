@@ -24,6 +24,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { SelectPicker } from "@/components/ui/select-picker"
+import { StatusSelectPicker } from "@/components/ui/status-select-picker"
 import {
   Field,
   FieldGroup,
@@ -339,15 +340,13 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
             </Field>
             <Field>
               <FieldLabel htmlFor="edit-option-status">状态</FieldLabel>
-              <SelectPicker
-                options={[
-                  { label: '下架', value: String(CUSTOMIZATION_OPTION_STATUS.OFF.value) },
-                  { label: '启用', value: String(CUSTOMIZATION_OPTION_STATUS.ON.value) },
-                ]}
-                value={editForm.status}
-                onValueChange={(v) => setEditForm((f) => ({ ...f, status: v }))}
-                placeholder="请选择状态"
-              />
+              <StatusSelectPicker
+              statusEnum={CUSTOMIZATION_OPTION_STATUS}
+              labels={{ [CUSTOMIZATION_OPTION_STATUS.OFF.value]: "下架", [CUSTOMIZATION_OPTION_STATUS.ON.value]: "启用" }}
+              value={editForm.status}
+              onValueChange={(v) => setEditForm((f) => ({ ...f, status: v }))}
+              placeholder="请选择状态"
+            />
             </Field>
           </FieldGroup>
 

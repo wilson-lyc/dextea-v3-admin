@@ -17,6 +17,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { SelectPicker } from "@/components/ui/select-picker"
+import { StatusSelectPicker } from "@/components/ui/status-select-picker"
 import { updateProduct } from "@/services"
 
 interface EditStatusDialogProps {
@@ -65,11 +66,9 @@ export function EditStatusDialog({ open, onOpenChange, productId, currentStatus,
         <FieldGroup className="py-2">
           <Field>
             <FieldLabel>状态</FieldLabel>
-            <SelectPicker
-              options={[
-                { label: '下架', value: String(PRODUCT_STATUS.OFF.value) },
-                { label: '可售', value: String(PRODUCT_STATUS.ON.value) },
-              ]}
+            <StatusSelectPicker
+              statusEnum={PRODUCT_STATUS}
+              labels={{ [PRODUCT_STATUS.OFF.value]: "下架", [PRODUCT_STATUS.ON.value]: "可售" }}
               value={selected}
               onValueChange={setSelected}
               placeholder="请选择状态"

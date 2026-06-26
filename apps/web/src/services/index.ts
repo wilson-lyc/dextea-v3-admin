@@ -4,12 +4,12 @@ export { login, logout, getMe } from './auth'
 export { getInitStatus, initSystem } from './init'
 export { getUsers, createUser, updateUser, toggleUserStatus } from './user'
 export { getStores, getStore, createStore, updateStore, updateStoreStatus, updateStoreBasicInfo, updateStoreLocation, resetStorePassword, syncStoreLocations } from './store'
-export { getProducts, getProductBasicInfo, getProductTags, createProduct, updateProduct, toggleProductStatus, addProductTag, removeProductTag, getBoundCustomizations, addProductCustomization, removeProductCustomization, updateProductCustomizationSort } from './product'
+export { getProducts, getProductBasicInfo, getProductTags, createProduct, updateProduct, toggleProductStatus, addProductTag, removeProductTag, getBoundCustomizations, addProductCustomization, removeProductCustomization, updateProductCustomizationSort, getProductBoundIngredients, bindIngredientToProduct, updateProductIngredientQuantity, unbindIngredientFromProduct, getProductOptions } from './product'
 export { getTags, createTag, updateTag, deleteTag } from './tag'
 export { getProvinces, getChildren, resolveNames } from './area'
 export { getDashboardStats } from './dashboard'
 export { getProductCustomizations, getProductCustomization, createProductCustomization, updateProductCustomization, getBoundProducts, bindProduct, unbindProduct, updateBoundProductSort, getCustomizationOptions, createCustomizationOption, updateCustomizationOption, deleteCustomizationOption } from './product-customization'
-export { getIngredients, getIngredient, createIngredient, updateIngredient, toggleIngredientStatus, getIngredientBoundProducts, bindProductToIngredient, updateIngredientProductQuantity, unbindProductFromIngredient } from './ingredient'
+export { getIngredients, getIngredient, createIngredient, updateIngredient, toggleIngredientStatus, getIngredientBoundProducts, bindProductToIngredient, updateIngredientProductQuantity, unbindProductFromIngredient, getIngredientOptions } from './ingredient'
 
 // Re-export shared types for page convenience
 export type {

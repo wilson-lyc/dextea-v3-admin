@@ -27,6 +27,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { SelectPicker } from "@/components/ui/select-picker"
+import { StatusSelectPicker } from "@/components/ui/status-select-picker"
 import { updateProductCustomization } from "@/services"
 
 interface BasicInfoPanelProps {
@@ -248,11 +249,9 @@ export default function BasicInfoPanel({ item, onUpdated }: BasicInfoPanelProps)
               <FieldLabel>
                 项目状态 <span className="text-destructive">*</span>
               </FieldLabel>
-              <SelectPicker
-                options={Object.values(PRODUCT_CUSTOMIZATION_STATUS).map((s) => ({
-                  label: STATUS_LABEL[s.value],
-                  value: String(s.value),
-                }))}
+              <StatusSelectPicker
+                statusEnum={PRODUCT_CUSTOMIZATION_STATUS}
+                labels={{ [PRODUCT_CUSTOMIZATION_STATUS.OFF.value]: "下架", [PRODUCT_CUSTOMIZATION_STATUS.ON.value]: "启用" }}
                 value={selectedStatus}
                 onValueChange={setSelectedStatus}
                 placeholder="请选择状态"

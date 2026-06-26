@@ -57,3 +57,14 @@ export function updateIngredientProductQuantity(ingredientId: number, productId:
 export function unbindProductFromIngredient(ingredientId: number, productId: number) {
   return http.delete<ApiResponse<null>>(`/ingredients/${ingredientId}/products/${productId}`).then((res) => res.data)
 }
+
+interface IngredientOption {
+  label: string
+  value: string
+  unit: string
+}
+
+/** GET /ingredients/options */
+export function getIngredientOptions() {
+  return http.get<ApiResponse<IngredientOption[]>>("/ingredients/options").then((res) => res.data)
+}

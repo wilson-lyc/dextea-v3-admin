@@ -24,6 +24,7 @@ import { getProductBasicInfo } from "@/services"
 import BasicInfoPanel from "./components/BasicInfoPanel"
 import TagsPanel from "./components/TagsPanel"
 import CustomizationPanel from "./components/CustomizationPanel"
+import IngredientPanel from "./components/IngredientPanel"
 
 export default function ProductDetailPage() {
   const navigate = useNavigate()
@@ -97,6 +98,7 @@ export default function ProductDetailPage() {
               <TabsTrigger value="basic">基础信息</TabsTrigger>
               <TabsTrigger value="tags">标签</TabsTrigger>
               <TabsTrigger value="customization">客制化</TabsTrigger>
+              <TabsTrigger value="ingredients">原料</TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic" className="mt-6 flex flex-col gap-6">
@@ -109,6 +111,10 @@ export default function ProductDetailPage() {
 
             <TabsContent value="customization" className="mt-6">
               {id && <CustomizationPanel productId={Number(id)} />}
+            </TabsContent>
+
+            <TabsContent value="ingredients" className="mt-6">
+              {id && <IngredientPanel productId={Number(id)} />}
             </TabsContent>
           </Tabs>
         </div>

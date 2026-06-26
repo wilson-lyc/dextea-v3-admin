@@ -5,6 +5,7 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Dialog,
   DialogTrigger,
@@ -24,6 +25,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import { getBoundCustomizations, addProductCustomization, removeProductCustomization, updateProductCustomizationSort } from "@/services"
 
 interface CustomizationPanelProps {
@@ -41,6 +51,9 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
   const navigate = useNavigate()
   const [customizations, setCustomizations] = useState<BoundCustomization[]>([])
   const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const pageSize = 20
 
   const [bindOpen, setBindOpen] = useState(false)
   const [bindCustomizationId, setBindCustomizationId] = useState("")
@@ -52,12 +65,14 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
   const [editSort, setEditSort] = useState("0")
   const [editing, setEditing] = useState(false)
 
-  const fetchCustomizations = useCallback(async () => {
+  const fetchCustomizations = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
-      const res = await getBoundCustomizations(productId)
+      const res = await getBoundCustomizations(productId, { page: targetPage, pageSize })
       if (res.code === 0) {
-        setCustomizations(res.data)
+        setCustomizations(res.data.items)
+        setTotal(res.data.total)
+        setPage(targetPage)
       } else {
         toast.error(res.message)
       }
@@ -66,10 +81,10 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
     } finally {
       setLoading(false)
     }
-  }, [productId])
+  }, [productId, pageSize])
 
   useEffect(() => {
-    fetchCustomizations()
+    fetchCustomizations(1)
   }, [fetchCustomizations])
 
   const handleBind = async () => {
@@ -87,7 +102,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         setBindOpen(false)
         setBindCustomizationId("")
         setBindSort("0")
-        await fetchCustomizations()
+        await fetchCustomizations(1)
       } else {
         toast.error(res.message)
       }
@@ -103,7 +118,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
       const res = await removeProductCustomization(productId, customizationId)
       if (res.code === 0) {
         toast.success(res.message)
-        await fetchCustomizations()
+        await fetchCustomizations(page)
       } else {
         toast.error(res.message)
       }
@@ -128,7 +143,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         toast.success(res.message)
         setEditOpen(false)
         setEditCustomization(null)
-        await fetchCustomizations()
+        await fetchCustomizations(page)
       } else {
         toast.error(res.message)
       }
@@ -141,7 +156,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
+      <div className="flex items-center justify-between">
         <Dialog open={bindOpen} onOpenChange={setBindOpen}>
           <DialogTrigger render={<Button><LinkIcon data-icon="inline-start" />绑定新项目</Button>} />
           <DialogContent>
@@ -175,20 +190,10 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        {!loading && <span className="text-sm text-muted-foreground">共 {total} 个项目</span>}
       </div>
 
-      {loading ? (
-        <div className="py-12 text-center text-sm text-muted-foreground">
-          加载中...
-        </div>
-      ) : customizations.length === 0 ? (
-        <Empty>
-          <EmptyMedia variant="icon">
-            <ListIcon className="size-4" />
-          </EmptyMedia>
-          <EmptyTitle>暂未绑定客制化项目</EmptyTitle>
-        </Empty>
-      ) : (
+      <ScrollArea className="max-h-[calc(100vh-480px)]">
         <Table>
           <TableHeader>
             <TableRow>
@@ -200,45 +205,134 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
             </TableRow>
           </TableHeader>
           <TableBody>
-            {customizations.map((c) => (
-              <TableRow key={c.customizationId}>
-                <TableCell className="font-mono text-xs">{c.customizationId}</TableCell>
-                <TableCell>{c.customizationName}</TableCell>
-                <TableCell>{c.displayName || "-"}</TableCell>
-                <TableCell className="font-mono text-xs">{c.sort}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/products/customization/${c.customizationId}`)}
-                    >
-                      <LinkIcon data-icon="inline-start" />
-                      查看项目
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditDialog(c)}
-                    >
-                      <PencilIcon data-icon="inline-start" />
-                      编辑
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-red-500 hover:text-red-500"
-                      onClick={() => handleUnbind(c.customizationId)}
-                    >
-                      <Trash2Icon className="size-4" data-icon="inline-start" />
-                      解绑
-                    </Button>
-                  </div>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-32 text-center text-sm text-muted-foreground">
+                  加载中...
                 </TableCell>
               </TableRow>
-            ))}
+            ) : customizations.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-48 text-center">
+                  <Empty>
+                    <EmptyMedia variant="icon">
+                      <ListIcon className="size-4" />
+                    </EmptyMedia>
+                    <EmptyTitle>暂未绑定客制化项目</EmptyTitle>
+                    <Button onClick={() => setBindOpen(true)}>
+                      立即添加
+                    </Button>
+                  </Empty>
+                </TableCell>
+              </TableRow>
+            ) : (
+              customizations.map((c) => (
+                <TableRow key={c.customizationId}>
+                  <TableCell className="font-mono text-xs">{c.customizationId}</TableCell>
+                  <TableCell>{c.customizationName}</TableCell>
+                  <TableCell>{c.displayName || "-"}</TableCell>
+                  <TableCell className="font-mono text-xs">{c.sort}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/products/customization/${c.customizationId}`)}
+                      >
+                        <LinkIcon data-icon="inline-start" />
+                        查看项目
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditDialog(c)}
+                      >
+                        <PencilIcon data-icon="inline-start" />
+                        编辑
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-500 hover:text-red-500"
+                        onClick={() => handleUnbind(c.customizationId)}
+                      >
+                        <Trash2Icon className="size-4" data-icon="inline-start" />
+                        解绑
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
+      </ScrollArea>
+
+      {/* Pagination */}
+      {!loading && customizations.length > 0 && (
+        <Pagination className="justify-end">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e: React.MouseEvent) => {
+                  e.preventDefault()
+                  if (page > 1) fetchCustomizations(page - 1)
+                }}
+                text="上一页"
+              />
+            </PaginationItem>
+            {(() => {
+              const totalPages = Math.ceil(total / pageSize)
+              const pages: (number | "...")[] = []
+              if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i)
+              } else {
+                pages.push(1)
+                if (page > 3) pages.push("...")
+                for (
+                  let i = Math.max(2, page - 1);
+                  i <= Math.min(totalPages - 1, page + 1);
+                  i++
+                ) {
+                  pages.push(i)
+                }
+                if (page < totalPages - 2) pages.push("...")
+                pages.push(totalPages)
+              }
+              return pages.map((p, idx) =>
+                p === "..." ? (
+                  <PaginationItem key={`e-${idx}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={p}>
+                    <PaginationLink
+                      href="#"
+                      isActive={p === page}
+                      onClick={(e: React.MouseEvent) => {
+                        e.preventDefault()
+                        fetchCustomizations(p)
+                      }}
+                    >
+                      {p}
+                    </PaginationLink>
+                  </PaginationItem>
+                ),
+              )
+            })()}
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e: React.MouseEvent) => {
+                  e.preventDefault()
+                  if (page < Math.ceil(total / pageSize)) fetchCustomizations(page + 1)
+                }}
+                text="下一页"
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>

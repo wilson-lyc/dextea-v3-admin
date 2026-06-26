@@ -8,6 +8,7 @@ import { PRODUCT_CUSTOMIZATION_STATUS } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SelectPicker } from "@/components/ui/select-picker"
+import { StatusSelectPicker } from "@/components/ui/status-select-picker"
 import {
   Table,
   TableBody,
@@ -16,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
@@ -30,14 +30,6 @@ import {
 } from "@/components/ui/pagination"
 import { getProductCustomizations, updateProductCustomization } from "@/services"
 import { CreateCustomizationDialog } from "./components/CreateCustomizationDialog"
-
-const STATUS_OPTIONS = [
-  { label: "全部", value: "" },
-  ...Object.values(PRODUCT_CUSTOMIZATION_STATUS).map((s) => ({
-    label: s.key === "off" ? "下架" : "启用",
-    value: String(s.value),
-  })),
-]
 
 export default function CustomizationPage() {
   const navigate = useNavigate()
@@ -124,7 +116,14 @@ export default function CustomizationPage() {
             />
           </div>
           <SelectPicker
-            options={STATUS_OPTIONS}
+            options={[
+              { label: "全部", value: "" },
+              ...(() => {
+                const sEnum = PRODUCT_CUSTOMIZATION_STATUS
+                const labels: Record<number, string> = { [sEnum.OFF.value]: "下架", [sEnum.ON.value]: "启用" }
+                return Object.values(sEnum).map((s) => ({ label: labels[s.value], value: String(s.value) }))
+              })(),
+            ]}
             value={filterStatus}
             onValueChange={setFilterStatus}
             placeholder="状态"
@@ -172,16 +171,16 @@ export default function CustomizationPage() {
                 <TableCell>{item.name}</TableCell>
                 <TableCell>{item.displayName || "-"}</TableCell>
                 <TableCell>
-                    <Badge
-                      className={
-                        item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value
-                          ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-red-200 dark:ring-red-800/30"
-                          : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-green-200 dark:ring-green-800/30"
-                      }
-                    >
-                      {item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "下架" : "启用"}
-                    </Badge>
-                  </TableCell>
+                  <span
+                    className={
+                      item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value
+                        ? "text-sm text-red-500"
+                        : "text-sm text-green-600"
+                    }
+                  >
+                    {item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "下架" : "启用"}
+                  </span>
+                </TableCell>
                   <TableCell className="text-center font-mono text-xs">{item.boundCount}</TableCell>
                   <TableCell className="text-center font-mono text-xs">{item.optionCount}</TableCell>
                   <TableCell className="text-right">
@@ -193,40 +192,6 @@ export default function CustomizationPage() {
                       >
                         <SettingsIcon data-icon="inline-start" />
                         管理
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={
-                          item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value
-                            ? "text-green-600 hover:text-green-600"
-                            : "text-red-600 hover:text-red-600"
-                        }
-                        onClick={async () => {
-                          const newStatus = item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value
-                            ? PRODUCT_CUSTOMIZATION_STATUS.ON.value
-                            : PRODUCT_CUSTOMIZATION_STATUS.OFF.value
-                          try {
-                            const res = await updateProductCustomization(item.id, {
-                              name: item.name,
-                              displayName: item.displayName,
-                              status: newStatus,
-                            })
-                            if (res.code === 0) {
-                              toast.success(newStatus === PRODUCT_CUSTOMIZATION_STATUS.ON.value ? "已启用" : "已下架")
-                              fetchItems(page)
-                            } else {
-                              toast.error(res.message)
-                            }
-                          } catch {
-                            toast.error("更新状态失败")
-                          }
-                        }}
-                      >
-                        {item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value
-                          ? <><CheckCircleIcon data-icon="inline-start" />启用</>
-                          : <><BanIcon data-icon="inline-start" />下架</>
-                        }
                       </Button>
                     </div>
                   </TableCell>

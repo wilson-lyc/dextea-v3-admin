@@ -35,86 +35,89 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { getIngredientBoundProducts, bindProductToIngredient, updateIngredientProductQuantity, unbindProductFromIngredient, getProductOptions } from "@/services"
+import { getProductBoundIngredients, bindIngredientToProduct, updateProductIngredientQuantity, unbindIngredientFromProduct, getIngredientOptions } from "@/services"
 
-interface BoundProduct {
-  productId: number
-  productName: string
+interface BoundIngredient {
+  ingredientId: number
+  ingredientName: string
+  unit: string
   quantity: number
 }
 
-interface ProductBindingPanelProps {
-  ingredientId: number
-  unit: string
+interface IngredientPanelProps {
+  productId: number
 }
 
-export default function ProductBindingPanel({ ingredientId, unit }: ProductBindingPanelProps) {
-  const [products, setProducts] = useState<BoundProduct[]>([])
+export default function IngredientPanel({ productId }: IngredientPanelProps) {
+  const [ingredients, setIngredients] = useState<BoundIngredient[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const pageSize = 20
 
   const [bindOpen, setBindOpen] = useState(false)
-  const [bindProductId, setBindProductId] = useState("")
+  const [bindIngredientId, setBindIngredientId] = useState("")
   const [bindQuantity, setBindQuantity] = useState("0")
+  const [bindUnit, setBindUnit] = useState("")
   const [binding, setBinding] = useState(false)
 
   const [editOpen, setEditOpen] = useState(false)
-  const [editProduct, setEditProduct] = useState<BoundProduct | null>(null)
+  const [editIngredient, setEditIngredient] = useState<BoundIngredient | null>(null)
   const [editQuantity, setEditQuantity] = useState("0")
   const [editing, setEditing] = useState(false)
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
-  const [deleteTarget, setDeleteTarget] = useState<BoundProduct | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<BoundIngredient | null>(null)
+  const [unbinding, setUnbinding] = useState(false)
 
-  const [productOptions, setProductOptions] = useState<{ label: string; value: string }[]>([])
+  const [ingredientOptions, setIngredientOptions] = useState<{ label: string; value: string; unit: string }[]>([])
 
-  const fetchProducts = useCallback(async (targetPage: number) => {
+  const fetchIngredients = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
-      const res = await getIngredientBoundProducts(ingredientId, { page: targetPage, pageSize })
+      const res = await getProductBoundIngredients(productId, { page: targetPage, pageSize })
       if (res.code === 0) {
-        const data = res.data as PaginatedData<BoundProduct>
-        setProducts(data.items)
+        const data = res.data as PaginatedData<BoundIngredient>
+        setIngredients(data.items)
         setTotal(data.total)
         setPage(targetPage)
       } else {
         toast.error(res.message)
       }
     } catch {
-      toast.error("获取绑定的商品列表失败")
+      toast.error("获取绑定的原料列表失败")
     } finally {
       setLoading(false)
     }
-  }, [ingredientId, pageSize])
+  }, [productId, pageSize])
 
   useEffect(() => {
-    fetchProducts(1)
-  }, [fetchProducts])
+    fetchIngredients(1)
+  }, [fetchIngredients])
 
   useEffect(() => {
-    getProductOptions().then((res) => {
-      if (res.code === 0) setProductOptions(res.data)
+    getIngredientOptions().then((res) => {
+      if (res.code === 0) setIngredientOptions(res.data)
     }).catch(() => {})
   }, [])
 
   const handleBind = async () => {
-    const productId = Number(bindProductId)
-    if (!productId || productId <= 0) {
-      toast.error("请选择商品")
+    const ingredientId = Number(bindIngredientId)
+    if (!ingredientId || ingredientId <= 0) {
+      toast.error("请选择原料")
       return
     }
 
     setBinding(true)
     try {
-      const res = await bindProductToIngredient(ingredientId, productId, Number(bindQuantity) || 0)
+      const res = await bindIngredientToProduct(productId, ingredientId, Number(bindQuantity) || 0)
       if (res.code === 0) {
         toast.success(res.message)
         setBindOpen(false)
-        setBindProductId("")
+        setBindIngredientId("")
         setBindQuantity("0")
-        await fetchProducts(1)
+        setBindUnit("")
+        await fetchIngredients(1)
       } else {
         toast.error(res.message)
       }
@@ -126,13 +129,13 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
     }
   }
 
-  const handleUnbind = async (productId: number) => {
-    setBinding(true)
+  const handleUnbind = async (ingredientId: number) => {
+    setUnbinding(true)
     try {
-      const res = await unbindProductFromIngredient(ingredientId, productId)
+      const res = await unbindIngredientFromProduct(productId, ingredientId)
       if (res.code === 0) {
         toast.success(res.message)
-        await fetchProducts(page)
+        await fetchIngredients(page)
       } else {
         toast.error(res.message)
       }
@@ -140,32 +143,32 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       toast.error(msg ?? (err instanceof Error ? err.message : "解绑失败"))
     } finally {
-      setBinding(false)
+      setUnbinding(false)
     }
   }
 
-  const openUnbindConfirm = (product: BoundProduct) => {
-    setDeleteTarget(product)
+  const openUnbindConfirm = (item: BoundIngredient) => {
+    setDeleteTarget(item)
     setDeleteConfirmOpen(true)
   }
 
-  const openEditDialog = (product: BoundProduct) => {
-    setEditProduct(product)
-    setEditQuantity(String(product.quantity))
+  const openEditDialog = (item: BoundIngredient) => {
+    setEditIngredient(item)
+    setEditQuantity(String(item.quantity))
     setEditOpen(true)
   }
 
   const handleEditQuantity = async () => {
-    if (!editProduct) return
+    if (!editIngredient) return
 
     setEditing(true)
     try {
-      const res = await updateIngredientProductQuantity(ingredientId, editProduct.productId, Number(editQuantity) || 0)
+      const res = await updateProductIngredientQuantity(productId, editIngredient.ingredientId, Number(editQuantity) || 0)
       if (res.code === 0) {
         toast.success(res.message)
         setEditOpen(false)
-        setEditProduct(null)
-        await fetchProducts(page)
+        setEditIngredient(null)
+        await fetchIngredients(page)
       } else {
         toast.error(res.message)
       }
@@ -182,20 +185,24 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
       <div className="flex items-center justify-between">
         <div>
           <Dialog open={bindOpen} onOpenChange={setBindOpen}>
-            <DialogTrigger render={<Button><LinkIcon data-icon="inline-start" />绑定商品</Button>} />
+            <DialogTrigger render={<Button><LinkIcon data-icon="inline-start" />绑定原料</Button>} />
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>绑定新商品</DialogTitle>
-                <DialogDescription>选择商品并设置用量即可将商品绑定到该原料</DialogDescription>
+                <DialogTitle>绑定新原料</DialogTitle>
+                <DialogDescription>选择原料并设置用量即可将原料绑定到该商品</DialogDescription>
               </DialogHeader>
               <div className="flex flex-col gap-4 py-2">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium">商品 <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-medium">原料 <span className="text-red-500">*</span></label>
                   <SelectPicker
-                    options={productOptions}
-                    value={bindProductId}
-                    onValueChange={setBindProductId}
-                    placeholder="请选择商品"
+                    options={ingredientOptions}
+                    value={bindIngredientId}
+                    onValueChange={(value) => {
+                      setBindIngredientId(value)
+                      const option = ingredientOptions.find((o) => o.value === value)
+                      setBindUnit(option?.unit ?? "")
+                    }}
+                    placeholder="请选择原料"
                     className="w-full"
                   />
                 </div>
@@ -207,7 +214,7 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
                       value={bindQuantity}
                       onChange={(e) => setBindQuantity(e.target.value)}
                     />
-                    <span className="text-sm text-muted-foreground shrink-0">{unit}</span>
+                    <span className="text-sm text-muted-foreground shrink-0">{bindUnit}</span>
                   </div>
                 </div>
               </div>
@@ -220,34 +227,35 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
             </DialogContent>
           </Dialog>
         </div>
-        {!loading && <span className="text-sm text-muted-foreground">共 {total} 个商品</span>}
+        {!loading && <span className="text-sm text-muted-foreground">共 {total} 个原料</span>}
       </div>
 
       <ScrollArea className="max-h-[calc(100vh-480px)]">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-24">商品ID</TableHead>
-              <TableHead>商品名称</TableHead>
-              <TableHead className="w-24">用量（{unit}）</TableHead>
+              <TableHead className="w-24">原料ID</TableHead>
+              <TableHead>原料名称</TableHead>
+              <TableHead className="w-24">单位</TableHead>
+              <TableHead className="w-28">用量</TableHead>
               <TableHead className="w-56 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-32 text-center text-sm text-muted-foreground">
+                <TableCell colSpan={5} className="h-32 text-center text-sm text-muted-foreground">
                   加载中...
                 </TableCell>
               </TableRow>
-            ) : products.length === 0 ? (
+            ) : ingredients.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-48 text-center">
+                <TableCell colSpan={5} className="h-48 text-center">
                   <Empty>
                     <EmptyMedia variant="icon">
                       <LinkIcon className="size-4" />
                     </EmptyMedia>
-                    <EmptyTitle>暂未绑定商品</EmptyTitle>
+                    <EmptyTitle>暂未绑定原料</EmptyTitle>
                     <Button onClick={() => setBindOpen(true)}>
                       立即添加
                     </Button>
@@ -255,14 +263,15 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
                 </TableCell>
               </TableRow>
             ) : (
-              products.map((p) => (
-                <TableRow key={p.productId}>
-                  <TableCell className="font-mono text-xs">{p.productId}</TableCell>
-                  <TableCell>{p.productName}</TableCell>
-                  <TableCell className="font-mono text-xs">{p.quantity}</TableCell>
+              ingredients.map((item) => (
+                <TableRow key={item.ingredientId}>
+                  <TableCell className="font-mono text-xs">{item.ingredientId}</TableCell>
+                  <TableCell>{item.ingredientName}</TableCell>
+                  <TableCell className="font-mono text-xs">{item.unit}</TableCell>
+                  <TableCell className="font-mono text-xs">{item.quantity}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(p)}>
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
                         <PencilIcon data-icon="inline-start" />
                         编辑
                       </Button>
@@ -270,7 +279,7 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
                         variant="outline"
                         size="sm"
                         className="text-red-500 hover:text-red-500"
-                        onClick={() => openUnbindConfirm(p)}
+                        onClick={() => openUnbindConfirm(item)}
                       >
                         <Trash2Icon className="size-4" data-icon="inline-start" />
                         删除
@@ -285,7 +294,7 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
       </ScrollArea>
 
       {/* Pagination */}
-      {!loading && products.length > 0 && (
+      {!loading && ingredients.length > 0 && (
         <Pagination className="justify-end">
           <PaginationContent>
             <PaginationItem>
@@ -293,7 +302,7 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
                 href="#"
                 onClick={(e: React.MouseEvent) => {
                   e.preventDefault()
-                  if (page > 1) fetchProducts(page - 1)
+                  if (page > 1) fetchIngredients(page - 1)
                 }}
                 text="上一页"
               />
@@ -328,7 +337,7 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
                       isActive={p === page}
                       onClick={(e: React.MouseEvent) => {
                         e.preventDefault()
-                        fetchProducts(p)
+                        fetchIngredients(p)
                       }}
                     >
                       {p}
@@ -342,7 +351,7 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
                 href="#"
                 onClick={(e: React.MouseEvent) => {
                   e.preventDefault()
-                  if (page < Math.ceil(total / pageSize)) fetchProducts(page + 1)
+                  if (page < Math.ceil(total / pageSize)) fetchIngredients(page + 1)
                 }}
                 text="下一页"
               />
@@ -356,19 +365,19 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
           <DialogHeader>
             <DialogTitle>编辑用量</DialogTitle>
             <DialogDescription>
-              修改该原料在商品「{editProduct?.productName}」中的用量
+              修改原料「{editIngredient?.ingredientName}」在当前商品中的用量
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-2">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium">用量</label>
+              <label className="text-sm font-medium">用量 <span className="text-red-500">*</span></label>
               <div className="flex items-center gap-2">
                 <Input
                   placeholder="用量"
                   value={editQuantity}
                   onChange={(e) => setEditQuantity(e.target.value)}
                 />
-                <span className="text-sm text-muted-foreground shrink-0">{unit}</span>
+                <span className="text-sm text-muted-foreground shrink-0">{editIngredient?.unit}</span>
               </div>
             </div>
           </div>
@@ -387,7 +396,7 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
           <DialogHeader>
             <DialogTitle>确认解绑</DialogTitle>
             <DialogDescription>
-              确定要将原料与商品「{deleteTarget?.productName}」解除绑定吗？
+              确定要将原料「{deleteTarget?.ingredientName}」与当前商品解除绑定吗？
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -395,13 +404,13 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
             <Button
               variant="destructive"
               onClick={async () => {
-                if (deleteTarget) await handleUnbind(deleteTarget.productId)
+                if (deleteTarget) await handleUnbind(deleteTarget.ingredientId)
                 setDeleteConfirmOpen(false)
                 setDeleteTarget(null)
               }}
-              disabled={binding}
+              disabled={unbinding}
             >
-              {binding ? "解绑中..." : "确认解绑"}
+              {unbinding ? "解绑中..." : "确认解绑"}
             </Button>
           </DialogFooter>
         </DialogContent>

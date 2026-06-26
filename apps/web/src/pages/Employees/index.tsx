@@ -18,6 +18,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { SelectPicker } from "@/components/ui/select-picker"
+import { StatusSelectPicker } from "@/components/ui/status-select-picker"
 import {
   Dialog,
   DialogContent,
@@ -386,11 +387,9 @@ export default function EmployeesPage() {
                 <FieldLabel htmlFor="user-status">
                   状态 <span className="text-destructive">*</span>
                 </FieldLabel>
-                <SelectPicker
-                  options={Object.values(USER_STATUS).map((s) => ({
-                    label: USER_STATUS_LABEL[s.value],
-                    value: String(s.value),
-                  }))}
+                <StatusSelectPicker
+                  statusEnum={USER_STATUS}
+                  labels={{ [USER_STATUS.DISABLED.value]: "禁用", [USER_STATUS.ACTIVE.value]: "激活" }}
                   value={String(formStatus)}
                   onValueChange={(val) => setFormStatus(Number(val) as UserStatus)}
                   placeholder="请选择状态"

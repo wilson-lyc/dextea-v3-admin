@@ -111,4 +111,46 @@ export const productErrors = {
     message: '更新客制化项目绑定排序失败',
     httpStatus: 200,
   } satisfies BizError,
+
+  INGREDIENT_NOT_FOUND: {
+    code: 10818,
+    message: '原料不存在',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  INGREDIENT_ALREADY_BOUND: {
+    code: 10819,
+    message: '该原料已绑定此商品',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  INGREDIENT_BIND_NOT_FOUND: {
+    code: 10820,
+    message: '原料绑定关系不存在',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  INGREDIENT_BIND_LIST_FAILED: {
+    code: 10821,
+    message: '获取绑定的原料列表失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  INGREDIENT_BIND_FAILED: {
+    code: 10822,
+    message: '绑定原料失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  INGREDIENT_UNBIND_FAILED: {
+    code: 10823,
+    message: '解绑原料失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  INGREDIENT_QUANTITY_UPDATE_FAILED: {
+    code: 10824,
+    message: '更新原料用量失败',
+    httpStatus: 200,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

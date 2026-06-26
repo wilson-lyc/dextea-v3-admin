@@ -7,6 +7,8 @@ import {
   productTagsTable,
   productCustomizationsTable,
   productCustomizationRelationsTable,
+  productIngredientRelationsTable,
+  ingredientsTable,
 } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { productErrors } from '../errorcode/products.js';
@@ -319,7 +321,8 @@ export async function productRoutes(app: FastifyInstance) {
   /** 商品标签列表 */
   app.get<{
     Params: { id: string };
-    Reply: ApiResponse<ProductTag[]>;
+    Querystring: { page?: string; pageSize?: string };
+    Reply: ApiResponse<PaginatedData<ProductTag>>;
   }>('/products/:id/tags', {
     schema: {
       description: '商品标签列表',
@@ -331,19 +334,34 @@ export async function productRoutes(app: FastifyInstance) {
         },
         required: ['id'],
       },
+      querystring: {
+        type: 'object',
+        properties: {
+          page: { type: 'string', description: '页码' },
+          pageSize: { type: 'string', description: '每页数量' },
+        },
+      },
       response: {
         200: {
           type: 'object',
           properties: {
             code: { type: 'integer', description: '业务状态码，0=成功' },
             data: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  id: { type: 'integer' },
-                  name: { type: 'string' },
+              type: 'object',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'integer' },
+                      name: { type: 'string' },
+                    },
+                  },
                 },
+                total: { type: 'integer' },
+                page: { type: 'integer' },
+                pageSize: { type: 'integer' },
               },
             },
             message: { type: 'string' },
@@ -356,20 +374,34 @@ export async function productRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '商品ID');
+      const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
+      const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
+      const offset = (page - 1) * pageSize;
 
-      const tags = await db
+      const baseQuery = db
         .select({
           id: productTagsTable.id,
           name: productTagsTable.name,
         })
         .from(productTagRelationsTable)
         .innerJoin(productTagsTable, eq(productTagRelationsTable.tagId, productTagsTable.id))
-        .where(eq(productTagRelationsTable.productId, id))
-        .orderBy(productTagsTable.id);
+        .where(eq(productTagRelationsTable.productId, id));
+
+      const [countResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(productTagRelationsTable)
+        .where(eq(productTagRelationsTable.productId, id));
+
+      const total = Number(countResult?.count ?? 0);
+
+      const tags = await baseQuery
+        .orderBy(productTagsTable.id)
+        .limit(pageSize)
+        .offset(offset);
 
       return {
         code: 0,
-        data: tags,
+        data: { items: tags, total, page, pageSize },
         message: 'ok',
       };
     } catch (error) {
@@ -646,7 +678,8 @@ export async function productRoutes(app: FastifyInstance) {
   /** 获取商品绑定的客制化项目列表 */
   app.get<{
     Params: { id: string };
-    Reply: ApiResponse<{ customizationId: number; customizationName: string; displayName: string; sort: number }[]>;
+    Querystring: { page?: string; pageSize?: string };
+    Reply: ApiResponse<PaginatedData<{ customizationId: number; customizationName: string; displayName: string; sort: number }>>;
   }>('/products/:id/customizations', {
     schema: {
       description: '获取商品绑定的客制化项目列表',
@@ -658,21 +691,36 @@ export async function productRoutes(app: FastifyInstance) {
         },
         required: ['id'],
       },
+      querystring: {
+        type: 'object',
+        properties: {
+          page: { type: 'string', description: '页码' },
+          pageSize: { type: 'string', description: '每页数量' },
+        },
+      },
       response: {
         200: {
           type: 'object',
           properties: {
             code: { type: 'integer', description: '业务状态码，0=成功' },
             data: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  customizationId: { type: 'integer' },
-                  customizationName: { type: 'string' },
-                  displayName: { type: 'string' },
-                  sort: { type: 'integer' },
+              type: 'object',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      customizationId: { type: 'integer' },
+                      customizationName: { type: 'string' },
+                      displayName: { type: 'string' },
+                      sort: { type: 'integer' },
+                    },
+                  },
                 },
+                total: { type: 'integer' },
+                page: { type: 'integer' },
+                pageSize: { type: 'integer' },
               },
             },
             message: { type: 'string' },
@@ -685,6 +733,16 @@ export async function productRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const productId = parsePositiveInt(request.params.id, '商品ID');
+      const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
+      const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
+      const offset = (page - 1) * pageSize;
+
+      const [countResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(productCustomizationRelationsTable)
+        .where(eq(productCustomizationRelationsTable.productId, productId));
+
+      const total = Number(countResult?.count ?? 0);
 
       const rows = await db
         .select({
@@ -699,11 +757,13 @@ export async function productRoutes(app: FastifyInstance) {
           eq(productCustomizationRelationsTable.customizationId, productCustomizationsTable.id),
         )
         .where(eq(productCustomizationRelationsTable.productId, productId))
-        .orderBy(productCustomizationRelationsTable.sort, productCustomizationRelationsTable.customizationId);
+        .orderBy(productCustomizationRelationsTable.sort, productCustomizationRelationsTable.customizationId)
+        .limit(pageSize)
+        .offset(offset);
 
       return {
         code: 0,
-        data: rows,
+        data: { items: rows, total, page, pageSize },
         message: 'ok',
       };
     } catch (error) {
@@ -928,6 +988,355 @@ export async function productRoutes(app: FastifyInstance) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
       throw new AppError(productErrors.CUSTOMIZATION_UNBIND_FAILED);
+    }
+  });
+
+  /** 获取绑定原料列表 */
+  app.get<{
+    Querystring: { page?: string; pageSize?: string };
+    Params: { id: string };
+    Reply: ApiResponse<PaginatedData<{ ingredientId: number; ingredientName: string; unit: string; quantity: number }>>;
+  }>('/products/:id/ingredients', {
+    schema: {
+      description: '获取绑定原料列表',
+      tags: ['Products'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '商品ID' },
+        },
+        required: ['id'],
+      },
+      querystring: {
+        type: 'object',
+        properties: {
+          page: { type: 'string', description: '页码' },
+          pageSize: { type: 'string', description: '每页数量' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: {
+              type: 'object',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      ingredientId: { type: 'integer' },
+                      ingredientName: { type: 'string' },
+                      unit: { type: 'string' },
+                      quantity: { type: 'number' },
+                    },
+                  },
+                },
+                total: { type: 'integer' },
+                page: { type: 'integer' },
+                pageSize: { type: 'integer' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const productId = parsePositiveInt(request.params.id, '商品ID');
+      const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
+      const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
+      const offset = (page - 1) * pageSize;
+
+      const rows = await db
+        .select({
+          ingredientId: productIngredientRelationsTable.ingredientId,
+          ingredientName: ingredientsTable.name,
+          unit: ingredientsTable.unit,
+          quantity: productIngredientRelationsTable.quantity,
+        })
+        .from(productIngredientRelationsTable)
+        .innerJoin(ingredientsTable, eq(productIngredientRelationsTable.ingredientId, ingredientsTable.id))
+        .where(eq(productIngredientRelationsTable.productId, productId))
+        .orderBy(productIngredientRelationsTable.ingredientId)
+        .limit(pageSize)
+        .offset(offset);
+
+      const countResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(productIngredientRelationsTable)
+        .where(eq(productIngredientRelationsTable.productId, productId));
+      const total = Number(countResult[0]?.count ?? 0);
+
+      return {
+        code: 0,
+        data: { items: rows, total, page, pageSize },
+        message: 'ok',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productErrors.INGREDIENT_BIND_LIST_FAILED);
+    }
+  });
+
+  /** 绑定原料 */
+  app.post<{
+    Params: { id: string };
+    Body: { ingredientId: number; quantity: number };
+    Reply: ApiResponse<null>;
+  }>('/products/:id/ingredients', {
+    schema: {
+      description: '绑定原料到商品',
+      tags: ['Products'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '商品ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          ingredientId: { type: 'integer', description: '原料ID' },
+          quantity: { type: 'number', description: '用量' },
+        },
+        required: ['ingredientId'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const productId = parsePositiveInt(request.params.id, '商品ID');
+      const { ingredientId, quantity } = request.body;
+
+      const [ingredient] = await db
+        .select({ id: ingredientsTable.id })
+        .from(ingredientsTable)
+        .where(eq(ingredientsTable.id, ingredientId))
+        .limit(1);
+
+      if (!ingredient) {
+        throw new AppError(productErrors.INGREDIENT_NOT_FOUND);
+      }
+
+      const [existing] = await db
+        .select()
+        .from(productIngredientRelationsTable)
+        .where(
+          sql`${productIngredientRelationsTable.productId} = ${productId} and ${productIngredientRelationsTable.ingredientId} = ${ingredientId}`,
+        )
+        .limit(1);
+
+      if (existing) {
+        throw new AppError(productErrors.INGREDIENT_ALREADY_BOUND);
+      }
+
+      await db.insert(productIngredientRelationsTable).values({ productId, ingredientId, quantity: quantity ?? 0 });
+
+      return {
+        code: 0,
+        data: null,
+        message: '绑定成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productErrors.INGREDIENT_BIND_FAILED);
+    }
+  });
+
+  /** 更新绑定用量 */
+  app.patch<{
+    Params: { id: string; ingredientId: string };
+    Body: { quantity: number };
+    Reply: ApiResponse<null>;
+  }>('/products/:id/ingredients/:ingredientId/quantity', {
+    schema: {
+      description: '更新绑定用量',
+      tags: ['Products'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '商品ID' },
+          ingredientId: { type: 'string', minLength: 1, description: '原料ID' },
+        },
+        required: ['id', 'ingredientId'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          quantity: { type: 'number', description: '用量' },
+        },
+        required: ['quantity'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const productId = parsePositiveInt(request.params.id, '商品ID');
+      const ingredientId = parsePositiveInt(request.params.ingredientId, '原料ID');
+      const { quantity } = request.body;
+
+      const [existing] = await db
+        .select()
+        .from(productIngredientRelationsTable)
+        .where(
+          sql`${productIngredientRelationsTable.productId} = ${productId} and ${productIngredientRelationsTable.ingredientId} = ${ingredientId}`,
+        )
+        .limit(1);
+
+      if (!existing) {
+        throw new AppError(productErrors.INGREDIENT_BIND_NOT_FOUND);
+      }
+
+      await db
+        .update(productIngredientRelationsTable)
+        .set({ quantity })
+        .where(
+          sql`${productIngredientRelationsTable.productId} = ${productId} and ${productIngredientRelationsTable.ingredientId} = ${ingredientId}`,
+        );
+
+      return {
+        code: 0,
+        data: null,
+        message: '更新用量成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productErrors.INGREDIENT_QUANTITY_UPDATE_FAILED);
+    }
+  });
+
+  /** 解绑原料 */
+  app.delete<{
+    Params: { id: string; ingredientId: string };
+    Reply: ApiResponse<null>;
+  }>('/products/:id/ingredients/:ingredientId', {
+    schema: {
+      description: '解绑原料',
+      tags: ['Products'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '商品ID' },
+          ingredientId: { type: 'string', minLength: 1, description: '原料ID' },
+        },
+        required: ['id', 'ingredientId'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const productId = parsePositiveInt(request.params.id, '商品ID');
+      const ingredientId = parsePositiveInt(request.params.ingredientId, '原料ID');
+
+      await db
+        .delete(productIngredientRelationsTable)
+        .where(
+          sql`${productIngredientRelationsTable.productId} = ${productId} and ${productIngredientRelationsTable.ingredientId} = ${ingredientId}`,
+        );
+
+      return {
+        code: 0,
+        data: null,
+        message: '解绑成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productErrors.INGREDIENT_UNBIND_FAILED);
+    }
+  });
+
+  /** 商品选项（供 SelectPicker 使用） */
+  app.get<{
+    Reply: ApiResponse<Array<{ label: string; value: string }>>;
+  }>('/products/options', {
+    schema: {
+      description: '商品选项列表',
+      tags: ['Products'],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  label: { type: 'string' },
+                  value: { type: 'string' },
+                },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const rows = await db
+        .select({
+          label: productsTable.name,
+          value: sql<string>`cast(${productsTable.id} as char)`,
+        })
+        .from(productsTable)
+        .orderBy(productsTable.id);
+
+      return {
+        code: 0,
+        data: rows,
+        message: 'ok',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productErrors.LIST_FAILED);
     }
   });
 }

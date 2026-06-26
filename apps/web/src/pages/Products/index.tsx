@@ -36,9 +36,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 
-const STATUS_BADGE: Record<number, React.ReactNode> = {
-  0: <Badge className="bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300">下架</Badge>,
-  1: <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">可售</Badge>,
+const STATUS_TEXT: Record<number, { label: string; className: string }> = {
+  0: { label: "下架", className: "text-red-600 dark:text-red-400" },
+  1: { label: "可售", className: "text-green-600 dark:text-green-400" },
 }
 
 export default function ProductsPage() {
@@ -159,7 +159,9 @@ export default function ProductsPage() {
                   <TableCell>{product.name}</TableCell>
                   <TableCell>¥{product.price.toFixed(2)}</TableCell>
                   <TableCell>
-                    {STATUS_BADGE[product.status]}
+                    <span className={STATUS_TEXT[product.status]?.className ?? ""}>
+                      {STATUS_TEXT[product.status]?.label ?? "—"}
+                    </span>
                   </TableCell>
                   <TableCell>
                     {product.tags && product.tags.length > 0 ? (

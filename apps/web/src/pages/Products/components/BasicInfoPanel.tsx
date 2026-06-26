@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useState } from "react"
 import { PencilIcon } from "lucide-react"
 
-import type { Product, ProductStatus } from "@dextea/shared-types"
+import type { Product } from "@dextea/shared-types"
 import { PRODUCT_STATUS } from "@dextea/shared-types"
 
 const PRODUCT_STATUS_LABEL: Record<number, string> = {
   [PRODUCT_STATUS.OFF.value]: "下架",
   [PRODUCT_STATUS.ON.value]: "可售",
 }
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -21,11 +20,6 @@ import { Spinner } from "@/components/ui/spinner"
 import { getProductBasicInfo } from "@/services"
 import { EditStatusDialog } from "./EditStatusDialog"
 import { EditBasicInfoDialog } from "./EditBasicInfoDialog"
-
-const STATUS_BADGE_CLASSES: Record<ProductStatus, string> = {
-  0: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-red-200 dark:ring-red-800/30",
-  1: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-green-200 dark:ring-green-800/30",
-}
 
 function formatDate(iso: string) {
   const d = new Date(iso)
@@ -105,11 +99,17 @@ export default function BasicInfoPanel({ productId }: BasicInfoPanelProps) {
           </CardAction>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
             <span className="text-sm text-muted-foreground">当前状态</span>
-            <Badge className={STATUS_BADGE_CLASSES[product.status]}>
+            <span
+              className={
+                product.status === PRODUCT_STATUS.OFF.value
+                  ? "text-sm text-red-500"
+                  : "text-sm text-green-600"
+              }
+            >
               {PRODUCT_STATUS_LABEL[product.status]}
-            </Badge>
+            </span>
           </div>
         </CardContent>
       </Card>
