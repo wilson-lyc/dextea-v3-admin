@@ -38,3 +38,13 @@ interface TagBoundProduct {
 export function getTagBoundProducts(tagId: number, params?: { page?: number; pageSize?: number }) {
   return http.get<ApiResponse<PaginatedData<TagBoundProduct>>>(`/tags/${tagId}/products`, { params }).then((res) => res.data)
 }
+
+/** POST /tags/:id/products — 绑定商品到标签 */
+export function bindProductToTag(tagId: number, productId: number) {
+  return http.post<ApiResponse<null>>(`/tags/${tagId}/products`, { productId }).then((res) => res.data)
+}
+
+/** DELETE /tags/:id/products/:productId — 解绑商品标签 */
+export function unbindProductFromTag(tagId: number, productId: number) {
+  return http.delete<ApiResponse<null>>(`/tags/${tagId}/products/${productId}`).then((res) => res.data)
+}

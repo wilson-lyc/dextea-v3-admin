@@ -47,7 +47,7 @@ export function AddTagDialog({ open, onOpenChange, productId, existingTagIds, on
   const fetchTags = async () => {
     try {
       const res = await getTags()
-      setAllTags(res.data)
+      setAllTags(res.data.items)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "获取标签列表失败")
     }

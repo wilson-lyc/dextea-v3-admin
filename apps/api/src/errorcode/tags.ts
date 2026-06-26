@@ -45,4 +45,22 @@ export const tagErrors = {
     message: '删除标签失败',
     httpStatus: 200,
   } satisfies BizError,
+
+  PRODUCT_ALREADY_BOUND: {
+    code: 10707,
+    message: '该商品已绑定此标签',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  BIND_FAILED: {
+    code: 10708,
+    message: '绑定商品失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  UNBIND_FAILED: {
+    code: 10709,
+    message: '解绑商品失败',
+    httpStatus: 200,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

@@ -4,6 +4,14 @@ import { toast } from "sonner"
 
 import type { ProductTag } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
@@ -38,6 +46,10 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
   const pageSize = 20
   const [addTagDialogOpen, setAddTagDialogOpen] = useState(false)
 
+  // Delete confirmation state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [deletingTag, setDeletingTag] = useState<{ id: number; name: string } | null>(null)
+
   const fetchTags = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
@@ -60,11 +72,20 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
     fetchTags(1)
   }, [fetchTags])
 
-  const handleRemoveTag = async (tagId: number) => {
+  const handleRemoveTag = (tag: { id: number; name: string }) => {
+    setDeletingTag(tag)
+    setDeleteConfirmOpen(true)
+  }
+
+  const handleConfirmRemove = async () => {
+    if (!deletingTag) return
+
     try {
-      const res = await removeProductTag(productId, tagId)
+      const res = await removeProductTag(productId, deletingTag.id)
       if (res.code === 0) {
         toast.success(res.message)
+        setDeleteConfirmOpen(false)
+        setDeletingTag(null)
         await fetchTags(page)
       } else {
         toast.error(res.message)
@@ -124,7 +145,7 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
                       variant="outline"
                       size="sm"
                       className="text-red-500 hover:text-red-500"
-                      onClick={() => handleRemoveTag(tag.id)}
+                      onClick={() => handleRemoveTag(tag)}
                     >
                       <Trash2Icon className="size-4" data-icon="inline-start" />
                       解绑
@@ -211,6 +232,33 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
         existingTagIds={existingTagIds}
         onAdded={() => fetchTags(page)}
       />
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>确认解绑</DialogTitle>
+            <DialogDescription>
+              确定要解除标签「{deletingTag?.name}」与当前商品的绑定关系吗？
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmOpen(false)}
+            >
+              取消
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmRemove}
+            >
+              确认解绑
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
