@@ -203,7 +203,7 @@ export default function TagListPage() {
                     <EmptyMedia variant="icon">
                       <TagIcon className="size-4" />
                     </EmptyMedia>
-                    <EmptyTitle>暂无标签数据</EmptyTitle>
+                    <EmptyTitle>暂无数据</EmptyTitle>
                     <Button onClick={openCreateDialog}>
                       立即添加
                     </Button>

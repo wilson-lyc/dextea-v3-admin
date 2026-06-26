@@ -137,7 +137,7 @@ export default function ProductsPage() {
           <EmptyMedia variant="icon">
             <PackageIcon className="size-4" />
           </EmptyMedia>
-          <EmptyTitle>暂无商品数据</EmptyTitle>
+          <EmptyTitle>暂无数据</EmptyTitle>
         </Empty>
       ) : (
         <ScrollArea className="max-h-[calc(100vh-280px)]">

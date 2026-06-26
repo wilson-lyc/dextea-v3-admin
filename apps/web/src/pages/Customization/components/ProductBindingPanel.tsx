@@ -191,7 +191,7 @@ export default function ProductBindingPanel({ customizationId }: ProductBindingP
           <EmptyMedia variant="icon">
             <LinkIcon className="size-4" />
           </EmptyMedia>
-          <EmptyTitle>暂未绑定商品</EmptyTitle>
+          <EmptyTitle>暂无数据</EmptyTitle>
         </Empty>
       ) : (
         <Table>

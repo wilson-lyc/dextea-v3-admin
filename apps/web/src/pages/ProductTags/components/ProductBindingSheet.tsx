@@ -201,7 +201,7 @@ export default function ProductBindingSheet({
                           <EmptyMedia variant="icon">
                             <PackageIcon className="size-4" />
                           </EmptyMedia>
-                          <EmptyTitle>暂无绑定商品</EmptyTitle>
+                          <EmptyTitle>暂无数据</EmptyTitle>
                         </Empty>
                       </TableCell>
                     </TableRow>

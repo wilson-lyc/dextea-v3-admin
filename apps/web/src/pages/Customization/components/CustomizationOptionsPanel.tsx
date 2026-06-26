@@ -212,7 +212,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
           <EmptyMedia variant="icon">
             <ListIcon className="size-4" />
           </EmptyMedia>
-          <EmptyTitle>暂无客制化选项</EmptyTitle>
+          <EmptyTitle>暂无数据</EmptyTitle>
           <Button onClick={() => setCreateOpen(true)}>
             立即添加
           </Button>

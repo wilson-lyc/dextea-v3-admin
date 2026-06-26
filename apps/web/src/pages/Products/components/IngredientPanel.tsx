@@ -257,7 +257,7 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
                     <EmptyMedia variant="icon">
                       <LinkIcon className="size-4" />
                     </EmptyMedia>
-                    <EmptyTitle>暂未绑定原料</EmptyTitle>
+                    <EmptyTitle>暂无数据</EmptyTitle>
                     <Button onClick={() => setBindOpen(true)}>
                       立即添加
                     </Button>

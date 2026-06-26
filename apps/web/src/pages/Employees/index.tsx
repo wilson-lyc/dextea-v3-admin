@@ -206,7 +206,7 @@ export default function EmployeesPage() {
           <EmptyMedia variant="icon">
             <UsersIcon className="size-4" />
           </EmptyMedia>
-          <EmptyTitle>暂无员工数据</EmptyTitle>
+          <EmptyTitle>暂无数据</EmptyTitle>
         </Empty>
       ) : (
         <Table>

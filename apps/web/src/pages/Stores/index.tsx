@@ -171,7 +171,7 @@ export default function StoresPage() {
           <EmptyMedia variant="icon">
             <Building2Icon className="size-4" />
           </EmptyMedia>
-          <EmptyTitle>暂无门店数据</EmptyTitle>
+          <EmptyTitle>暂无数据</EmptyTitle>
         </Empty>
       ) : (
         <TooltipProvider>

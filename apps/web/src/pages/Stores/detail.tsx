@@ -239,7 +239,7 @@ export default function StoreDetailPage() {
                   />
                 ) : (
                   <div className="flex h-40 items-center justify-center rounded-lg bg-muted text-sm text-muted-foreground">
-                    暂无位置信息
+                    暂无数据
                   </div>
                 )}
               </div>

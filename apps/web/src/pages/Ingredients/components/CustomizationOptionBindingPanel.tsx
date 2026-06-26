@@ -245,7 +245,7 @@ export default function CustomizationOptionBindingPanel({ ingredientId, unit }: 
                     <EmptyMedia variant="icon">
                       <LinkIcon className="size-4" />
                     </EmptyMedia>
-                    <EmptyTitle>暂未绑定客制化选项</EmptyTitle>
+                    <EmptyTitle>暂无数据</EmptyTitle>
                     <Button onClick={() => setBindOpen(true)}>
                       立即添加
                     </Button>

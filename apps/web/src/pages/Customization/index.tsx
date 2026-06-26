@@ -149,7 +149,7 @@ export default function CustomizationPage() {
           <EmptyMedia variant="icon">
             <ListIcon className="size-4" />
           </EmptyMedia>
-          <EmptyTitle>暂无客制化项目</EmptyTitle>
+          <EmptyTitle>暂无数据</EmptyTitle>
         </Empty>
       ) : (
         <Table className="table-fixed">

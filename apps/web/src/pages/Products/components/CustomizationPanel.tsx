@@ -218,7 +218,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                     <EmptyMedia variant="icon">
                       <ListIcon className="size-4" />
                     </EmptyMedia>
-                    <EmptyTitle>暂未绑定客制化项目</EmptyTitle>
+                    <EmptyTitle>暂无数据</EmptyTitle>
                     <Button onClick={() => setBindOpen(true)}>
                       立即添加
                     </Button>

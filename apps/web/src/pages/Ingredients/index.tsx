@@ -152,7 +152,7 @@ export default function IngredientsPage() {
                       <EmptyMedia variant="icon">
                         <FlaskConicalIcon className="size-4" />
                       </EmptyMedia>
-                      <EmptyTitle>暂无原料数据</EmptyTitle>
+                      <EmptyTitle>暂无数据</EmptyTitle>
                       <Button onClick={handleCreate}>
                         立即添加
                       </Button>
