@@ -111,4 +111,10 @@ export const productCustomizationErrors = {
     message: '更新商品绑定排序失败',
     httpStatus: 200,
   } satisfies BizError,
+
+  INGREDIENT_NOT_FOUND: {
+    code: 10918,
+    message: '原料不存在',
+    httpStatus: 200,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

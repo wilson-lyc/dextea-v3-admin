@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { eq, sql } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import { ingredientsTable, productsTable, productIngredientRelationsTable, customizationOptionIngredientRelationsTable } from '../db/schema.js';
+import { ingredientsTable, productsTable, productIngredientRelationsTable, customizationOptionsTable, productCustomizationsTable } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { ingredientErrors } from '../errorcode/ingredients.js';
 import { parsePositiveInt, validateMaxLength, validateStatus } from '../utils/validation.js';
@@ -85,7 +85,7 @@ export async function ingredientRoutes(app: FastifyInstance) {
           unit: ingredientsTable.unit,
           status: ingredientsTable.status,
           boundCount: sql<number>`(select count(*) from ${productIngredientRelationsTable} where ${productIngredientRelationsTable.ingredientId} = ${ingredientsTable.id})`,
-          optionCount: sql<number>`(select count(*) from ${customizationOptionIngredientRelationsTable} where ${customizationOptionIngredientRelationsTable.ingredientId} = ${ingredientsTable.id})`,
+          optionCount: sql<number>`(select count(*) from ${customizationOptionsTable} where ${customizationOptionsTable.ingredientId} = ${ingredientsTable.id})`,
           createdAt: ingredientsTable.createdAt,
           updatedAt: ingredientsTable.updatedAt,
         })
@@ -782,6 +782,301 @@ export async function ingredientRoutes(app: FastifyInstance) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
       throw new AppError(ingredientErrors.LIST_FAILED);
+    }
+  });
+
+  // ──── 客制化选项绑定（选项表直接存储 ingredientId） ────
+
+  /** 获取引用此原料的客制化选项列表 */
+  app.get<{
+    Querystring: { page?: string; pageSize?: string };
+    Params: { id: string };
+    Reply: ApiResponse<PaginatedData<{ optionId: number; optionName: string; customizationName: string; quantity: number }>>;
+  }>('/ingredients/:id/customization-options', {
+    schema: {
+      description: '获取引用此原料的客制化选项列表',
+      tags: ['Ingredients'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '原料ID' },
+        },
+        required: ['id'],
+      },
+      querystring: {
+        type: 'object',
+        properties: {
+          page: { type: 'string', description: '页码' },
+          pageSize: { type: 'string', description: '每页数量' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: {
+              type: 'object',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      optionId: { type: 'integer' },
+                      optionName: { type: 'string' },
+                      customizationName: { type: 'string' },
+                      quantity: { type: 'number' },
+                    },
+                  },
+                },
+                total: { type: 'integer' },
+                page: { type: 'integer' },
+                pageSize: { type: 'integer' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const ingredientId = parsePositiveInt(request.params.id, '原料ID');
+      const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
+      const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
+      const offset = (page - 1) * pageSize;
+
+      const rows = await db
+        .select({
+          optionId: customizationOptionsTable.id,
+          optionName: customizationOptionsTable.name,
+          customizationName: productCustomizationsTable.name,
+          quantity: customizationOptionsTable.quantity,
+        })
+        .from(customizationOptionsTable)
+        .innerJoin(productCustomizationsTable, eq(customizationOptionsTable.customizationId, productCustomizationsTable.id))
+        .where(eq(customizationOptionsTable.ingredientId, ingredientId))
+        .orderBy(customizationOptionsTable.id)
+        .limit(pageSize)
+        .offset(offset);
+
+      const countResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(customizationOptionsTable)
+        .where(eq(customizationOptionsTable.ingredientId, ingredientId));
+      const total = Number(countResult[0]?.count ?? 0);
+
+      return {
+        code: 0,
+        data: { items: rows, total, page, pageSize },
+        message: 'ok',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(ingredientErrors.OPTION_BIND_LIST_FAILED);
+    }
+  });
+
+  /** 将客制化选项绑定到原料（设置选项的 ingredientId） */
+  app.post<{
+    Params: { id: string };
+    Body: { optionId: number; quantity: number };
+    Reply: ApiResponse<null>;
+  }>('/ingredients/:id/customization-options', {
+    schema: {
+      description: '将客制化选项绑定到原料',
+      tags: ['Ingredients'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '原料ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          optionId: { type: 'integer', description: '客制化选项ID' },
+          quantity: { type: 'number', description: '用量' },
+        },
+        required: ['optionId'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const ingredientId = parsePositiveInt(request.params.id, '原料ID');
+      const { optionId, quantity } = request.body;
+
+      const [option] = await db
+        .select({ id: customizationOptionsTable.id })
+        .from(customizationOptionsTable)
+        .where(eq(customizationOptionsTable.id, optionId))
+        .limit(1);
+
+      if (!option) {
+        throw new AppError(ingredientErrors.OPTION_NOT_FOUND);
+      }
+
+      await db
+        .update(customizationOptionsTable)
+        .set({ ingredientId, quantity: quantity ?? 0 })
+        .where(eq(customizationOptionsTable.id, optionId));
+
+      return {
+        code: 0,
+        data: null,
+        message: '绑定成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(ingredientErrors.OPTION_BIND_FAILED);
+    }
+  });
+
+  /** 更新用量 */
+  app.patch<{
+    Params: { id: string; optionId: string };
+    Body: { quantity: number };
+    Reply: ApiResponse<null>;
+  }>('/ingredients/:id/customization-options/:optionId/quantity', {
+    schema: {
+      description: '更新绑定用量',
+      tags: ['Ingredients'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '原料ID' },
+          optionId: { type: 'string', minLength: 1, description: '客制化选项ID' },
+        },
+        required: ['id', 'optionId'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          quantity: { type: 'number', description: '用量' },
+        },
+        required: ['quantity'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const ingredientId = parsePositiveInt(request.params.id, '原料ID');
+      const optionId = parsePositiveInt(request.params.optionId, '客制化选项ID');
+
+      const [option] = await db
+        .select()
+        .from(customizationOptionsTable)
+        .where(eq(customizationOptionsTable.id, optionId))
+        .limit(1);
+
+      if (!option || option.ingredientId !== ingredientId) {
+        throw new AppError(ingredientErrors.OPTION_BIND_NOT_FOUND);
+      }
+
+      await db
+        .update(customizationOptionsTable)
+        .set({ quantity: request.body.quantity })
+        .where(eq(customizationOptionsTable.id, optionId));
+
+      return {
+        code: 0,
+        data: null,
+        message: '更新用量成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(ingredientErrors.OPTION_QUANTITY_UPDATE_FAILED);
+    }
+  });
+
+  /** 解绑（清除选项的 ingredientId） */
+  app.delete<{
+    Params: { id: string; optionId: string };
+    Reply: ApiResponse<null>;
+  }>('/ingredients/:id/customization-options/:optionId', {
+    schema: {
+      description: '解绑客制化选项',
+      tags: ['Ingredients'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '原料ID' },
+          optionId: { type: 'string', minLength: 1, description: '客制化选项ID' },
+        },
+        required: ['id', 'optionId'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: { type: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const ingredientId = parsePositiveInt(request.params.id, '原料ID');
+      const optionId = parsePositiveInt(request.params.optionId, '客制化选项ID');
+
+      const [option] = await db
+        .select()
+        .from(customizationOptionsTable)
+        .where(eq(customizationOptionsTable.id, optionId))
+        .limit(1);
+
+      if (!option || option.ingredientId !== ingredientId) {
+        throw new AppError(ingredientErrors.OPTION_BIND_NOT_FOUND);
+      }
+
+      await db
+        .update(customizationOptionsTable)
+        .set({ ingredientId: null, quantity: 0 })
+        .where(eq(customizationOptionsTable.id, optionId));
+
+      return {
+        code: 0,
+        data: null,
+        message: '解绑成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(ingredientErrors.OPTION_UNBIND_FAILED);
     }
   });
 }

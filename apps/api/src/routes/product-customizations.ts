@@ -6,6 +6,7 @@ import {
   productCustomizationRelationsTable,
   productsTable,
   customizationOptionsTable,
+  ingredientsTable,
 } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { productCustomizationErrors } from '../errorcode/product-customizations.js';
@@ -669,6 +670,9 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
                   price: { type: 'number' },
                   sort: { type: 'integer' },
                   status: { type: 'integer' },
+                  ingredientId: { type: 'integer', nullable: true },
+                  ingredientName: { type: 'string' },
+                  quantity: { type: 'number' },
                   createdAt: { type: 'string' },
                   updatedAt: { type: 'string' },
                 },
@@ -686,8 +690,21 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
       const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
 
       const options = await db
-        .select()
+        .select({
+          id: customizationOptionsTable.id,
+          customizationId: customizationOptionsTable.customizationId,
+          name: customizationOptionsTable.name,
+          price: customizationOptionsTable.price,
+          sort: customizationOptionsTable.sort,
+          status: customizationOptionsTable.status,
+          ingredientId: customizationOptionsTable.ingredientId,
+          ingredientName: sql<string>`coalesce(${ingredientsTable.name}, '')`,
+          quantity: customizationOptionsTable.quantity,
+          createdAt: customizationOptionsTable.createdAt,
+          updatedAt: customizationOptionsTable.updatedAt,
+        })
         .from(customizationOptionsTable)
+        .leftJoin(ingredientsTable, eq(customizationOptionsTable.ingredientId, ingredientsTable.id))
         .where(eq(customizationOptionsTable.customizationId, customizationId))
         .orderBy(customizationOptionsTable.sort, customizationOptionsTable.id);
 
@@ -724,6 +741,9 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         properties: {
           name: { type: 'string', minLength: 1 },
           price: { type: 'number' },
+          sort: { type: 'integer' },
+          ingredientId: { type: 'integer', nullable: true },
+          quantity: { type: 'number' },
         },
         required: ['name'],
       },
@@ -741,6 +761,8 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
                 price: { type: 'number' },
                 sort: { type: 'integer' },
                 status: { type: 'integer' },
+                ingredientId: { type: 'integer', nullable: true },
+                quantity: { type: 'number' },
                 createdAt: { type: 'string' },
                 updatedAt: { type: 'string' },
               },
@@ -755,23 +777,49 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
-      const { name, price, sort } = request.body;
+      const { name, price, sort, ingredientId, quantity } = request.body;
 
       const trimmedName = name.trim();
       validateMaxLength(trimmedName, 255, '客制化选项名称');
+
+      if (ingredientId != null) {
+        const [ingredient] = await db
+          .select({ id: ingredientsTable.id })
+          .from(ingredientsTable)
+          .where(eq(ingredientsTable.id, ingredientId))
+          .limit(1);
+        if (!ingredient) {
+          throw new AppError(productCustomizationErrors.INGREDIENT_NOT_FOUND);
+        }
+      }
 
       const result = await db.insert(customizationOptionsTable).values({
         customizationId,
         name: trimmedName,
         price: price ?? 0,
         sort: sort ?? 0,
+        ingredientId: ingredientId ?? null,
+        quantity: quantity ?? 0,
       });
 
       const insertId = Number(result[0]?.insertId ?? 0);
 
       const [created] = await db
-        .select()
+        .select({
+          id: customizationOptionsTable.id,
+          customizationId: customizationOptionsTable.customizationId,
+          name: customizationOptionsTable.name,
+          price: customizationOptionsTable.price,
+          sort: customizationOptionsTable.sort,
+          status: customizationOptionsTable.status,
+          ingredientId: customizationOptionsTable.ingredientId,
+          ingredientName: sql<string>`coalesce(${ingredientsTable.name}, '')`,
+          quantity: customizationOptionsTable.quantity,
+          createdAt: customizationOptionsTable.createdAt,
+          updatedAt: customizationOptionsTable.updatedAt,
+        })
         .from(customizationOptionsTable)
+        .leftJoin(ingredientsTable, eq(customizationOptionsTable.ingredientId, ingredientsTable.id))
         .where(eq(customizationOptionsTable.id, insertId))
         .limit(1);
 
@@ -827,6 +875,8 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
                   price: { type: 'number' },
                   sort: { type: 'integer' },
                   status: { type: 'integer' },
+                  ingredientId: { type: 'integer', nullable: true },
+                  quantity: { type: 'number' },
                   createdAt: { type: 'string' },
                   updatedAt: { type: 'string' },
                 },
@@ -870,8 +920,21 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         .where(eq(customizationOptionsTable.id, optionId));
 
       const [updated] = await db
-        .select()
+        .select({
+          id: customizationOptionsTable.id,
+          customizationId: customizationOptionsTable.customizationId,
+          name: customizationOptionsTable.name,
+          price: customizationOptionsTable.price,
+          sort: customizationOptionsTable.sort,
+          status: customizationOptionsTable.status,
+          ingredientId: customizationOptionsTable.ingredientId,
+          ingredientName: sql<string>`coalesce(${ingredientsTable.name}, '')`,
+          quantity: customizationOptionsTable.quantity,
+          createdAt: customizationOptionsTable.createdAt,
+          updatedAt: customizationOptionsTable.updatedAt,
+        })
         .from(customizationOptionsTable)
+        .leftJoin(ingredientsTable, eq(customizationOptionsTable.ingredientId, ingredientsTable.id))
         .where(eq(customizationOptionsTable.id, optionId))
         .limit(1);
 

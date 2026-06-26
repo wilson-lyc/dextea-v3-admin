@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog"
 import { SelectPicker } from "@/components/ui/select-picker"
 import { StatusSelectPicker } from "@/components/ui/status-select-picker"
+import { Switch } from "@/components/ui/switch"
 import {
   Field,
   FieldGroup,
@@ -35,6 +36,7 @@ import {
   createCustomizationOption,
   updateCustomizationOption,
   deleteCustomizationOption,
+  getIngredientOptions,
 } from "@/services"
 
 interface CustomizationOptionsPanelProps {
@@ -46,9 +48,20 @@ type OptionForm = {
   price: string
   sort: string
   status: string
+  bindIngredient: boolean
+  ingredientId: string
+  quantity: string
 }
 
-const emptyForm = (): OptionForm => ({ name: "", price: "0", sort: "0", status: "0" })
+const emptyForm = (): OptionForm => ({
+  name: "",
+  price: "0",
+  sort: "0",
+  status: "0",
+  bindIngredient: false,
+  ingredientId: "",
+  quantity: "0",
+})
 
 export default function CustomizationOptionsPanel({ customizationId }: CustomizationOptionsPanelProps) {
   const [options, setOptions] = useState<CustomizationOption[]>([])
@@ -63,6 +76,8 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
   const [editingOption, setEditingOption] = useState<CustomizationOption | null>(null)
   const [editForm, setEditForm] = useState<OptionForm>(emptyForm())
   const [saving, setSaving] = useState(false)
+
+  const [ingredientOptions, setIngredientOptions] = useState<{ label: string; value: string }[]>([])
 
   const fetchOptions = useCallback(async () => {
     setLoading(true)
@@ -84,6 +99,12 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
     fetchOptions()
   }, [fetchOptions])
 
+  useEffect(() => {
+    getIngredientOptions().then((res) => {
+      if (res.code === 0) setIngredientOptions(res.data)
+    }).catch(() => {})
+  }, [])
+
   const handleCreate = async () => {
     if (!createForm.name.trim()) {
       toast.error("请输入选项名称")
@@ -96,6 +117,8 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
         name: createForm.name.trim(),
         price: Number(createForm.price) || 0,
         sort: Number(createForm.sort) || 0,
+        ingredientId: createForm.bindIngredient ? (Number(createForm.ingredientId) || null) : null,
+        quantity: createForm.bindIngredient ? (Number(createForm.quantity) || 0) : 0,
       })
       if (res.code === 0) {
         toast.success(res.message)
@@ -114,7 +137,15 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
 
   const openEdit = (option: CustomizationOption) => {
     setEditingOption(option)
-    setEditForm({ name: option.name, price: String(option.price), sort: String(option.sort), status: String(option.status) })
+    setEditForm({
+      name: option.name,
+      price: String(option.price),
+      sort: String(option.sort),
+      status: String(option.status),
+      bindIngredient: option.ingredientId != null,
+      ingredientId: option.ingredientId ? String(option.ingredientId) : "",
+      quantity: String(option.quantity),
+    })
   }
 
   const handleUpdate = async () => {
@@ -131,6 +162,8 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
         price: Number(editForm.price) || 0,
         sort: Number(editForm.sort) || 0,
         status: Number(editForm.status) as CustomizationOption["status"],
+        ingredientId: editForm.bindIngredient ? (Number(editForm.ingredientId) || null) : null,
+        quantity: editForm.bindIngredient ? (Number(editForm.quantity) || 0) : 0,
       })
       if (res.code === 0) {
         toast.success(res.message)
@@ -193,6 +226,8 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               <TableHead className="w-28">价格</TableHead>
               <TableHead className="w-20">排序</TableHead>
               <TableHead className="w-20">状态</TableHead>
+              <TableHead>绑定原料</TableHead>
+              <TableHead className="w-20">用量</TableHead>
               <TableHead className="w-28 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
@@ -214,6 +249,14 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
                     {o.status === CUSTOMIZATION_OPTION_STATUS.OFF.value ? "下架" : "启用"}
                   </Badge>
                 </TableCell>
+                <TableCell className="text-sm">
+                  {o.ingredientId != null ? (
+                    <span>{o.ingredientName || `原料 #${o.ingredientId}`}</span>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+                <TableCell className="font-mono text-xs">{o.ingredientId != null ? o.quantity : "—"}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Button variant="outline" size="sm" onClick={() => openEdit(o)}>
@@ -282,6 +325,48 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
                 onChange={(e) => setCreateForm((f) => ({ ...f, sort: e.target.value }))}
               />
             </Field>
+
+            <Field>
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={createForm.bindIngredient}
+                  onCheckedChange={(checked) =>
+                    setCreateForm((f) => ({ ...f, bindIngredient: checked }))
+                  }
+                  id="option-bind-ingredient"
+                />
+                <FieldLabel htmlFor="option-bind-ingredient" className="mb-0">
+                  绑定原料
+                </FieldLabel>
+              </div>
+            </Field>
+
+            {createForm.bindIngredient && (
+              <>
+                <Field>
+                  <FieldLabel htmlFor="option-ingredient">原料</FieldLabel>
+                  <SelectPicker
+                    options={ingredientOptions}
+                    value={createForm.ingredientId}
+                    onValueChange={(v) => setCreateForm((f) => ({ ...f, ingredientId: v }))}
+                    placeholder="请选择原料"
+                    className="w-full"
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="option-quantity">用量</FieldLabel>
+                  <Input
+                    id="option-quantity"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    placeholder="0"
+                    value={createForm.quantity}
+                    onChange={(e) => setCreateForm((f) => ({ ...f, quantity: e.target.value }))}
+                  />
+                </Field>
+              </>
+            )}
           </FieldGroup>
 
           <DialogFooter>
@@ -348,6 +433,48 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               placeholder="请选择状态"
             />
             </Field>
+
+            <Field>
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={editForm.bindIngredient}
+                  onCheckedChange={(checked) =>
+                    setEditForm((f) => ({ ...f, bindIngredient: checked }))
+                  }
+                  id="edit-option-bind-ingredient"
+                />
+                <FieldLabel htmlFor="edit-option-bind-ingredient" className="mb-0">
+                  绑定原料
+                </FieldLabel>
+              </div>
+            </Field>
+
+            {editForm.bindIngredient && (
+              <>
+                <Field>
+                  <FieldLabel htmlFor="edit-option-ingredient">原料</FieldLabel>
+                  <SelectPicker
+                    options={ingredientOptions}
+                    value={editForm.ingredientId}
+                    onValueChange={(v) => setEditForm((f) => ({ ...f, ingredientId: v }))}
+                    placeholder="请选择原料"
+                    className="w-full"
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="edit-option-quantity">用量</FieldLabel>
+                  <Input
+                    id="edit-option-quantity"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    placeholder="0"
+                    value={editForm.quantity}
+                    onChange={(e) => setEditForm((f) => ({ ...f, quantity: e.target.value }))}
+                  />
+                </Field>
+              </>
+            )}
           </FieldGroup>
 
           <DialogFooter>

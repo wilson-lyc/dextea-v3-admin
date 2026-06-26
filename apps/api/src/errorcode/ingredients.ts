@@ -93,4 +93,46 @@ export const ingredientErrors = {
     message: '解绑失败',
     httpStatus: 200,
   } satisfies BizError,
+
+  OPTION_ALREADY_BOUND: {
+    code: 11015,
+    message: '该客制化选项已绑定此原料',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  OPTION_BIND_NOT_FOUND: {
+    code: 11016,
+    message: '客制化选项绑定关系不存在',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  OPTION_NOT_FOUND: {
+    code: 11017,
+    message: '客制化选项不存在',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  OPTION_BIND_LIST_FAILED: {
+    code: 11018,
+    message: '获取绑定的客制化选项列表失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  OPTION_BIND_FAILED: {
+    code: 11019,
+    message: '绑定客制化选项失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  OPTION_QUANTITY_UPDATE_FAILED: {
+    code: 11020,
+    message: '更新客制化选项用量失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  OPTION_UNBIND_FAILED: {
+    code: 11021,
+    message: '解绑客制化选项失败',
+    httpStatus: 200,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

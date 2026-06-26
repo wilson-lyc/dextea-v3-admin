@@ -68,3 +68,33 @@ interface IngredientOption {
 export function getIngredientOptions() {
   return http.get<ApiResponse<IngredientOption[]>>("/ingredients/options").then((res) => res.data)
 }
+
+// ──── 客制化选项绑定 ────
+
+interface BoundOption {
+  optionId: number
+  optionName: string
+  customizationName: string
+  quantity: number
+}
+
+/** GET /customization-options/options */
+/** GET /ingredients/:id/customization-options */
+export function getIngredientBoundOptions(ingredientId: number, params?: { page?: number; pageSize?: number }) {
+  return http.get<ApiResponse<PaginatedData<BoundOption>>>(`/ingredients/${ingredientId}/customization-options`, { params }).then((res) => res.data)
+}
+
+/** POST /ingredients/:id/customization-options */
+export function bindOptionToIngredient(ingredientId: number, optionId: number, quantity: number) {
+  return http.post<ApiResponse<null>>(`/ingredients/${ingredientId}/customization-options`, { optionId, quantity }).then((res) => res.data)
+}
+
+/** PATCH /ingredients/:id/customization-options/:optionId/quantity */
+export function updateIngredientOptionQuantity(ingredientId: number, optionId: number, quantity: number) {
+  return http.patch<ApiResponse<null>>(`/ingredients/${ingredientId}/customization-options/${optionId}/quantity`, { quantity }).then((res) => res.data)
+}
+
+/** DELETE /ingredients/:id/customization-options/:optionId */
+export function unbindOptionFromIngredient(ingredientId: number, optionId: number) {
+  return http.delete<ApiResponse<null>>(`/ingredients/${ingredientId}/customization-options/${optionId}`).then((res) => res.data)
+}

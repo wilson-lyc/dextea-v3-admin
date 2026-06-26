@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { PlusIcon, PencilIcon, Trash2Icon, TagIcon } from "lucide-react"
+import { PlusIcon, PencilIcon, Trash2Icon, TagIcon, LinkIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { ProductTag, CreateTagInput, UpdateTagInput } from "@dextea/shared-types"
@@ -38,6 +38,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { getTags, createTag, updateTag, deleteTag } from "@/services"
+import ProductBindingSheet from "./components/ProductBindingSheet"
 
 type DialogMode = "create" | "edit"
 
@@ -59,6 +60,10 @@ export default function TagListPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deletingTag, setDeletingTag] = useState<ProductTag | null>(null)
   const [deleting, setDeleting] = useState(false)
+
+  // Product binding sheet state
+  const [bindingSheetOpen, setBindingSheetOpen] = useState(false)
+  const [bindingTag, setBindingTag] = useState<ProductTag | null>(null)
 
   const fetchTags = useCallback(async (targetPage: number) => {
     setLoading(true)
@@ -98,6 +103,12 @@ export default function TagListPage() {
   const openDeleteDialog = (tag: ProductTag) => {
     setDeletingTag(tag)
     setDeleteDialogOpen(true)
+  }
+
+  // Open product binding sheet
+  const openBindingSheet = (tag: ProductTag) => {
+    setBindingTag(tag)
+    setBindingSheetOpen(true)
   }
 
   // Handle create / edit submit
@@ -174,51 +185,69 @@ export default function TagListPage() {
         <div className="flex items-center justify-center py-12">
           <Spinner className="size-6 text-muted-foreground" />
         </div>
-      ) : tags.length === 0 ? (
-        <Empty>
-          <EmptyMedia variant="icon">
-            <TagIcon className="size-4" />
-          </EmptyMedia>
-          <EmptyTitle>暂无标签数据</EmptyTitle>
-        </Empty>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-20">ID</TableHead>
               <TableHead>标签名称</TableHead>
+              <TableHead className="w-24">商品</TableHead>
               <TableHead className="w-48 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tags.map((tag) => (
-              <TableRow key={tag.id}>
-                <TableCell className="font-mono text-xs">{tag.id}</TableCell>
-                <TableCell>{tag.name}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditDialog(tag)}
-                    >
-                      <PencilIcon data-icon="inline-start" />
-                      编辑
+            {tags.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-48 text-center">
+                  <Empty>
+                    <EmptyMedia variant="icon">
+                      <TagIcon className="size-4" />
+                    </EmptyMedia>
+                    <EmptyTitle>暂无标签数据</EmptyTitle>
+                    <Button onClick={openCreateDialog}>
+                      立即添加
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-red-500 hover:text-red-500"
-                      onClick={() => openDeleteDialog(tag)}
-                    >
-                      <Trash2Icon data-icon="inline-start" />
-                      删除
+                  </Empty>
+                </TableCell>
+              </TableRow>
+            ) : (
+              tags.map((tag) => (
+                <TableRow key={tag.id}>
+                  <TableCell className="font-mono text-xs">{tag.id}</TableCell>
+                  <TableCell>{tag.name}</TableCell>
+                  <TableCell>{tag.boundCount}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditDialog(tag)}
+                      >
+                        <PencilIcon data-icon="inline-start" />
+                        重命名
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openBindingSheet(tag)}
+                      >
+                        <LinkIcon data-icon="inline-start" />
+                        商品绑定
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-500 hover:text-red-500"
+                        onClick={() => openDeleteDialog(tag)}
+                      >
+                        <Trash2Icon data-icon="inline-start" />
+                        删除
                       </Button>
                     </div>
                   </TableCell>
                 </TableRow>
               ))
-            }
+            )}
           </TableBody>
         </Table>
       )}
@@ -319,7 +348,7 @@ export default function TagListPage() {
           <DialogHeader>
             <DialogTitle>确认删除</DialogTitle>
             <DialogDescription>
-              确定要删除标签「{deletingTag?.name}」吗？此操作不可撤销
+              确定要删除标签「{deletingTag?.name}」吗？关联该标签的商品绑定关系也将同步删除，此操作不可撤销
             </DialogDescription>
           </DialogHeader>
 
@@ -341,6 +370,13 @@ export default function TagListPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ProductBindingSheet
+        tagId={bindingTag?.id ?? 0}
+        tagName={bindingTag?.name ?? ""}
+        open={bindingSheetOpen}
+        onOpenChange={setBindingSheetOpen}
+      />
     </div>
   )
 }

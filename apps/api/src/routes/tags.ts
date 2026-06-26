@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { eq, sql } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import { productTagsTable } from '../db/schema.js';
+import { productTagsTable, productTagRelationsTable, productsTable } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { tagErrors } from '../errorcode/tags.js';
 import { parsePositiveInt, validateMaxLength } from '../utils/validation.js';
@@ -45,6 +45,7 @@ export async function tagRoutes(app: FastifyInstance) {
                     properties: {
                       id: { type: 'integer' },
                       name: { type: 'string' },
+                      boundCount: { type: 'integer', description: '绑定的商品数量' },
                       createdAt: { type: 'string' },
                       updatedAt: { type: 'string' },
                     },
@@ -75,7 +76,13 @@ export async function tagRoutes(app: FastifyInstance) {
       const total = Number(countResult[0]?.count ?? 0);
 
       const items = await db
-        .select()
+        .select({
+          id: productTagsTable.id,
+          name: productTagsTable.name,
+          boundCount: sql<number>`(select count(*) from ${productTagRelationsTable} where ${productTagRelationsTable.tagId} = ${productTagsTable.id})`,
+          createdAt: productTagsTable.createdAt,
+          updatedAt: productTagsTable.updatedAt,
+        })
         .from(productTagsTable)
         .orderBy(productTagsTable.id)
         .limit(pageSize)
@@ -253,6 +260,99 @@ export async function tagRoutes(app: FastifyInstance) {
     }
   });
 
+  /** 获取标签绑定的商品列表 */
+  app.get<{
+    Params: { id: string };
+    Querystring: { page?: string; pageSize?: string };
+    Reply: ApiResponse<PaginatedData<{ id: number; name: string }>>;
+  }>('/tags/:id/products', {
+    schema: {
+      description: '获取标签绑定的商品列表',
+      tags: ['Tags'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '标签ID' },
+        },
+        required: ['id'],
+      },
+      querystring: {
+        type: 'object',
+        properties: {
+          page: { type: 'string', description: '页码' },
+          pageSize: { type: 'string', description: '每页数量' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'integer' },
+                      name: { type: 'string' },
+                    },
+                  },
+                },
+                total: { type: 'integer' },
+                page: { type: 'integer' },
+                pageSize: { type: 'integer' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const id = parsePositiveInt(request.params.id, '标签ID');
+      const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
+      const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
+      const offset = (page - 1) * pageSize;
+
+      const baseQuery = db
+        .select({
+          id: productsTable.id,
+          name: productsTable.name,
+        })
+        .from(productTagRelationsTable)
+        .innerJoin(productsTable, eq(productTagRelationsTable.productId, productsTable.id))
+        .where(eq(productTagRelationsTable.tagId, id));
+
+      const [countResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(productTagRelationsTable)
+        .where(eq(productTagRelationsTable.tagId, id));
+
+      const total = Number(countResult?.count ?? 0);
+
+      const items = await baseQuery
+        .orderBy(productsTable.id)
+        .limit(pageSize)
+        .offset(offset);
+
+      return {
+        code: 0,
+        data: { items, total, page, pageSize },
+        message: 'ok',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(tagErrors.LIST_FAILED);
+    }
+  });
+
   /** 删除商品标签 */
   app.delete<{
     Params: { id: string };
@@ -295,6 +395,11 @@ export async function tagRoutes(app: FastifyInstance) {
       if (!tag) {
         throw new AppError(tagErrors.TAG_NOT_FOUND);
       }
+
+      // 同步删除商品与标签的绑定关系
+      await db
+        .delete(productTagRelationsTable)
+        .where(eq(productTagRelationsTable.tagId, id));
 
       await db
         .delete(productTagsTable)

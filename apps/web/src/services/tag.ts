@@ -26,3 +26,15 @@ export function updateTag(id: number, data: UpdateTagInput) {
 export function deleteTag(id: number) {
   return http.delete<ApiResponse<null>>(`/tags/${id}`).then((res) => res.data)
 }
+
+// ──── 商品绑定 ────
+
+interface TagBoundProduct {
+  id: number
+  name: string
+}
+
+/** GET /tags/:id/products — 获取标签绑定的商品列表 */
+export function getTagBoundProducts(tagId: number, params?: { page?: number; pageSize?: number }) {
+  return http.get<ApiResponse<PaginatedData<TagBoundProduct>>>(`/tags/${tagId}/products`, { params }).then((res) => res.data)
+}

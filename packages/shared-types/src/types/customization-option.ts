@@ -10,6 +10,9 @@ export interface CustomizationOption {
   price: number;
   sort: number;
   status: CustomizationOptionStatus;
+  ingredientId: number | null;
+  ingredientName: string | null;
+  quantity: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -18,6 +21,8 @@ export interface CreateCustomizationOptionInput {
   name: string;
   price?: number;
   sort?: number;
+  ingredientId?: number | null;
+  quantity?: number;
 }
 
 export interface UpdateCustomizationOptionInput {
@@ -25,4 +30,6 @@ export interface UpdateCustomizationOptionInput {
   price?: number;
   sort?: number;
   status?: CustomizationOptionStatus;
+  ingredientId?: number | null;
+  quantity?: number;
 }
