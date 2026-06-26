@@ -245,7 +245,7 @@ export default function CustomizationPage() {
                   </TableCell>
                 </TableRow>
               ))
-            )}
+            }
           </TableBody>
         </Table>
       )}

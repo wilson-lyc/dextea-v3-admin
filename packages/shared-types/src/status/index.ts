@@ -13,4 +13,7 @@ export type { ProductCustomizationStatus } from './product-customization.js';
 export { CUSTOMIZATION_OPTION_STATUS, CUSTOMIZATION_OPTION_STATUS_VALUES } from './customization-option.js';
 export type { CustomizationOptionStatus } from './customization-option.js';
 
+export { INGREDIENT_STATUS, INGREDIENT_STATUS_VALUES } from './ingredient.js';
+export type { IngredientStatus } from './ingredient.js';
+
 

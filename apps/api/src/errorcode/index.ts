@@ -12,6 +12,7 @@
  *   10700-10799  商品标签
  *   10800-10899  商品管理
  *   10900-10999  客制化项目
+ *   11000-11099  原料管理
  */
 
 export interface BizError {
@@ -54,3 +55,4 @@ export { configErrors } from './config.js';
 export { productErrors } from './products.js';
 export { tagErrors } from './tags.js';
 export { productCustomizationErrors } from './product-customizations.js';
+export { ingredientErrors } from './ingredients.js';

@@ -10,9 +10,11 @@ import StoresPage from "@/pages/Stores"
 import StoreDetailPage from "@/pages/Stores/detail"
 import ProductsPage from "@/pages/Products"
 import ProductDetailPage from "@/pages/Products/detail"
-import TagListPage from "@/pages/Products/TagList"
-import CustomizationPage from "@/pages/Products/Customization"
-import CustomizationDetailPage from "@/pages/Products/Customization/detail"
+import TagListPage from "@/pages/ProductTags"
+import CustomizationPage from "@/pages/Customization"
+import CustomizationDetailPage from "@/pages/Customization/detail"
+import IngredientsPage from "@/pages/Ingredients"
+import IngredientDetailPage from "@/pages/Ingredients/detail"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/hooks/use-theme"
@@ -43,6 +45,8 @@ function App() {
             <Route path="products/tags" element={<TagListPage />} />
             <Route path="products/customization" element={<CustomizationPage />} />
             <Route path="products/customization/:id" element={<CustomizationDetailPage />} />
+            <Route path="products/ingredients" element={<IngredientsPage />} />
+            <Route path="products/ingredients/:id" element={<IngredientDetailPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

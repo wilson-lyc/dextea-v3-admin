@@ -14,6 +14,9 @@ export type { ProductCustomizationStatus } from './status/index.js';
 export { CUSTOMIZATION_OPTION_STATUS, CUSTOMIZATION_OPTION_STATUS_VALUES } from './status/index.js';
 export type { CustomizationOptionStatus } from './status/index.js';
 
+export { INGREDIENT_STATUS, INGREDIENT_STATUS_VALUES } from './status/index.js';
+export type { IngredientStatus } from './status/index.js';
+
 
 // ---- types layer ----
 export type {
@@ -106,4 +109,18 @@ export type {
   CustomizationOption,
   CreateCustomizationOptionInput,
   UpdateCustomizationOptionInput,
+} from './types/index.js';
+
+export type {
+  Ingredient,
+  CreateIngredientInput,
+  CreateIngredientResponse,
+  UpdateIngredientInput,
+  UpdateIngredientResponse,
+  IngredientQuery,
+} from './types/index.js';
+
+export type {
+  ProductIngredientRelation,
+  BindProductIngredientsInput,
 } from './types/index.js';

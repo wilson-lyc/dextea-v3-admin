@@ -269,7 +269,7 @@ export default function EmployeesPage() {
                   </TableCell>
                 </TableRow>
               ))
-            )}
+            }
           </TableBody>
         </Table>
       )}

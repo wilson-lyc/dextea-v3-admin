@@ -179,6 +179,35 @@ export const productCustomizationRelationsTable = mysqlTable(
 );
 
 /**
+ * 商品-原料关联表
+ */
+export const productIngredientRelationsTable = mysqlTable(
+  'product_ingredient_relations',
+  {
+    productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
+    ingredientId: bigint('ingredient_id', { mode: 'number', unsigned: true }).notNull(),
+    quantity: double().notNull().default(0),
+    createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    primaryKey: primaryKey({ columns: [table.productId, table.ingredientId] }),
+  }),
+);
+
+/**
+ * 原料表
+ */
+export const ingredientsTable = mysqlTable('ingredients', {
+  id: serial().primaryKey(),
+  name: varchar({ length: 255 }).notNull(),
+  unit: varchar({ length: 50 }).notNull(),
+  status: tinyint().notNull().default(0),
+  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+});
+
+/**
  * 客制化选项表
  */
 export const customizationOptionsTable = mysqlTable('customization_options', {

@@ -4,6 +4,7 @@
 
 import type { ProductStatus } from '../status/product.js';
 import type { ProductTag } from './tag.js';
+import type { ProductIngredientRelation } from './product-ingredient.js';
 
 export interface Product {
   id: number;
@@ -13,6 +14,7 @@ export interface Product {
   status: ProductStatus;
   price: number;
   tags?: ProductTag[];
+  ingredients?: ProductIngredientRelation[];
   createdAt: string;
   updatedAt: string;
 }
@@ -23,6 +25,7 @@ export interface CreateProductInput {
   description?: string;
   price: number;
   tagIds?: number[];
+  ingredientIds?: Array<{ ingredientId: number; quantity: number }>;
   status?: ProductStatus;
 }
 

@@ -218,7 +218,7 @@ export default function TagListPage() {
                   </TableCell>
                 </TableRow>
               ))
-            )}
+            }
           </TableBody>
         </Table>
       )}

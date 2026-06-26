@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom"
 import {
   BookOpenIcon,
   ChevronDownIcon,
+  FlaskConicalIcon,
   LayoutDashboardIcon,
   PackageIcon,
   PanelLeftCloseIcon,
@@ -36,6 +37,7 @@ const navItems: NavItem[] = [
       { label: "商品标签", path: "/products/tags" },
       { label: "商品列表", path: "/products" },
       { label: "客制化", path: "/products/customization" },
+      { label: "原料", path: "/products/ingredients" },
     ],
   },
   { label: "菜单管理", icon: BookOpenIcon, path: "/menus" },

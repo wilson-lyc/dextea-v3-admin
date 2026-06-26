@@ -12,3 +12,7 @@ export type { Order, OrderItem } from './order.js';
 export type { DashboardStats } from './dashboard.js';
 export type { ProductCustomization, CreateProductCustomizationInput, UpdateProductCustomizationInput, ProductCustomizationQuery } from './product-customization.js';
 export type { CustomizationOption, CreateCustomizationOptionInput, UpdateCustomizationOptionInput } from './customization-option.js';
+
+export type { Ingredient, CreateIngredientInput, CreateIngredientResponse, UpdateIngredientInput, UpdateIngredientResponse, IngredientQuery } from './ingredient.js';
+
+export type { ProductIngredientRelation, BindProductIngredientsInput } from './product-ingredient.js';

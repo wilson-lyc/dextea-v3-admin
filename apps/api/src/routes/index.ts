@@ -9,6 +9,7 @@ import { configRoutes } from './config.js';
 import { productRoutes } from './products.js';
 import { tagRoutes } from './tags.js';
 import { productCustomizationRoutes } from './product-customizations.js';
+import { ingredientRoutes } from './ingredients.js';
 import { dashboardRoutes } from './dashboard.js';
 import { config } from '../config/index.js';
 import { authHook } from '../middleware/auth.js';
@@ -30,5 +31,6 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(productRoutes, { prefix: config.apiPrefix });
   await app.register(tagRoutes, { prefix: config.apiPrefix });
   await app.register(productCustomizationRoutes, { prefix: config.apiPrefix });
+  await app.register(ingredientRoutes, { prefix: config.apiPrefix });
   await app.register(dashboardRoutes, { prefix: config.apiPrefix });
 }
