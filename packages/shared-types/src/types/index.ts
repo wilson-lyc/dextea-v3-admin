@@ -7,7 +7,7 @@ export type { Store, CreateStoreInput, UpdateStoreInput, CreateStoreResponse, Up
 export type { Division, ResolveAreaRequest } from './area.js';
 export type { AmapConfig } from './config.js';
 export type { Product, CreateProductInput, CreateProductResponse, ProductQuery } from './product.js';
-export type { ProductTag, CreateTagInput, UpdateTagInput, TagQuery } from './tag.js';
+export type { ProductTag, CreateTagInput, UpdateTagInput, TagQuery, BindProductToTagInput, BindTagToProductInput, UnbindProductFromTagInput, UnbindTagFromProductInput } from './tag.js';
 export type { Order, OrderItem } from './order.js';
 export type { DashboardStats } from './dashboard.js';
 export type { ProductCustomization, CreateProductCustomizationInput, UpdateProductCustomizationInput, ProductCustomizationQuery } from './product-customization.js';

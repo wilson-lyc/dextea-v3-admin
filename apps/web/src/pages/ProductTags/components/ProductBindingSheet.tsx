@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ExternalLinkIcon, PackageIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { ExternalLinkIcon, GripVerticalIcon, Link2OffIcon, LinkIcon, PackageIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -47,6 +47,9 @@ interface ProductBindingSheetProps {
   onOpenChange: (open: boolean) => void
 }
 
+const MIN_SHEET_WIDTH = 400
+const MAX_SHEET_WIDTH_RATIO = 0.9
+
 export default function ProductBindingSheet({
   tagId,
   tagName,
@@ -54,6 +57,44 @@ export default function ProductBindingSheet({
   onOpenChange,
 }: ProductBindingSheetProps) {
   const navigate = useNavigate()
+
+  const [sheetWidth, setSheetWidth] = useState(576)
+  const isResizing = useRef(false)
+  const startX = useRef(0)
+  const startWidth = useRef(0)
+
+  const handleResizeStart = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      isResizing.current = true
+      startX.current = e.clientX
+      startWidth.current = sheetWidth
+
+      document.body.style.cursor = "ew-resize"
+      document.body.style.userSelect = "none"
+
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        if (!isResizing.current) return
+        // For a right-side panel: dragging left (negative diff) = wider
+        const diff = startX.current - moveEvent.clientX
+        const panelWidth = startWidth.current + diff
+        const maxWidth = window.innerWidth * MAX_SHEET_WIDTH_RATIO
+        setSheetWidth(Math.max(MIN_SHEET_WIDTH, Math.min(panelWidth, maxWidth)))
+      }
+
+      const handleMouseUp = () => {
+        isResizing.current = false
+        document.body.style.cursor = ""
+        document.body.style.userSelect = ""
+        document.removeEventListener("mousemove", handleMouseMove)
+        document.removeEventListener("mouseup", handleMouseUp)
+      }
+
+      document.addEventListener("mousemove", handleMouseMove)
+      document.addEventListener("mouseup", handleMouseUp)
+    },
+    [sheetWidth],
+  )
 
   const [products, setProducts] = useState<{ id: number; name: string }[]>([])
   const [loading, setLoading] = useState(true)
@@ -71,6 +112,10 @@ export default function ProductBindingSheet({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deletingProduct, setDeletingProduct] = useState<{ id: number; name: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
+
+  // 已绑商品 ID 集合（供 SelectPicker 排除已选项）
+  const existingProductIds = products.map((p) => p.id)
+  const availableOptions = productOptions.filter((opt) => !existingProductIds.includes(Number(opt.value)))
 
   const fetchProducts = useCallback(async (targetPage: number) => {
     setLoading(true)
@@ -163,19 +208,28 @@ export default function ProductBindingSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="sm:max-w-xl">
+      <SheetContent side="right" style={{ width: sheetWidth, maxWidth: "none" }}>
         <SheetHeader>
           <SheetTitle>
-            商品绑定 — {tagName}
+            {tagName}的关联商品
           </SheetTitle>
         </SheetHeader>
+
+        <div
+          className="absolute left-0 top-0 z-20 flex h-full w-4 cursor-ew-resize items-center justify-center opacity-0 transition-opacity hover:opacity-100"
+          onMouseDown={handleResizeStart}
+        >
+          <div className="flex h-8 w-0.5 items-center justify-center rounded-full bg-border">
+            <GripVerticalIcon className="size-3 text-muted-foreground" />
+          </div>
+        </div>
 
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           {/* Bind button */}
           <div className="flex items-center justify-end">
             <Button size="sm" onClick={openBindDialog}>
-              <PlusIcon data-icon="inline-start" />
-              绑定商品
+              <LinkIcon data-icon="inline-start" />
+              关联新商品
             </Button>
           </div>
 
@@ -188,7 +242,7 @@ export default function ProductBindingSheet({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-20">ID</TableHead>
+                    <TableHead className="w-20">商品ID</TableHead>
                     <TableHead>商品名称</TableHead>
                     <TableHead className="w-48 text-right">操作</TableHead>
                   </TableRow>
@@ -226,8 +280,8 @@ export default function ProductBindingSheet({
                               className="text-red-500 hover:text-red-500"
                               onClick={() => openDeleteConfirm(product)}
                             >
-                              <Trash2Icon data-icon="inline-start" />
-                              删除
+                              <Link2OffIcon data-icon="inline-start" />
+                              解绑
                             </Button>
                           </div>
                         </TableCell>
@@ -305,7 +359,7 @@ export default function ProductBindingSheet({
 
             <div className="py-2">
               <SelectPicker
-                options={productOptions}
+                options={availableOptions}
                 value={bindProductId}
                 onValueChange={setBindProductId}
                 placeholder="请选择商品"

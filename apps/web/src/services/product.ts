@@ -46,12 +46,12 @@ export function toggleProductStatus(id: string, status: ProductStatus) {
 }
 
 /**
- * 添加标签到商品
+ * 添加标签到商品（单次绑定一个标签）
  * POST /products/:id/tags
  */
 export function addProductTag(productId: number, tagId: number) {
   return http
-    .post<ApiResponse<null>>(`/products/${productId}/tags`, { tagId })
+    .post<ApiResponse<null>>(`/products/${productId}/tags`, { tagIds: [tagId] })
     .then((res) => res.data)
 }
 
@@ -64,12 +64,12 @@ export function getProductTags(productId: number, params?: { page?: number; page
 }
 
 /**
- * 从商品移除标签
- * DELETE /products/:id/tags/:tagId
+ * 从商品移除标签（单次解绑一个标签）
+ * DELETE /products/:id/tags
  */
 export function removeProductTag(productId: number, tagId: number) {
   return http
-    .delete<ApiResponse<null>>(`/products/${productId}/tags/${tagId}`)
+    .delete<ApiResponse<null>>(`/products/${productId}/tags`, { data: { tagIds: [tagId] } })
     .then((res) => res.data)
 }
 

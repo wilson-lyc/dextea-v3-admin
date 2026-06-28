@@ -2,12 +2,9 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import type { ProductStatus } from "@dextea/shared-types"
-import { PRODUCT_STATUS, PRODUCT_STATUS_VALUES } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { SelectPicker } from "@/components/ui/select-picker"
-import { StatusSelectPicker } from "@/components/ui/status-select-picker"
 import {
   Combobox,
   ComboboxChip,
@@ -44,7 +41,6 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
   const [formBrief, setFormBrief] = useState("")
   const [formDescription, setFormDescription] = useState("")
   const [formPrice, setFormPrice] = useState("")
-  const [formStatus, setFormStatus] = useState(String(PRODUCT_STATUS.ON.value))
   const [formTagIds, setFormTagIds] = useState<string[]>([])
   const [allTags, setAllTags] = useState<{ id: number; name: string }[]>([])
   const [submitting, setSubmitting] = useState(false)
@@ -58,7 +54,6 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
       setFormBrief("")
       setFormDescription("")
       setFormPrice("")
-      setFormStatus(String(PRODUCT_STATUS.ON.value))
       setFormTagIds([])
       setNameError("")
       setPriceError("")
@@ -68,7 +63,7 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
   useEffect(() => {
     if (open) {
       getTags()
-        .then((res) => setAllTags(res.data))
+        .then((res) => setAllTags(res.data.items))
         .catch(() => {})
     }
   }, [open])
@@ -93,10 +88,6 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
 
     if (hasError) return
 
-    const status: ProductStatus = PRODUCT_STATUS_VALUES.includes(Number(formStatus) as ProductStatus)
-      ? (Number(formStatus) as ProductStatus)
-      : PRODUCT_STATUS.ON.value
-
     setSubmitting(true)
     try {
       const res = await createProduct({
@@ -105,7 +96,7 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
         description: formDescription,
         price: formPrice !== "" ? price : 0,
         tagIds: formTagIds.map(Number),
-        status,
+        status: 0 as ProductStatus,
       })
       if (res.code === 0) {
         toast.success(res.message)
@@ -195,7 +186,7 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
 
           <Field>
             <FieldLabel>
-              标签 <span className="text-destructive">*</span>
+               标签
             </FieldLabel>
             <Combobox value={formTagIds} onValueChange={setFormTagIds} multiple>
               <ComboboxChips>
@@ -219,19 +210,6 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
                 </ComboboxList>
               </ComboboxContent>
             </Combobox>
-          </Field>
-
-          <Field>
-            <FieldLabel htmlFor="product-status">
-              状态 <span className="text-destructive">*</span>
-            </FieldLabel>
-            <StatusSelectPicker
-              statusEnum={PRODUCT_STATUS}
-              labels={{ [PRODUCT_STATUS.OFF.value]: "下架", [PRODUCT_STATUS.ON.value]: "可售" }}
-              value={formStatus}
-              onValueChange={setFormStatus}
-              placeholder="请选择状态"
-            />
           </Field>
         </FieldGroup>
         </ScrollArea>

@@ -141,7 +141,7 @@ export default function BasicInfoPanel({ productId }: BasicInfoPanelProps) {
             <span className="text-sm">{product.description || "-"}</span>
 
             <span className="text-sm text-muted-foreground">价格</span>
-            <span className="text-sm">¥{product.price.toFixed(2)}</span>
+            <span className="text-sm tabular-nums">¥ {product.price.toFixed(2)}</span>
           </div>
         </CardContent>
       </Card>

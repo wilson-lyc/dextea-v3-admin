@@ -55,17 +55,17 @@ export function getTagBoundProducts(tagId: number, params?: { page?: number; pag
 }
 
 /**
- * 绑定商品到标签
+ * 绑定商品到标签（单次绑定一个商品）
  * POST /tags/:id/products
  */
 export function bindProductToTag(tagId: number, productId: number) {
-  return http.post<ApiResponse<null>>(`/tags/${tagId}/products`, { productId }).then((res) => res.data)
+  return http.post<ApiResponse<null>>(`/tags/${tagId}/products`, { productIds: [productId] }).then((res) => res.data)
 }
 
 /**
- * 解绑商品与标签
- * DELETE /tags/:id/products/:productId
+ * 解绑商品与标签（单次解绑一个商品）
+ * DELETE /tags/:id/products
  */
 export function unbindProductFromTag(tagId: number, productId: number) {
-  return http.delete<ApiResponse<null>>(`/tags/${tagId}/products/${productId}`).then((res) => res.data)
+  return http.delete<ApiResponse<null>>(`/tags/${tagId}/products`, { data: { productIds: [productId] } }).then((res) => res.data)
 }

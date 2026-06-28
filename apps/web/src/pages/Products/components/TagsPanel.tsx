@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { LinkIcon, Trash2Icon, TagIcon } from "lucide-react"
+import { Link2OffIcon, LinkIcon, TagIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { ProductTag } from "@dextea/shared-types"
@@ -95,7 +95,7 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
         toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "删除标签失败")
+      toast.error(err instanceof Error ? err.message : "解绑失败")
     }
   }
 
@@ -108,7 +108,7 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
       <div className="flex items-center justify-between">
         <Button onClick={() => setAddTagDialogOpen(true)}>
           <LinkIcon data-icon="inline-start" />
-          绑定标签
+              绑定标签
         </Button>
         {!loading && <span className="text-sm text-muted-foreground">共 {total} 个标签</span>}
       </div>
@@ -140,7 +140,7 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
                     </EmptyMedia>
                     <EmptyTitle>暂无数据</EmptyTitle>
                     <Button onClick={() => setAddTagDialogOpen(true)}>
-                      立即添加
+                      立即绑定
                     </Button>
                   </Empty>
                 </TableCell>
@@ -157,7 +157,7 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
                       className="text-red-500 hover:text-red-500"
                       onClick={() => handleRemoveTag(tag)}
                     >
-                      <Trash2Icon className="size-4" data-icon="inline-start" />
+                      <Link2OffIcon className="size-4" data-icon="inline-start" />
                       解绑
                     </Button>
                   </TableCell>

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react"
-import { PlusIcon, PencilIcon, Trash2Icon, TagIcon, LinkIcon } from "lucide-react"
+import { PlusIcon, PencilIcon, Trash2Icon, TagIcon, LinkIcon, RefreshCwIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { ProductTag, CreateTagInput, UpdateTagInput } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import {
   Field,
@@ -78,6 +79,12 @@ export default function TagListPage() {
       setLoading(false)
     }
   }, [])
+
+  const refreshTags = useCallback(async (targetPage: number) => {
+    if (loading) return
+    await fetchTags(targetPage)
+    toast.success('数据已更新')
+  }, [loading, fetchTags])
 
   useEffect(() => {
     fetchTags(1)
@@ -174,83 +181,88 @@ export default function TagListPage() {
     <div className="flex flex-col gap-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Button onClick={openCreateDialog}>
-          <PlusIcon data-icon="inline-start" />
-          新增标签
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={openCreateDialog}>
+            <PlusIcon data-icon="inline-start" />
+            新增标签
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => refreshTags(page)} disabled={loading}>
+            <RefreshCwIcon className={cn(loading && "animate-spin")} />
+          </Button>
+        </div>
       </div>
 
       {/* Table */}
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Spinner className="size-6 text-muted-foreground" />
-        </div>
-      ) : (
-        <Table>
-          <TableHeader>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-20">标签ID</TableHead>
+            <TableHead>标签名称</TableHead>
+            <TableHead className="w-24">关联商品</TableHead>
+            <TableHead className="w-48 text-right">操作</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
             <TableRow>
-              <TableHead className="w-20">ID</TableHead>
-              <TableHead>标签名称</TableHead>
-              <TableHead className="w-24">商品</TableHead>
-              <TableHead className="w-48 text-right">操作</TableHead>
+              <TableCell colSpan={4} className="h-48 text-center">
+                <Spinner className="mx-auto size-6 text-muted-foreground" />
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tags.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="h-48 text-center">
-                  <Empty>
-                    <EmptyMedia variant="icon">
-                      <TagIcon className="size-4" />
-                    </EmptyMedia>
-                    <EmptyTitle>暂无数据</EmptyTitle>
-                    <Button onClick={openCreateDialog}>
-                      立即添加
+          ) : tags.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={4} className="h-48 text-center">
+                <Empty>
+                  <EmptyMedia variant="icon">
+                    <TagIcon className="size-4" />
+                  </EmptyMedia>
+                  <EmptyTitle>暂无数据</EmptyTitle>
+                  <Button onClick={openCreateDialog}>
+                    立即添加
+                  </Button>
+                </Empty>
+              </TableCell>
+            </TableRow>
+          ) : (
+            tags.map((tag) => (
+              <TableRow key={tag.id}>
+                <TableCell className="font-mono text-xs">{tag.id}</TableCell>
+                <TableCell>{tag.name}</TableCell>
+                <TableCell>{tag.boundCount}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditDialog(tag)}
+                    >
+                      <PencilIcon data-icon="inline-start" />
+                      重命名
                     </Button>
-                  </Empty>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openBindingSheet(tag)}
+                    >
+                      <LinkIcon data-icon="inline-start" />
+关联商品
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-500 hover:text-red-500"
+                      onClick={() => openDeleteDialog(tag)}
+                    >
+                      <Trash2Icon data-icon="inline-start" />
+                      删除
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
-            ) : (
-              tags.map((tag) => (
-                <TableRow key={tag.id}>
-                  <TableCell className="font-mono text-xs">{tag.id}</TableCell>
-                  <TableCell>{tag.name}</TableCell>
-                  <TableCell>{tag.boundCount}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditDialog(tag)}
-                      >
-                        <PencilIcon data-icon="inline-start" />
-                        重命名
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openBindingSheet(tag)}
-                      >
-                        <LinkIcon data-icon="inline-start" />
-                        商品绑定
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-500 hover:text-red-500"
-                        onClick={() => openDeleteDialog(tag)}
-                      >
-                        <Trash2Icon data-icon="inline-start" />
-                        删除
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      )}
+            ))
+          )}
+        </TableBody>
+      </Table>
 
       {/* Pagination */}
       {!loading && tags.length > 0 && (
@@ -348,7 +360,7 @@ export default function TagListPage() {
           <DialogHeader>
             <DialogTitle>确认删除</DialogTitle>
             <DialogDescription>
-              确定要删除标签「{deletingTag?.name}」吗？关联该标签的商品绑定关系也将同步删除，此操作不可撤销
+              确定要删除标签「{deletingTag?.name}」吗？删除后，关联该标签的商品不会被删除。此操作不可撤销！
             </DialogDescription>
           </DialogHeader>
 
@@ -375,7 +387,10 @@ export default function TagListPage() {
         tagId={bindingTag?.id ?? 0}
         tagName={bindingTag?.name ?? ""}
         open={bindingSheetOpen}
-        onOpenChange={setBindingSheetOpen}
+        onOpenChange={(open) => {
+          setBindingSheetOpen(open)
+          if (!open) fetchTags(page)
+        }}
       />
     </div>
   )

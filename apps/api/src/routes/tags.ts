@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
 import { productTagsTable, productTagRelationsTable, productsTable } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
@@ -13,6 +13,8 @@ import type {
   CreateTagInput,
   UpdateTagInput,
   TagQuery,
+  BindProductToTagInput,
+  UnbindProductFromTagInput,
 } from '@dextea/shared-types';
 
 export async function tagRoutes(app: FastifyInstance) {
@@ -354,14 +356,14 @@ export async function tagRoutes(app: FastifyInstance) {
     }
   });
 
-  /** 绑定商品到标签 */
+  /** 批量绑定商品到标签 */
   app.post<{
     Params: { id: string };
-    Body: { productId: number };
+    Body: BindProductToTagInput;
     Reply: ApiResponse<null>;
   }>('/tags/:id/products', {
     schema: {
-      description: '绑定商品到标签',
+      description: '批量绑定商品到标签',
       tags: ['Tags'],
       params: {
         type: 'object',
@@ -373,9 +375,14 @@ export async function tagRoutes(app: FastifyInstance) {
       body: {
         type: 'object',
         properties: {
-          productId: { type: 'integer', description: '商品ID' },
+          productIds: {
+            type: 'array',
+            items: { type: 'integer' },
+            minItems: 1,
+            description: '商品ID列表',
+          },
         },
-        required: ['productId'],
+        required: ['productIds'],
       },
       response: {
         200: {
@@ -393,7 +400,9 @@ export async function tagRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '标签ID');
-      const { productId } = request.body;
+      const { productIds } = request.body;
+
+      const uniqueIds = [...new Set(productIds)];
 
       // 检查标签是否存在
       const [tag] = await db
@@ -406,39 +415,43 @@ export async function tagRoutes(app: FastifyInstance) {
         throw new AppError(tagErrors.TAG_NOT_FOUND);
       }
 
-      // 检查商品是否存在
-      const [product] = await db
-        .select()
+      // 检查所有商品是否存在
+      const existingProducts = await db
+        .select({ id: productsTable.id })
         .from(productsTable)
-        .where(eq(productsTable.id, productId))
-        .limit(1);
+        .where(inArray(productsTable.id, uniqueIds));
 
-      if (!product) {
+      if (existingProducts.length !== uniqueIds.length) {
         throw new AppError(productErrors.PRODUCT_NOT_FOUND);
       }
 
-      // 检查绑定是否已存在
-      const [existing] = await db
-        .select()
+      // 过滤已绑定的商品
+      const existingBindings = await db
+        .select({ productId: productTagRelationsTable.productId })
         .from(productTagRelationsTable)
         .where(
-          sql`${productTagRelationsTable.productId} = ${productId} and ${productTagRelationsTable.tagId} = ${id}`,
-        )
-        .limit(1);
+          and(
+            eq(productTagRelationsTable.tagId, id),
+            inArray(productTagRelationsTable.productId, uniqueIds),
+          ),
+        );
 
-      if (existing) {
+      const boundProductIds = new Set(existingBindings.map(r => r.productId));
+      const toInsert = uniqueIds.filter(pid => !boundProductIds.has(pid));
+
+      if (toInsert.length === 0) {
         throw new AppError(tagErrors.PRODUCT_ALREADY_BOUND);
       }
 
-      // 插入绑定关系
-      await db
-        .insert(productTagRelationsTable)
-        .values({ productId, tagId: id });
+      // 批量插入绑定关系
+      await db.insert(productTagRelationsTable).values(
+        toInsert.map(productId => ({ productId, tagId: id })),
+      );
 
       return {
         code: 0,
         data: null,
-        message: '绑定成功',
+        message: `成功绑定 ${toInsert.length} 个商品`,
       };
     } catch (error) {
       if (error instanceof AppError) throw error;
@@ -447,21 +460,33 @@ export async function tagRoutes(app: FastifyInstance) {
     }
   });
 
-  /** 解绑商品标签 */
+  /** 批量解绑商品标签 */
   app.delete<{
-    Params: { id: string; productId: string };
+    Params: { id: string };
+    Body: UnbindProductFromTagInput;
     Reply: ApiResponse<null>;
-  }>('/tags/:id/products/:productId', {
+  }>('/tags/:id/products', {
     schema: {
-      description: '解绑商品与标签的关联',
+      description: '批量解绑商品与标签的关联',
       tags: ['Tags'],
       params: {
         type: 'object',
         properties: {
           id: { type: 'string', minLength: 1, description: '标签ID' },
-          productId: { type: 'string', minLength: 1, description: '商品ID' },
         },
-        required: ['id', 'productId'],
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          productIds: {
+            type: 'array',
+            items: { type: 'integer' },
+            minItems: 1,
+            description: '商品ID列表',
+          },
+        },
+        required: ['productIds'],
       },
       response: {
         200: {
@@ -479,12 +504,15 @@ export async function tagRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '标签ID');
-      const productId = parsePositiveInt(request.params.productId, '商品ID');
+      const { productIds } = request.body;
 
       await db
         .delete(productTagRelationsTable)
         .where(
-          sql`${productTagRelationsTable.productId} = ${productId} and ${productTagRelationsTable.tagId} = ${id}`,
+          and(
+            eq(productTagRelationsTable.tagId, id),
+            inArray(productTagRelationsTable.productId, productIds),
+          ),
         );
 
       return {

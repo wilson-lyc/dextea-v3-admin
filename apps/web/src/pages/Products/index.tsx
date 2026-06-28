@@ -5,6 +5,7 @@ import {
   SearchIcon,
   SettingsIcon,
   PackageIcon,
+  RefreshCwIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -12,6 +13,8 @@ import type { Product } from "@dextea/shared-types"
 import { PRODUCT_STATUS } from "@dextea/shared-types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
+import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
@@ -82,6 +85,12 @@ export default function ProductsPage() {
     setSearchKeyword(keyword)
   }
 
+  const refreshProducts = useCallback(async (targetPage: number) => {
+    if (loading) return
+    await fetchProducts(targetPage)
+    toast.success('数据已更新')
+  }, [loading, fetchProducts])
+
   const handleCreate = () => {
     setDialogOpen(true)
   }
@@ -94,6 +103,9 @@ export default function ProductsPage() {
           <Button onClick={handleCreate}>
             <PlusIcon data-icon="inline-start" />
             新增商品
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => refreshProducts(page)} disabled={loading}>
+            <RefreshCwIcon className={cn(loading && "animate-spin")} />
           </Button>
         </div>
         <div className="flex items-center gap-2">
@@ -131,7 +143,7 @@ export default function ProductsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
+              <TableHead>商品ID</TableHead>
               <TableHead>商品名称</TableHead>
               <TableHead>价格</TableHead>
               <TableHead>状态</TableHead>
@@ -142,8 +154,8 @@ export default function ProductsPage() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-sm text-muted-foreground">
-                  加载中...
+                <TableCell colSpan={6} className="h-48 text-center">
+                  <Spinner className="mx-auto size-6 text-muted-foreground" />
                 </TableCell>
               </TableRow>
             ) : products.length === 0 ? (
@@ -165,7 +177,7 @@ export default function ProductsPage() {
                 <TableRow key={product.id}>
                   <TableCell className="font-mono text-xs">{product.id}</TableCell>
                   <TableCell>{product.name}</TableCell>
-                  <TableCell>¥{product.price.toFixed(2)}</TableCell>
+                  <TableCell><span className="tabular-nums">¥ {product.price.toFixed(2)}</span></TableCell>
                   <TableCell>
                     <span className={STATUS_TEXT[product.status]?.className ?? ""}>
                       {STATUS_TEXT[product.status]?.label ?? "—"}

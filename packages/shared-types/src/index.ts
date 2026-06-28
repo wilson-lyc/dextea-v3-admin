@@ -87,6 +87,10 @@ export type {
   CreateTagInput,
   UpdateTagInput,
   TagQuery,
+  BindProductToTagInput,
+  BindTagToProductInput,
+  UnbindProductFromTagInput,
+  UnbindTagFromProductInput,
 } from './types/index.js';
 
 export type {

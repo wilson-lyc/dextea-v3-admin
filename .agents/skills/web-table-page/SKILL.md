@@ -37,10 +37,10 @@ return (
         </TableHeader>
         <TableBody>
           {loading ? (
-            // ── 加载态 ──
+            // ── 加载态（Spinner 居中转动） ──
             <TableRow>
-              <TableCell colSpan={N} className="h-32 text-center text-sm text-muted-foreground">
-                加载中...
+              <TableCell colSpan={N} className="h-48 text-center">
+                <Spinner className="mx-auto size-6 text-muted-foreground" />
               </TableCell>
             </TableRow>
           ) : data.length === 0 ? (
@@ -185,7 +185,7 @@ useEffect(() => {
 
 | 状态  | 条件                                       | 渲染内容                             |
 | --- | ---------------------------------------- | -------------------------------- |
-| 加载中 | `loading === true`                       | 单行 "加载中..."                      |
+| 加载中 | `loading === true`                       | 单行 `<Spinner>` 居中旋转             |
 | 空数据 | `loading === false && data.length === 0` | `Empty` 组件（icon + 暂无数据 + 立即添加按钮） |
 | 有数据 | `loading === false && data.length > 0`   | 数据行 + 分页组件                       |
 
@@ -197,6 +197,7 @@ useEffect(() => {
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {

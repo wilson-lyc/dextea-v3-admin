@@ -4,6 +4,8 @@ import { toast } from "sonner"
 import type { Product } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Field,
   FieldError,
@@ -88,7 +90,8 @@ export function EditBasicInfoDialog({ open, onOpenChange, productId, product, on
           <DialogTitle>编辑基础信息</DialogTitle>
         </DialogHeader>
 
-        <FieldGroup className="py-2">
+        <ScrollArea className="max-h-[60vh] p-[3px]">
+        <FieldGroup>
           <Field data-invalid={!!nameError || undefined}>
             <FieldLabel htmlFor="edit-name">
               商品名称 <span className="text-destructive">*</span>
@@ -107,27 +110,35 @@ export function EditBasicInfoDialog({ open, onOpenChange, productId, product, on
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="edit-brief">简介</FieldLabel>
-            <Input
+            <FieldLabel htmlFor="edit-brief">
+              简介 <span className="text-destructive">*</span>
+            </FieldLabel>
+            <Textarea
               id="edit-brief"
               placeholder="请输入简介"
               value={brief}
               onChange={(e) => setBrief(e.target.value)}
+              rows={3}
             />
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="edit-description">描述</FieldLabel>
-            <Input
+            <FieldLabel htmlFor="edit-description">
+              描述 <span className="text-destructive">*</span>
+            </FieldLabel>
+            <Textarea
               id="edit-description"
               placeholder="请输入描述"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              rows={4}
             />
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="edit-price">价格</FieldLabel>
+            <FieldLabel htmlFor="edit-price">
+              价格 <span className="text-destructive">*</span>
+            </FieldLabel>
             <Input
               id="edit-price"
               type="number"
@@ -139,6 +150,7 @@ export function EditBasicInfoDialog({ open, onOpenChange, productId, product, on
             />
           </Field>
         </FieldGroup>
+        </ScrollArea>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
