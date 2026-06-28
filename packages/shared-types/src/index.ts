@@ -124,3 +124,12 @@ export type {
   ProductIngredientRelation,
   BindProductIngredientsInput,
 } from './types/index.js';
+
+export type {
+  StoreProductItem,
+  UpsertProductStoreStatusRequest,
+  StoreCustomizationItem,
+  StoreCustomizationOptionItem,
+  UpsertCustomizationOptionStoreStatusRequest,
+  StoreIngredientItem,
+} from './types/index.js';

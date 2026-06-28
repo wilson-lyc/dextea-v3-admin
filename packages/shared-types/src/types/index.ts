@@ -16,3 +16,12 @@ export type { CustomizationOption, CreateCustomizationOptionInput, UpdateCustomi
 export type { Ingredient, CreateIngredientInput, CreateIngredientResponse, UpdateIngredientInput, UpdateIngredientResponse, IngredientQuery } from './ingredient.js';
 
 export type { ProductIngredientRelation, BindProductIngredientsInput } from './product-ingredient.js';
+
+export type {
+  StoreProductItem,
+  UpsertProductStoreStatusRequest,
+  StoreCustomizationItem,
+  StoreCustomizationOptionItem,
+  UpsertCustomizationOptionStoreStatusRequest,
+  StoreIngredientItem,
+} from './store-status.js';

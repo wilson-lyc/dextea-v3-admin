@@ -61,7 +61,10 @@ export const userRoleRelationsTable = mysqlTable(
     roleId: bigint('role_id', { mode: 'number', unsigned: true }).notNull(),
   },
   (table) => ({
-    primaryKey: primaryKey({ columns: [table.userId, table.roleId] }),
+    primaryKey: primaryKey({
+      name: 'pk_user_role_relations',
+      columns: [table.userId, table.roleId],
+    }),
   }),
 );
 
@@ -75,7 +78,10 @@ export const rolePermissionRelationsTable = mysqlTable(
     permissionId: bigint('permission_id', { mode: 'number', unsigned: true }).notNull(),
   },
   (table) => ({
-    primaryKey: primaryKey({ columns: [table.roleId, table.permissionId] }),
+    primaryKey: primaryKey({
+      name: 'pk_role_permission_relations',
+      columns: [table.roleId, table.permissionId],
+    }),
   }),
 );
 
@@ -147,7 +153,10 @@ export const productTagRelationsTable = mysqlTable(
     tagId: bigint('tag_id', { mode: 'number', unsigned: true }).notNull(),
   },
   (table) => ({
-    primaryKey: primaryKey({ columns: [table.productId, table.tagId] }),
+    primaryKey: primaryKey({
+      name: 'pk_product_tag_relations',
+      columns: [table.productId, table.tagId],
+    }),
   }),
 );
 
@@ -174,7 +183,10 @@ export const productCustomizationRelationsTable = mysqlTable(
     sort: tinyint().notNull().default(0),
   },
   (table) => ({
-    primaryKey: primaryKey({ columns: [table.productId, table.customizationId] }),
+    primaryKey: primaryKey({
+      name: 'pk_product_customization_relations',
+      columns: [table.productId, table.customizationId],
+    }),
   }),
 );
 
@@ -191,7 +203,10 @@ export const productIngredientRelationsTable = mysqlTable(
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
   (table) => ({
-    primaryKey: primaryKey({ columns: [table.productId, table.ingredientId] }),
+    primaryKey: primaryKey({
+      name: 'pk_product_ingredient_relations',
+      columns: [table.productId, table.ingredientId],
+    }),
   }),
 );
 
@@ -237,7 +252,10 @@ export const productStoreStatusTable = mysqlTable(
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
   (table) => ({
-    primaryKey: primaryKey({ columns: [table.productId, table.storeId] }),
+    primaryKey: primaryKey({
+      name: 'pk_product_store_status',
+      columns: [table.productId, table.storeId],
+    }),
   }),
 );
 
@@ -255,7 +273,10 @@ export const customizationOptionStoreStatusTable = mysqlTable(
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
   (table) => ({
-    primaryKey: primaryKey({ columns: [table.customizationOptionId, table.storeId] }),
+    primaryKey: primaryKey({
+      name: 'pk_customization_option_store_status',
+      columns: [table.customizationOptionId, table.storeId],
+    }),
   }),
 );
 
@@ -273,6 +294,9 @@ export const storeInventoryTable = mysqlTable(
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
   (table) => ({
-    primaryKey: primaryKey({ columns: [table.ingredientId, table.storeId] }),
+    primaryKey: primaryKey({
+      name: 'pk_store_inventory',
+      columns: [table.ingredientId, table.storeId],
+    }),
   }),
 );

@@ -58,12 +58,14 @@ export function validateEmail(email: string, fieldName: string = '邮箱'): void
 }
 
 /**
- * 校验中国大陆手机号格式（11 位数字，1 开头）。
- * phone 为空时跳过（手机号可能是可选字段），如需必填应额外调用 validateRequired。
+ * 校验联系电话格式（手机号或座机）。
+ * - 手机号：11 位数字，1 开头
+ * - 座机：区号(0xx/0xxx)-号码(7-8 位)
+ * phone 为空时跳过（联系电话可能是可选字段），如需必填应额外调用 validateRequired。
  */
-export function validatePhone(phone: string, fieldName: string = '手机号'): void {
+export function validatePhone(phone: string, fieldName: string = '联系电话'): void {
   if (!phone) return; // 可选字段，空值跳过
-  const phoneRegex = /^1\d{10}$/;
+  const phoneRegex = /^(1\d{10}|0\d{2,3}-?\d{7,8})$/;
   if (!phoneRegex.test(phone)) {
     throw new AppError(systemErrors.VALIDATION_ERROR, `${fieldName} 格式不正确`);
   }

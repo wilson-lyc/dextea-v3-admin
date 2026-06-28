@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { ArrowLeftIcon, PencilIcon, KeyRoundIcon } from "lucide-react"
 import { toast } from "sonner"
@@ -21,7 +21,6 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardHeader,
@@ -31,6 +30,7 @@ import {
 } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Dialog,
   DialogContent,
@@ -43,6 +43,9 @@ import { getStore, resetStorePassword } from "@/services"
 import { EditStatusDialog } from "./components/EditStatusDialog"
 import { EditBasicInfoDialog } from "./components/EditBasicInfoDialog"
 import { EditLocationDialog } from "./components/EditLocationDialog"
+import { ProductsPanel } from "./components/ProductsPanel"
+import { CustomizationsPanel } from "./components/CustomizationsPanel"
+import { IngredientsPanel } from "./components/IngredientsPanel"
 
 function formatDate(iso: string) {
   const d = new Date(iso)
@@ -56,13 +59,6 @@ function formatDate(iso: string) {
   })
 }
 
-const STATUS_BADGE_CLASSES: Record<StoreStatus, string> = {
-  0: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-red-200 dark:ring-red-800/30",
-  1: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-green-200 dark:ring-green-800/30",
-  2: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 ring-blue-200 dark:ring-blue-800/30",
-  3: "bg-muted text-muted-foreground ring-border",
-}
-
 export default function StoreDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
@@ -73,6 +69,38 @@ export default function StoreDetailPage() {
   const [locationDialogOpen, setLocationDialogOpen] = useState(false)
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
   const [newPassword, setNewPassword] = useState("")
+
+  const tabValues = useMemo(() => ["basic", "products", "customizations", "ingredients"], [])
+  const [activeTab, setActiveTab] = useState(() => {
+    const hash = window.location.hash.replace("#", "")
+    return tabValues.includes(hash) ? hash : "basic"
+  })
+
+  // Sync tab ← hash changes (browser back/forward)
+  useEffect(() => {
+    const onHashChange = () => {
+      const hash = window.location.hash.replace("#", "")
+      if (tabValues.includes(hash)) {
+        setActiveTab(hash)
+      }
+    }
+    window.addEventListener("hashchange", onHashChange)
+    return () => window.removeEventListener("hashchange", onHashChange)
+  }, [tabValues])
+
+  // Sync hash ← tab changes
+  const handleTabChange = useCallback(
+    (value: string) => {
+      setActiveTab(value)
+      const newHash = value === "basic" ? "" : value
+      window.history.replaceState(
+        null,
+        "",
+        newHash ? `#${newHash}` : window.location.pathname,
+      )
+    },
+    [],
+  )
 
   const fetchStore = async () => {
     if (!id) return
@@ -158,110 +186,145 @@ export default function StoreDetailPage() {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0">
-        <div className="flex flex-col gap-6 px-6 pb-6 pt-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>门店状态</CardTitle>
-              <CardAction>
-                <Button variant="ghost" size="sm" onClick={() => setStatusDialogOpen(true)}>
-                  <PencilIcon data-icon="inline-start" />
-                  编辑
-                </Button>
-              </CardAction>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">当前状态</span>
-                  <Badge className={STATUS_BADGE_CLASSES[store.status]}>
-                    {STORE_STATUS_LABEL[store.status]}
-                  </Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>基础信息</CardTitle>
-              <CardAction>
-                <Button variant="ghost" size="sm" onClick={() => setBasicInfoDialogOpen(true)}>
-                  <PencilIcon data-icon="inline-start" />
-                  编辑
-                </Button>
-                <Button variant="ghost" size="sm" onClick={handleResetPassword}>
-                  <KeyRoundIcon data-icon="inline-start" />
-                  重置密码
-                </Button>
-              </CardAction>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
-                <span className="text-sm text-muted-foreground">门店名称</span>
-                <span className="text-sm">{store.name}</span>
-
-                <span className="text-sm text-muted-foreground">登录账号</span>
-                <span className="text-sm font-mono">{store.account}</span>
-
-                <span className="text-sm text-muted-foreground">邮箱</span>
-                <span className="text-sm">{store.email || "-"}</span>
-
-                <span className="text-sm text-muted-foreground">联系电话</span>
-                <span className="text-sm">{store.phone || "-"}</span>
-
-                <span className="text-sm text-muted-foreground">营业时间</span>
-                <span className="text-sm">{store.businessHours || "-"}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>门店位置</CardTitle>
-              <CardAction>
-                <Button variant="ghost" size="sm" onClick={() => setLocationDialogOpen(true)}>
-                  <PencilIcon data-icon="inline-start" />
-                  编辑
-                </Button>
-              </CardAction>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col gap-3">
-                <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
-                  <span className="text-sm text-muted-foreground">地址</span>
-                  <span className="text-sm">{fullAddress}</span>
-                </div>
-                {store.longitude && store.latitude ? (
-                  <AmapMap
-                    longitude={store.longitude}
-                    latitude={store.latitude}
-                    name={store.name}
-                    address={fullAddress}
-                  />
-                ) : (
-                  <div className="flex h-40 items-center justify-center rounded-lg bg-muted text-sm text-muted-foreground">
-                    暂无数据
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>维护记录</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
-                <span className="text-sm text-muted-foreground">创建时间</span>
-                <span className="text-sm">{formatDate(store.createdAt)}</span>
-
-                <span className="text-sm text-muted-foreground">更新时间</span>
-                <span className="text-sm">{formatDate(store.updatedAt)}</span>
-              </div>
-            </CardContent>
-          </Card>
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-1 flex-col min-h-0">
+        <div className="shrink-0 px-6">
+          <TabsList variant="line">
+            <TabsTrigger value="basic">基础信息</TabsTrigger>
+            <TabsTrigger value="products">商品</TabsTrigger>
+            <TabsTrigger value="customizations">客制化</TabsTrigger>
+            <TabsTrigger value="ingredients">原料</TabsTrigger>
+          </TabsList>
         </div>
-      </ScrollArea>
+
+        <TabsContent value="basic" className="flex-1 min-h-0 m-0">
+          <ScrollArea className="h-full">
+            <div className="flex flex-col gap-6 px-6 pb-6 pt-3">
+              <Card>
+                <CardHeader>
+                  <CardTitle>门店状态</CardTitle>
+                  <CardAction>
+                    <Button variant="ghost" size="sm" onClick={() => setStatusDialogOpen(true)}>
+                      <PencilIcon data-icon="inline-start" />
+                      编辑
+                    </Button>
+                  </CardAction>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
+                    <span className="text-sm text-muted-foreground">当前状态</span>
+                    <span
+                      className={`text-sm ${
+                        store.status === STORE_STATUS.OPEN.value
+                          ? 'text-green-600'
+                          : store.status === STORE_STATUS.RESTING.value
+                            ? 'text-amber-600'
+                            : store.status === STORE_STATUS.PREPARING.value
+                              ? 'text-blue-600'
+                              : 'text-muted-foreground'
+                      }`}
+                    >
+                      {STORE_STATUS_LABEL[store.status]}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>基础信息</CardTitle>
+                  <CardAction>
+                    <Button variant="ghost" size="sm" onClick={() => setBasicInfoDialogOpen(true)}>
+                      <PencilIcon data-icon="inline-start" />
+                      编辑
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={handleResetPassword}>
+                      <KeyRoundIcon data-icon="inline-start" />
+                      重置密码
+                    </Button>
+                  </CardAction>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
+                    <span className="text-sm text-muted-foreground">门店名称</span>
+                    <span className="text-sm">{store.name}</span>
+
+                    <span className="text-sm text-muted-foreground">登录账号</span>
+                    <span className="text-sm font-mono">{store.account}</span>
+
+                    <span className="text-sm text-muted-foreground">邮箱</span>
+                    <span className="text-sm">{store.email || "-"}</span>
+
+                    <span className="text-sm text-muted-foreground">联系电话</span>
+                    <span className="text-sm">{store.phone || "-"}</span>
+
+                    <span className="text-sm text-muted-foreground">营业时间</span>
+                    <span className="text-sm">{store.businessHours || "-"}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>门店位置</CardTitle>
+                  <CardAction>
+                    <Button variant="ghost" size="sm" onClick={() => setLocationDialogOpen(true)}>
+                      <PencilIcon data-icon="inline-start" />
+                      编辑
+                    </Button>
+                  </CardAction>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col gap-3">
+                    <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
+                      <span className="text-sm text-muted-foreground">地址</span>
+                      <span className="text-sm">{fullAddress}</span>
+                    </div>
+                    {store.longitude && store.latitude ? (
+                      <AmapMap
+                        longitude={store.longitude}
+                        latitude={store.latitude}
+                        name={store.name}
+                        address={fullAddress}
+                      />
+                    ) : (
+                      <div className="flex h-40 items-center justify-center rounded-lg bg-muted text-sm text-muted-foreground">
+                        暂无数据
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>维护记录</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
+                    <span className="text-sm text-muted-foreground">创建时间</span>
+                    <span className="text-sm">{formatDate(store.createdAt)}</span>
+
+                    <span className="text-sm text-muted-foreground">更新时间</span>
+                    <span className="text-sm">{formatDate(store.updatedAt)}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="products" className="flex-1 min-h-0 m-0 p-6">
+          {store && <ProductsPanel storeId={store.id} />}
+        </TabsContent>
+
+        <TabsContent value="customizations" className="flex-1 min-h-0 m-0 p-6">
+          {store && <CustomizationsPanel storeId={store.id} />}
+        </TabsContent>
+
+        <TabsContent value="ingredients" className="flex-1 min-h-0 m-0 p-6">
+          {store && <IngredientsPanel storeId={store.id} />}
+        </TabsContent>
+      </Tabs>
 
       {/* Reset Password Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>

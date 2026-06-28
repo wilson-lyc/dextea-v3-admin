@@ -56,3 +56,4 @@ export { productErrors } from './products.js';
 export { tagErrors } from './tags.js';
 export { productCustomizationErrors } from './product-customizations.js';
 export { ingredientErrors } from './ingredients.js';
+export { storeStatusErrors } from './store-status.js';

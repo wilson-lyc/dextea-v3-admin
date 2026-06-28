@@ -11,28 +11,40 @@ import type {
 } from '@dextea/shared-types'
 import { http } from './http'
 
-/** GET /users (paginated) */
+/**
+ * 获取用户列表（分页）
+ * GET /users
+ */
 export function getUsers(params?: { page?: number; pageSize?: number; keyword?: string }) {
   return http
     .get<ApiResponse<PaginatedData<User>>>('/users', { params })
     .then((res) => res.data)
 }
 
-/** POST /users */
+/**
+ * 创建用户
+ * POST /users
+ */
 export function createUser(data: CreateUserInput) {
   return http
     .post<ApiResponse<CreateUserResponse>>('/users', data)
     .then((res) => res.data)
 }
 
-/** PUT /users/:id */
+/**
+ * 更新用户信息
+ * PUT /users/:id
+ */
 export function updateUser(id: number, data: UpdateUserInput) {
   return http
     .put<ApiResponse<UpdateUserResponse>>(`/users/${id}`, data)
     .then((res) => res.data)
 }
 
-/** PATCH /users/:id/status — toggle user enabled/disabled */
+/**
+ * 启用/禁用用户
+ * PATCH /users/:id/status
+ */
 export function toggleUserStatus(id: number) {
   return http
     .patch<ApiResponse<ToggleUserStatusResponse>>(`/users/${id}/status`)
