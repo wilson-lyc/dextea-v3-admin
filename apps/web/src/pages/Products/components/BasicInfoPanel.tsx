@@ -83,10 +83,10 @@ export default function BasicInfoPanel({ productId }: BasicInfoPanelProps) {
 
   return (
     <>
-      {/* 商品状态 */}
+      {/* 商品全局状态 */}
       <Card>
         <CardHeader>
-          <CardTitle>商品状态</CardTitle>
+          <CardTitle>商品全局状态</CardTitle>
           <CardAction>
             <Button
               variant="ghost"

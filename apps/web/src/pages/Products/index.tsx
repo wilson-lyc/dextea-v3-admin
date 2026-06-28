@@ -1,22 +1,31 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
+  PackageIcon,
   PlusIcon,
+  RefreshCwIcon,
   SearchIcon,
   SettingsIcon,
-  PackageIcon,
-  RefreshCwIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Product } from "@dextea/shared-types"
-import { PRODUCT_STATUS } from "@dextea/shared-types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog"
 import {
   Table,
   TableHeader,
@@ -25,8 +34,9 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-import { getProducts } from "@/services"
+import { getProducts, getTagOptions, toggleProductStatus } from "@/services"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { SelectPicker } from "@/components/ui/select-picker"
 import { CreateProductDialog } from "./components/CreateProductDialog"
 import {
   Pagination,
@@ -47,23 +57,67 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [keyword, setKeyword] = useState("")
-  const [searchKeyword, setSearchKeyword] = useState("")
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const pageSize = 20
 
+  const keywordRef = useRef("")
+  keywordRef.current = keyword
+
   const navigate = useNavigate()
   const [dialogOpen, setDialogOpen] = useState(false)
+
+  const [filterStatus, setFilterStatus] = useState("")
+  const [priceMin, setPriceMin] = useState("")
+  const [priceMax, setPriceMax] = useState("")
+  const [selectedTag, setSelectedTag] = useState("")
+
+  const [tagOptions, setTagOptions] = useState<Array<{ label: string; value: string }>>([])
+
+  const filterRef = useRef({ filterStatus: "", priceMin: "", priceMax: "", selectedTag: "" })
+  filterRef.current = { filterStatus, priceMin, priceMax, selectedTag }
+
+  const [statusConfirmOpen, setStatusConfirmOpen] = useState(false)
+  const [statusConfirmTarget, setStatusConfirmTarget] = useState<{ id: number; name: string } | null>(null)
+  const [statusConfirmAction, setStatusConfirmAction] = useState<0 | 1>(0)
+  const [statusToggling, setStatusToggling] = useState(false)
+
+  useEffect(() => {
+    getTagOptions()
+      .then((res) => {
+        if (res.code === 0) setTagOptions(res.data)
+      })
+      .catch(() => {})
+  }, [])
+
+  const hasFilters = !!(keyword || filterStatus || priceMin || priceMax || selectedTag)
 
   const fetchProducts = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
-      const params: { page?: number; pageSize?: number; keyword?: string } = {
+      const kw = keywordRef.current
+      const { filterStatus, priceMin, priceMax, selectedTag } = filterRef.current
+      const params: {
+        page?: number; pageSize?: number; keyword?: string;
+        status?: number; priceMin?: number; priceMax?: number; tagIds?: string;
+      } = {
         page: targetPage,
         pageSize,
       }
-      if (searchKeyword) {
-        params.keyword = searchKeyword
+      if (kw) {
+        params.keyword = kw
+      }
+      if (filterStatus) {
+        params.status = Number(filterStatus)
+      }
+      if (priceMin) {
+        params.priceMin = Number(priceMin)
+      }
+      if (priceMax) {
+        params.priceMax = Number(priceMax)
+      }
+      if (selectedTag) {
+        params.tagIds = selectedTag
       }
       const res = await getProducts(params)
       setProducts(res.data.items)
@@ -74,15 +128,22 @@ export default function ProductsPage() {
     } finally {
       setLoading(false)
     }
-  }, [searchKeyword, pageSize])
+  }, [pageSize])
 
   useEffect(() => {
     fetchProducts(1)
-  }, [fetchProducts])
+  }, [])
 
   const handleSearch = () => {
-    // TODO: 搜索逻辑
-    setSearchKeyword(keyword)
+    fetchProducts(1)
+  }
+
+  const handleClear = () => {
+    setKeyword("")
+    setFilterStatus("")
+    setPriceMin("")
+    setPriceMax("")
+    setSelectedTag("")
   }
 
   const refreshProducts = useCallback(async (targetPage: number) => {
@@ -93,6 +154,32 @@ export default function ProductsPage() {
 
   const handleCreate = () => {
     setDialogOpen(true)
+  }
+
+  const openStatusConfirm = (product: Product, targetStatus: 0 | 1) => {
+    setStatusConfirmTarget({ id: product.id, name: product.name })
+    setStatusConfirmAction(targetStatus)
+    setStatusConfirmOpen(true)
+  }
+
+  const handleStatusToggle = async () => {
+    if (!statusConfirmTarget) return
+    setStatusToggling(true)
+    try {
+      const res = await toggleProductStatus(String(statusConfirmTarget.id), statusConfirmAction)
+      if (res.code === 0) {
+        toast.success(res.message)
+        setStatusConfirmOpen(false)
+        setStatusConfirmTarget(null)
+        await fetchProducts(page)
+      } else {
+        toast.error(res.message)
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "操作失败")
+    } finally {
+      setStatusToggling(false)
+    }
   }
 
   return (
@@ -121,16 +208,51 @@ export default function ProductsPage() {
               }}
             />
           </div>
+          <SelectPicker
+            options={[
+              { label: "全部状态", value: "" },
+              { label: "下架", value: "0" },
+              { label: "可售", value: "1" },
+            ]}
+            value={filterStatus}
+            onValueChange={setFilterStatus}
+            placeholder="状态"
+            className="w-28"
+          />
+          <Input
+            placeholder="最低价"
+            className="w-24"
+            type="number"
+            min={0}
+            value={priceMin}
+            onChange={(e) => setPriceMin(e.target.value)}
+          />
+          <span className="text-muted-foreground">-</span>
+          <Input
+            placeholder="最高价"
+            className="w-24"
+            type="number"
+            min={0}
+            value={priceMax}
+            onChange={(e) => setPriceMax(e.target.value)}
+          />
+          <SelectPicker
+            options={[
+              { label: "全部标签", value: "" },
+              ...tagOptions,
+            ]}
+            value={selectedTag}
+            onValueChange={setSelectedTag}
+            placeholder="标签筛选"
+            className="w-28"
+          />
           <Button variant="secondary" onClick={handleSearch}>
             搜索
           </Button>
-          {searchKeyword && (
+          {hasFilters && (
             <Button
               variant="ghost"
-              onClick={() => {
-                setKeyword("")
-                setSearchKeyword("")
-              }}
+              onClick={handleClear}
             >
               清除
             </Button>
@@ -140,13 +262,13 @@ export default function ProductsPage() {
 
       {/* Table area (always renders) */}
       <ScrollArea className="max-h-[calc(100vh-480px)]">
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead>商品ID</TableHead>
+              <TableHead className="w-24">商品ID</TableHead>
               <TableHead>商品名称</TableHead>
               <TableHead>价格</TableHead>
-              <TableHead>状态</TableHead>
+              <TableHead>全局状态</TableHead>
               <TableHead>标签</TableHead>
               <TableHead className="text-right">操作</TableHead>
             </TableRow>
@@ -195,10 +317,32 @@ export default function ProductsPage() {
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" size="sm" onClick={() => navigate(`/products/${product.id}`)}>
-                      <SettingsIcon data-icon="inline-start" />
-                      管理
-                    </Button>
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/products/${product.id}`)}>
+                        <SettingsIcon data-icon="inline-start" />
+                        管理
+                      </Button>
+                      {product.status === 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-green-600 hover:text-green-600 dark:text-green-400 dark:hover:text-green-400"
+                          onClick={() => openStatusConfirm(product, 1)}
+                        >
+                          转全局可售
+                        </Button>
+                      )}
+                      {product.status === 1 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-500 hover:text-red-500 dark:text-red-400 dark:hover:text-red-400"
+                          onClick={() => openStatusConfirm(product, 0)}
+                        >
+                          转全局下架
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -279,6 +423,27 @@ export default function ProductsPage() {
         onOpenChange={setDialogOpen}
         onCreated={() => fetchProducts(page)}
       />
+
+      <Dialog open={statusConfirmOpen} onOpenChange={setStatusConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>确认{statusConfirmAction === 1 ? "上架" : "下架"}</DialogTitle>
+            <DialogDescription>
+              确定将「{statusConfirmTarget?.name}」更新为全局{statusConfirmAction === 1 ? "可售" : "下架"}吗？
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline">取消</Button>} />
+            <Button
+              variant={statusConfirmAction === 1 ? "default" : "destructive"}
+              onClick={handleStatusToggle}
+              disabled={statusToggling}
+            >
+              {statusToggling ? "处理中..." : "确认"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

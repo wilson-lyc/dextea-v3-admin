@@ -37,4 +37,8 @@ export interface ProductQuery {
   page?: string;
   pageSize?: string;
   keyword?: string;
+  status?: string;
+  priceMin?: string;
+  priceMax?: string;
+  tagIds?: string;
 }

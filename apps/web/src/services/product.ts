@@ -5,7 +5,7 @@ import { http } from "./http"
  * 获取商品列表（分页）
  * GET /products
  */
-export function getProducts(params?: { page?: number; pageSize?: number; keyword?: string }) {
+export function getProducts(params?: { page?: number; pageSize?: number; keyword?: string; status?: number; priceMin?: number; priceMax?: number; tagIds?: string }) {
   return http
     .get<ApiResponse<PaginatedData<Product>>>("/products", { params })
     .then((res) => res.data)
@@ -41,7 +41,7 @@ export function updateProduct(id: string, data: Partial<Product>) {
  */
 export function toggleProductStatus(id: string, status: ProductStatus) {
   return http
-    .patch<ApiResponse<Product>>(`/products/${id}/status`, { status })
+    .put<ApiResponse<Product>>(`/products/${id}/status`, { status })
     .then((res) => res.data)
 }
 

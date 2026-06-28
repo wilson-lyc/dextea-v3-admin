@@ -25,7 +25,7 @@ import type {
   BindTagToProductInput,
   UnbindTagFromProductInput,
 } from '@dextea/shared-types';
-import { PRODUCT_STATUS_VALUES } from '@dextea/shared-types';
+import { PRODUCT_STATUS, PRODUCT_STATUS_VALUES } from '@dextea/shared-types';
 
 
 export async function productRoutes(app: FastifyInstance) {
@@ -43,6 +43,10 @@ export async function productRoutes(app: FastifyInstance) {
           page: { type: 'string', description: '页码' },
           pageSize: { type: 'string', description: '每页数量' },
           keyword: { type: 'string', description: '搜索关键词' },
+          status: { type: 'string', description: '商品状态' },
+          priceMin: { type: 'string', description: '最低价格' },
+          priceMax: { type: 'string', description: '最高价格' },
+          tagIds: { type: 'string', description: '标签ID列表，逗号分隔' },
         },
       },
       response: {
@@ -113,6 +117,60 @@ export async function productRoutes(app: FastifyInstance) {
         const filter = sql`${productsTable.name} like ${pattern}`;
         query = query.where(filter);
         countQuery = countQuery.where(filter);
+      }
+
+      const statusVal = request.query.status;
+      if (statusVal) {
+        const parsedStatus = parseInt(statusVal, 10);
+        if (!isNaN(parsedStatus) && (PRODUCT_STATUS_VALUES as readonly number[]).includes(parsedStatus)) {
+          const filter = eq(productsTable.status, parsedStatus);
+          query = query.where(filter);
+          countQuery = countQuery.where(filter);
+        }
+      }
+
+      const priceMinVal = request.query.priceMin;
+      if (priceMinVal) {
+        const parsedPriceMin = parseFloat(priceMinVal);
+        if (!isNaN(parsedPriceMin) && parsedPriceMin >= 0) {
+          const filter = sql`${productsTable.price} >= ${parsedPriceMin}`;
+          query = query.where(filter);
+          countQuery = countQuery.where(filter);
+        }
+      }
+
+      const priceMaxVal = request.query.priceMax;
+      if (priceMaxVal) {
+        const parsedPriceMax = parseFloat(priceMaxVal);
+        if (!isNaN(parsedPriceMax) && parsedPriceMax >= 0) {
+          const filter = sql`${productsTable.price} <= ${parsedPriceMax}`;
+          query = query.where(filter);
+          countQuery = countQuery.where(filter);
+        }
+      }
+
+      const tagIdsVal = request.query.tagIds;
+      if (tagIdsVal) {
+        const tagIdArray = tagIdsVal.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n > 0);
+        if (tagIdArray.length > 0) {
+          const matchingProductIds = await db
+            .select({ productId: productTagRelationsTable.productId })
+            .from(productTagRelationsTable)
+            .where(inArray(productTagRelationsTable.tagId, tagIdArray))
+            .groupBy(productTagRelationsTable.productId)
+            .having(sql`count(distinct ${productTagRelationsTable.tagId}) = ${tagIdArray.length}`);
+
+          const productIdSet = matchingProductIds.map(r => r.productId);
+          if (productIdSet.length > 0) {
+            const filter = inArray(productsTable.id, productIdSet);
+            query = query.where(filter);
+            countQuery = countQuery.where(filter);
+          } else {
+            const filter = sql`1 = 0`;
+            query = query.where(filter);
+            countQuery = countQuery.where(filter);
+          }
+        }
       }
 
       const items = await query
@@ -240,7 +298,7 @@ export async function productRoutes(app: FastifyInstance) {
     } catch (error) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
-      throw new AppError(productErrors.CREATE_FAILED);
+      throw new AppError(productErrors.STATUS_UPDATE_FAILED);
     }
   });
 
@@ -527,6 +585,96 @@ export async function productRoutes(app: FastifyInstance) {
         code: 0,
         data: updated as Product,
         message: '更新成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productErrors.UPDATE_FAILED);
+    }
+  });
+
+  /** 上下架商品 */
+  app.put<{
+    Params: { id: string };
+    Body: { status: number };
+    Reply: ApiResponse<Product>;
+  }>('/products/:id/status', {
+    schema: {
+      description: '上下架商品',
+      tags: ['Products'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '商品ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          status: { type: 'integer', description: '0=下架 1=可售' },
+        },
+        required: ['status'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                name: { type: 'string' },
+                brief: { type: 'string' },
+                description: { type: 'string' },
+                status: { type: 'integer' },
+                price: { type: 'number' },
+                createdAt: { type: 'string' },
+                updatedAt: { type: 'string' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const id = parsePositiveInt(request.params.id, '商品ID');
+      const { status } = request.body;
+
+      validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
+
+      const [product] = await db
+        .select()
+        .from(productsTable)
+        .where(eq(productsTable.id, id))
+        .limit(1);
+
+      if (!product) {
+        throw new AppError(productErrors.PRODUCT_NOT_FOUND);
+      }
+
+      await db
+        .update(productsTable)
+        .set({ status })
+        .where(eq(productsTable.id, id));
+
+      const [updated] = await db
+        .select()
+        .from(productsTable)
+        .where(eq(productsTable.id, id))
+        .limit(1);
+
+      const statusLabel = status === PRODUCT_STATUS.ON.value ? '可售' : '下架';
+
+      return {
+        code: 0,
+        data: updated as Product,
+        message: `「${product.name}」的全局状态已更新为「${statusLabel}」`,
       };
     } catch (error) {
       if (error instanceof AppError) throw error;

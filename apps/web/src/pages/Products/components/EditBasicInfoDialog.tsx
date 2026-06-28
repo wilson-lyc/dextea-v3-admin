@@ -94,7 +94,7 @@ export function EditBasicInfoDialog({ open, onOpenChange, productId, product, on
         <FieldGroup>
           <Field data-invalid={!!nameError || undefined}>
             <FieldLabel htmlFor="edit-name">
-              商品名称 <span className="text-destructive">*</span>
+              商品名称
             </FieldLabel>
             <Input
               id="edit-name"
@@ -111,33 +111,39 @@ export function EditBasicInfoDialog({ open, onOpenChange, productId, product, on
 
           <Field>
             <FieldLabel htmlFor="edit-brief">
-              简介 <span className="text-destructive">*</span>
+               菜单页简介
             </FieldLabel>
             <Textarea
               id="edit-brief"
-              placeholder="请输入简介"
+              placeholder="请输入菜单页简介，至多100字"
               value={brief}
-              onChange={(e) => setBrief(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value.length <= 100) setBrief(e.target.value)
+              }}
               rows={3}
             />
+            <span className="text-xs text-muted-foreground text-right block">{brief.length}/100</span>
           </Field>
 
           <Field>
             <FieldLabel htmlFor="edit-description">
-              描述 <span className="text-destructive">*</span>
+               商详页介绍
             </FieldLabel>
             <Textarea
               id="edit-description"
-              placeholder="请输入描述"
+              placeholder="请输入商详页介绍，至多500字"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value.length <= 500) setDescription(e.target.value)
+              }}
               rows={4}
             />
+            <span className="text-xs text-muted-foreground text-right block">{description.length}/500</span>
           </Field>
 
           <Field>
             <FieldLabel htmlFor="edit-price">
-              价格 <span className="text-destructive">*</span>
+               价格
             </FieldLabel>
             <Input
               id="edit-price"

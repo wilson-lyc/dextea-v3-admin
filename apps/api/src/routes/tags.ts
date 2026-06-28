@@ -18,6 +18,57 @@ import type {
 } from '@dextea/shared-types';
 
 export async function tagRoutes(app: FastifyInstance) {
+  /** 商品标签选项（供 SelectPicker 使用） */
+  app.get<{
+    Reply: ApiResponse<Array<{ label: string; value: string }>>;
+  }>('/tags/options', {
+    schema: {
+      description: '商品标签选项列表',
+      tags: ['Tags'],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  label: { type: 'string' },
+                  value: { type: 'string' },
+                },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const rows = await db
+        .select({
+          label: productTagsTable.name,
+          value: sql<string>`cast(${productTagsTable.id} as char)`,
+        })
+        .from(productTagsTable)
+        .orderBy(productTagsTable.id);
+
+      return {
+        code: 0,
+        data: rows,
+        message: 'ok',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(tagErrors.LIST_FAILED);
+    }
+  });
+
   /** 商品标签列表 */
   app.get<{
     Querystring: TagQuery;

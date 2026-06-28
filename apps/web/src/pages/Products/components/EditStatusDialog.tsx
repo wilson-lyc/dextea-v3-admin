@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { SelectPicker } from "@/components/ui/select-picker"
 import { StatusSelectPicker } from "@/components/ui/status-select-picker"
-import { updateProduct } from "@/services"
+import { toggleProductStatus } from "@/services"
 
 interface EditStatusDialogProps {
   open: boolean
@@ -41,7 +41,7 @@ export function EditStatusDialog({ open, onOpenChange, productId, currentStatus,
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
-      const res = await updateProduct(productId, { status: Number(selected) as ProductStatus })
+      const res = await toggleProductStatus(productId, Number(selected) as ProductStatus)
       if (res.code === 0) {
         toast.success(res.message)
         onOpenChange(false)
@@ -60,7 +60,7 @@ export function EditStatusDialog({ open, onOpenChange, productId, currentStatus,
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>编辑商品状态</DialogTitle>
+          <DialogTitle>编辑商品全局状态</DialogTitle>
         </DialogHeader>
 
         <FieldGroup className="py-2">

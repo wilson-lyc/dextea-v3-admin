@@ -69,3 +69,11 @@ export function bindProductToTag(tagId: number, productId: number) {
 export function unbindProductFromTag(tagId: number, productId: number) {
   return http.delete<ApiResponse<null>>(`/tags/${tagId}/products`, { data: { productIds: [productId] } }).then((res) => res.data)
 }
+
+/**
+ * 获取标签选项列表
+ * GET /tags/options
+ */
+export function getTagOptions() {
+  return http.get<ApiResponse<Array<{ label: string; value: string }>>>("/tags/options").then((res) => res.data)
+}

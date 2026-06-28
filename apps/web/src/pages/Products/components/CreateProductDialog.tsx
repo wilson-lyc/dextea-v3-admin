@@ -123,7 +123,7 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
         <FieldGroup className="py-2">
           <Field data-invalid={!!nameError || undefined}>
             <FieldLabel htmlFor="product-name">
-              商品名称 <span className="text-destructive">*</span>
+               商品名称
             </FieldLabel>
             <Input
               id="product-name"
@@ -140,40 +140,46 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
 
           <Field>
             <FieldLabel htmlFor="product-brief">
-              简介 <span className="text-destructive">*</span>
+               菜单页简介
             </FieldLabel>
             <Textarea
               id="product-brief"
-              placeholder="请输入商品简介"
+              placeholder="请输入菜单页简介，至多100字"
               value={formBrief}
-              onChange={(e) => setFormBrief(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value.length <= 100) setFormBrief(e.target.value)
+              }}
               rows={2}
             />
+            <span className="text-xs text-muted-foreground text-right block">{formBrief.length}/100</span>
           </Field>
 
           <Field>
             <FieldLabel htmlFor="product-description">
-              描述 <span className="text-destructive">*</span>
+               商详页介绍
             </FieldLabel>
             <Textarea
               id="product-description"
-              placeholder="请输入商品描述"
+              placeholder="请输入商详页介绍，至多500字"
               value={formDescription}
-              onChange={(e) => setFormDescription(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value.length <= 500) setFormDescription(e.target.value)
+              }}
               rows={3}
             />
+            <span className="text-xs text-muted-foreground text-right block">{formDescription.length}/500</span>
           </Field>
 
           <Field data-invalid={!!priceError || undefined}>
             <FieldLabel htmlFor="product-price">
-              价格 <span className="text-destructive">*</span>
+               价格
             </FieldLabel>
             <Input
               id="product-price"
               type="number"
               min="0"
               step="0.01"
-              placeholder="0.00"
+              placeholder="请输入价格"
               value={formPrice}
               onChange={(e) => {
                 setFormPrice(e.target.value)
@@ -198,7 +204,7 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
                     </ComboboxChip>
                   ) : null
                 })}
-                <ComboboxChipsInput placeholder="搜索或选择标签..." />
+                <ComboboxChipsInput placeholder="搜索或选择标签" />
               </ComboboxChips>
               <ComboboxContent>
                 <ComboboxList>

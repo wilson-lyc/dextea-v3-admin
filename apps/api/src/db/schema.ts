@@ -115,6 +115,7 @@ export const storesTable = mysqlTable('stores', {
   account: varchar({ length: 255 }).notNull().unique(),
   password: varchar({ length: 255 }).notNull(),
   email: varchar({ length: 255 }).notNull().default(''),
+  menuId: bigint('menu_id', { mode: 'number', unsigned: true }),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -297,6 +298,52 @@ export const storeInventoryTable = mysqlTable(
     primaryKey: primaryKey({
       name: 'pk_store_inventory',
       columns: [table.ingredientId, table.storeId],
+    }),
+  }),
+);
+
+/**
+ * 菜单表
+ * 管理菜单的基本信息，独立于门店存在，可被多个门店共享
+ */
+export const menusTable = mysqlTable('menus', {
+  id: serial().primaryKey(),
+  name: varchar({ length: 255 }).notNull(),
+  description: varchar({ length: 500 }).notNull().default(''),
+  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+});
+
+/**
+ * 菜单分组表
+ * 菜单下的分类容器（如"推荐"、"咖啡"、"甜点"），决定商品的分组展示
+ */
+export const menuGroupsTable = mysqlTable('menu_groups', {
+  id: serial().primaryKey(),
+  menuId: bigint('menu_id', { mode: 'number', unsigned: true }).notNull(),
+  name: varchar({ length: 255 }).notNull(),
+  sortOrder: int('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+});
+
+/**
+ * 菜单商品关联表
+ * 记录分组与商品的关联关系及排序，同一分组下同一商品只能绑定一次
+ */
+export const menuProductsTable = mysqlTable(
+  'menu_products',
+  {
+    groupId: bigint('group_id', { mode: 'number', unsigned: true }).notNull(),
+    productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
+    sortOrder: int('sort_order').notNull().default(0),
+    createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    primaryKey: primaryKey({
+      name: 'pk_menu_products',
+      columns: [table.groupId, table.productId],
     }),
   }),
 );

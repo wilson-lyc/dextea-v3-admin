@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { LinkIcon, PencilIcon, Trash2Icon } from "lucide-react"
+import { ExternalLinkIcon, LinkIcon, PencilIcon, UnlinkIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { PaginatedData } from "@dextea/shared-types"
@@ -176,7 +176,7 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
       }
     } catch (err) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg ?? (err instanceof Error ? err.message : "更新用量失败"))
+      toast.error(msg ?? (err instanceof Error ? err.message : "修改用量失败"))
     } finally {
       setEditing(false)
     }
@@ -238,8 +238,8 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
             <TableRow>
               <TableHead className="w-24">原料ID</TableHead>
               <TableHead>原料名称</TableHead>
-              <TableHead className="w-24">单位</TableHead>
               <TableHead className="w-28">用量</TableHead>
+              <TableHead className="w-24">单位</TableHead>
               <TableHead className="w-56 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
@@ -269,17 +269,17 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
                 <TableRow key={item.ingredientId}>
                   <TableCell className="font-mono text-xs">{item.ingredientId}</TableCell>
                   <TableCell>{item.ingredientName}</TableCell>
-                  <TableCell className="font-mono text-xs">{item.unit}</TableCell>
                   <TableCell className="font-mono text-xs">{item.quantity}</TableCell>
+                  <TableCell className="font-mono text-xs">{item.unit}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Button variant="outline" size="sm" onClick={() => navigate(`/products/ingredients/${item.ingredientId}`)}>
-                        <LinkIcon data-icon="inline-start" />
-                        查看原料
+                        <ExternalLinkIcon data-icon="inline-start" />
+                         查看原料
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
                         <PencilIcon data-icon="inline-start" />
-                        编辑
+修改用量
                       </Button>
                       <Button
                         variant="outline"
@@ -287,8 +287,8 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
                         className="text-red-500 hover:text-red-500"
                         onClick={() => openUnbindConfirm(item)}
                       >
-                        <Trash2Icon className="size-4" data-icon="inline-start" />
-                        删除
+                        <UnlinkIcon className="size-4" data-icon="inline-start" />
+                         解绑
                       </Button>
                     </div>
                   </TableCell>
@@ -369,7 +369,7 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>编辑用量</DialogTitle>
+            <DialogTitle>修改用量</DialogTitle>
             <DialogDescription>
               修改原料「{editIngredient?.ingredientName}」在当前商品中的用量
             </DialogDescription>
