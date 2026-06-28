@@ -222,3 +222,57 @@ export const customizationOptionsTable = mysqlTable('customization_options', {
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
+
+/**
+ * 商品-门店状态表
+ * 记录商品在每个门店的独立状态（独立于 productsTable.status 全局状态）
+ */
+export const productStoreStatusTable = mysqlTable(
+  'product_store_status',
+  {
+    productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
+    storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(),
+    status: tinyint().notNull().default(0),
+    createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    primaryKey: primaryKey({ columns: [table.productId, table.storeId] }),
+  }),
+);
+
+/**
+ * 客制化选项-门店状态表
+ * 记录客制化选项在每个门店的独立状态（独立于 customizationOptionsTable.status 全局状态）
+ */
+export const customizationOptionStoreStatusTable = mysqlTable(
+  'customization_option_store_status',
+  {
+    customizationOptionId: bigint('customization_option_id', { mode: 'number', unsigned: true }).notNull(),
+    storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(),
+    status: tinyint().notNull().default(0),
+    createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    primaryKey: primaryKey({ columns: [table.customizationOptionId, table.storeId] }),
+  }),
+);
+
+/**
+ * 原料-门店库存表
+ * 记录每种原料在每家门店的库存数量
+ */
+export const storeInventoryTable = mysqlTable(
+  'store_inventory',
+  {
+    ingredientId: bigint('ingredient_id', { mode: 'number', unsigned: true }).notNull(),
+    storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(),
+    quantity: double().notNull().default(0),
+    createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    primaryKey: primaryKey({ columns: [table.ingredientId, table.storeId] }),
+  }),
+);
