@@ -34,7 +34,7 @@ export async function storeStatusRoutes(app: FastifyInstance) {
    */
   app.get<{
     Params: { storeId: string };
-    Querystring: { page?: string; pageSize?: string };
+    Querystring: { page?: string; pageSize?: string; globalStatus?: string; storeStatus?: string };
     Reply: ApiResponse<PaginatedData<StoreProductItem>>;
   }>('/stores/:storeId/products', {
     schema: {
@@ -52,6 +52,8 @@ export async function storeStatusRoutes(app: FastifyInstance) {
         properties: {
           page: { type: 'string', description: '页码' },
           pageSize: { type: 'string', description: '每页条数' },
+          globalStatus: { type: 'string', description: '全局状态 0=下架 1=可售' },
+          storeStatus: { type: 'string', description: '门店状态 0=售罄 1=可售' },
         },
       },
       response: {
@@ -102,13 +104,26 @@ export async function storeStatusRoutes(app: FastifyInstance) {
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
       const offset = (page - 1) * pageSize;
 
-      const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(productsTable);
+      const conditions: (SQL | undefined)[] = [];
 
-      const total = Number(countResult[0]?.count ?? 0);
+      const rawGlobalStatus = request.query.globalStatus;
+      if (rawGlobalStatus !== undefined) {
+        const gs = parseInt(rawGlobalStatus, 10);
+        if (gs === 0 || gs === 1) {
+          conditions.push(eq(productsTable.status, gs));
+        }
+      }
 
-      const rows = await db
+      const rawStoreStatus = request.query.storeStatus;
+      let storeStatusFilter: number | undefined;
+      if (rawStoreStatus !== undefined) {
+        const ss = parseInt(rawStoreStatus, 10);
+        if (ss === 0 || ss === 1) {
+          storeStatusFilter = ss;
+        }
+      }
+
+      const baseQuery = db
         .select({
           id: productsTable.id,
           name: productsTable.name,
@@ -123,7 +138,23 @@ export async function storeStatusRoutes(app: FastifyInstance) {
             eq(productStoreStatusTable.productId, productsTable.id),
             eq(productStoreStatusTable.storeId, storeId),
           ),
-        )
+        );
+
+      if (conditions.length > 0) {
+        baseQuery.where(and(...conditions));
+      }
+
+      if (storeStatusFilter !== undefined) {
+        baseQuery.having(eq(sql`COALESCE(${productStoreStatusTable.status}, 0)`, storeStatusFilter));
+      }
+
+      const countResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(productsTable);
+
+      const total = Number(countResult[0]?.count ?? 0);
+
+      const rows = await baseQuery
         .limit(pageSize)
         .offset(offset)
         .orderBy(productsTable.id);

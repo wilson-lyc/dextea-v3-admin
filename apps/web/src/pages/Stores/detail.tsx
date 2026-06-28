@@ -186,7 +186,7 @@ export default function StoreDetailPage() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-1 flex-col min-h-0">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-1 flex-col min-h-0 min-w-0">
         <div className="shrink-0 px-6">
           <TabsList variant="line">
             <TabsTrigger value="basic">基础信息</TabsTrigger>
@@ -313,15 +313,15 @@ export default function StoreDetailPage() {
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="products" className="flex-1 min-h-0 m-0 p-6">
+        <TabsContent value="products" className="flex-1 min-h-0 min-w-0 m-0 p-6">
           {store && <ProductsPanel storeId={store.id} />}
         </TabsContent>
 
-        <TabsContent value="customizations" className="flex-1 min-h-0 m-0 p-6">
+        <TabsContent value="customizations" className="flex-1 min-h-0 min-w-0 m-0 p-6">
           {store && <CustomizationsPanel storeId={store.id} />}
         </TabsContent>
 
-        <TabsContent value="ingredients" className="flex-1 min-h-0 m-0 p-6">
+        <TabsContent value="ingredients" className="flex-1 min-h-0 min-w-0 m-0 p-6">
           {store && <IngredientsPanel storeId={store.id} />}
         </TabsContent>
       </Tabs>

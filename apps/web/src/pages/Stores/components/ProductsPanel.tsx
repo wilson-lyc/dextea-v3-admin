@@ -1,14 +1,20 @@
-import { useCallback, useEffect, useState } from "react"
-import { PackageIcon } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { PackageIcon, AlertTriangleIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { StoreProductItem } from "@dextea/shared-types"
-import { PRODUCT_STATUS } from "@dextea/shared-types"
-import { Badge } from "@/components/ui/badge"
+
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Switch } from "@/components/ui/switch"
+
 import {
   Table,
   TableBody,
@@ -26,19 +32,46 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { getStoreProducts, updateProductStoreStatus } from "@/services/store-status"
 
-const PRODUCT_STATUS_LABEL: Record<number, { label: string; className: string }> = {
+const PRODUCT_STATUS_TEXT: Record<number, { label: string; className: string }> = {
   0: {
     label: "下架",
-    className:
-      "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+    className: "text-red-700 dark:text-red-400",
   },
   1: {
     label: "可售",
-    className:
-      "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+    className: "text-green-700 dark:text-green-400",
   },
+}
+
+const STORE_STATUS_TEXT: Record<number, { label: string; className: string }> = {
+  0: {
+    label: "售罄",
+    className: "text-red-700 dark:text-red-400",
+  },
+  1: {
+    label: "可售",
+    className: "text-green-700 dark:text-green-400",
+  },
+}
+
+function getFinalStatus(globalStatus: number, storeStatus: number) {
+  if (globalStatus === 0) {
+    return { label: "下架", className: "text-red-700 dark:text-red-400" }
+  }
+  if (storeStatus === 0) {
+    return { label: "售罄", className: "text-red-700 dark:text-red-400" }
+  }
+  return { label: "可售", className: "text-green-700 dark:text-green-400" }
 }
 
 interface ProductsPanelProps {
@@ -50,16 +83,34 @@ export function ProductsPanel({ storeId }: ProductsPanelProps) {
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
+  const [globalFilter, setGlobalFilter] = useState("")
+  const [storeFilter, setStoreFilter] = useState("")
+  const [finalFilter, setFinalFilter] = useState("")
   const pageSize = 20
 
   const fetchData = useCallback(
     async (targetPage: number) => {
       setLoading(true)
       try {
-        const res = await getStoreProducts(storeId, {
+        const params: Record<string, string | number> = {
           page: targetPage,
           pageSize,
-        })
+        }
+
+        if (finalFilter === "下架") {
+          params.globalStatus = "0"
+        } else if (finalFilter === "售罄") {
+          params.globalStatus = "1"
+          params.storeStatus = "0"
+        } else if (finalFilter === "可售") {
+          params.globalStatus = "1"
+          params.storeStatus = "1"
+        } else {
+          if (globalFilter) params.globalStatus = globalFilter
+          if (storeFilter) params.storeStatus = storeFilter
+        }
+
+        const res = await getStoreProducts(storeId, params)
         if (res.code === 0) {
           setData(res.data.items)
           setTotal(res.data.total)
@@ -73,35 +124,41 @@ export function ProductsPanel({ storeId }: ProductsPanelProps) {
         setLoading(false)
       }
     },
-    [storeId],
+    [storeId, globalFilter, storeFilter, finalFilter],
   )
 
+  // Re-fetch when filters change, resetting to page 1
   useEffect(() => {
     fetchData(1)
-  }, [fetchData])
+  }, [globalFilter, storeFilter, finalFilter])
 
-  const handleToggleStatus = async (
-    productId: number,
-    currentStatus: number,
-  ) => {
+  const [toggleTarget, setToggleTarget] = useState<{
+    id: number
+    name: string
+    currentStatus: number
+  } | null>(null)
+
+  const handleToggleConfirm = useCallback(async () => {
+    if (!toggleTarget) return
+    const { id, currentStatus } = toggleTarget
     const newStatus =
-      currentStatus === PRODUCT_STATUS.OFF.value
-        ? PRODUCT_STATUS.ON.value
-        : PRODUCT_STATUS.OFF.value
+      currentStatus === 1 ? 0 : 1
+
     setData((prev) =>
       prev.map((item) =>
-        item.id === productId ? { ...item, storeStatus: newStatus } : item,
+        item.id === id ? { ...item, storeStatus: newStatus } : item,
       ),
     )
+    setToggleTarget(null)
 
     try {
-      const res = await updateProductStoreStatus(storeId, productId, {
+      const res = await updateProductStoreStatus(storeId, id, {
         status: newStatus,
       })
       if (res.code !== 0) {
         setData((prev) =>
           prev.map((item) =>
-            item.id === productId
+            item.id === id
               ? { ...item, storeStatus: currentStatus }
               : item,
           ),
@@ -111,32 +168,102 @@ export function ProductsPanel({ storeId }: ProductsPanelProps) {
     } catch {
       setData((prev) =>
         prev.map((item) =>
-          item.id === productId
+          item.id === id
             ? { ...item, storeStatus: currentStatus }
             : item,
         ),
       )
       toast.error("更新商品门店状态失败")
     }
-  }
+  }, [storeId, toggleTarget])
+
+  useEffect(() => {
+    fetchData(1)
+  }, [fetchData])
+
+  const stats = useMemo(() => {
+    let available = 0
+    let soldOut = 0
+    let offShelf = 0
+    for (const item of data) {
+      if (item.globalStatus === 0) {
+        offShelf++
+      } else if (item.storeStatus === 0) {
+        soldOut++
+      } else {
+        available++
+      }
+    }
+    return { available, soldOut, offShelf }
+  }, [data])
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4 text-sm">
+          <span>
+            可售 <strong className="text-green-700 dark:text-green-400">{stats.available}</strong>
+          </span>
+          <span className="text-muted-foreground">/</span>
+          <span>
+            售罄 <strong className="text-red-700 dark:text-red-400">{stats.soldOut}</strong>
+          </span>
+          <span className="text-muted-foreground">/</span>
+          <span>
+            下架 <strong className="text-red-700 dark:text-red-400">{stats.offShelf}</strong>
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Select value={globalFilter} onValueChange={setGlobalFilter}>
+            <SelectTrigger className="w-28" size="sm">
+              <SelectValue placeholder="全局状态" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">全部</SelectItem>
+              <SelectItem value="0">下架</SelectItem>
+              <SelectItem value="1">可售</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={storeFilter} onValueChange={setStoreFilter}>
+            <SelectTrigger className="w-28" size="sm">
+              <SelectValue placeholder="门店状态" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">全部</SelectItem>
+              <SelectItem value="0">售罄</SelectItem>
+              <SelectItem value="1">可售</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={finalFilter} onValueChange={setFinalFilter}>
+            <SelectTrigger className="w-28" size="sm">
+              <SelectValue placeholder="最终状态" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">全部</SelectItem>
+              <SelectItem value="下架">下架</SelectItem>
+              <SelectItem value="售罄">售罄</SelectItem>
+              <SelectItem value="可售">可售</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       <ScrollArea className="max-h-[calc(100vh-480px)]">
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
               <TableHead>商品名称</TableHead>
-              <TableHead>价格(¥)</TableHead>
+              <TableHead>价格</TableHead>
               <TableHead>全局状态</TableHead>
-              <TableHead className="w-28 text-right">门店状态</TableHead>
+              <TableHead>门店状态</TableHead>
+              <TableHead>最终状态</TableHead>
+              <TableHead className="text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={6}
                   className="h-32 text-center text-sm text-muted-foreground"
                 >
                   加载中...
@@ -144,7 +271,7 @@ export function ProductsPanel({ storeId }: ProductsPanelProps) {
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-48 text-center">
+                <TableCell colSpan={6} className="h-48 text-center">
                   <Empty>
                     <EmptyMedia variant="icon">
                       <PackageIcon className="size-4" />
@@ -157,27 +284,53 @@ export function ProductsPanel({ storeId }: ProductsPanelProps) {
               data.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>{item.name}</TableCell>
-                  <TableCell>{item.price}</TableCell>
+                  <TableCell>¥ {item.price.toFixed(2)}</TableCell>
                   <TableCell>
-                    <Badge
+                    <span
                       className={
-                        PRODUCT_STATUS_LABEL[item.globalStatus]?.className ??
+                        PRODUCT_STATUS_TEXT[item.globalStatus]?.className ??
                         ""
                       }
                     >
-                      {PRODUCT_STATUS_LABEL[item.globalStatus]?.label ??
+                      {PRODUCT_STATUS_TEXT[item.globalStatus]?.label ??
                         String(item.globalStatus)}
-                    </Badge>
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={
+                        STORE_STATUS_TEXT[item.storeStatus]?.className ??
+                        ""
+                      }
+                    >
+                      {STORE_STATUS_TEXT[item.storeStatus]?.label ??
+                        String(item.storeStatus)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className={getFinalStatus(item.globalStatus, item.storeStatus).className}>
+                      {getFinalStatus(item.globalStatus, item.storeStatus).label}
+                    </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Switch
-                      checked={
-                        item.storeStatus === PRODUCT_STATUS.ON.value
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setToggleTarget({
+                          id: item.id,
+                          name: item.name,
+                          currentStatus: item.storeStatus,
+                        })
                       }
-                      onCheckedChange={() =>
-                        handleToggleStatus(item.id, item.storeStatus)
+                      className={
+                        item.storeStatus === 1
+                          ? "text-red-500 hover:text-red-500"
+                          : "text-green-600 hover:text-green-600"
                       }
-                    />
+                    >
+                      {item.storeStatus === 1 ? "转门店售罄" : "转门店可售"}
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -252,6 +405,36 @@ export function ProductsPanel({ storeId }: ProductsPanelProps) {
           </PaginationContent>
         </Pagination>
       )}
+
+      <Dialog
+        open={toggleTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setToggleTarget(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              <AlertTriangleIcon className="mr-1.5 inline size-4 text-destructive" />
+              确认操作
+            </DialogTitle>
+          </DialogHeader>
+          <DialogDescription>
+            确认修改「{toggleTarget?.name}」的门店状态为{toggleTarget?.currentStatus === 1 ? "售罄" : "可售"}？
+          </DialogDescription>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setToggleTarget(null)}
+            >
+              取消
+            </Button>
+            <Button variant="destructive" onClick={handleToggleConfirm}>
+              确认
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

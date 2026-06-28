@@ -318,7 +318,7 @@ export function CustomizationsPanel({ storeId }: CustomizationsPanelProps) {
                     <TableRow key={option.id}>
                       <TableCell>{option.name}</TableCell>
                       <TableCell className="font-mono text-xs">
-                        ¥{Number(option.price).toFixed(2)}
+                        ¥ {Number(option.price).toFixed(2)}
                       </TableCell>
                       <TableCell>
                         <Badge

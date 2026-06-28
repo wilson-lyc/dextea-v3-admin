@@ -236,7 +236,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               <TableRow key={o.id}>
                 <TableCell className="font-mono text-xs">{o.id}</TableCell>
                 <TableCell>{o.name}</TableCell>
-                <TableCell className="font-mono text-xs">¥{Number(o.price).toFixed(2)}</TableCell>
+                <TableCell className="font-mono text-xs">¥ {Number(o.price).toFixed(2)}</TableCell>
                 <TableCell className="font-mono text-xs">{o.sort}</TableCell>
                 <TableCell>
                   <Badge
