@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { PlusIcon, Trash2Icon, TagIcon } from "lucide-react"
+import { LinkIcon, Trash2Icon, TagIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { ProductTag } from "@dextea/shared-types"
@@ -39,6 +39,7 @@ interface TagsPanelProps {
 }
 
 export default function TagsPanel({ productId }: TagsPanelProps) {
+  // 标签列表 & 分页状态
   const [tags, setTags] = useState<ProductTag[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -46,10 +47,11 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
   const pageSize = 20
   const [addTagDialogOpen, setAddTagDialogOpen] = useState(false)
 
-  // Delete confirmation state
+  // 删除确认弹窗状态
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deletingTag, setDeletingTag] = useState<{ id: number; name: string } | null>(null)
 
+  // 获取商品标签列表（支持分页）
   const fetchTags = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
@@ -68,10 +70,12 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
     }
   }, [productId, pageSize])
 
+  // 首次加载时获取第 1 页数据
   useEffect(() => {
     fetchTags(1)
   }, [fetchTags])
 
+  // 点击解绑按钮 → 弹出确认框
   const handleRemoveTag = (tag: { id: number; name: string }) => {
     setDeletingTag(tag)
     setDeleteConfirmOpen(true)
@@ -95,18 +99,21 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
     }
   }
 
+  // 已绑标签 ID 集合（供 AddTagDialog 排除已选项）
   const existingTagIds = tags.map((t) => t.id)
 
   return (
     <div className="flex flex-col gap-4">
+      {/* 顶部操作栏：新增标签按钮 + 总数统计 */}
       <div className="flex items-center justify-between">
         <Button onClick={() => setAddTagDialogOpen(true)}>
-          <PlusIcon data-icon="inline-start" />
-          新增标签
+          <LinkIcon data-icon="inline-start" />
+          绑定标签
         </Button>
         {!loading && <span className="text-sm text-muted-foreground">共 {total} 个标签</span>}
       </div>
 
+      {/* 标签列表表格（加载态 / 空态 / 列表） */}
       <ScrollArea className="max-h-[calc(100vh-480px)]">
         <Table>
           <TableHeader>
@@ -117,12 +124,14 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
           </TableHeader>
           <TableBody>
             {loading ? (
+              // 加载中状态
               <TableRow>
                 <TableCell colSpan={2} className="h-32 text-center text-sm text-muted-foreground">
                   加载中...
                 </TableCell>
               </TableRow>
             ) : tags.length === 0 ? (
+              // 空数据状态
               <TableRow>
                 <TableCell colSpan={2} className="h-48 text-center">
                   <Empty>
@@ -137,6 +146,7 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
                 </TableCell>
               </TableRow>
             ) : (
+              // 标签列表行
               tags.map((tag) => (
                 <TableRow key={tag.id}>
                   <TableCell>{tag.name}</TableCell>
@@ -158,7 +168,7 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
         </Table>
       </ScrollArea>
 
-      {/* Pagination */}
+      {/* 分页组件（仅在有数据时显示） */}
       {!loading && tags.length > 0 && (
         <Pagination className="justify-end">
           <PaginationContent>
@@ -233,7 +243,7 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
         onAdded={() => fetchTags(page)}
       />
 
-      {/* Delete confirmation dialog */}
+      {/* 确认解绑弹窗 */}
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <DialogContent>
           <DialogHeader>

@@ -533,14 +533,14 @@ export async function productRoutes(app: FastifyInstance) {
     }
   });
 
-  /** 添加商品标签 */
+  /** 绑定商品标签 */
   app.post<{
     Params: { id: string };
     Body: { tagId: number };
     Reply: ApiResponse<null>;
   }>('/products/:id/tags', {
     schema: {
-      description: '添加商品标签',
+      description: '绑定商品标签',
       tags: ['Products'],
       params: {
         type: 'object',
@@ -614,7 +614,7 @@ export async function productRoutes(app: FastifyInstance) {
       return {
         code: 0,
         data: null,
-        message: '添加成功',
+        message: '绑定成功',
       };
     } catch (error) {
       if (error instanceof AppError) throw error;

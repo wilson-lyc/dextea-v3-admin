@@ -107,6 +107,7 @@ export async function initRoutes(app: FastifyInstance) {
         email,
         password: hashedPassword,
         displayName,
+        status: 1,
       });
 
       await db.insert(configTable).values({

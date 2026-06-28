@@ -23,7 +23,6 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { getProducts } from "@/services"
-import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { CreateProductDialog } from "./components/CreateProductDialog"
 import {
@@ -127,33 +126,42 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Table with scroll container */}
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Spinner className="size-6 text-muted-foreground" />
-        </div>
-      ) : products.length === 0 ? (
-        <Empty>
-          <EmptyMedia variant="icon">
-            <PackageIcon className="size-4" />
-          </EmptyMedia>
-          <EmptyTitle>暂无数据</EmptyTitle>
-        </Empty>
-      ) : (
-        <ScrollArea className="max-h-[calc(100vh-280px)]">
-          <Table>
-            <TableHeader>
+      {/* Table area (always renders) */}
+      <ScrollArea className="max-h-[calc(100vh-480px)]">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>商品名称</TableHead>
+              <TableHead>价格</TableHead>
+              <TableHead>状态</TableHead>
+              <TableHead>标签</TableHead>
+              <TableHead className="text-right">操作</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>商品名称</TableHead>
-                <TableHead>价格</TableHead>
-                <TableHead>状态</TableHead>
-                <TableHead>标签</TableHead>
-                <TableHead className="text-right">操作</TableHead>
+                <TableCell colSpan={6} className="h-32 text-center text-sm text-muted-foreground">
+                  加载中...
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map((product) => (
+            ) : products.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-48 text-center">
+                  <Empty>
+                    <EmptyMedia variant="icon">
+                      <PackageIcon className="size-4" />
+                    </EmptyMedia>
+                    <EmptyTitle>暂无数据</EmptyTitle>
+                    <Button onClick={() => setDialogOpen(true)}>
+                      立即添加
+                    </Button>
+                  </Empty>
+                </TableCell>
+              </TableRow>
+            ) : (
+              products.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell className="font-mono text-xs">{product.id}</TableCell>
                   <TableCell>{product.name}</TableCell>
@@ -181,11 +189,11 @@ export default function ProductsPage() {
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ScrollArea>
-      )}
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </ScrollArea>
 
       {/* Pagination */}
       {!loading && products.length > 0 && (

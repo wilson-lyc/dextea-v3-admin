@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Spinner } from "@/components/ui/spinner"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   Pagination,
@@ -140,18 +140,7 @@ export default function CustomizationPage() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Spinner className="size-6 text-muted-foreground" />
-        </div>
-      ) : items.length === 0 ? (
-        <Empty>
-          <EmptyMedia variant="icon">
-            <ListIcon className="size-4" />
-          </EmptyMedia>
-          <EmptyTitle>暂无数据</EmptyTitle>
-        </Empty>
-      ) : (
+      <ScrollArea className="max-h-[calc(100vh-480px)]">
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>
@@ -165,22 +154,43 @@ export default function CustomizationPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-mono text-xs">{item.id}</TableCell>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>{item.displayName || "-"}</TableCell>
-                <TableCell>
-                  <span
-                    className={
-                      item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value
-                        ? "text-sm text-red-500"
-                        : "text-sm text-green-600"
-                    }
-                  >
-                    {item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "下架" : "启用"}
-                  </span>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="h-32 text-center text-sm text-muted-foreground">
+                  加载中...
                 </TableCell>
+              </TableRow>
+            ) : items.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="h-48 text-center">
+                  <Empty>
+                    <EmptyMedia variant="icon">
+                      <ListIcon className="size-4" />
+                    </EmptyMedia>
+                    <EmptyTitle>暂无数据</EmptyTitle>
+                    <Button onClick={() => setDialogOpen(true)}>
+                      立即添加
+                    </Button>
+                  </Empty>
+                </TableCell>
+              </TableRow>
+            ) : (
+              items.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-mono text-xs">{item.id}</TableCell>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell>{item.displayName || "-"}</TableCell>
+                  <TableCell>
+                    <span
+                      className={
+                        item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value
+                          ? "text-sm text-red-500"
+                          : "text-sm text-green-600"
+                      }
+                    >
+                      {item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "下架" : "启用"}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-center font-mono text-xs">{item.boundCount}</TableCell>
                   <TableCell className="text-center font-mono text-xs">{item.optionCount}</TableCell>
                   <TableCell className="text-right">
@@ -197,10 +207,10 @@ export default function CustomizationPage() {
                   </TableCell>
                 </TableRow>
               ))
-            }
+            )}
           </TableBody>
         </Table>
-      )}
+      </ScrollArea>
 
       {/* Pagination */}
       {!loading && items.length > 0 && (

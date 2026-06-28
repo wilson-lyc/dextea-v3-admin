@@ -49,4 +49,5 @@ export interface ToggleUserStatusResponse {
 export interface UserQuery {
   page?: string;
   pageSize?: string;
+  keyword?: string;
 }

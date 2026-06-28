@@ -34,6 +34,7 @@ export async function userRoutes(app: FastifyInstance) {
         properties: {
           page: { type: 'string', description: '页码' },
           pageSize: { type: 'string', description: '每页数量' },
+          keyword: { type: 'string', description: '搜索关键词（邮箱/用户名）' },
         },
       },
       response: {
@@ -74,9 +75,10 @@ export async function userRoutes(app: FastifyInstance) {
       const db = await getDb();
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
+      const keyword = request.query.keyword?.trim();
       const offset = (page - 1) * pageSize;
 
-      const items = await db
+      const baseQuery = db
         .select({
           id: usersTable.id,
           email: usersTable.email,
@@ -85,14 +87,23 @@ export async function userRoutes(app: FastifyInstance) {
           createdAt: usersTable.createdAt,
           updatedAt: usersTable.updatedAt,
         })
-        .from(usersTable)
+        .from(usersTable);
+
+      const countQuery = db.select({ count: sql<number>`count(*)` }).from(usersTable);
+
+      if (keyword) {
+        const pattern = `%${keyword}%`;
+        const filter = sql`(${usersTable.email} like ${pattern} or ${usersTable.displayName} like ${pattern})`;
+        baseQuery.where(filter);
+        countQuery.where(filter);
+      }
+
+      const items = await baseQuery
         .limit(pageSize)
         .offset(offset)
         .orderBy(usersTable.id);
 
-      const result = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(usersTable);
+      const result = await countQuery;
 
       const total = Number(result[0]?.count ?? 0);
 

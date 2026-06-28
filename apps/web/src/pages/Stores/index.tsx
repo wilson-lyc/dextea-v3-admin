@@ -38,7 +38,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { Spinner } from "@/components/ui/spinner"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { CreateStoreDialog } from "./components/CreateStoreDialog"
 
@@ -162,18 +162,7 @@ export default function StoresPage() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Spinner className="size-6 text-muted-foreground" />
-        </div>
-      ) : stores.length === 0 ? (
-        <Empty>
-          <EmptyMedia variant="icon">
-            <Building2Icon className="size-4" />
-          </EmptyMedia>
-          <EmptyTitle>暂无数据</EmptyTitle>
-        </Empty>
-      ) : (
+      <ScrollArea className="max-h-[calc(100vh-480px)]">
         <TooltipProvider>
         <Table>
           <TableHeader>
@@ -188,39 +177,61 @@ export default function StoresPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {stores.map((store) => (
-              <TableRow key={store.id}>
-                <TableCell className="font-mono text-xs">{store.id}</TableCell>
-                <TableCell>{store.name}</TableCell>
-                <TableCell className="max-w-60 truncate">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span>{fullAddress(store)}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{fullAddress(store)}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TableCell>
-                <TableCell>{store.phone || "-"}</TableCell>
-                <TableCell>{store.businessHours || "-"}</TableCell>
-                <TableCell>
-                  <span className={STATUS_CLASSES[store.status]}>
-                    {STORE_STATUS_LABEL[store.status]}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="outline" size="sm" onClick={() => navigate(`/stores/${store.id}`)}>
-                    <SettingsIcon data-icon="inline-start" />
-                    管理
-                  </Button>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="h-32 text-center text-sm text-muted-foreground">
+                  加载中...
                 </TableCell>
               </TableRow>
-            ))}
+            ) : stores.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="h-48 text-center">
+                  <Empty>
+                    <EmptyMedia variant="icon">
+                      <Building2Icon className="size-4" />
+                    </EmptyMedia>
+                    <EmptyTitle>暂无数据</EmptyTitle>
+                    <Button onClick={() => setDialogOpen(true)}>
+                      立即添加
+                    </Button>
+                  </Empty>
+                </TableCell>
+              </TableRow>
+            ) : (
+              stores.map((store) => (
+                <TableRow key={store.id}>
+                  <TableCell className="font-mono text-xs">{store.id}</TableCell>
+                  <TableCell>{store.name}</TableCell>
+                  <TableCell className="max-w-60 truncate">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>{fullAddress(store)}</span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{fullAddress(store)}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell>{store.phone || "-"}</TableCell>
+                  <TableCell>{store.businessHours || "-"}</TableCell>
+                  <TableCell>
+                    <span className={STATUS_CLASSES[store.status]}>
+                      {STORE_STATUS_LABEL[store.status]}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/stores/${store.id}`)}>
+                      <SettingsIcon data-icon="inline-start" />
+                      管理
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
         </TooltipProvider>
-      )}
+      </ScrollArea>
 
       {!loading && stores.length > 0 && (
         <Pagination className="justify-end">

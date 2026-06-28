@@ -65,14 +65,14 @@ export function AddTagDialog({ open, onOpenChange, productId, existingTagIds, on
     try {
       const res = await addProductTag(productId, Number(selectedTagId))
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success("绑定成功")
         onOpenChange(false)
         onAdded()
       } else {
         toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "添加标签失败")
+      toast.error(err instanceof Error ? err.message : "绑定标签失败")
     } finally {
       setSubmitting(false)
     }
@@ -82,7 +82,7 @@ export function AddTagDialog({ open, onOpenChange, productId, existingTagIds, on
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>添加标签</DialogTitle>
+          <DialogTitle>绑定标签</DialogTitle>
         </DialogHeader>
 
         <FieldGroup className="py-2">

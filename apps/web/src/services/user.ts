@@ -12,7 +12,7 @@ import type {
 import { http } from './http'
 
 /** GET /users (paginated) */
-export function getUsers(params?: { page?: number; pageSize?: number }) {
+export function getUsers(params?: { page?: number; pageSize?: number; keyword?: string }) {
   return http
     .get<ApiResponse<PaginatedData<User>>>('/users', { params })
     .then((res) => res.data)
