@@ -1,13 +1,19 @@
 import type { FastifyInstance } from 'fastify';
-import { eq, sql } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
 import { getDb } from '../db/index.js';
-import { storesTable } from '../db/schema.js';
-import { geocode } from '../utils/geocode.js';
-import { hashPassword } from '../utils/password.js';
 import { AppError } from '../errorcode/index.js';
 import { storeErrors } from '../errorcode/stores.js';
-import { parsePositiveInt, validateRequired, validateEmail, validatePhone, validateMaxLength, validateLongitude, validateLatitude } from '../utils/validation.js';
+import { parsePositiveInt } from '../utils/validation.js';
+import {
+  listStores,
+  getStore,
+  createStore,
+  updateStore,
+  updateStoreBasicInfo,
+  updateStoreLocation,
+  updateStoreStatus,
+  resetStorePassword,
+  syncStoreLocations,
+} from '../services/store.service.js';
 import type {
   ApiResponse,
   PaginatedData,
@@ -25,10 +31,7 @@ import type {
   UpdateStoreLocationResponse,
   ResetStorePasswordResponse,
 } from '@dextea/shared-types';
-import {
-  STORE_STATUS,
-  STORE_STATUS_VALUES,
-} from '@dextea/shared-types';
+import { STORE_STATUS } from '@dextea/shared-types';
 
 const STORE_STATUS_LABEL: Record<number, string> = {
   [STORE_STATUS.RESTING.value]: '休息中',
@@ -101,37 +104,13 @@ export async function storeRoutes(app: FastifyInstance) {
       const db = await getDb();
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
-      const offset = (page - 1) * pageSize;
       const keyword = request.query.keyword;
 
-      let query = db
-        .select()
-        .from(storesTable)
-        .$dynamic();
-
-      let countQuery = db
-        .select({ count: sql<number>`count(*)` })
-        .from(storesTable)
-        .$dynamic();
-
-      if (keyword) {
-        const pattern = `%${keyword}%`;
-        const filter = sql`${storesTable.name} like ${pattern} or ${storesTable.phone} like ${pattern} or ${storesTable.address} like ${pattern}`;
-        query = query.where(filter);
-        countQuery = countQuery.where(filter);
-      }
-
-      const items = await query
-        .limit(pageSize)
-        .offset(offset)
-        .orderBy(storesTable.id);
-
-      const countResult = await countQuery;
-      const total = Number(countResult[0]?.count ?? 0);
+      const data = await listStores(db, { page, pageSize, keyword });
 
       return {
         code: 0,
-        data: { items, total, page, pageSize },
+        data,
         message: 'ok',
       };
     } catch (error) {
@@ -192,19 +171,11 @@ export async function storeRoutes(app: FastifyInstance) {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '门店ID');
 
-      const store = await db
-        .select()
-        .from(storesTable)
-        .where(eq(storesTable.id, id))
-        .limit(1);
-
-      if (store.length === 0) {
-        throw new AppError(storeErrors.STORE_NOT_FOUND);
-      }
+      const data = await getStore(db, id);
 
       return {
         code: 0,
-        data: store[0],
+        data,
         message: 'ok',
       };
     } catch (error) {
@@ -260,64 +231,15 @@ export async function storeRoutes(app: FastifyInstance) {
   }, async (request, reply) => {
     try {
       const db = await getDb();
-      const { name, province, city, district, address, businessHours, phone, account, email } = request.body;
 
-      validateMaxLength(name, 255, '门店名称');
-      validateMaxLength(account, 255, '登录账号');
-      validateMaxLength(province, 100, '省份');
-      validateMaxLength(city, 100, '城市');
-      validateMaxLength(district, 100, '区县');
-      validateMaxLength(address, 500, '详细地址');
-      validatePhone(phone);
-      validateEmail(email, '门店邮箱');
-
-      const existingStore = await db
-        .select()
-        .from(storesTable)
-        .where(eq(storesTable.account, account))
-        .limit(1);
-
-      if (existingStore.length > 0) {
-        throw new AppError(storeErrors.ACCOUNT_EXISTS);
-      }
-
-      const coords = await geocode(province, city, district, address);
-      const longitude = coords?.longitude ?? 0;
-      const latitude = coords?.latitude ?? 0;
-
-      if (!coords) {
-        request.log.warn({ address: [province, city, district, address].filter(Boolean).join('') }, 'Geocoding failed, using default coordinates');
-      }
-
-      const initialPassword = nanoid(12);
-      const hashedPassword = await hashPassword(initialPassword);
-
-      const result = await db.insert(storesTable).values({
-        name,
-        province: province ?? '',
-        city: city ?? '',
-        district: district ?? '',
-        address: address ?? '',
-        businessHours: businessHours ?? '',
-        phone: phone ?? '',
-        account,
-        password: hashedPassword,
-        email: email ?? '',
-        longitude,
-        latitude,
+      const data = await createStore(db, request.body, {
+        requestLogWarn: (obj, msg) => request.log.warn(obj, msg),
+        redis: request.server.redis,
       });
-
-      const insertId = Number(result[0]?.insertId ?? 0);
-
-      try {
-        await request.server.redis.geoadd('dextea:store:location', longitude, latitude, String(insertId));
-      } catch (redisError) {
-        request.log.error(redisError, 'Failed to store location in Redis');
-      }
 
       return {
         code: 0,
-        data: { id: insertId, initialPassword },
+        data,
         message: '创建成功',
       };
     } catch (error) {
@@ -380,44 +302,12 @@ export async function storeRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '门店ID');
-      const { name, province, city, district, address, status, businessHours, phone, longitude, latitude } = request.body;
 
-      validateMaxLength(name, 255, '门店名称');
-      validateMaxLength(province, 100, '省份');
-      validateMaxLength(city, 100, '城市');
-      validateMaxLength(district, 100, '区县');
-      validateMaxLength(address, 500, '详细地址');
-      validatePhone(phone);
-
-      const store = await db
-        .select()
-        .from(storesTable)
-        .where(eq(storesTable.id, id))
-        .limit(1);
-
-      if (store.length === 0) {
-        throw new AppError(storeErrors.STORE_NOT_FOUND);
-      }
-
-      await db
-        .update(storesTable)
-        .set({
-          name,
-          province,
-          city,
-          district,
-          address,
-          status,
-          businessHours,
-          phone,
-          ...(longitude !== undefined ? { longitude } : {}),
-          ...(latitude !== undefined ? { latitude } : {}),
-        })
-        .where(eq(storesTable.id, id));
+      const data = await updateStore(db, id, request.body);
 
       return {
         code: 0,
-        data: { id },
+        data,
         message: '更新成功',
       };
     } catch (error) {
@@ -474,30 +364,12 @@ export async function storeRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '门店ID');
-      const { name, phone, businessHours, email } = request.body;
 
-      validateMaxLength(name, 255, '门店名称');
-      validatePhone(phone);
-      validateEmail(email, '门店邮箱');
-
-      const store = await db
-        .select()
-        .from(storesTable)
-        .where(eq(storesTable.id, id))
-        .limit(1);
-
-      if (store.length === 0) {
-        throw new AppError(storeErrors.STORE_NOT_FOUND);
-      }
-
-      await db
-        .update(storesTable)
-        .set({ name, phone, businessHours, email: email ?? '' })
-        .where(eq(storesTable.id, id));
+      const data = await updateStoreBasicInfo(db, id, request.body);
 
       return {
         code: 0,
-        data: { id },
+        data,
         message: '门店基础信息更新成功',
       };
     } catch (error) {
@@ -556,42 +428,12 @@ export async function storeRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '门店ID');
-      const { province, city, district, address, longitude, latitude } = request.body;
 
-      validateMaxLength(province, 100, '省份');
-      validateMaxLength(city, 100, '城市');
-      validateMaxLength(district, 100, '区县');
-      validateMaxLength(address, 500, '详细地址');
-      validateLongitude(longitude);
-      validateLatitude(latitude);
-
-      const store = await db
-        .select()
-        .from(storesTable)
-        .where(eq(storesTable.id, id))
-        .limit(1);
-
-      if (store.length === 0) {
-        throw new AppError(storeErrors.STORE_NOT_FOUND);
-      }
-
-      await db
-        .update(storesTable)
-        .set({ province, city, district, address, longitude, latitude })
-        .where(eq(storesTable.id, id));
-
-      try {
-        await request.server.redis.zrem('dextea:store:location', String(id));
-        if (longitude && latitude) {
-          await request.server.redis.geoadd('dextea:store:location', longitude, latitude, String(id));
-        }
-      } catch (redisError) {
-        request.log.error(redisError, 'Failed to update store location in Redis');
-      }
+      const data = await updateStoreLocation(db, id, request.body, { redis: request.server.redis });
 
       return {
         code: 0,
-        data: { id },
+        data,
         message: '门店位置更新成功',
       };
     } catch (error) {
@@ -629,27 +471,12 @@ export async function storeRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
 
-      // 1. 清除 Redis 中的门店定位数据
-      await request.server.redis.del('dextea:store:location');
-
-      // 2. 从 MySQL 查询所有有经纬度的门店
-      const stores = await db
-        .select({ id: storesTable.id, longitude: storesTable.longitude, latitude: storesTable.latitude })
-        .from(storesTable);
-
-      // 3. 批量写入 Redis
-      let synced = 0;
-      for (const store of stores) {
-        if (store.longitude && store.latitude) {
-          await request.server.redis.geoadd('dextea:store:location', store.longitude, store.latitude, String(store.id));
-          synced++;
-        }
-      }
+      const data = await syncStoreLocations(db, { redis: request.server.redis });
 
       return {
         code: 0,
-        data: { synced },
-        message: `同步完成，共同步 ${synced} 家门店`,
+        data,
+        message: `同步完成，共同步 ${data.synced} 家门店`,
       };
     } catch (error) {
       if (error instanceof AppError) throw error;
@@ -704,29 +531,11 @@ export async function storeRoutes(app: FastifyInstance) {
       const id = parsePositiveInt(request.params.id, '门店ID');
       const { status } = request.body;
 
-      const validStatuses = STORE_STATUS_VALUES;
-      if (!validStatuses.includes(status)) {
-        throw new AppError(storeErrors.INVALID_STATUS);
-      }
-
-      const store = await db
-        .select()
-        .from(storesTable)
-        .where(eq(storesTable.id, id))
-        .limit(1);
-
-      if (store.length === 0) {
-        throw new AppError(storeErrors.STORE_NOT_FOUND);
-      }
-
-      await db
-        .update(storesTable)
-        .set({ status })
-        .where(eq(storesTable.id, id));
+      const data = await updateStoreStatus(db, id, status);
 
       return {
         code: 0,
-        data: { status },
+        data,
         message: `门店状态已更新为「${STORE_STATUS_LABEL[status] ?? status}」`,
       };
     } catch (error) {
@@ -773,27 +582,11 @@ export async function storeRoutes(app: FastifyInstance) {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '门店ID');
 
-      const store = await db
-        .select()
-        .from(storesTable)
-        .where(eq(storesTable.id, id))
-        .limit(1);
-
-      if (store.length === 0) {
-        throw new AppError(storeErrors.STORE_NOT_FOUND);
-      }
-
-      const newPassword = nanoid(12);
-      const hashedPassword = await hashPassword(newPassword);
-
-      await db
-        .update(storesTable)
-        .set({ password: hashedPassword })
-        .where(eq(storesTable.id, id));
+      const data = await resetStorePassword(db, id);
 
       return {
         code: 0,
-        data: { newPassword },
+        data,
         message: '密码重置成功',
       };
     } catch (error) {

@@ -1,24 +1,15 @@
 import type { FastifyInstance } from 'fastify';
-import { eq, sql } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
 import { getDb } from '../db/index.js';
-import { usersTable } from '../db/schema.js';
-import { hashPassword } from '../utils/password.js';
 import { AppError } from '../errorcode/index.js';
 import { userErrors } from '../errorcode/users.js';
-import { parsePositiveInt, validateEmail, validateMaxLength, validateStatus } from '../utils/validation.js';
+import { parsePositiveInt } from '../utils/validation.js';
+import { listUsers, createUser, updateUser, toggleUserStatus } from '../services/user.service.js';
 import type {
   ApiResponse,
   PaginatedData,
   User,
   UserQuery,
-  CreateUserInput,
-  CreateUserResponse,
-  UpdateUserInput,
-  UpdateUserResponse,
-  ToggleUserStatusResponse,
 } from '@dextea/shared-types';
-import { USER_STATUS, USER_STATUS_VALUES } from '@dextea/shared-types';
 
 export async function userRoutes(app: FastifyInstance) {
   /** 用户列表 */
@@ -70,46 +61,18 @@ export async function userRoutes(app: FastifyInstance) {
       },
       security: [{ bearerAuth: [] }],
     },
-  }, async (request, reply) => {
+  }, async (request) => {
     try {
       const db = await getDb();
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
       const keyword = request.query.keyword?.trim();
-      const offset = (page - 1) * pageSize;
 
-      const baseQuery = db
-        .select({
-          id: usersTable.id,
-          email: usersTable.email,
-          displayName: usersTable.displayName,
-          status: usersTable.status,
-          createdAt: usersTable.createdAt,
-          updatedAt: usersTable.updatedAt,
-        })
-        .from(usersTable);
-
-      const countQuery = db.select({ count: sql<number>`count(*)` }).from(usersTable);
-
-      if (keyword) {
-        const pattern = `%${keyword}%`;
-        const filter = sql`(${usersTable.email} like ${pattern} or ${usersTable.displayName} like ${pattern})`;
-        baseQuery.where(filter);
-        countQuery.where(filter);
-      }
-
-      const items = await baseQuery
-        .limit(pageSize)
-        .offset(offset)
-        .orderBy(usersTable.id);
-
-      const result = await countQuery;
-
-      const total = Number(result[0]?.count ?? 0);
+      const data = await listUsers(db, { page, pageSize, keyword });
 
       return {
         code: 0,
-        data: { items, total, page, pageSize },
+        data,
         message: 'ok',
       };
     } catch (error) {
@@ -121,8 +84,8 @@ export async function userRoutes(app: FastifyInstance) {
 
   /** 新增用户 */
   app.post<{
-    Body: CreateUserInput;
-    Reply: ApiResponse<CreateUserResponse>;
+    Body: { email: string; displayName: string };
+    Reply: ApiResponse<{ user: { id: number; email: string; displayName: string; status: number }; initialPassword: string }>;
   }>('/users', {
     schema: {
       description: '新增用户',
@@ -161,49 +124,14 @@ export async function userRoutes(app: FastifyInstance) {
       },
       security: [{ bearerAuth: [] }],
     },
-  }, async (request, reply) => {
+  }, async (request) => {
     try {
       const db = await getDb();
-      const { email, displayName } = request.body;
-
-      validateEmail(email);
-      validateMaxLength(displayName, 255, '显示名称');
-
-
-      const existingUser = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.email, email))
-        .limit(1);
-
-      if (existingUser.length > 0) {
-        throw new AppError(userErrors.EMAIL_EXISTS);
-      }
-
-      // 生成随机密码（12位）
-      const initialPassword = nanoid(12);
-      const hashedPassword = await hashPassword(initialPassword);
-
-      const result = await db.insert(usersTable).values({
-        email,
-        password: hashedPassword,
-        displayName,
-        status: USER_STATUS.DISABLED.value,
-      });
-
-      const insertId = Number(result[0]?.insertId ?? 0);
+      const data = await createUser(db, request.body);
 
       return {
         code: 0,
-        data: {
-          user: {
-            id: insertId,
-            email,
-            displayName,
-            status: USER_STATUS.DISABLED.value,
-          },
-          initialPassword,
-        },
+        data,
         message: '创建成功',
       };
     } catch (error) {
@@ -216,8 +144,8 @@ export async function userRoutes(app: FastifyInstance) {
   /** 更新用户 */
   app.put<{
     Params: { id: string };
-    Body: UpdateUserInput;
-    Reply: ApiResponse<UpdateUserResponse>;
+    Body: { email: string; displayName: string; status: number };
+    Reply: ApiResponse<{ id: number; email: string; displayName: string; status: number }>;
   }>('/users/:id', {
     schema: {
       description: '更新用户',
@@ -258,57 +186,15 @@ export async function userRoutes(app: FastifyInstance) {
       },
       security: [{ bearerAuth: [] }],
     },
-  }, async (request, reply) => {
+  }, async (request) => {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '用户ID');
-      const { email, displayName, status } = request.body;
-
-      validateEmail(email);
-      validateMaxLength(displayName, 255, '显示名称');
-      if (status !== undefined) {
-        validateStatus(status, USER_STATUS_VALUES, '用户状态');
-      }
-
-      // Check if user exists
-      const user = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.id, id))
-        .limit(1);
-
-      if (user.length === 0) {
-        throw new AppError(userErrors.USER_NOT_FOUND);
-      }
-
-      // Check email uniqueness (excluding self)
-      const existingEmail = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.email, email))
-        .limit(1);
-
-      if (existingEmail.length > 0 && existingEmail[0].id !== id) {
-        throw new AppError(userErrors.EMAIL_EXISTS_OTHER);
-      }
-
-      await db
-        .update(usersTable)
-        .set({
-          email,
-          displayName,
-          status,
-        })
-        .where(eq(usersTable.id, id));
+      const data = await updateUser(db, id, request.body);
 
       return {
         code: 0,
-        data: {
-          id,
-          email,
-          displayName,
-          status,
-        },
+        data,
         message: '更新成功',
       };
     } catch (error) {
@@ -321,7 +207,7 @@ export async function userRoutes(app: FastifyInstance) {
   /** 启用/禁用用户 */
   app.patch<{
     Params: { id: string };
-    Reply: ApiResponse<ToggleUserStatusResponse>;
+    Reply: ApiResponse<{ status: number }>;
   }>('/users/:id/status', {
     schema: {
       description: '启用或禁用用户',
@@ -350,32 +236,16 @@ export async function userRoutes(app: FastifyInstance) {
       },
       security: [{ bearerAuth: [] }],
     },
-  }, async (request, reply) => {
+  }, async (request) => {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '用户ID');
-
-      const user = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.id, id))
-        .limit(1);
-
-      if (user.length === 0) {
-        throw new AppError(userErrors.USER_NOT_FOUND);
-      }
-
-      const newStatus = user[0].status === USER_STATUS.DISABLED.value ? USER_STATUS.ACTIVE.value : USER_STATUS.DISABLED.value;
-
-      await db
-        .update(usersTable)
-        .set({ status: newStatus })
-        .where(eq(usersTable.id, id));
+      const data = await toggleUserStatus(db, id);
 
       return {
         code: 0,
-        data: { status: newStatus },
-        message: newStatus === USER_STATUS.ACTIVE.value ? '已激活' : '已禁用',
+        data,
+        message: data.status === 1 ? '已激活' : '已禁用',
       };
     } catch (error) {
       if (error instanceof AppError) throw error;

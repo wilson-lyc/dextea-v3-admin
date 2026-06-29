@@ -1,12 +1,7 @@
 import type { FastifyInstance } from 'fastify';
-import { eq } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import { configTable, usersTable } from '../db/schema.js';
-import { hashPassword } from '../utils/password.js';
 import { AppError } from '../errorcode/index.js';
-import { initErrors } from '../errorcode/init.js';
-import { userErrors } from '../errorcode/users.js';
-import { validateRequired, validateEmail, validatePassword, validateMaxLength } from '../utils/validation.js';
+import { getInitStatus, initialize } from '../services/init.service.js';
 import type { ApiResponse, InitStatusData, InitRequest } from '@dextea/shared-types';
 
 export async function initRoutes(app: FastifyInstance) {
@@ -34,16 +29,11 @@ export async function initRoutes(app: FastifyInstance) {
   }, async (_request, _reply) => {
     try {
       const db = await getDb();
-      const record = await db
-        .select()
-        .from(configTable)
-        .where(eq(configTable.key, 'Initialized'))
-        .limit(1);
-
-      return { code: 0, data: { initialized: record.length > 0 }, message: 'ok' };
+      const data = await getInitStatus(db);
+      return { code: 0, data, message: 'ok' };
     } catch (error) {
       if (error instanceof AppError) throw error;
-      throw new AppError(initErrors.INIT_FAILED);
+      throw new AppError({ code: 10501, message: '初始化失败，请检查数据库连接或稍后重试', httpStatus: 200 });
     }
   });
 
@@ -75,52 +65,12 @@ export async function initRoutes(app: FastifyInstance) {
   }, async (request, reply) => {
     try {
       const db = await getDb();
-
-      const record = await db
-        .select()
-        .from(configTable)
-        .where(eq(configTable.key, 'Initialized'))
-        .limit(1);
-
-      if (record.length > 0) {
-        throw new AppError(initErrors.ALREADY_INITIALIZED);
-      }
-
-      const { email, password, displayName } = request.body;
-
-      validateEmail(email);
-      validatePassword(password);
-      validateMaxLength(displayName, 255, '显示名称');
-
-      const existingUser = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.email, email))
-        .limit(1);
-
-      if (existingUser.length > 0) {
-        throw new AppError(initErrors.EMAIL_EXISTS);
-      }
-
-      const hashedPassword = await hashPassword(password);
-      await db.insert(usersTable).values({
-        email,
-        password: hashedPassword,
-        displayName,
-        status: 1,
-      });
-
-      await db.insert(configTable).values({
-        key: 'Initialized',
-        value: 'true',
-        note: '系统初始化标记',
-      });
-
+      await initialize(db, request.body);
       return { code: 0, data: null, message: '初始化成功' };
     } catch (error) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
-      throw new AppError(initErrors.INIT_FAILED);
+      throw new AppError({ code: 10501, message: '初始化失败，请检查数据库连接或稍后重试', httpStatus: 200 });
     }
   });
 }

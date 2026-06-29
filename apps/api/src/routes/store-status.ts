@@ -1,20 +1,16 @@
 import type { FastifyInstance } from 'fastify';
-import { eq, and, sql, type SQL } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import {
-  storesTable,
-  productsTable,
-  productStoreStatusTable,
-  productCustomizationsTable,
-  customizationOptionsTable,
-  customizationOptionStoreStatusTable,
-  ingredientsTable,
-  storeInventoryTable,
-} from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { storeStatusErrors } from '../errorcode/store-status.js';
-import { storeErrors } from '../errorcode/stores.js';
 import { parsePositiveInt } from '../utils/validation.js';
+import {
+  listStoreProducts,
+  upsertProductStoreStatus,
+  listStoreCustomizations,
+  listStoreCustomizationOptions,
+  upsertCustomizationOptionStoreStatus,
+  listStoreIngredients,
+} from '../services/store-status.service.js';
 import type {
   ApiResponse,
   PaginatedData,
@@ -92,75 +88,30 @@ export async function storeStatusRoutes(app: FastifyInstance) {
       const db = await getDb();
       const storeId = parsePositiveInt(request.params.storeId, '门店ID');
 
-      const [store] = await db
-        .select({ id: storesTable.id })
-        .from(storesTable)
-        .where(eq(storesTable.id, storeId))
-        .limit(1);
-      if (!store) throw new AppError(storeErrors.STORE_NOT_FOUND);
-
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
-      const offset = (page - 1) * pageSize;
 
-      const conditions: (SQL | undefined)[] = [];
-
-      const rawGlobalStatus = request.query.globalStatus;
-      if (rawGlobalStatus !== undefined) {
-        const gs = parseInt(rawGlobalStatus, 10);
+      let globalStatus: number | undefined;
+      if (request.query.globalStatus !== undefined) {
+        const gs = parseInt(request.query.globalStatus, 10);
         if (gs === 0 || gs === 1) {
-          conditions.push(eq(productsTable.status, gs));
+          globalStatus = gs;
         }
       }
 
-      const rawStoreStatus = request.query.storeStatus;
-      let storeStatusFilter: number | undefined;
-      if (rawStoreStatus !== undefined) {
-        const ss = parseInt(rawStoreStatus, 10);
+      let storeStatus: number | undefined;
+      if (request.query.storeStatus !== undefined) {
+        const ss = parseInt(request.query.storeStatus, 10);
         if (ss === 0 || ss === 1) {
-          storeStatusFilter = ss;
+          storeStatus = ss;
         }
       }
 
-      const baseQuery = db
-        .select({
-          id: productsTable.id,
-          name: productsTable.name,
-          price: productsTable.price,
-          globalStatus: productsTable.status,
-          storeStatus: sql<number>`COALESCE(${productStoreStatusTable.status}, 0)`,
-        })
-        .from(productsTable)
-        .leftJoin(
-          productStoreStatusTable,
-          and(
-            eq(productStoreStatusTable.productId, productsTable.id),
-            eq(productStoreStatusTable.storeId, storeId),
-          ),
-        );
-
-      if (conditions.length > 0) {
-        baseQuery.where(and(...conditions));
-      }
-
-      if (storeStatusFilter !== undefined) {
-        baseQuery.having(eq(sql`COALESCE(${productStoreStatusTable.status}, 0)`, storeStatusFilter));
-      }
-
-      const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(productsTable);
-
-      const total = Number(countResult[0]?.count ?? 0);
-
-      const rows = await baseQuery
-        .limit(pageSize)
-        .offset(offset)
-        .orderBy(productsTable.id);
+      const data = await listStoreProducts(db, storeId, { page, pageSize, globalStatus, storeStatus });
 
       return {
         code: 0,
-        data: { items: rows, total, page, pageSize },
+        data,
         message: 'ok',
       };
     } catch (error) {
@@ -216,19 +167,7 @@ export async function storeStatusRoutes(app: FastifyInstance) {
       const productId = parsePositiveInt(request.params.productId, '商品ID');
       const { status } = request.body;
 
-      const [store] = await db
-        .select({ id: storesTable.id })
-        .from(storesTable)
-        .where(eq(storesTable.id, storeId))
-        .limit(1);
-      if (!store) throw new AppError(storeErrors.STORE_NOT_FOUND);
-
-      await db
-        .insert(productStoreStatusTable)
-        .values({ productId, storeId, status })
-        .onDuplicateKeyUpdate({
-          set: { status },
-        });
+      await upsertProductStoreStatus(db, storeId, productId, status);
 
       return {
         code: 0,
@@ -304,49 +243,15 @@ export async function storeStatusRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const storeId = parsePositiveInt(request.params.storeId, '门店ID');
-      const [store] = await db
-        .select({ id: storesTable.id })
-        .from(storesTable)
-        .where(eq(storesTable.id, storeId))
-        .limit(1);
-      if (!store) throw new AppError(storeErrors.STORE_NOT_FOUND);
 
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
-      const offset = (page - 1) * pageSize;
 
-      const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(productCustomizationsTable);
-
-      const total = Number(countResult[0]?.count ?? 0);
-
-      const rows = await db
-        .select({
-          id: productCustomizationsTable.id,
-          name: productCustomizationsTable.name,
-          globalStatus: productCustomizationsTable.status,
-          storeStatus: sql<number>`COALESCE(${customizationOptionStoreStatusTable.status}, 0)`,
-          optionCount: sql<number>`(
-            SELECT COUNT(*) FROM ${customizationOptionsTable}
-            WHERE ${customizationOptionsTable.customizationId} = ${productCustomizationsTable.id}
-          )`,
-        })
-        .from(productCustomizationsTable)
-        .leftJoin(
-          customizationOptionStoreStatusTable,
-          and(
-            eq(customizationOptionStoreStatusTable.customizationOptionId, productCustomizationsTable.id),
-            eq(customizationOptionStoreStatusTable.storeId, storeId),
-          ),
-        )
-        .limit(pageSize)
-        .offset(offset)
-        .orderBy(productCustomizationsTable.id);
+      const data = await listStoreCustomizations(db, storeId, { page, pageSize });
 
       return {
         code: 0,
-        data: { items: rows, total, page, pageSize },
+        data,
         message: 'ok',
       };
     } catch (error) {
@@ -420,48 +325,15 @@ export async function storeStatusRoutes(app: FastifyInstance) {
       const db = await getDb();
       const storeId = parsePositiveInt(request.params.storeId, '门店ID');
       const customizationId = parsePositiveInt(request.params.customizationId, '客制化项目ID');
-      const [store] = await db
-        .select({ id: storesTable.id })
-        .from(storesTable)
-        .where(eq(storesTable.id, storeId))
-        .limit(1);
-      if (!store) throw new AppError(storeErrors.STORE_NOT_FOUND);
 
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
-      const offset = (page - 1) * pageSize;
 
-      const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(customizationOptionsTable)
-        .where(eq(customizationOptionsTable.customizationId, customizationId));
-
-      const total = Number(countResult[0]?.count ?? 0);
-
-      const rows = await db
-        .select({
-          id: customizationOptionsTable.id,
-          name: customizationOptionsTable.name,
-          price: customizationOptionsTable.price,
-          globalStatus: customizationOptionsTable.status,
-          storeStatus: sql<number>`COALESCE(${customizationOptionStoreStatusTable.status}, 0)`,
-        })
-        .from(customizationOptionsTable)
-        .leftJoin(
-          customizationOptionStoreStatusTable,
-          and(
-            eq(customizationOptionStoreStatusTable.customizationOptionId, customizationOptionsTable.id),
-            eq(customizationOptionStoreStatusTable.storeId, storeId),
-          ),
-        )
-        .where(eq(customizationOptionsTable.customizationId, customizationId))
-        .limit(pageSize)
-        .offset(offset)
-        .orderBy(customizationOptionsTable.sort, customizationOptionsTable.id);
+      const data = await listStoreCustomizationOptions(db, storeId, customizationId, { page, pageSize });
 
       return {
         code: 0,
-        data: { items: rows, total, page, pageSize },
+        data,
         message: 'ok',
       };
     } catch (error) {
@@ -517,19 +389,7 @@ export async function storeStatusRoutes(app: FastifyInstance) {
       const optionId = parsePositiveInt(request.params.optionId, '客制化选项ID');
       const { status } = request.body;
 
-      const [store] = await db
-        .select({ id: storesTable.id })
-        .from(storesTable)
-        .where(eq(storesTable.id, storeId))
-        .limit(1);
-      if (!store) throw new AppError(storeErrors.STORE_NOT_FOUND);
-
-      await db
-        .insert(customizationOptionStoreStatusTable)
-        .values({ customizationOptionId: optionId, storeId, status })
-        .onDuplicateKeyUpdate({
-          set: { status },
-        });
+      await upsertCustomizationOptionStoreStatus(db, storeId, optionId, status);
 
       return {
         code: 0,
@@ -604,45 +464,15 @@ export async function storeStatusRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const storeId = parsePositiveInt(request.params.storeId, '门店ID');
-      const [store] = await db
-        .select({ id: storesTable.id })
-        .from(storesTable)
-        .where(eq(storesTable.id, storeId))
-        .limit(1);
-      if (!store) throw new AppError(storeErrors.STORE_NOT_FOUND);
 
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
-      const offset = (page - 1) * pageSize;
 
-      const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(ingredientsTable);
-
-      const total = Number(countResult[0]?.count ?? 0);
-
-      const rows = await db
-        .select({
-          id: ingredientsTable.id,
-          name: ingredientsTable.name,
-          unit: ingredientsTable.unit,
-          quantity: sql<number>`COALESCE(${storeInventoryTable.quantity}, 0)`,
-        })
-        .from(ingredientsTable)
-        .leftJoin(
-          storeInventoryTable,
-          and(
-            eq(storeInventoryTable.ingredientId, ingredientsTable.id),
-            eq(storeInventoryTable.storeId, storeId),
-          ),
-        )
-        .limit(pageSize)
-        .offset(offset)
-        .orderBy(ingredientsTable.id);
+      const data = await listStoreIngredients(db, storeId, { page, pageSize });
 
       return {
         code: 0,
-        data: { items: rows, total, page, pageSize },
+        data,
         message: 'ok',
       };
     } catch (error) {

@@ -1,15 +1,18 @@
 import type { FastifyInstance } from 'fastify';
-import { eq, sql } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import {
-  productCustomizationsTable,
-  productsTable,
-  customizationOptionsTable,
-  ingredientsTable,
-} from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { productCustomizationErrors } from '../errorcode/product-customizations.js';
-import { parsePositiveInt, validateMaxLength } from '../utils/validation.js';
+import { parsePositiveInt } from '../utils/validation.js';
+import {
+  listCustomizations,
+  getCustomization,
+  createCustomization,
+  updateCustomization,
+  getCustomizationOptions,
+  createCustomizationOption,
+  updateCustomizationOption,
+  deleteCustomizationOption,
+} from '../services/product-customization.service.js';
 import type {
   ApiResponse,
   PaginatedData,
@@ -81,53 +84,19 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
       const db = await getDb();
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
-      const offset = (page - 1) * pageSize;
       const keyword = request.query.keyword;
-      const status = request.query.status;
-      const productId = request.query.productId;
-
-      const conditions: ReturnType<typeof sql>[] = [];
-      if (keyword) {
-        const pattern = `%${keyword}%`;
-        conditions.push(sql`${productCustomizationsTable.name} like ${pattern}`);
-      }
-      if (status !== undefined && status !== '') {
-        conditions.push(eq(productCustomizationsTable.status, parseInt(status, 10)));
-      }
-      if (productId !== undefined && productId !== '') {
-        conditions.push(eq(productCustomizationsTable.productId, parseInt(productId, 10)));
-      }
-
-      const whereClause = conditions.length > 0
-        ? sql`${conditions.reduce((acc, c) => sql`${acc} and ${c}`)}`
+      const status = request.query.status !== undefined && request.query.status !== ''
+        ? parseInt(request.query.status, 10)
+        : undefined;
+      const productId = request.query.productId !== undefined && request.query.productId !== ''
+        ? parseInt(request.query.productId, 10)
         : undefined;
 
-      const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(productCustomizationsTable)
-        .where(whereClause);
-
-      const total = Number(countResult[0]?.count ?? 0);
-
-      const items = await db
-        .select({
-          id: productCustomizationsTable.id,
-          productId: productCustomizationsTable.productId,
-          name: productCustomizationsTable.name,
-          status: productCustomizationsTable.status,
-          optionCount: sql<number>`(select count(*) from ${customizationOptionsTable} where ${customizationOptionsTable.customizationId} = ${productCustomizationsTable.id})`,
-          createdAt: productCustomizationsTable.createdAt,
-          updatedAt: productCustomizationsTable.updatedAt,
-        })
-        .from(productCustomizationsTable)
-        .where(whereClause)
-        .orderBy(productCustomizationsTable.id)
-        .limit(pageSize)
-        .offset(offset);
+      const result = await listCustomizations(db, { page, pageSize, keyword, status, productId });
 
       return {
         code: 0,
-        data: { items, total, page, pageSize },
+        data: result,
         message: 'ok',
       };
     } catch (error) {
@@ -180,15 +149,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '客制化项目ID');
 
-      const [item] = await db
-        .select()
-        .from(productCustomizationsTable)
-        .where(eq(productCustomizationsTable.id, id))
-        .limit(1);
-
-      if (!item) {
-        throw new AppError(productCustomizationErrors.NOT_FOUND);
-      }
+      const item = await getCustomization(db, id);
 
       return {
         code: 0,
@@ -244,34 +205,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
   }, async (request) => {
     try {
       const db = await getDb();
-      const { productId, name } = request.body;
-
-      // 检查商品是否存在
-      const [product] = await db
-        .select({ id: productsTable.id })
-        .from(productsTable)
-        .where(eq(productsTable.id, productId))
-        .limit(1);
-
-      if (!product) {
-        throw new AppError(productCustomizationErrors.PRODUCT_NOT_FOUND);
-      }
-
-      const trimmedName = name.trim();
-      validateMaxLength(trimmedName, 255, '客制化项目名称');
-
-      const result = await db.insert(productCustomizationsTable).values({
-        productId,
-        name: trimmedName,
-      });
-
-      const insertId = Number(result[0]?.insertId ?? 0);
-
-      const [created] = await db
-        .select()
-        .from(productCustomizationsTable)
-        .where(eq(productCustomizationsTable.id, insertId))
-        .limit(1);
+      const created = await createCustomization(db, request.body);
 
       return {
         code: 0,
@@ -337,36 +271,8 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '客制化项目ID');
-      const { name, status } = request.body;
 
-      const trimmedName = name.trim();
-      validateMaxLength(trimmedName, 255, '客制化项目名称');
-
-      const [existing] = await db
-        .select()
-        .from(productCustomizationsTable)
-        .where(eq(productCustomizationsTable.id, id))
-        .limit(1);
-
-      if (!existing) {
-        throw new AppError(productCustomizationErrors.NOT_FOUND);
-      }
-
-      const updateData: Record<string, unknown> = {
-        name: trimmedName,
-      };
-      if (status !== undefined) updateData.status = status;
-
-      await db
-        .update(productCustomizationsTable)
-        .set(updateData)
-        .where(eq(productCustomizationsTable.id, id));
-
-      const [updated] = await db
-        .select()
-        .from(productCustomizationsTable)
-        .where(eq(productCustomizationsTable.id, id))
-        .limit(1);
+      const updated = await updateCustomization(db, id, request.body);
 
       return {
         code: 0,
@@ -430,24 +336,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
       const db = await getDb();
       const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
 
-      const options = await db
-        .select({
-          id: customizationOptionsTable.id,
-          customizationId: customizationOptionsTable.customizationId,
-          name: customizationOptionsTable.name,
-          price: customizationOptionsTable.price,
-          sort: customizationOptionsTable.sort,
-          status: customizationOptionsTable.status,
-          ingredientId: customizationOptionsTable.ingredientId,
-          ingredientName: sql<string>`coalesce(${ingredientsTable.name}, '')`,
-          quantity: customizationOptionsTable.quantity,
-          createdAt: customizationOptionsTable.createdAt,
-          updatedAt: customizationOptionsTable.updatedAt,
-        })
-        .from(customizationOptionsTable)
-        .leftJoin(ingredientsTable, eq(customizationOptionsTable.ingredientId, ingredientsTable.id))
-        .where(eq(customizationOptionsTable.customizationId, customizationId))
-        .orderBy(customizationOptionsTable.sort, customizationOptionsTable.id);
+      const options = await getCustomizationOptions(db, customizationId);
 
       return {
         code: 0,
@@ -518,51 +407,8 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
-      const { name, price, sort, ingredientId, quantity } = request.body;
 
-      const trimmedName = name.trim();
-      validateMaxLength(trimmedName, 255, '客制化选项名称');
-
-      if (ingredientId != null) {
-        const [ingredient] = await db
-          .select({ id: ingredientsTable.id })
-          .from(ingredientsTable)
-          .where(eq(ingredientsTable.id, ingredientId))
-          .limit(1);
-        if (!ingredient) {
-          throw new AppError(productCustomizationErrors.INGREDIENT_NOT_FOUND);
-        }
-      }
-
-      const result = await db.insert(customizationOptionsTable).values({
-        customizationId,
-        name: trimmedName,
-        price: price ?? 0,
-        sort: sort ?? 0,
-        ingredientId: ingredientId ?? null,
-        quantity: quantity ?? 0,
-      });
-
-      const insertId = Number(result[0]?.insertId ?? 0);
-
-      const [created] = await db
-        .select({
-          id: customizationOptionsTable.id,
-          customizationId: customizationOptionsTable.customizationId,
-          name: customizationOptionsTable.name,
-          price: customizationOptionsTable.price,
-          sort: customizationOptionsTable.sort,
-          status: customizationOptionsTable.status,
-          ingredientId: customizationOptionsTable.ingredientId,
-          ingredientName: sql<string>`coalesce(${ingredientsTable.name}, '')`,
-          quantity: customizationOptionsTable.quantity,
-          createdAt: customizationOptionsTable.createdAt,
-          updatedAt: customizationOptionsTable.updatedAt,
-        })
-        .from(customizationOptionsTable)
-        .leftJoin(ingredientsTable, eq(customizationOptionsTable.ingredientId, ingredientsTable.id))
-        .where(eq(customizationOptionsTable.id, insertId))
-        .limit(1);
+      const created = await createCustomizationOption(db, customizationId, request.body);
 
       return {
         code: 0,
@@ -633,51 +479,8 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
       const db = await getDb();
       const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
       const optionId = parsePositiveInt(request.params.optionId, '客制化选项ID');
-      const { name, price, sort, status } = request.body;
 
-      const [existing] = await db
-        .select()
-        .from(customizationOptionsTable)
-        .where(eq(customizationOptionsTable.id, optionId))
-        .limit(1);
-
-      if (!existing || existing.customizationId !== customizationId) {
-        throw new AppError(productCustomizationErrors.OPTION_NOT_FOUND);
-      }
-
-      const updateData: Record<string, unknown> = {};
-      if (name !== undefined) {
-        const trimmedName = name.trim();
-        validateMaxLength(trimmedName, 255, '客制化选项名称');
-        updateData.name = trimmedName;
-      }
-      if (price !== undefined) updateData.price = price;
-      if (sort !== undefined) updateData.sort = sort;
-      if (status !== undefined) updateData.status = status;
-
-      await db
-        .update(customizationOptionsTable)
-        .set(updateData)
-        .where(eq(customizationOptionsTable.id, optionId));
-
-      const [updated] = await db
-        .select({
-          id: customizationOptionsTable.id,
-          customizationId: customizationOptionsTable.customizationId,
-          name: customizationOptionsTable.name,
-          price: customizationOptionsTable.price,
-          sort: customizationOptionsTable.sort,
-          status: customizationOptionsTable.status,
-          ingredientId: customizationOptionsTable.ingredientId,
-          ingredientName: sql<string>`coalesce(${ingredientsTable.name}, '')`,
-          quantity: customizationOptionsTable.quantity,
-          createdAt: customizationOptionsTable.createdAt,
-          updatedAt: customizationOptionsTable.updatedAt,
-        })
-        .from(customizationOptionsTable)
-        .leftJoin(ingredientsTable, eq(customizationOptionsTable.ingredientId, ingredientsTable.id))
-        .where(eq(customizationOptionsTable.id, optionId))
-        .limit(1);
+      const updated = await updateCustomizationOption(db, customizationId, optionId, request.body);
 
       return {
         code: 0,
@@ -725,19 +528,7 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
       const customizationId = parsePositiveInt(request.params.id, '客制化项目ID');
       const optionId = parsePositiveInt(request.params.optionId, '客制化选项ID');
 
-      const [existing] = await db
-        .select()
-        .from(customizationOptionsTable)
-        .where(eq(customizationOptionsTable.id, optionId))
-        .limit(1);
-
-      if (!existing || existing.customizationId !== customizationId) {
-        throw new AppError(productCustomizationErrors.OPTION_NOT_FOUND);
-      }
-
-      await db
-        .delete(customizationOptionsTable)
-        .where(eq(customizationOptionsTable.id, optionId));
+      await deleteCustomizationOption(db, customizationId, optionId);
 
       return {
         code: 0,

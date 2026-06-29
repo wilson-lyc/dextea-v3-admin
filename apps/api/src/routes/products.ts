@@ -1,17 +1,23 @@
 import type { FastifyInstance } from 'fastify';
-import { and, eq, inArray, sql } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import {
-  productsTable,
-  productTagRelationsTable,
-  productTagsTable,
-  productIngredientRelationsTable,
-  ingredientsTable,
-} from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { productErrors } from '../errorcode/products.js';
-import { tagErrors } from '../errorcode/tags.js';
-import { parsePositiveInt, validateMaxLength, validatePrice, validateStatus } from '../utils/validation.js';
+import { parsePositiveInt } from '../utils/validation.js';
+import {
+  listProducts,
+  getProductBasicInfo,
+  createProduct,
+  updateProduct,
+  updateProductStatus,
+  getProductTags,
+  bindTagToProduct,
+  unbindTagFromProduct,
+  getProductIngredients,
+  bindIngredientToProduct,
+  updateIngredientQuantity,
+  unbindIngredientFromProduct,
+  getProductOptions,
+} from '../services/product.service.js';
 import type {
   ApiResponse,
   PaginatedData,
@@ -23,7 +29,6 @@ import type {
   BindTagToProductInput,
   UnbindTagFromProductInput,
 } from '@dextea/shared-types';
-import { PRODUCT_STATUS, PRODUCT_STATUS_VALUES } from '@dextea/shared-types';
 
 
 export async function productRoutes(app: FastifyInstance) {
@@ -97,116 +102,21 @@ export async function productRoutes(app: FastifyInstance) {
       const db = await getDb();
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
-      const offset = (page - 1) * pageSize;
       const keyword = request.query.keyword;
 
-      let query = db
-        .select()
-        .from(productsTable)
-        .$dynamic();
+      const status = request.query.status ? parseInt(request.query.status, 10) : undefined;
+      const priceMin = request.query.priceMin ? parseFloat(request.query.priceMin) : undefined;
+      const priceMax = request.query.priceMax ? parseFloat(request.query.priceMax) : undefined;
 
-      let countQuery = db
-        .select({ count: sql<number>`count(*)` })
-        .from(productsTable)
-        .$dynamic();
+      const tagIds = request.query.tagIds
+        ? request.query.tagIds.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n > 0)
+        : undefined;
 
-      if (keyword) {
-        const pattern = `%${keyword}%`;
-        const filter = sql`${productsTable.name} like ${pattern}`;
-        query = query.where(filter);
-        countQuery = countQuery.where(filter);
-      }
-
-      const statusVal = request.query.status;
-      if (statusVal) {
-        const parsedStatus = parseInt(statusVal, 10);
-        if (!isNaN(parsedStatus) && (PRODUCT_STATUS_VALUES as readonly number[]).includes(parsedStatus)) {
-          const filter = eq(productsTable.status, parsedStatus);
-          query = query.where(filter);
-          countQuery = countQuery.where(filter);
-        }
-      }
-
-      const priceMinVal = request.query.priceMin;
-      if (priceMinVal) {
-        const parsedPriceMin = parseFloat(priceMinVal);
-        if (!isNaN(parsedPriceMin) && parsedPriceMin >= 0) {
-          const filter = sql`${productsTable.price} >= ${parsedPriceMin}`;
-          query = query.where(filter);
-          countQuery = countQuery.where(filter);
-        }
-      }
-
-      const priceMaxVal = request.query.priceMax;
-      if (priceMaxVal) {
-        const parsedPriceMax = parseFloat(priceMaxVal);
-        if (!isNaN(parsedPriceMax) && parsedPriceMax >= 0) {
-          const filter = sql`${productsTable.price} <= ${parsedPriceMax}`;
-          query = query.where(filter);
-          countQuery = countQuery.where(filter);
-        }
-      }
-
-      const tagIdsVal = request.query.tagIds;
-      if (tagIdsVal) {
-        const tagIdArray = tagIdsVal.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n > 0);
-        if (tagIdArray.length > 0) {
-          const matchingProductIds = await db
-            .select({ productId: productTagRelationsTable.productId })
-            .from(productTagRelationsTable)
-            .where(inArray(productTagRelationsTable.tagId, tagIdArray))
-            .groupBy(productTagRelationsTable.productId)
-            .having(sql`count(distinct ${productTagRelationsTable.tagId}) = ${tagIdArray.length}`);
-
-          const productIdSet = matchingProductIds.map(r => r.productId);
-          if (productIdSet.length > 0) {
-            const filter = inArray(productsTable.id, productIdSet);
-            query = query.where(filter);
-            countQuery = countQuery.where(filter);
-          } else {
-            const filter = sql`1 = 0`;
-            query = query.where(filter);
-            countQuery = countQuery.where(filter);
-          }
-        }
-      }
-
-      const items = await query
-        .limit(pageSize)
-        .offset(offset)
-        .orderBy(productsTable.id);
-
-      if (items.length > 0) {
-        const productIds = items.map(p => p.id);
-        const tagRelations = await db
-          .select({
-            productId: productTagRelationsTable.productId,
-            tagId: productTagsTable.id,
-            tagName: productTagsTable.name,
-          })
-          .from(productTagRelationsTable)
-          .innerJoin(productTagsTable, eq(productTagRelationsTable.tagId, productTagsTable.id))
-          .where(inArray(productTagRelationsTable.productId, productIds));
-
-        const tagsByProductId = new Map<number, { id: number; name: string }[]>();
-        for (const rel of tagRelations) {
-          if (!tagsByProductId.has(rel.productId)) {
-            tagsByProductId.set(rel.productId, []);
-          }
-          tagsByProductId.get(rel.productId)!.push({ id: rel.tagId, name: rel.tagName });
-        }
-
-        for (const product of items) {
-          (product as Product).tags = tagsByProductId.get(product.id) ?? [];
-        }
-      }
-
-      const countResult = await countQuery;
-      const total = Number(countResult[0]?.count ?? 0);
+      const data = await listProducts(db, { page, pageSize, keyword, status, priceMin, priceMax, tagIds });
 
       return {
         code: 0,
-        data: { items, total, page, pageSize },
+        data,
         message: 'ok',
       };
     } catch (error) {
@@ -258,39 +168,11 @@ export async function productRoutes(app: FastifyInstance) {
       const db = await getDb();
       const { name, brief, description, price, status, tagIds } = request.body;
 
-      validateMaxLength(name, 255, '商品名称');
-      validateMaxLength(brief, 500, '简介');
-      validateMaxLength(description, 2000, '描述');
-
-      if (price !== undefined) {
-        validatePrice(price);
-      }
-      if (status !== undefined) {
-        validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
-      }
-
-      const result = await db.insert(productsTable).values({
-        name,
-        brief: brief ?? '',
-        description: description ?? '',
-        price: price ?? 0,
-        status: status ?? 0,
-      });
-
-      const insertId = Number(result[0]?.insertId ?? 0);
-
-      if (tagIds && tagIds.length > 0) {
-        await db.insert(productTagRelationsTable).values(
-          tagIds.map(tagId => ({
-            productId: insertId,
-            tagId,
-          })),
-        );
-      }
+      const result = await createProduct(db, { name, brief, description, price, status, tagIds });
 
       return {
         code: 0,
-        data: { id: insertId },
+        data: { id: result.id },
         message: '创建成功',
       };
     } catch (error) {
@@ -354,19 +236,11 @@ export async function productRoutes(app: FastifyInstance) {
       const db = await getDb();
       const id = parsePositiveInt(request.params.id, '商品ID');
 
-      const [product] = await db
-        .select()
-        .from(productsTable)
-        .where(eq(productsTable.id, id))
-        .limit(1);
-
-      if (!product) {
-        throw new AppError(productErrors.PRODUCT_NOT_FOUND);
-      }
+      const product = await getProductBasicInfo(db, id);
 
       return {
         code: 0,
-        data: product as Product,
+        data: product,
         message: 'ok',
       };
     } catch (error) {
@@ -434,32 +308,12 @@ export async function productRoutes(app: FastifyInstance) {
       const id = parsePositiveInt(request.params.id, '商品ID');
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
-      const offset = (page - 1) * pageSize;
 
-      const baseQuery = db
-        .select({
-          id: productTagsTable.id,
-          name: productTagsTable.name,
-        })
-        .from(productTagRelationsTable)
-        .innerJoin(productTagsTable, eq(productTagRelationsTable.tagId, productTagsTable.id))
-        .where(eq(productTagRelationsTable.productId, id));
-
-      const [countResult] = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(productTagRelationsTable)
-        .where(eq(productTagRelationsTable.productId, id));
-
-      const total = Number(countResult?.count ?? 0);
-
-      const tags = await baseQuery
-        .orderBy(productTagsTable.id)
-        .limit(pageSize)
-        .offset(offset);
+      const data = await getProductTags(db, id, page, pageSize);
 
       return {
         code: 0,
-        data: { items: tags, total, page, pageSize },
+        data,
         message: 'ok',
       };
     } catch (error) {
@@ -535,53 +389,11 @@ export async function productRoutes(app: FastifyInstance) {
       const id = parsePositiveInt(request.params.id, '商品ID');
       const { name, brief, description, price, status } = request.body;
 
-      const [product] = await db
-        .select()
-        .from(productsTable)
-        .where(eq(productsTable.id, id))
-        .limit(1);
-
-      if (!product) {
-        throw new AppError(productErrors.PRODUCT_NOT_FOUND);
-      }
-
-      if (name !== undefined) {
-        if (!name) throw new AppError(productErrors.NAME_REQUIRED);
-        validateMaxLength(name, 255, '商品名称');
-      }
-      validateMaxLength(brief, 500, '简介');
-      validateMaxLength(description, 2000, '描述');
-
-      if (price !== undefined) {
-        validatePrice(price);
-      }
-      if (status !== undefined) {
-        validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
-      }
-
-      const updateData: Partial<typeof productsTable.$inferInsert> = {};
-      if (name !== undefined) updateData.name = name;
-      if (brief !== undefined) updateData.brief = brief;
-      if (description !== undefined) updateData.description = description;
-      if (price !== undefined) updateData.price = price;
-      if (status !== undefined) updateData.status = status;
-
-      if (Object.keys(updateData).length > 0) {
-        await db
-          .update(productsTable)
-          .set(updateData)
-          .where(eq(productsTable.id, id));
-      }
-
-      const [updated] = await db
-        .select()
-        .from(productsTable)
-        .where(eq(productsTable.id, id))
-        .limit(1);
+      const updated = await updateProduct(db, id, { name, brief, description, price, status });
 
       return {
         code: 0,
-        data: updated as Product,
+        data: updated,
         message: '更新成功',
       };
     } catch (error) {
@@ -644,35 +456,14 @@ export async function productRoutes(app: FastifyInstance) {
       const id = parsePositiveInt(request.params.id, '商品ID');
       const { status } = request.body;
 
-      validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
+      const updated = await updateProductStatus(db, id, status);
 
-      const [product] = await db
-        .select()
-        .from(productsTable)
-        .where(eq(productsTable.id, id))
-        .limit(1);
-
-      if (!product) {
-        throw new AppError(productErrors.PRODUCT_NOT_FOUND);
-      }
-
-      await db
-        .update(productsTable)
-        .set({ status })
-        .where(eq(productsTable.id, id));
-
-      const [updated] = await db
-        .select()
-        .from(productsTable)
-        .where(eq(productsTable.id, id))
-        .limit(1);
-
-      const statusLabel = status === PRODUCT_STATUS.ON.value ? '可售' : '下架';
+      const statusLabel = updated.status === 1 ? '可售' : '下架';
 
       return {
         code: 0,
-        data: updated as Product,
-        message: `「${product.name}」的全局状态已更新为「${statusLabel}」`,
+        data: updated,
+        message: `「${updated.name}」的全局状态已更新为「${statusLabel}」`,
       };
     } catch (error) {
       if (error instanceof AppError) throw error;
@@ -727,56 +518,12 @@ export async function productRoutes(app: FastifyInstance) {
       const productId = parsePositiveInt(request.params.id, '商品ID');
       const { tagIds } = request.body;
 
-      const uniqueIds = [...new Set(tagIds)];
-
-      // 检查商品是否存在
-      const [product] = await db
-        .select({ id: productsTable.id })
-        .from(productsTable)
-        .where(eq(productsTable.id, productId))
-        .limit(1);
-
-      if (!product) {
-        throw new AppError(productErrors.PRODUCT_NOT_FOUND);
-      }
-
-      // 检查所有标签是否存在
-      const existingTags = await db
-        .select({ id: productTagsTable.id })
-        .from(productTagsTable)
-        .where(inArray(productTagsTable.id, uniqueIds));
-
-      if (existingTags.length !== uniqueIds.length) {
-        throw new AppError(tagErrors.TAG_NOT_FOUND);
-      }
-
-      // 过滤已绑定的标签
-      const existingBindings = await db
-        .select({ tagId: productTagRelationsTable.tagId })
-        .from(productTagRelationsTable)
-        .where(
-          and(
-            eq(productTagRelationsTable.productId, productId),
-            inArray(productTagRelationsTable.tagId, uniqueIds),
-          ),
-        );
-
-      const boundTagIds = new Set(existingBindings.map(r => r.tagId));
-      const toInsert = uniqueIds.filter(tid => !boundTagIds.has(tid));
-
-      if (toInsert.length === 0) {
-        throw new AppError(productErrors.TAG_ALREADY_EXISTS);
-      }
-
-      // 批量插入
-      await db.insert(productTagRelationsTable).values(
-        toInsert.map(tagId => ({ productId, tagId })),
-      );
+      const result = await bindTagToProduct(db, productId, tagIds);
 
       return {
         code: 0,
         data: null,
-        message: `成功绑定 ${toInsert.length} 个标签`,
+        message: `成功绑定 ${result.boundCount} 个标签`,
       };
     } catch (error) {
       if (error instanceof AppError) throw error;
@@ -831,14 +578,7 @@ export async function productRoutes(app: FastifyInstance) {
       const productId = parsePositiveInt(request.params.id, '商品ID');
       const { tagIds } = request.body;
 
-      await db
-        .delete(productTagRelationsTable)
-        .where(
-          and(
-            eq(productTagRelationsTable.productId, productId),
-            inArray(productTagRelationsTable.tagId, tagIds),
-          ),
-        );
+      await unbindTagFromProduct(db, productId, tagIds);
 
       return {
         code: 0,
@@ -914,31 +654,12 @@ export async function productRoutes(app: FastifyInstance) {
       const productId = parsePositiveInt(request.params.id, '商品ID');
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
-      const offset = (page - 1) * pageSize;
 
-      const rows = await db
-        .select({
-          ingredientId: productIngredientRelationsTable.ingredientId,
-          ingredientName: ingredientsTable.name,
-          unit: ingredientsTable.unit,
-          quantity: productIngredientRelationsTable.quantity,
-        })
-        .from(productIngredientRelationsTable)
-        .innerJoin(ingredientsTable, eq(productIngredientRelationsTable.ingredientId, ingredientsTable.id))
-        .where(eq(productIngredientRelationsTable.productId, productId))
-        .orderBy(productIngredientRelationsTable.ingredientId)
-        .limit(pageSize)
-        .offset(offset);
-
-      const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(productIngredientRelationsTable)
-        .where(eq(productIngredientRelationsTable.productId, productId));
-      const total = Number(countResult[0]?.count ?? 0);
+      const data = await getProductIngredients(db, productId, page, pageSize);
 
       return {
         code: 0,
-        data: { items: rows, total, page, pageSize },
+        data,
         message: 'ok',
       };
     } catch (error) {
@@ -990,29 +711,7 @@ export async function productRoutes(app: FastifyInstance) {
       const productId = parsePositiveInt(request.params.id, '商品ID');
       const { ingredientId, quantity } = request.body;
 
-      const [ingredient] = await db
-        .select({ id: ingredientsTable.id })
-        .from(ingredientsTable)
-        .where(eq(ingredientsTable.id, ingredientId))
-        .limit(1);
-
-      if (!ingredient) {
-        throw new AppError(productErrors.INGREDIENT_NOT_FOUND);
-      }
-
-      const [existing] = await db
-        .select()
-        .from(productIngredientRelationsTable)
-        .where(
-          sql`${productIngredientRelationsTable.productId} = ${productId} and ${productIngredientRelationsTable.ingredientId} = ${ingredientId}`,
-        )
-        .limit(1);
-
-      if (existing) {
-        throw new AppError(productErrors.INGREDIENT_ALREADY_BOUND);
-      }
-
-      await db.insert(productIngredientRelationsTable).values({ productId, ingredientId, quantity: quantity ?? 0 });
+      await bindIngredientToProduct(db, productId, ingredientId, quantity);
 
       return {
         code: 0,
@@ -1069,24 +768,7 @@ export async function productRoutes(app: FastifyInstance) {
       const ingredientId = parsePositiveInt(request.params.ingredientId, '原料ID');
       const { quantity } = request.body;
 
-      const [existing] = await db
-        .select()
-        .from(productIngredientRelationsTable)
-        .where(
-          sql`${productIngredientRelationsTable.productId} = ${productId} and ${productIngredientRelationsTable.ingredientId} = ${ingredientId}`,
-        )
-        .limit(1);
-
-      if (!existing) {
-        throw new AppError(productErrors.INGREDIENT_BIND_NOT_FOUND);
-      }
-
-      await db
-        .update(productIngredientRelationsTable)
-        .set({ quantity })
-        .where(
-          sql`${productIngredientRelationsTable.productId} = ${productId} and ${productIngredientRelationsTable.ingredientId} = ${ingredientId}`,
-        );
+      await updateIngredientQuantity(db, productId, ingredientId, quantity);
 
       return {
         code: 0,
@@ -1134,11 +816,7 @@ export async function productRoutes(app: FastifyInstance) {
       const productId = parsePositiveInt(request.params.id, '商品ID');
       const ingredientId = parsePositiveInt(request.params.ingredientId, '原料ID');
 
-      await db
-        .delete(productIngredientRelationsTable)
-        .where(
-          sql`${productIngredientRelationsTable.productId} = ${productId} and ${productIngredientRelationsTable.ingredientId} = ${ingredientId}`,
-        );
+      await unbindIngredientFromProduct(db, productId, ingredientId);
 
       return {
         code: 0,
@@ -1183,13 +861,7 @@ export async function productRoutes(app: FastifyInstance) {
   }, async (request) => {
     try {
       const db = await getDb();
-      const rows = await db
-        .select({
-          label: productsTable.name,
-          value: sql<string>`cast(${productsTable.id} as char)`,
-        })
-        .from(productsTable)
-        .orderBy(productsTable.id);
+      const rows = await getProductOptions(db);
 
       return {
         code: 0,

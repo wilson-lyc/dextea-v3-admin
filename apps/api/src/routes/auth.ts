@@ -1,17 +1,10 @@
 import type { FastifyInstance } from 'fastify';
-import { randomUUID } from 'node:crypto';
-import { eq } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import { usersTable } from '../db/schema.js';
-import { verifyPassword } from '../utils/password.js';
 import { AppError } from '../errorcode/index.js';
 import { authErrors } from '../errorcode/auth.js';
-import { validateRequired, validateEmail, validatePassword } from '../utils/validation.js';
-import { USER_STATUS } from '@dextea/shared-types';
+import { validateRequired } from '../utils/validation.js';
+import { login, logout } from '../services/auth.service.js';
 import type { ApiResponse, AuthMeResponse, LoginRequest, LoginResponse } from '@dextea/shared-types';
-
-const TOKEN_PREFIX = 'dextea:admin:token:';
-const TOKEN_TTL = 60 * 30; // 30 分钟
 
 export async function authRoutes(app: FastifyInstance) {
 
@@ -98,51 +91,12 @@ export async function authRoutes(app: FastifyInstance) {
   }, async (request, reply) => {
     try {
       const { account, password } = request.body;
-
-      validateEmail(account, '账号');
-      validatePassword(password);
-
       const db = await getDb();
-
-      const users = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.email, account))
-        .limit(1);
-
-      const user = users[0];
-      if (!user) {
-        throw new AppError(authErrors.INVALID_CREDENTIALS);
-      }
-
-      const valid = await verifyPassword(password, user.password);
-      if (!valid) {
-        throw new AppError(authErrors.INVALID_CREDENTIALS);
-      }
-
-      if (user.status === USER_STATUS.DISABLED.value) {
-        throw new AppError(authErrors.ACCOUNT_DISABLED);
-      }
-
-      const token = randomUUID();
-      const sessionData = JSON.stringify({
-        userId: user.id,
-        email: user.email,
-        displayName: user.displayName,
-      });
-
-      await app.redis.setex(`${TOKEN_PREFIX}${token}`, TOKEN_TTL, sessionData);
+      const result = await login(db, account, password, { redisClient: app.redis });
 
       return {
         code: 0,
-        data: {
-          token,
-          user: {
-            id: user.id,
-            email: user.email,
-            displayName: user.displayName,
-          },
-        },
+        data: result,
         message: '登录成功',
       };
     } catch (error) {
@@ -170,14 +124,9 @@ export async function authRoutes(app: FastifyInstance) {
       },
     },
   }, async (request, reply) => {
-    const authHeader = request.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new AppError(authErrors.INVALID_TOKEN);
-    }
-
     try {
-      const token = authHeader.slice(7);
-      await app.redis.del(`${TOKEN_PREFIX}${token}`);
+      const authHeader = request.headers.authorization;
+      await logout({ redisClient: app.redis, authHeader });
 
       return {
         code: 0,
