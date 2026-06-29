@@ -5,7 +5,7 @@ import { http } from "./http"
  * 获取客制化项目列表（分页）
  * GET /product-customizations
  */
-export function getProductCustomizations(params?: { page?: number; pageSize?: number; keyword?: string; status?: number }) {
+export function getProductCustomizations(params?: { page?: number; pageSize?: number; keyword?: string; status?: number; productId?: number }) {
   return http.get<ApiResponse<PaginatedData<ProductCustomization>>>("/product-customizations", { params }).then((res) => res.data)
 }
 
@@ -31,44 +31,6 @@ export function updateProductCustomization(id: number, data: UpdateProductCustom
  */
 export function createProductCustomization(data: CreateProductCustomizationInput) {
   return http.post<ApiResponse<ProductCustomization>>("/product-customizations", data).then((res) => res.data)
-}
-
-interface BoundProduct {
-  productId: number
-  productName: string
-  sort: number
-}
-
-/**
- * 获取客制化项目绑定的商品列表
- * GET /product-customizations/:id/products
- */
-export function getBoundProducts(customizationId: number) {
-  return http.get<ApiResponse<BoundProduct[]>>(`/product-customizations/${customizationId}/products`).then((res) => res.data)
-}
-
-/**
- * 绑定商品到客制化项目
- * POST /product-customizations/:id/products
- */
-export function bindProduct(customizationId: number, productId: number, sort?: number) {
-  return http.post<ApiResponse<null>>(`/product-customizations/${customizationId}/products`, { productId, sort }).then((res) => res.data)
-}
-
-/**
- * 更新客制化项目绑定的商品排序
- * PATCH /product-customizations/:id/products/:productId/sort
- */
-export function updateBoundProductSort(customizationId: number, productId: number, sort: number) {
-  return http.patch<ApiResponse<null>>(`/product-customizations/${customizationId}/products/${productId}/sort`, { sort }).then((res) => res.data)
-}
-
-/**
- * 解绑商品与客制化项目
- * DELETE /product-customizations/:id/products/:productId
- */
-export function unbindProduct(customizationId: number, productId: number) {
-  return http.delete<ApiResponse<null>>(`/product-customizations/${customizationId}/products/${productId}`).then((res) => res.data)
 }
 
 // ──── 客制化选项 ────

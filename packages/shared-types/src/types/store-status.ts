@@ -24,7 +24,6 @@ export interface UpsertProductStoreStatusRequest {
 export interface StoreCustomizationItem {
   id: number;
   name: string;
-  displayName: string;
   globalStatus: ProductCustomizationStatus;
   storeStatus: ProductCustomizationStatus;
   optionCount: number;

@@ -163,33 +163,16 @@ export const productTagRelationsTable = mysqlTable(
 
 /**
  * 客制化项目表
+ * productId 与商品表 1对多 关联（一个商品可以有多个客制化项目）
  */
 export const productCustomizationsTable = mysqlTable('product_customizations', {
   id: serial().primaryKey(),
+  productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
   name: varchar({ length: 255 }).notNull(),
-  displayName: varchar('display_name', { length: 255 }).notNull().default(''),
   status: tinyint().notNull().default(0),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
-
-/**
- * 商品-客制化关联表
- */
-export const productCustomizationRelationsTable = mysqlTable(
-  'product_customization_relations',
-  {
-    productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
-    customizationId: bigint('customization_id', { mode: 'number', unsigned: true }).notNull(),
-    sort: tinyint().notNull().default(0),
-  },
-  (table) => ({
-    primaryKey: primaryKey({
-      name: 'pk_product_customization_relations',
-      columns: [table.productId, table.customizationId],
-    }),
-  }),
-);
 
 /**
  * 商品-原料关联表

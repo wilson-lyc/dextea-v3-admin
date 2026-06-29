@@ -5,23 +5,21 @@ import type { ProductCustomizationStatus } from '../status/product-customization
 
 export interface ProductCustomization {
   id: number;
+  productId: number;
   name: string;
-  displayName: string;
   status: ProductCustomizationStatus;
-  boundCount: number;
-  optionCount: number;
+  optionCount?: number;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateProductCustomizationInput {
+  productId: number;
   name: string;
-  displayName: string;
 }
 
 export interface UpdateProductCustomizationInput {
   name: string;
-  displayName: string;
   status?: ProductCustomizationStatus;
 }
 
@@ -30,4 +28,5 @@ export type ProductCustomizationQuery = {
   pageSize?: string;
   keyword?: string;
   status?: string;
+  productId?: string;
 };

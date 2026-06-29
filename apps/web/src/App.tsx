@@ -11,8 +11,6 @@ import StoreDetailPage from "@/pages/Stores/detail"
 import ProductsPage from "@/pages/Products"
 import ProductDetailPage from "@/pages/Products/detail"
 import TagListPage from "@/pages/ProductTags"
-import CustomizationPage from "@/pages/Customization"
-import CustomizationDetailPage from "@/pages/Customization/detail"
 import IngredientsPage from "@/pages/Ingredients"
 import IngredientDetailPage from "@/pages/Ingredients/detail"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
@@ -43,8 +41,6 @@ function App() {
             <Route path="products" element={<ProductsPage />} />
             <Route path="products/:id" element={<ProductDetailPage />} />
             <Route path="products/tags" element={<TagListPage />} />
-            <Route path="products/customization" element={<CustomizationPage />} />
-            <Route path="products/customization/:id" element={<CustomizationDetailPage />} />
             <Route path="products/ingredients" element={<IngredientsPage />} />
             <Route path="products/ingredients/:id" element={<IngredientDetailPage />} />
           </Route>

@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, type SQL } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
 import {
   storesTable,
@@ -10,7 +10,6 @@ import {
   customizationOptionStoreStatusTable,
   ingredientsTable,
   storeInventoryTable,
-  productCustomizationRelationsTable,
 } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { storeStatusErrors } from '../errorcode/store-status.js';
@@ -284,7 +283,6 @@ export async function storeStatusRoutes(app: FastifyInstance) {
                     properties: {
                       id: { type: 'integer' },
                       name: { type: 'string' },
-                      displayName: { type: 'string' },
                       globalStatus: { type: 'integer' },
                       storeStatus: { type: 'integer' },
                       optionCount: { type: 'integer' },
@@ -327,7 +325,6 @@ export async function storeStatusRoutes(app: FastifyInstance) {
         .select({
           id: productCustomizationsTable.id,
           name: productCustomizationsTable.name,
-          displayName: productCustomizationsTable.displayName,
           globalStatus: productCustomizationsTable.status,
           storeStatus: sql<number>`COALESCE(${customizationOptionStoreStatusTable.status}, 0)`,
           optionCount: sql<number>`(

@@ -36,7 +36,6 @@ const navItems: NavItem[] = [
     children: [
       { label: "商品", path: "/products" },
       { label: "标签", path: "/products/tags" },
-      { label: "客制化", path: "/products/customization" },
       { label: "原料", path: "/products/ingredients" },
     ],
   },
