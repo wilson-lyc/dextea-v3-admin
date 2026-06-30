@@ -1,6 +1,6 @@
 ---
 name: table-specifications
-description: 当在列表页中创建或编辑表格时使用本 skill 约束代码框架、统一样式与事件。管理表格区域和分页组件的代码结构、三态渲染、样式规范。
+description: 当在列表页中创建或编辑表格时使用本 skill 约束代码框架、统一样式与事件。管理表格区域和分页组件的代码结构、三态渲染。
 ---
 
 # 列表页表格组件的实现规范
@@ -154,27 +154,46 @@ Pagination (数据非空时渲染, 样式: shrink-0, justify-end)
 ```tsx
 const totalPages = Math.ceil(total / pageSize)
 
+function getPageNumbers(page: number, totalPages: number): (number | 'ellipsis')[] {
+  if (totalPages <= 6) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1)
+  }
+  if (page <= 4) {
+    return [1, 2, 3, 4, 5, 'ellipsis', totalPages]
+  }
+  if (page >= totalPages - 3) {
+    return [1, 'ellipsis', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+  }
+  return [1, 'ellipsis', page - 1, page, page + 1, 'ellipsis', totalPages]
+}
+
 <Pagination className="shrink-0 justify-end">
   <PaginationContent>
     <PaginationItem>
       <PaginationPrevious
+        text="上一页"
         href="#"
         onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchData(page - 1) }}
       />
     </PaginationItem>
-    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-      <PaginationItem key={p}>
-        <PaginationLink
-          href="#"
-          isActive={p === page}
-          onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchData(p) }}
-        >
-          {p}
-        </PaginationLink>
+    {getPageNumbers(page, totalPages).map((p, idx) => (
+      <PaginationItem key={p === 'ellipsis' ? `ellipsis-${idx}` : p}>
+        {p === 'ellipsis' ? (
+          <PaginationEllipsis />
+        ) : (
+          <PaginationLink
+            href="#"
+            isActive={p === page}
+            onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchData(p) }}
+          >
+            {p}
+          </PaginationLink>
+        )}
       </PaginationItem>
     ))}
     <PaginationItem>
       <PaginationNext
+        text="下一页"
         href="#"
         onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < totalPages) fetchData(page + 1) }}
       />
@@ -183,7 +202,8 @@ const totalPages = Math.ceil(total / pageSize)
 </Pagination>
 ```
 **规则**:
-- 分页组件有条件渲染: 当数据非空时渲染。
+- 分页组件仅在数据非空时渲染。
+- 页码按钮最多显示 6 个，超出时用 `<PaginationEllipsis />` 省略。
 
 ---
 
@@ -207,6 +227,7 @@ import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -216,7 +237,7 @@ import { getXxxList } from "@/services"
 ```
 ---
 
-## 6. 实现 checklist
+## 5. 实现 checklist
 
 - [ ] 页面组件中定义 table state（items/loading/page/total）
 - [ ] 实现 `fetchData`（useCallback + useEffect）

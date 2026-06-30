@@ -10,6 +10,7 @@ export { getProvinces, getChildren, resolveNames } from './area'
 export { getDashboardStats } from './dashboard'
 export { getProductCustomizations, getProductCustomization, createProductCustomization, updateProductCustomization, updateProductCustomizationStatus, getCustomizationOptions, createCustomizationOption, updateCustomizationOption, deleteCustomizationOption } from './product-customization'
 export { getIngredients, getIngredient, createIngredient, updateIngredient, toggleIngredientStatus, getIngredientBoundProducts, bindProductToIngredient, updateIngredientProductQuantity, unbindProductFromIngredient, getIngredientOptions, getIngredientBoundOptions, bindOptionToIngredient, updateIngredientOptionQuantity, unbindOptionFromIngredient } from './ingredient'
+export { getMenus, createMenu, updateMenu, deleteMenu, getMenu } from './menu'
 export { getStoreProducts, updateProductStoreStatus, getStoreCustomizations, getStoreCustomizationOptions, updateCustomizationOptionStoreStatus, getStoreIngredients } from './store-status'
 
 // Re-export shared types for page convenience
@@ -35,6 +36,11 @@ export type {
   Ingredient,
   CreateIngredientInput,
   IngredientStatus,
+  Menu,
+  CreateMenuInput,
+  UpdateMenuInput,
+  CreateMenuResponse,
+  UpdateMenuResponse,
   ProductTag,
   CreateTagInput,
   UpdateTagInput,

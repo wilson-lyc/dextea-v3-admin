@@ -6,6 +6,8 @@ import Initialization from "@/pages/Initialization"
 import Forbidden from "@/pages/Forbidden"
 import DashboardPage from "@/pages/Dashboard"
 import EmployeesPage from "@/pages/Employees"
+import MenusPage from "@/pages/Menus"
+import MenuDetailPage from "@/pages/Menus/detail"
 import StoresPage from "@/pages/Stores"
 import StoreDetailPage from "@/pages/Stores/detail"
 import ProductsPage from "@/pages/Products"
@@ -36,6 +38,8 @@ function App() {
           <Route path="/" element={<AppLayout />}>
             <Route index element={<DashboardPage />} />
             <Route path="employees" element={<EmployeesPage />} />
+            <Route path="menus" element={<MenusPage />} />
+            <Route path="menus/:id" element={<MenuDetailPage />} />
             <Route path="stores" element={<StoresPage />} />
             <Route path="stores/:id" element={<StoreDetailPage />} />
             <Route path="products" element={<ProductsPage />} />

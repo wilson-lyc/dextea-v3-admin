@@ -137,3 +137,19 @@ export type {
   UpsertCustomizationOptionStoreStatusRequest,
   StoreIngredientItem,
 } from './types/index.js';
+
+export type {
+  Menu,
+  MenuGroup,
+  MenuProduct,
+  CreateMenuInput,
+  UpdateMenuInput,
+  CreateMenuGroupInput,
+  UpdateMenuGroupInput,
+  AddMenuProductInput,
+  UpdateMenuProductSortInput,
+  CreateMenuResponse,
+  UpdateMenuResponse,
+  CreateMenuGroupResponse,
+  MenuQuery,
+} from './types/index.js';
