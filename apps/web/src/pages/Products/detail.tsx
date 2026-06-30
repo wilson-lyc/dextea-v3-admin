@@ -132,7 +132,7 @@ export default function ProductDetailPage() {
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList variant="line">
               <TabsTrigger value="basic">基础信息</TabsTrigger>
-              <TabsTrigger value="tags">关联标签</TabsTrigger>
+              <TabsTrigger value="tags">标签</TabsTrigger>
               <TabsTrigger value="customization">客制化</TabsTrigger>
               <TabsTrigger value="ingredients">原料</TabsTrigger>
             </TabsList>

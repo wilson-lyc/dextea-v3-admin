@@ -26,6 +26,14 @@ export function updateProductCustomization(id: number, data: UpdateProductCustom
 }
 
 /**
+ * 单独更新客制化项目状态
+ * PATCH /product-customizations/:id/status
+ */
+export function updateProductCustomizationStatus(id: number, status: number) {
+  return http.patch<ApiResponse<ProductCustomization>>(`/product-customizations/${id}/status`, { status }).then((res) => res.data)
+}
+
+/**
  * 创建客制化项目
  * POST /product-customizations
  */

@@ -8,6 +8,7 @@ import {
   getCustomization,
   createCustomization,
   updateCustomization,
+  updateCustomizationStatus,
   getCustomizationOptions,
   createCustomizationOption,
   updateCustomizationOption,
@@ -278,6 +279,71 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         code: 0,
         data: updated,
         message: '更新成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(productCustomizationErrors.UPDATE_FAILED);
+    }
+  });
+
+  /** 单独更新客制化项目状态 */
+  app.patch<{
+    Params: { id: string };
+    Body: { status: number };
+    Reply: ApiResponse<ProductCustomization>;
+  }>('/product-customizations/:id/status', {
+    schema: {
+      description: '单独更新客制化项目状态',
+      tags: ['Product Customizations'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '客制化项目ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          status: { type: 'integer', description: '0=下架 1=启用' },
+        },
+        required: ['status'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                productId: { type: 'integer' },
+                name: { type: 'string' },
+                status: { type: 'integer' },
+                createdAt: { type: 'string' },
+                updatedAt: { type: 'string' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const id = parsePositiveInt(request.params.id, '客制化项目ID');
+      const { status } = request.body;
+
+      const updated = await updateCustomizationStatus(db, id, status);
+
+      return {
+        code: 0,
+        data: updated,
+        message: '状态更新成功',
       };
     } catch (error) {
       if (error instanceof AppError) throw error;

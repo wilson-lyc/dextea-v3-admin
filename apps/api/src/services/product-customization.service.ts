@@ -197,6 +197,43 @@ export async function updateCustomization(
   return updated as ProductCustomization;
 }
 
+/**
+ * 单独更新客制化项目状态
+ */
+export async function updateCustomizationStatus(
+  db: Db,
+  id: number,
+  status: number,
+): Promise<ProductCustomization> {
+  const validValues = PRODUCT_CUSTOMIZATION_STATUS_VALUES as readonly number[];
+  if (!validValues.includes(status)) {
+    throw new AppError(productCustomizationErrors.INVALID_STATUS);
+  }
+
+  const [existing] = await db
+    .select()
+    .from(productCustomizationsTable)
+    .where(eq(productCustomizationsTable.id, id))
+    .limit(1);
+
+  if (!existing) {
+    throw new AppError(productCustomizationErrors.NOT_FOUND);
+  }
+
+  await db
+    .update(productCustomizationsTable)
+    .set({ status })
+    .where(eq(productCustomizationsTable.id, id));
+
+  const [updated] = await db
+    .select()
+    .from(productCustomizationsTable)
+    .where(eq(productCustomizationsTable.id, id))
+    .limit(1);
+
+  return updated as ProductCustomization;
+}
+
 // ─── Option management ──────────────────────────────
 
 /**

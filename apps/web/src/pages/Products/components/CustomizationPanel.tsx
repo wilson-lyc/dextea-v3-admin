@@ -1,16 +1,14 @@
-import { Fragment, useCallback, useEffect, useState } from "react"
-import { ChevronDownIcon, ChevronRightIcon, ListIcon, PencilIcon, PlusIcon } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
+import { ListIcon, PencilIcon, PlusIcon, SettingsIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { ProductCustomization } from "@dextea/shared-types"
 import { PRODUCT_CUSTOMIZATION_STATUS } from "@dextea/shared-types"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { StatusSelectPicker } from "@/components/ui/status-select-picker"
 import {
   Table,
   TableBody,
@@ -33,6 +31,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog"
@@ -40,9 +39,10 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import {
   getProductCustomizations,
   createProductCustomization,
-  updateProductCustomization,
+  updateProductCustomizationStatus,
 } from "@/services"
-import CustomizationOptionsPanel from "./CustomizationOptionsPanel"
+import { EditCustomizationDialog } from "./EditCustomizationDialog"
+import ManageOptionsSheet from "./ManageOptionsSheet"
 
 interface CustomizationPanelProps {
   productId: number
@@ -56,20 +56,18 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
 
-  // Expanded inline options panel
-  const [expandedId, setExpandedId] = useState<number | null>(null)
+  // Manage options sheet
+  const [manageSheetOpen, setManageSheetOpen] = useState(false)
+  const [managingItem, setManagingItem] = useState<ProductCustomization | null>(null)
+
+  // Edit dialog
+  const [editOpen, setEditOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<ProductCustomization | null>(null)
 
   // Create dialog
   const [createOpen, setCreateOpen] = useState(false)
   const [createName, setCreateName] = useState("")
   const [creating, setCreating] = useState(false)
-
-  // Edit dialog
-  const [editOpen, setEditOpen] = useState(false)
-  const [editingItem, setEditingItem] = useState<ProductCustomization | null>(null)
-  const [editName, setEditName] = useState("")
-  const [editStatus, setEditStatus] = useState("")
-  const [saving, setSaving] = useState(false)
 
   const fetchData = useCallback(async (targetPage: number) => {
     setLoading(true)
@@ -83,7 +81,8 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         setData(res.data.items)
         setTotal(res.data.total)
         setPage(targetPage)
-        setExpandedId(null)
+        setManageSheetOpen(false)
+        setManagingItem(null)
       } else {
         toast.error(res.message)
       }
@@ -125,42 +124,40 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
     }
   }
 
-  // ── Edit ──
-  const openEdit = (item: ProductCustomization) => {
-    setEditingItem(item)
-    setEditName(item.name)
-    setEditStatus(String(item.status))
-    setEditOpen(true)
+  const colCount = 4
+
+  const [togglingId, setTogglingId] = useState<number | null>(null)
+  const [toggleConfirmItem, setToggleConfirmItem] = useState<ProductCustomization | null>(null)
+  const [toggleConfirmOpen, setToggleConfirmOpen] = useState(false)
+
+  const handleToggleStatus = async (item: ProductCustomization) => {
+    setToggleConfirmItem(item)
+    setToggleConfirmOpen(true)
   }
 
-  const handleUpdate = async () => {
-    if (!editingItem) return
-    if (!editName.trim()) {
-      toast.error("请输入项目名称")
-      return
-    }
-    setSaving(true)
+  const confirmToggleStatus = async () => {
+    if (!toggleConfirmItem) return
+    const item = toggleConfirmItem
+    setTogglingId(item.id)
+    setToggleConfirmOpen(false)
+    setToggleConfirmItem(null)
     try {
-      const res = await updateProductCustomization(editingItem.id, {
-        name: editName.trim(),
-        status: Number(editStatus) as ProductCustomization["status"],
-      })
+      const newStatus = item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value
+        ? PRODUCT_CUSTOMIZATION_STATUS.ON.value
+        : PRODUCT_CUSTOMIZATION_STATUS.OFF.value
+      const res = await updateProductCustomizationStatus(item.id, newStatus)
       if (res.code === 0) {
         toast.success(res.message)
-        setEditOpen(false)
-        setEditingItem(null)
         await fetchData(page)
       } else {
         toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "更新失败")
+      toast.error(err instanceof Error ? err.message : "更新状态失败")
     } finally {
-      setSaving(false)
+      setTogglingId(null)
     }
   }
-
-  const colCount = 4
 
   return (
     <div className="flex flex-col gap-4">
@@ -181,7 +178,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
               <TableHead>项目名称</TableHead>
               <TableHead className="w-24">状态</TableHead>
               <TableHead className="w-20">选项数</TableHead>
-              <TableHead className="w-52 text-right">操作</TableHead>
+              <TableHead className="w-80 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -207,50 +204,61 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
               </TableRow>
             ) : (
               data.map((item) => (
-                <Fragment key={item.id}>
-                  <TableRow>
+                <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>
-                      <Badge
+                      <span
                         className={
                           item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value
-                            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-red-200 dark:ring-red-800/30"
-                            : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-green-200 dark:ring-green-800/30"
+                            ? "text-red-600 dark:text-red-400"
+                            : "text-green-600 dark:text-green-400"
                         }
                       >
-                        {item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "下架" : "启用"}
-                      </Badge>
+                        {item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "禁用" : "激活"}
+                      </span>
                     </TableCell>
                     <TableCell className="font-mono text-xs">{item.optionCount ?? 0}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="outline" size="sm" onClick={() => openEdit(item)}>
-                          <PencilIcon className="size-4" />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleToggleStatus(item)}
+                          disabled={togglingId === item.id}
+                          className={
+                            item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value
+                              ? "text-green-600 hover:text-green-600 dark:text-green-400 dark:hover:text-green-400"
+                              : "text-red-600 hover:text-red-600 dark:text-red-400 dark:hover:text-red-400"
+                          }
+                        >
+                          {item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "转激活" : "转禁用"}
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                          onClick={() => {
+                            setEditingItem(item)
+                            setEditOpen(true)
+                          }}
                         >
-                          {expandedId === item.id ? (
-                            <ChevronDownIcon className="size-4" data-icon="inline-start" />
-                          ) : (
-                            <ChevronRightIcon className="size-4" data-icon="inline-start" />
-                          )}
-                          选项管理
+                          <PencilIcon className="size-4" data-icon="inline-start" />
+                          重命名
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setManagingItem(item)
+                            setManageSheetOpen(true)
+                          }}
+                        >
+                          <SettingsIcon className="size-4" data-icon="inline-start" />
+                          管理选项
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                  {expandedId === item.id && (
-                    <TableRow>
-                      <TableCell colSpan={colCount} className="bg-muted/30 p-4">
-                        <CustomizationOptionsPanel customizationId={item.id} />
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </Fragment>
-              ))
+                ))
             )}
           </TableBody>
         </Table>
@@ -357,45 +365,44 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
       </Dialog>
 
       {/* ── Edit Dialog ── */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+      {editingItem && (
+        <EditCustomizationDialog
+          open={editOpen}
+          onOpenChange={(open) => {
+            setEditOpen(open)
+            if (!open) setEditingItem(null)
+          }}
+          item={editingItem}
+          onUpdated={() => fetchData(page)}
+        />
+      )}
+
+      {/* ── Manage Options Sheet ── */}
+      {managingItem && (
+        <ManageOptionsSheet
+          customizationId={managingItem.id}
+          customizationName={managingItem.name}
+          open={manageSheetOpen}
+          onOpenChange={(open) => {
+            setManageSheetOpen(open)
+            if (!open) setManagingItem(null)
+          }}
+        />
+      )}
+
+      {/* ── Toggle Status Confirm Dialog ── */}
+      <Dialog open={toggleConfirmOpen} onOpenChange={setToggleConfirmOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>编辑客制化项目</DialogTitle>
+            <DialogTitle>确认切换状态</DialogTitle>
+            <DialogDescription>
+              确定将「{toggleConfirmItem?.name}」项目{toggleConfirmItem?.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "激活" : "禁用"}吗？
+            </DialogDescription>
           </DialogHeader>
-
-          <FieldGroup className="py-2">
-            <Field>
-              <FieldLabel htmlFor="edit-name">
-                项目名称 <span className="text-destructive">*</span>
-              </FieldLabel>
-              <Input
-                id="edit-name"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleUpdate()
-                }}
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="edit-status">状态</FieldLabel>
-              <StatusSelectPicker
-                statusEnum={PRODUCT_CUSTOMIZATION_STATUS}
-                labels={{
-                  [PRODUCT_CUSTOMIZATION_STATUS.OFF.value]: "下架",
-                  [PRODUCT_CUSTOMIZATION_STATUS.ON.value]: "启用",
-                }}
-                value={editStatus}
-                onValueChange={(v) => setEditStatus(v)}
-                placeholder="请选择状态"
-              />
-            </Field>
-          </FieldGroup>
-
           <DialogFooter>
             <DialogClose render={<Button variant="outline">取消</Button>} />
-            <Button onClick={handleUpdate} disabled={saving}>
-              {saving ? "保存中..." : "保存"}
+            <Button onClick={confirmToggleStatus} disabled={togglingId !== null}>
+              确定
             </Button>
           </DialogFooter>
         </DialogContent>

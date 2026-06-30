@@ -76,4 +76,10 @@ export const productCustomizationErrors = {
     httpStatus: 200,
   } satisfies BizError,
 
+  INVALID_STATUS: {
+    code: 10919,
+    message: '无效的状态值',
+    httpStatus: 200,
+  } satisfies BizError,
+
 } as const satisfies Record<string, BizError>;

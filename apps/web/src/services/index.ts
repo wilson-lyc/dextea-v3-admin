@@ -8,7 +8,7 @@ export { getProducts, getProductBasicInfo, getProductTags, createProduct, update
 export { getTags, createTag, updateTag, deleteTag, getTagBoundProducts, bindProductToTag, unbindProductFromTag, getTagOptions } from './tag'
 export { getProvinces, getChildren, resolveNames } from './area'
 export { getDashboardStats } from './dashboard'
-export { getProductCustomizations, getProductCustomization, createProductCustomization, updateProductCustomization, getCustomizationOptions, createCustomizationOption, updateCustomizationOption, deleteCustomizationOption } from './product-customization'
+export { getProductCustomizations, getProductCustomization, createProductCustomization, updateProductCustomization, updateProductCustomizationStatus, getCustomizationOptions, createCustomizationOption, updateCustomizationOption, deleteCustomizationOption } from './product-customization'
 export { getIngredients, getIngredient, createIngredient, updateIngredient, toggleIngredientStatus, getIngredientBoundProducts, bindProductToIngredient, updateIngredientProductQuantity, unbindProductFromIngredient, getIngredientOptions, getIngredientBoundOptions, bindOptionToIngredient, updateIngredientOptionQuantity, unbindOptionFromIngredient } from './ingredient'
 export { getStoreProducts, updateProductStoreStatus, getStoreCustomizations, getStoreCustomizationOptions, updateCustomizationOptionStoreStatus, getStoreIngredients } from './store-status'
 
