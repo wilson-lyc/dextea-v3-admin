@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useState } from "react"
+import { PencilIcon } from "lucide-react"
 
 import type { Menu } from "@dextea/shared-types"
+import { Button } from "@/components/ui/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
 import { getMenu } from "@/services"
+import EditBasicInfoDialog from "./EditBasicInfoDialog"
 
 function formatDate(iso: string) {
   const d = new Date(iso)
@@ -30,6 +34,7 @@ export default function BasicInfoPanel({ menuId }: BasicInfoPanelProps) {
   const [menu, setMenu] = useState<Menu | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [infoDialogOpen, setInfoDialogOpen] = useState(false)
 
   const fetchMenu = useCallback(async () => {
     setLoading(true)
@@ -74,6 +79,16 @@ export default function BasicInfoPanel({ menuId }: BasicInfoPanelProps) {
       <Card>
         <CardHeader>
           <CardTitle>基础信息</CardTitle>
+          <CardAction>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setInfoDialogOpen(true)}
+            >
+              <PencilIcon data-icon="inline-start" />
+              编辑
+            </Button>
+          </CardAction>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
@@ -104,6 +119,14 @@ export default function BasicInfoPanel({ menuId }: BasicInfoPanelProps) {
           </div>
         </CardContent>
       </Card>
+
+      <EditBasicInfoDialog
+        open={infoDialogOpen}
+        onOpenChange={setInfoDialogOpen}
+        menuId={Number(menuId)}
+        menu={menu}
+        onUpdated={fetchMenu}
+      />
     </>
   )
 }
