@@ -82,5 +82,4 @@ export interface CreateMenuGroupResponse {
 export interface MenuQuery {
   page?: string;
   pageSize?: string;
-  keyword?: string;
 }
