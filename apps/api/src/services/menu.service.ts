@@ -2,10 +2,11 @@ import type { MySql2Database } from 'drizzle-orm/mysql2';
 
 type Db = MySql2Database<Record<string, unknown>>;
 import { and, eq, inArray, sql } from 'drizzle-orm';
-import { menusTable, menuGroupsTable, menuProductsTable, productsTable } from '../db/schema.js';
+import { menusTable, menuGroupsTable, menuProductsTable, productsTable, storesTable } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { menuErrors } from '../errorcode/menus.js';
 import { productErrors } from '../errorcode/products.js';
+import { storeErrors } from '../errorcode/stores.js';
 import { validateMaxLength } from '../utils/validation.js';
 import type { PaginatedData, Menu, MenuGroup, MenuProduct, CreateMenuInput, UpdateMenuInput, CreateMenuGroupInput, UpdateMenuGroupInput } from '@dextea/shared-types';
 
@@ -143,6 +144,16 @@ export async function deleteMenu(
 
   if (!menu) {
     throw new AppError(menuErrors.MENU_NOT_FOUND);
+  }
+
+  const boundStores = await db
+    .select({ id: storesTable.id })
+    .from(storesTable)
+    .where(eq(storesTable.menuId, id))
+    .limit(1);
+
+  if (boundStores.length > 0) {
+    throw new AppError(menuErrors.MENU_IN_USE);
   }
 
   const groups = await db
@@ -450,4 +461,44 @@ export async function updateMenuProductSort(
         eq(menuProductsTable.productId, productId),
       ),
     );
+}
+
+export async function bindStoreMenu(
+  db: Db,
+  storeId: number,
+  menuId: number | null,
+): Promise<{ id: number; menuId: number | null }> {
+  try {
+    const store = await db
+      .select()
+      .from(storesTable)
+      .where(eq(storesTable.id, storeId))
+      .limit(1);
+
+    if (store.length === 0) {
+      throw new AppError(storeErrors.STORE_NOT_FOUND);
+    }
+
+    if (menuId !== null) {
+      const menu = await db
+        .select()
+        .from(menusTable)
+        .where(eq(menusTable.id, menuId))
+        .limit(1);
+
+      if (menu.length === 0) {
+        throw new AppError(menuErrors.MENU_NOT_FOUND);
+      }
+    }
+
+    await db
+      .update(storesTable)
+      .set({ menuId })
+      .where(eq(storesTable.id, storeId));
+
+    return { id: storeId, menuId };
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(menuErrors.UPDATE_FAILED);
+  }
 }

@@ -63,6 +63,8 @@ export type {
   UpdateStoreLocationRequest,
   UpdateStoreLocationResponse,
   ResetStorePasswordResponse,
+  BindStoreMenuRequest,
+  BindStoreMenuResponse,
   StoreQuery,
 } from './types/index.js';
 

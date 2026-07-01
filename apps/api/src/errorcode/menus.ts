@@ -114,4 +114,10 @@ export const menuErrors = {
     message: '批量删除分组失败',
     httpStatus: 200,
   } satisfies BizError,
+
+  MENU_IN_USE: {
+    code: 11121,
+    message: '该菜单已被门店绑定，无法删除',
+    httpStatus: 200,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

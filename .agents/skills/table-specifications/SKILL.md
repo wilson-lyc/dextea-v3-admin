@@ -5,7 +5,7 @@ description: 当在列表页中创建或编辑表格时使用本 skill 约束代
 
 # 列表页表格组件的实现规范
 
-本 skill 定义 dextea-admin 前端 Web 项目中表格区域和分页组件的实现规范，覆盖表格三态渲染、分页、列宽样式等模式。页面中其他区域（顶部操作栏、弹窗等）不在本技能职责范围。
+本 skill 定义 dextea-admin 前端 Web 项目中列表页的实现规范，覆盖顶部操作栏、表格三态渲染、分页、列宽样式等模式。页面中其他区域（弹窗、详情等）不在本技能职责范围。
 
 ---
 
@@ -82,19 +82,46 @@ useEffect(() => {
 ## 3. Render
 
 ```
-Table Container (flex flex-col overflow-auto rounded-lg border max-h-[600px])
-├── Table (始终渲染)
-│   ├── TableHeader (始终渲染, 样式: sticky top-0 bg-background)
-│   └── TableBody (三态互斥渲染: loading/empty/数据行)
-Pagination (数据非空时渲染, 样式: shrink-0, justify-end)
+Page Container (flex h-full flex-col gap-4 p-6)
+├── Top Bar (flex shrink-0 items-center justify-between)
+│   └── Actions (flex items-center gap-2)
+├── Table Container (flex flex-1 flex-col overflow-auto rounded-lg border)
+│   └── Table
+│       ├── TableHeader (sticky top-0 bg-background)
+│       └── TableBody (三态互斥渲染: loading/empty/数据行)
+└── Pagination (数据非空时渲染, 样式: shrink-0, justify-end)
 ```
 
-### 3.1 表格和三态渲染逻辑
+### 3.1 顶部操作栏
 
-详细代码模板如下: 
 ```tsx
-<div className="flex flex-col overflow-auto rounded-lg border max-h-[600px]">
-  <Table>
+<div className="flex shrink-0 items-center justify-between">
+  <div className="flex items-center gap-2">
+    <Button onClick={() => setDialogOpen(true)}>
+      <PlusIcon data-icon="inline-start" />
+      新建{EntityName}
+    </Button>
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={() => { setLoading(true); setTimeout(() => fetchData(page), 1000) }}
+    >
+      <RotateCwIcon className="size-4" />
+    </Button>
+  </div>
+</div>
+```
+
+**规则**：
+- 刷新按钮点击后先设置 `loading=true` 显示加载状态，延迟 1 秒后才发起请求
+- 使用 `setTimeout(() => fetchData(page), 1000)` 实现强制等待
+
+### 3.2 表格和三态渲染逻辑
+
+详细代码模板如下:
+```tsx
+<div className="flex flex-1 flex-col overflow-auto rounded-lg border">
+        <Table className={`base-class ${(items.length === 0 || loading) && 'flex-1'}`}>
     <TableHeader>
       <TableRow className="sticky top-0 bg-background">
         <TableHead className="w-24">xxID</TableHead>
@@ -102,32 +129,44 @@ Pagination (数据非空时渲染, 样式: shrink-0, justify-end)
         <TableHead className="w-36 text-right">操作</TableHead>
       </TableRow>
     </TableHeader>
-    <TableBody>
-      {loading ? (
-        <div className="flex flex-1 items-center justify-center">
-          <Spinner className="size-6 text-muted-foreground" />
-        </div>
-      ) : items.length === 0 ? (
-        <div className="flex flex-1 items-center justify-center">
-          <Empty>
-            <EmptyMedia variant="icon">
-              <ClipboardListIcon className="size-4" />
-            </EmptyMedia>
-            <EmptyTitle>暂无数据</EmptyTitle>
-          </Empty>
-        </div>
-      ) : (
-        items.map((item) => (
+    {loading ? (
+      <TableBody>
+        <TableRow>
+          <TableCell colSpan={5} className="h-96">
+            <div className="flex items-center justify-center">
+              <Spinner className="size-6 text-muted-foreground" />
+            </div>
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    ) : items.length === 0 ? (
+      <TableBody>
+        <TableRow>
+          <TableCell colSpan={5} className="h-96">
+            <div className="flex items-center justify-center">
+              <Empty>
+                <EmptyMedia variant="icon">
+                  <ClipboardListIcon className="size-4" />
+                </EmptyMedia>
+                <EmptyTitle>暂无数据</EmptyTitle>
+              </Empty>
+            </div>
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    ) : (
+      <TableBody>
+        {items.map((item) => (
           <TableRow key={item.id}>
-            <TableCell>{item.id}</TableCell>
+            <TableCell className="font-mono text-xs">{item.id}</TableCell>
             {/* 按需求配置更多列... */}
             <TableCell className="text-right">
               {/* 按需求配置 */}
             </TableCell>
           </TableRow>
-        ))
-      )}
-    </TableBody>
+        ))}
+      </TableBody>
+    )}
   </Table>
 </div>
 ```
@@ -141,67 +180,72 @@ Pagination (数据非空时渲染, 样式: shrink-0, justify-end)
 | 正常数据 | `items.map(item => <TableRow>)` |
 
 **说明**：
-- `<Table>` 始终渲染，header 的 `<TableRow>` 加 `sticky top-0 bg-background` 实现滚动固定表头
+- 外层 `<div className="flex flex-1 flex-col overflow-auto rounded-lg border">` 作为滚动容器
+- `<TableHeader>` 添加 `sticky top-0 bg-background` 实现滚动固定表头
+- loading/empty 状态使用单独的 `<TableBody>` 包裹，`<TableCell colSpan={5} className="h-96">` 确保高度一致
 - 三种状态互斥渲染，使用三元运算符确保只渲染其中一种：loading → empty → 数据
-- loading/empty 态在 TableBody 内部渲染
-- 表格容器自适应内部表格高度，`max-h-[600px]` 限制最大高度，`overflow-auto` 数据超过时出现滚动条
-- Sticky header 确保滚动时列名始终可见
+- ID 列使用 `font-mono text-xs` 样式
 
-### 3.2 分页
+### 3.3 分页
 
 ```tsx
-const totalPages = Math.ceil(total / pageSize)
-
-function getPageNumbers(page: number, totalPages: number): (number | 'ellipsis')[] {
+{items.length > 0 && (() => {
+  const totalPages = Math.ceil(total / pageSize)
+  const pages: (number | "...")[] = []
   if (totalPages <= 6) {
-    return Array.from({ length: totalPages }, (_, i) => i + 1)
+    for (let i = 1; i <= totalPages; i++) pages.push(i)
+  } else {
+    pages.push(1)
+    if (page > 3) pages.push("...")
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+      pages.push(i)
+    }
+    if (page < totalPages - 2) pages.push("...")
+    pages.push(totalPages)
   }
-  if (page <= 4) {
-    return [1, 2, 3, 4, 5, 'ellipsis', totalPages]
-  }
-  if (page >= totalPages - 3) {
-    return [1, 'ellipsis', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
-  }
-  return [1, 'ellipsis', page - 1, page, page + 1, 'ellipsis', totalPages]
-}
-
-<Pagination className="shrink-0 justify-end">
-  <PaginationContent>
-    <PaginationItem>
-      <PaginationPrevious
-        text="上一页"
-        href="#"
-        onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchData(page - 1) }}
-      />
-    </PaginationItem>
-    {getPageNumbers(page, totalPages).map((p, idx) => (
-      <PaginationItem key={p === 'ellipsis' ? `ellipsis-${idx}` : p}>
-        {p === 'ellipsis' ? (
-          <PaginationEllipsis />
-        ) : (
-          <PaginationLink
+  return (
+    <Pagination className="shrink-0 justify-end">
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious
             href="#"
-            isActive={p === page}
-            onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchData(p) }}
-          >
-            {p}
-          </PaginationLink>
+            text="上一页"
+            onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchData(page - 1) }}
+          />
+        </PaginationItem>
+        {pages.map((p, idx) =>
+          p === "..." ? (
+            <PaginationItem key={`ellipsis-${idx}`}>
+              <PaginationEllipsis />
+            </PaginationItem>
+          ) : (
+            <PaginationItem key={p}>
+              <PaginationLink
+                href="#"
+                isActive={p === page}
+                onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchData(p) }}
+              >
+                {p}
+              </PaginationLink>
+            </PaginationItem>
+          )
         )}
-      </PaginationItem>
-    ))}
-    <PaginationItem>
-      <PaginationNext
-        text="下一页"
-        href="#"
-        onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < totalPages) fetchData(page + 1) }}
-      />
-    </PaginationItem>
-  </PaginationContent>
-</Pagination>
+        <PaginationItem>
+          <PaginationNext
+            href="#"
+            text="下一页"
+            onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < totalPages) fetchData(page + 1) }}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  )
+})()}
 ```
 **规则**:
-- 分页组件仅在数据非空时渲染。
-- 页码按钮最多显示 6 个，超出时用 `<PaginationEllipsis />` 省略。
+- 分页组件仅在数据非空时渲染（`items.length > 0 && (...)`）
+- 使用 IIFE 内联计算页码数组
+- 页码按钮最多显示 6 个，超出时用 `"..."` 省略
 
 ---
 
@@ -209,9 +253,11 @@ function getPageNumbers(page: number, totalPages: number): (number | 'ellipsis')
 
 ```typescript
 import { useCallback, useEffect, useState } from "react"
+import { PlusIcon, ClipboardListIcon, RotateCwIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { EntityType } from "@dextea/shared-types"
+import { Button } from "@/components/ui/button"
 import {
   Table,
   TableHeader,
@@ -239,4 +285,6 @@ import { getXxxList } from "@/services"
 
 - [ ] 页面组件中定义 table state（items/loading/page/total）
 - [ ] 实现 `fetchData`（useCallback + useEffect）
-- [ ] Render 表格容器（三态渲染）+ 分页
+- [ ] Render 顶部操作栏（新建按钮 + 刷新按钮）
+- [ ] Render 表格容器（三态渲染）
+- [ ] Render 分页（数据非空时显示）

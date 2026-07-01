@@ -87,4 +87,16 @@ export const storeErrors = {
     message: '重置密码失败',
     httpStatus: 200,
   } satisfies BizError,
+
+  MENU_BIND_FAILED: {
+    code: 10316,
+    message: '绑定菜单失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  MENU_NOT_FOUND: {
+    code: 10317,
+    message: '菜单不存在',
+    httpStatus: 200,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

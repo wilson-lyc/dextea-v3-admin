@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { PlusIcon, PencilIcon, BanIcon, CheckCircleIcon, UsersIcon, SearchIcon } from "lucide-react"
+import { PlusIcon, PencilIcon, BanIcon, CheckCircleIcon, UsersIcon, SearchIcon, RotateCwIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { User, UserStatus } from "@dextea/shared-types"
@@ -17,7 +17,6 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
-import { SelectPicker } from "@/components/ui/select-picker"
 import { StatusSelectPicker } from "@/components/ui/status-select-picker"
 import {
   Dialog,
@@ -36,7 +35,6 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   Pagination,
@@ -159,7 +157,7 @@ export default function EmployeesPage() {
           // Show initial password dialog
           setInitialPassword(res.data.initialPassword)
           setPasswordDialogOpen(true)
-          await fetchUsers()
+          await fetchUsers(page)
         } else {
           toast.error(res.message)
         }
@@ -168,7 +166,7 @@ export default function EmployeesPage() {
         if (res.code === 0) {
           toast.success(res.message)
           setDialogOpen(false)
-          await fetchUsers()
+          await fetchUsers(page)
         } else {
           toast.error(res.message)
         }
@@ -198,13 +196,20 @@ export default function EmployeesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex h-full flex-col gap-4 p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex shrink-0 items-center justify-between">
         <div className="flex items-center gap-2">
           <Button onClick={openCreateDialog}>
             <PlusIcon data-icon="inline-start" />
             创建用户
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => { setLoading(true); setTimeout(() => fetchUsers(page), 1000) }}
+          >
+            <RotateCwIcon className="size-4" />
           </Button>
         </div>
         <div className="flex items-center gap-2">
@@ -237,116 +242,120 @@ export default function EmployeesPage() {
         </div>
       </div>
 
-      {/* Table (always rendered, wrapped in scroll area) */}
-      <ScrollArea className="max-h-[calc(100vh-480px)]">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>邮箱</TableHead>
-            <TableHead>用户名</TableHead>
-            <TableHead>状态</TableHead>
-            <TableHead className="text-right">操作</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+      {/* Table */}
+      <div className="flex flex-1 flex-col overflow-auto rounded-lg border">
+        <Table className={`base-class ${(users.length === 0 || loading) && 'flex-1'}`}>
+          <TableHeader>
+            <TableRow className="sticky top-0 bg-background">
+              <TableHead className="w-24">ID</TableHead>
+              <TableHead className="w-24">邮箱</TableHead>
+              <TableHead className="w-24">用户名</TableHead>
+              <TableHead className="w-24">状态</TableHead>
+              <TableHead className="w-36 text-right">操作</TableHead>
+            </TableRow>
+          </TableHeader>
           {loading ? (
-            <TableRow>
-              <TableCell colSpan={5} className="text-center py-12">
-                <Spinner className="mx-auto size-6 text-muted-foreground" />
-              </TableCell>
-            </TableRow>
-          ) : users.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={5} className="text-center py-12">
-                <Empty>
-                  <EmptyMedia variant="icon">
-                    <UsersIcon className="size-4" />
-                  </EmptyMedia>
-                  <EmptyTitle>暂无数据</EmptyTitle>
-                  <Button variant="outline" onClick={openCreateDialog}>
-                    <PlusIcon data-icon="inline-start" />
-                    立即添加
-                  </Button>
-                </Empty>
-              </TableCell>
-            </TableRow>
-          ) : (
-            users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-mono text-xs">{user.id}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.displayName}</TableCell>
-                <TableCell>
-                  <span
-                    className={
-                      user.status === USER_STATUS.ACTIVE.value
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-muted-foreground"
-                    }
-                  >
-                    {USER_STATUS_LABEL[user.status]}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
-                      <PencilIcon data-icon="inline-start" />
-                      编辑
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleToggleStatus(user)}
-                      className={user.status === USER_STATUS.ACTIVE.value ? "text-red-500 hover:text-red-500" : "text-green-600 hover:text-green-600"}
-                    >
-                      {user.status === USER_STATUS.ACTIVE.value ? (
-                        <>
-                          <BanIcon data-icon="inline-start" />
-                          禁用
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircleIcon data-icon="inline-start" />
-                          激活
-                        </>
-                      )}
-                    </Button>
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={5} className="h-96">
+                  <div className="flex items-center justify-center">
+                    <Spinner className="size-6 text-muted-foreground" />
                   </div>
                 </TableCell>
               </TableRow>
-            ))
+            </TableBody>
+          ) : users.length === 0 ? (
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={5} className="h-96">
+                  <div className="flex items-center justify-center">
+                    <Empty>
+                      <EmptyMedia variant="icon">
+                        <UsersIcon className="size-4" />
+                      </EmptyMedia>
+                      <EmptyTitle>暂无数据</EmptyTitle>
+                    </Empty>
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          ) : (
+            <TableBody>
+              {users.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>{user.id}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.displayName}</TableCell>
+                  <TableCell>
+                    <span
+                      className={
+                        user.status === USER_STATUS.ACTIVE.value
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-muted-foreground"
+                      }
+                    >
+                      {USER_STATUS_LABEL[user.status]}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
+                        <PencilIcon data-icon="inline-start" />
+                        编辑
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleToggleStatus(user)}
+                        className={user.status === USER_STATUS.ACTIVE.value ? "text-red-500 hover:text-red-500" : "text-green-600 hover:text-green-600"}
+                      >
+                        {user.status === USER_STATUS.ACTIVE.value ? (
+                          <>
+                            <BanIcon data-icon="inline-start" />
+                            禁用
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircleIcon data-icon="inline-start" />
+                            激活
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
           )}
-        </TableBody>
-      </Table>
-      </ScrollArea>
+        </Table>
+      </div>
 
       {/* Pagination */}
-      {!loading && users.length > 0 && (
-        <Pagination className="justify-end">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchUsers(page - 1) }}
-                text="上一页"
-              />
-            </PaginationItem>
-            {(() => {
-              const totalPages = Math.ceil(total / pageSize)
-              const pages: (number | "...")[] = []
-              if (totalPages <= 7) {
-                for (let i = 1; i <= totalPages; i++) pages.push(i)
-              } else {
-                pages.push(1)
-                if (page > 3) pages.push("...")
-                for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
-                  pages.push(i)
-                }
-                if (page < totalPages - 2) pages.push("...")
-                pages.push(totalPages)
-              }
-              return pages.map((p, idx) =>
+      {users.length > 0 && (() => {
+        const totalPages = Math.ceil(total / pageSize)
+        const pages: (number | "...")[] = []
+        if (totalPages <= 6) {
+          for (let i = 1; i <= totalPages; i++) pages.push(i)
+        } else {
+          pages.push(1)
+          if (page > 3) pages.push("...")
+          for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+            pages.push(i)
+          }
+          if (page < totalPages - 2) pages.push("...")
+          pages.push(totalPages)
+        }
+        return (
+          <Pagination className="shrink-0 justify-end">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  text="上一页"
+                  onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchUsers(page - 1) }}
+                />
+              </PaginationItem>
+              {pages.map((p, idx) =>
                 p === "..." ? (
                   <PaginationItem key={`ellipsis-${idx}`}>
                     <PaginationEllipsis />
@@ -362,18 +371,18 @@ export default function EmployeesPage() {
                     </PaginationLink>
                   </PaginationItem>
                 )
-              )
-            })()}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < Math.ceil(total / pageSize)) fetchUsers(page + 1) }}
-                text="下一页"
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+              )}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  text="下一页"
+                  onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < totalPages) fetchUsers(page + 1) }}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )
+      })()}
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

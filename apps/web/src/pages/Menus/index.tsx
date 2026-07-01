@@ -71,14 +71,14 @@ export default function MenusPage() {
             <PlusIcon data-icon="inline-start" />
             新建菜单
           </Button>
-          <Button variant="outline" size="icon" onClick={() => fetchMenus(page)}>
+          <Button variant="outline" size="icon" onClick={() => { setLoading(true); setTimeout(() => fetchMenus(page), 1000) }}>
             <RotateCwIcon className="size-4" />
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-col overflow-auto rounded-lg border max-h-[600px]">
-        <Table>
+      <div className="flex flex-1 flex-col overflow-auto rounded-lg border">
+        <Table className={`base-class ${(items.length === 0 || loading) && 'flex-1'}`}>
           <TableHeader>
             <TableRow className="sticky top-0 bg-background">
               <TableHead className="w-16">菜单ID</TableHead>
@@ -88,22 +88,34 @@ export default function MenusPage() {
               <TableHead className="w-36 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {loading ? (
-              <div className="flex flex-1 items-center justify-center">
-                <Spinner className="size-6 text-muted-foreground" />
-              </div>
-            ) : items.length === 0 ? (
-              <div className="flex flex-1 items-center justify-center">
-                <Empty>
-                  <EmptyMedia variant="icon">
-                    <ClipboardListIcon className="size-4" />
-                  </EmptyMedia>
-                  <EmptyTitle>暂无数据</EmptyTitle>
-                </Empty>
-              </div>
-            ) : (
-              items.map((item) => (
+          {loading ? (
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={5} className="h-96">
+                  <div className="flex items-center justify-center">
+                    <Spinner className="size-6 text-muted-foreground" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          ) : items.length === 0 ? (
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={5} className="h-96">
+                  <div className="flex items-center justify-center">
+                    <Empty>
+                      <EmptyMedia variant="icon">
+                        <ClipboardListIcon className="size-4" />
+                      </EmptyMedia>
+                      <EmptyTitle>暂无数据</EmptyTitle>
+                    </Empty>
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          ) : (
+            <TableBody>
+              {items.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-mono text-xs">{item.id}</TableCell>
                   <TableCell>{item.name || "—"}</TableCell>
@@ -116,9 +128,9 @@ export default function MenusPage() {
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
+              ))}
+            </TableBody>
+          )}
         </Table>
       </div>
 

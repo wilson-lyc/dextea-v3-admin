@@ -14,6 +14,7 @@ import {
   resetStorePassword,
   syncStoreLocations,
 } from '../services/store.service.js';
+import { bindStoreMenu } from '../services/menu.service.js';
 import type {
   ApiResponse,
   PaginatedData,
@@ -30,6 +31,8 @@ import type {
   UpdateStoreLocationRequest,
   UpdateStoreLocationResponse,
   ResetStorePasswordResponse,
+  BindStoreMenuRequest,
+  BindStoreMenuResponse,
 } from '@dextea/shared-types';
 import { STORE_STATUS } from '@dextea/shared-types';
 
@@ -83,6 +86,7 @@ export async function storeRoutes(app: FastifyInstance) {
                       latitude: { type: 'number' },
                       account: { type: 'string' },
                       email: { type: 'string' },
+                      menuId: { type: ['integer', 'null'], description: '绑定的菜单ID' },
                       createdAt: { type: 'string' },
                       updatedAt: { type: 'string' },
                     },
@@ -156,6 +160,7 @@ export async function storeRoutes(app: FastifyInstance) {
                 latitude: { type: 'number' },
                 account: { type: 'string' },
                 email: { type: 'string' },
+                menuId: { type: ['integer', 'null'], description: '绑定的菜单ID' },
                 createdAt: { type: 'string' },
                 updatedAt: { type: 'string' },
               },
@@ -593,6 +598,67 @@ export async function storeRoutes(app: FastifyInstance) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
       throw new AppError(storeErrors.RESET_PASSWORD_FAILED);
+    }
+  });
+
+  /** 绑定门店菜单 */
+  app.patch<{
+    Params: { id: string };
+    Body: BindStoreMenuRequest;
+    Reply: ApiResponse<BindStoreMenuResponse>;
+  }>('/stores/:id/menu', {
+    schema: {
+      description: '绑定门店菜单',
+      tags: ['Stores'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '门店ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          menuId: { type: ['integer', 'null'], description: '菜单ID，null表示解绑' },
+        },
+        required: ['menuId'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                menuId: { type: ['integer', 'null'] },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const id = parsePositiveInt(request.params.id, '门店ID');
+      const { menuId } = request.body;
+
+      const data = await bindStoreMenu(db, id, menuId);
+
+      return {
+        code: 0,
+        data,
+        message: menuId === null ? '菜单解绑成功' : '菜单绑定成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(storeErrors.MENU_BIND_FAILED);
     }
   });
 }

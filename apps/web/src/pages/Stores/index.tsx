@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { PlusIcon, RefreshCwIcon, SearchIcon, SettingsIcon, Building2Icon } from "lucide-react"
+import { PlusIcon, RefreshCwIcon, RotateCwIcon, SearchIcon, SettingsIcon, Building2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store, StoreStatus } from "@dextea/shared-types"
@@ -38,7 +38,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { CreateStoreDialog } from "./components/CreateStoreDialog"
 
@@ -70,11 +70,16 @@ export default function StoresPage() {
         params.keyword = searchKeyword
       }
       const res = await getStores(params)
-      setStores(res.data.items)
-      setTotal(res.data.total)
-      setPage(targetPage)
+      if (res.code === 0) {
+        setStores(res.data.items)
+        setTotal(res.data.total)
+        setPage(targetPage)
+      } else {
+        toast.error(res.message)
+      }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "获取门店列表失败")
+      console.error(err)
+      toast.error("数据加载异常")
     } finally {
       setLoading(false)
     }
@@ -120,12 +125,19 @@ export default function StoresPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
+    <div className="flex h-full flex-col gap-4 p-6">
+      <div className="flex shrink-0 items-center justify-between">
         <div className="flex items-center gap-2">
           <Button onClick={() => setDialogOpen(true)}>
             <PlusIcon data-icon="inline-start" />
             创建门店
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => { setLoading(true); setTimeout(() => fetchStores(page), 1000) }}
+          >
+            <RotateCwIcon className="size-4" />
           </Button>
           <Button variant="outline" onClick={handleSync} disabled={syncing}>
             <RefreshCwIcon data-icon="inline-start" className={syncing ? "animate-spin" : ""} />
@@ -162,135 +174,143 @@ export default function StoresPage() {
         </div>
       </div>
 
-      <ScrollArea className="max-h-[calc(100vh-480px)]">
-        <TooltipProvider>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>门店名称</TableHead>
-              <TableHead>地址</TableHead>
-              <TableHead>联系电话</TableHead>
-              <TableHead>营业时间</TableHead>
-              <TableHead>状态</TableHead>
-              <TableHead className="text-right">操作</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      <TooltipProvider>
+        <div className="flex flex-1 flex-col overflow-auto rounded-lg border">
+          <Table className={`base-class ${(stores.length === 0 || loading) && 'flex-1'}`}>
+            <TableHeader>
+              <TableRow className="sticky top-0 bg-background">
+                <TableHead className="w-24">ID</TableHead>
+                <TableHead className="w-24">门店名称</TableHead>
+                <TableHead className="w-24">地址</TableHead>
+                <TableHead className="w-24">联系电话</TableHead>
+                <TableHead className="w-24">营业时间</TableHead>
+                <TableHead className="w-24">状态</TableHead>
+                <TableHead className="w-36 text-right">操作</TableHead>
+              </TableRow>
+            </TableHeader>
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-sm text-muted-foreground">
-                  加载中...
-                </TableCell>
-              </TableRow>
-            ) : stores.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-48 text-center">
-                  <Empty>
-                    <EmptyMedia variant="icon">
-                      <Building2Icon className="size-4" />
-                    </EmptyMedia>
-                    <EmptyTitle>暂无数据</EmptyTitle>
-                    <Button onClick={() => setDialogOpen(true)}>
-                      立即添加
-                    </Button>
-                  </Empty>
-                </TableCell>
-              </TableRow>
-            ) : (
-              stores.map((store) => (
-                <TableRow key={store.id}>
-                  <TableCell className="font-mono text-xs">{store.id}</TableCell>
-                  <TableCell>{store.name}</TableCell>
-                  <TableCell className="max-w-60 truncate">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span>{fullAddress(store)}</span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{fullAddress(store)}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell>{store.phone || "-"}</TableCell>
-                  <TableCell>{store.businessHours || "-"}</TableCell>
-                  <TableCell>
-                    <span className={STATUS_CLASSES[store.status]}>
-                      {STORE_STATUS_LABEL[store.status]}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm" onClick={() => navigate(`/stores/${store.id}`)}>
-                      <SettingsIcon data-icon="inline-start" />
-                      管理
-                    </Button>
+              <TableBody>
+                <TableRow>
+                  <TableCell colSpan={7} className="flex-1">
+                    <div className="flex items-center justify-center">
+                      <Spinner className="size-6 text-muted-foreground" />
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))
+              </TableBody>
+            ) : stores.length === 0 ? (
+              <TableBody>
+                <TableRow>
+                  <TableCell colSpan={7} className="justify-center">
+                    <div className="flex items-center justify-center">
+                      <Empty>
+                        <EmptyMedia variant="icon">
+                          <Building2Icon className="size-4" />
+                        </EmptyMedia>
+                        <EmptyTitle>暂无数据</EmptyTitle>
+                      </Empty>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            ) : (
+              <TableBody>
+                {stores.map((store) => (
+                  <TableRow key={store.id}>
+                    <TableCell className="font-mono text-xs">{store.id}</TableCell>
+                    <TableCell>{store.name}</TableCell>
+                    <TableCell className="max-w-60 truncate">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>{fullAddress(store)}</span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{fullAddress(store)}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell>{store.phone || "-"}</TableCell>
+                    <TableCell>{store.businessHours || "-"}</TableCell>
+                    <TableCell>
+                      <span className={STATUS_CLASSES[store.status]}>
+                        {STORE_STATUS_LABEL[store.status]}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/stores/${store.id}`)}>
+                        <SettingsIcon data-icon="inline-start" />
+                        管理
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
             )}
-          </TableBody>
-        </Table>
-        </TooltipProvider>
-      </ScrollArea>
+          </Table>
+        </div>
+      </TooltipProvider >
 
-      {!loading && stores.length > 0 && (
-        <Pagination className="justify-end">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchStores(page - 1) }}
-                text="上一页"
-              />
-            </PaginationItem>
-            {(() => {
-              const totalPages = Math.ceil(total / pageSize)
-              const pages: (number | "...")[] = []
-              if (totalPages <= 7) {
-                for (let i = 1; i <= totalPages; i++) pages.push(i)
-              } else {
-                pages.push(1)
-                if (page > 3) pages.push("...")
-                for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
-                  pages.push(i)
-                }
-                if (page < totalPages - 2) pages.push("...")
-                pages.push(totalPages)
-              }
-              return pages.map((p, idx) =>
-                p === "..." ? (
-                  <PaginationItem key={`e-${idx}`}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={p}>
-                    <PaginationLink
-                      href="#"
-                      isActive={p === page}
-                      onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchStores(p) }}
-                    >
-                      {p}
-                    </PaginationLink>
-                  </PaginationItem>
-                )
-              )
-            })()}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < Math.ceil(total / pageSize)) fetchStores(page + 1) }}
-                text="下一页"
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+      {
+        stores.length > 0 && (() => {
+          const totalPages = Math.ceil(total / pageSize)
+          const pages: (number | "...")[] = []
+          if (totalPages <= 6) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i)
+          } else {
+            pages.push(1)
+            if (page > 3) pages.push("...")
+            for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+              pages.push(i)
+            }
+            if (page < totalPages - 2) pages.push("...")
+            pages.push(totalPages)
+          }
+          return (
+            <Pagination className="shrink-0 justify-end">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    text="上一页"
+                    onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchStores(page - 1) }}
+                  />
+                </PaginationItem>
+                {pages.map((p, idx) =>
+                  p === "..." ? (
+                    <PaginationItem key={`ellipsis-${idx}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={p}>
+                      <PaginationLink
+                        href="#"
+                        isActive={p === page}
+                        onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchStores(p) }}
+                      >
+                        {p}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                )}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    text="下一页"
+                    onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < totalPages) fetchStores(page + 1) }}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )
+        })()
+      }
 
-      <CreateStoreDialog
+      < CreateStoreDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onCreated={() => fetchStores(1)}
+        onCreated={() => fetchStores(1)
+        }
       />
-    </div>
+    </div >
   )
 }
