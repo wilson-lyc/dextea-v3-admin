@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { PlusIcon, Settings, SearchIcon, ClipboardListIcon, RotateCwIcon } from "lucide-react"
+import { PlusIcon, Settings, ClipboardListIcon, RotateCwIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Menu } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   Table,
   TableHeader,
@@ -33,8 +32,6 @@ export default function MenusPage() {
 
   const [items, setItems] = useState<Menu[]>([])
   const [loading, setLoading] = useState(true)
-  const [keyword, setKeyword] = useState("")
-  const [searchKeyword, setSearchKeyword] = useState("")
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const pageSize = 20
@@ -44,10 +41,7 @@ export default function MenusPage() {
   const fetchMenus = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
-      const params: { page?: number; pageSize?: number; keyword?: string } = { page: targetPage, pageSize }
-      if (searchKeyword) {
-        params.keyword = searchKeyword
-      }
+      const params = { page: targetPage, pageSize }
       const res = await getMenus(params)
       if (res.code === 0) {
         setItems(res.data.items)
@@ -62,15 +56,11 @@ export default function MenusPage() {
     } finally {
       setLoading(false)
     }
-  }, [searchKeyword, pageSize])
+  }, [pageSize])
 
   useEffect(() => {
     fetchMenus(1)
   }, [fetchMenus])
-
-  const handleSearch = () => {
-    setSearchKeyword(keyword)
-  }
 
   return (
     <div className="flex h-full flex-col gap-4 p-6">
@@ -85,37 +75,9 @@ export default function MenusPage() {
             <RotateCwIcon className="size-4" />
           </Button>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative max-w-sm">
-            <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="搜索菜单名称"
-              className="pl-8"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSearch()
-              }}
-            />
-          </div>
-          <Button variant="secondary" onClick={handleSearch}>
-            搜索
-          </Button>
-          {searchKeyword && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setKeyword("")
-                setSearchKeyword("")
-              }}
-            >
-              清除
-            </Button>
-          )}
-        </div>
       </div>
 
-      <div className="flex flex-1 flex-col overflow-auto rounded-lg border">
+      <div className="flex flex-col overflow-auto rounded-lg border max-h-[600px]">
         <Table>
           <TableHeader>
             <TableRow className="sticky top-0 bg-background">
@@ -127,37 +89,37 @@ export default function MenusPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-mono text-xs">{item.id}</TableCell>
-                <TableCell>{item.name || "—"}</TableCell>
-                <TableCell>{item.description || "—"}</TableCell>
-                <TableCell>{item.createdAt}</TableCell>
-                <TableCell className="text-right">
-                  <Button variant="outline" size="sm" onClick={() => navigate(`/menus/${item.id}`)}>
-                    <Settings data-icon="inline-start" />
-                    管理
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {loading ? (
+              <div className="flex flex-1 items-center justify-center">
+                <Spinner className="size-6 text-muted-foreground" />
+              </div>
+            ) : items.length === 0 ? (
+              <div className="flex flex-1 items-center justify-center">
+                <Empty>
+                  <EmptyMedia variant="icon">
+                    <ClipboardListIcon className="size-4" />
+                  </EmptyMedia>
+                  <EmptyTitle>暂无数据</EmptyTitle>
+                </Empty>
+              </div>
+            ) : (
+              items.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-mono text-xs">{item.id}</TableCell>
+                  <TableCell>{item.name || "—"}</TableCell>
+                  <TableCell>{item.description || "—"}</TableCell>
+                  <TableCell>{item.createdAt}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/menus/${item.id}`)}>
+                      <Settings data-icon="inline-start" />
+                      管理
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
-
-        {loading ? (
-          <div className="flex flex-1 items-center justify-center">
-            <Spinner className="size-6 text-muted-foreground" />
-          </div>
-        ) : items.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center">
-            <Empty>
-              <EmptyMedia variant="icon">
-                <ClipboardListIcon className="size-4" />
-              </EmptyMedia>
-              <EmptyTitle>暂无数据</EmptyTitle>
-            </Empty>
-          </div>
-        ) : null}
       </div>
 
       {items.length > 0 && (() => {

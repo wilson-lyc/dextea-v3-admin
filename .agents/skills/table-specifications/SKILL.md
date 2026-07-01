@@ -82,12 +82,10 @@ useEffect(() => {
 ## 3. Render
 
 ```
-Table Container (flex flex-1 flex-col overflow-auto rounded-lg border)
+Table Container (flex flex-col overflow-auto rounded-lg border max-h-[600px])
 ├── Table (始终渲染)
 │   ├── TableHeader (始终渲染, 样式: sticky top-0 bg-background)
-│   └── TableBody (数据非空时, 内部渲染TableRow展示数据)
-├── Loading (Loading态时渲染, 样式: flex flex-1 居中)
-└── Empty (数据为空时渲染, 样式: flex flex-1 居中)
+│   └── TableBody (三态互斥渲染: loading/empty/数据行)
 Pagination (数据非空时渲染, 样式: shrink-0, justify-end)
 ```
 
@@ -95,7 +93,7 @@ Pagination (数据非空时渲染, 样式: shrink-0, justify-end)
 
 详细代码模板如下: 
 ```tsx
-<div className="flex flex-1 flex-col overflow-auto rounded-lg border">
+<div className="flex flex-col overflow-auto rounded-lg border max-h-[600px]">
   <Table>
     <TableHeader>
       <TableRow className="sticky top-0 bg-background">
@@ -105,48 +103,48 @@ Pagination (数据非空时渲染, 样式: shrink-0, justify-end)
       </TableRow>
     </TableHeader>
     <TableBody>
-      {items.map((item) => (
-        <TableRow key={item.id}>
-          <TableCell>{item.id}</TableCell>
-          {/* 按需求配置更多列... */}
-          <TableCell className="text-right">
-            {/* 按需求配置 */}
-          </TableCell>
-        </TableRow>
-      ))}
+      {loading ? (
+        <div className="flex flex-1 items-center justify-center">
+          <Spinner className="size-6 text-muted-foreground" />
+        </div>
+      ) : items.length === 0 ? (
+        <div className="flex flex-1 items-center justify-center">
+          <Empty>
+            <EmptyMedia variant="icon">
+              <ClipboardListIcon className="size-4" />
+            </EmptyMedia>
+            <EmptyTitle>暂无数据</EmptyTitle>
+          </Empty>
+        </div>
+      ) : (
+        items.map((item) => (
+          <TableRow key={item.id}>
+            <TableCell>{item.id}</TableCell>
+            {/* 按需求配置更多列... */}
+            <TableCell className="text-right">
+              {/* 按需求配置 */}
+            </TableCell>
+          </TableRow>
+        ))
+      )}
     </TableBody>
   </Table>
-
-  {loading ? (
-    <div className="flex flex-1 items-center justify-center">
-      <Spinner className="size-6 text-muted-foreground" />
-    </div>
-  ) : items.length === 0 ? (
-    <div className="flex flex-1 items-center justify-center">
-      <Empty>
-        <EmptyMedia variant="icon">
-          <ClipboardListIcon className="size-4" />
-        </EmptyMedia>
-        <EmptyTitle>暂无数据</EmptyTitle>
-      </Empty>
-    </div>
-  ) : null}
 </div>
 ```
 
 **三态规则**：
 
-| 状态 | TableBody | 表格下方 |
-|------|-----------|----------|
-| `loading === true` | 空 | `flex-1` 居中 `Spinner` |
-| `items.length === 0` | 空 | `flex-1` 居中 `Empty` 组件 |
-| 正常数据 | `items.map(item => <TableRow>)` | 空 |
+| 状态 | TableBody 内容 |
+|------|----------------|
+| `loading === true` | `flex-1` 居中 `Spinner` |
+| `items.length === 0` | `flex-1` 居中 `Empty` 组件 |
+| 正常数据 | `items.map(item => <TableRow>)` |
 
 **说明**：
 - `<Table>` 始终渲染，header 的 `<TableRow>` 加 `sticky top-0 bg-background` 实现滚动固定表头
-- `<TableBody>` 只在 data 态有子元素；loading/empty 态 body 为空
-- loading/empty 态渲染在 `<Table>` 下方，`flex-1` 撑满容器剩余高度
-- 表格容器 `flex flex-col overflow-auto`，数据超过容器高度时自动出现滚动条
+- 三种状态互斥渲染，使用三元运算符确保只渲染其中一种：loading → empty → 数据
+- loading/empty 态在 TableBody 内部渲染
+- 表格容器自适应内部表格高度，`max-h-[600px]` 限制最大高度，`overflow-auto` 数据超过时出现滚动条
 - Sticky header 确保滚动时列名始终可见
 
 ### 3.2 分页

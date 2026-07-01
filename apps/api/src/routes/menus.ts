@@ -50,7 +50,6 @@ export async function menuRoutes(app: FastifyInstance) {
         properties: {
           page: { type: 'string', description: '页码' },
           pageSize: { type: 'string', description: '每页数量' },
-          keyword: { type: 'string', description: '搜索关键词' },
         },
       },
       response: {
@@ -92,7 +91,7 @@ export async function menuRoutes(app: FastifyInstance) {
       const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
 
-      const data = await listMenus(db, { page, pageSize, keyword: request.query.keyword });
+      const data = await listMenus(db, { page, pageSize });
 
       return {
         code: 0,

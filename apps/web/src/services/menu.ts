@@ -13,7 +13,7 @@ import type {
 } from '@dextea/shared-types'
 import { http } from './http'
 
-export function getMenus(params?: { page?: number; pageSize?: number; keyword?: string }) {
+export function getMenus(params?: { page?: number; pageSize?: number }) {
   return http.get<ApiResponse<PaginatedData<Menu>>>('/menus', { params }).then((res) => res.data)
 }
 

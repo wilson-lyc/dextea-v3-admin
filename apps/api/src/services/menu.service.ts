@@ -1,7 +1,7 @@
 import type { MySql2Database } from 'drizzle-orm/mysql2';
 
 type Db = MySql2Database<Record<string, unknown>>;
-import { and, eq, inArray, like, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { menusTable, menuGroupsTable, menuProductsTable, productsTable } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { menuErrors } from '../errorcode/menus.js';
@@ -11,22 +11,15 @@ import type { PaginatedData, Menu, MenuGroup, MenuProduct, CreateMenuInput, Upda
 
 export async function listMenus(
   db: Db,
-  params: { page: number; pageSize: number; keyword?: string },
+  params: { page: number; pageSize: number },
 ): Promise<PaginatedData<Menu>> {
   const page = Math.max(1, params.page);
   const pageSize = Math.min(100, Math.max(1, params.pageSize));
   const offset = (page - 1) * pageSize;
 
-  const conditions = params.keyword
-    ? [like(menusTable.name, `%${params.keyword}%`)]
-    : [];
-
-  const where = conditions.length > 0 ? and(...conditions) : undefined;
-
   const countResult = await db
     .select({ count: sql<number>`count(*)` })
-    .from(menusTable)
-    .where(where);
+    .from(menusTable);
 
   const total = Number(countResult[0]?.count ?? 0);
 
@@ -40,7 +33,6 @@ export async function listMenus(
       updatedAt: menusTable.updatedAt,
     })
     .from(menusTable)
-    .where(where)
     .orderBy(menusTable.id)
     .limit(pageSize)
     .offset(offset);
