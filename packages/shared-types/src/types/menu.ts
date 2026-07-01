@@ -63,6 +63,10 @@ export interface BatchUnbindMenuProductsInput {
   productIds: number[];
 }
 
+export interface BatchDeleteMenuGroupsInput {
+  groupIds: number[];
+}
+
 export interface CreateMenuResponse {
   id: number;
 }

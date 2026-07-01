@@ -4,6 +4,7 @@ import { toast } from "sonner"
 
 import type { MenuGroup } from "@dextea/shared-types"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import {
   Field,
@@ -47,6 +48,10 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
   const [deletingGroup, setDeletingGroup] = useState<MenuGroup | null>(null)
   const [deleting, setDeleting] = useState(false)
 
+  const [batchDeleteOpen, setBatchDeleteOpen] = useState(false)
+  const [batchDeleting, setBatchDeleting] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+
   const [productsSheetOpen, setProductsSheetOpen] = useState(false)
   const [activeGroup, setActiveGroup] = useState<MenuGroup | null>(null)
 
@@ -55,6 +60,7 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
     try {
       const res = await getMenuGroups(Number(menuId))
       setGroups(res.data)
+      setSelectedIds(new Set())
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "获取分组列表失败")
     } finally {
@@ -109,7 +115,7 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
 
     setDeleting(true)
     try {
-      const res = await deleteMenuGroup(deletingGroup.id)
+      const res = await deleteMenuGroup([deletingGroup.id])
       if (res.code === 0) {
         toast.success(res.message)
         setDeleteDialogOpen(false)
@@ -125,6 +131,50 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
     }
   }
 
+  const allSelected = groups.length > 0 && selectedIds.size === groups.length
+  const someSelected = selectedIds.size > 0 && selectedIds.size < groups.length
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(groups.map((g) => g.id)))
+    }
+  }
+
+  const toggleSelect = (groupId: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(groupId)) {
+        next.delete(groupId)
+      } else {
+        next.add(groupId)
+      }
+      return next
+    })
+  }
+
+  const handleBatchDelete = async () => {
+    if (selectedIds.size === 0) return
+
+    setBatchDeleting(true)
+    try {
+      const res = await deleteMenuGroup(Array.from(selectedIds))
+      if (res.code === 0) {
+        toast.success(res.message)
+        setBatchDeleteOpen(false)
+        setSelectedIds(new Set())
+        await fetchGroups()
+      } else {
+        toast.error(res.message)
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "批量删除失败")
+    } finally {
+      setBatchDeleting(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex shrink-0 items-center justify-between">
@@ -137,12 +187,30 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
             <RotateCwIcon className="size-4" />
           </Button>
         </div>
+        {selectedIds.size > 0 && (
+          <Button
+            variant="outline"
+            className="text-red-500 hover:text-red-500"
+            onClick={() => setBatchDeleteOpen(true)}
+          >
+            <Trash2Icon data-icon="inline-start" />
+            批量删除（{selectedIds.size}）
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col overflow-auto rounded-lg border min-h-0">
         <Table>
           <TableHeader>
             <TableRow className="sticky top-0 bg-background">
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={allSelected}
+                  indeterminate={someSelected}
+                  onCheckedChange={toggleSelectAll}
+                  aria-label="全选"
+                />
+              </TableHead>
               <TableHead className="w-16">分组ID</TableHead>
               <TableHead>分组名称</TableHead>
               <TableHead className="w-24">商品数量</TableHead>
@@ -151,7 +219,14 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
           </TableHeader>
           <TableBody>
             {groups.map((group) => (
-              <TableRow key={group.id}>
+              <TableRow key={group.id} data-state={selectedIds.has(group.id) ? "selected" : undefined}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedIds.has(group.id)}
+                    onCheckedChange={() => toggleSelect(group.id)}
+                    aria-label={`选择分组 ${group.name}`}
+                  />
+                </TableCell>
                 <TableCell className="font-mono text-xs">{group.id}</TableCell>
                 <TableCell>{group.name}</TableCell>
                 <TableCell>{group.productCount ?? 0}</TableCell>
@@ -254,6 +329,34 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
               disabled={deleting}
             >
               {deleting ? "删除中..." : "确认删除"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={batchDeleteOpen} onOpenChange={setBatchDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>确认批量删除</DialogTitle>
+            <DialogDescription>
+              确定要删除已选中的 {selectedIds.size} 个分组吗？这些分组下的所有商品关联将被一并移除。此操作不可撤销！
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setBatchDeleteOpen(false)}
+              disabled={batchDeleting}
+            >
+              取消
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleBatchDelete}
+              disabled={batchDeleting}
+            >
+              {batchDeleting ? "删除中..." : "确认删除"}
             </Button>
           </DialogFooter>
         </DialogContent>

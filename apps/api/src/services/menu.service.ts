@@ -301,6 +301,21 @@ export async function deleteMenuGroup(
     .where(eq(menuGroupsTable.id, id));
 }
 
+export async function batchDeleteMenuGroups(
+  db: Db,
+  groupIds: number[],
+): Promise<void> {
+  if (groupIds.length === 0) return;
+
+  await db
+    .delete(menuProductsTable)
+    .where(inArray(menuProductsTable.groupId, groupIds));
+
+  await db
+    .delete(menuGroupsTable)
+    .where(inArray(menuGroupsTable.id, groupIds));
+}
+
 export async function listMenuProducts(
   db: Db,
   groupId: number,

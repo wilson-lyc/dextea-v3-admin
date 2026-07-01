@@ -108,4 +108,10 @@ export const menuErrors = {
     message: '批量解绑商品失败',
     httpStatus: 200,
   } satisfies BizError,
+
+  GROUP_BATCH_DELETE_FAILED: {
+    code: 11120,
+    message: '批量删除分组失败',
+    httpStatus: 200,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

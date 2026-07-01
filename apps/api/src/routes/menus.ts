@@ -12,7 +12,7 @@ import {
   listMenuGroups,
   createMenuGroup,
   updateMenuGroup,
-  deleteMenuGroup,
+  batchDeleteMenuGroups,
   listMenuProducts,
   addMenuProduct,
   batchRemoveMenuProducts,
@@ -33,6 +33,7 @@ import type {
   AddMenuProductInput,
   UpdateMenuProductSortInput,
   BatchUnbindMenuProductsInput,
+  BatchDeleteMenuGroupsInput,
 } from '@dextea/shared-types';
 
 export async function menuRoutes(app: FastifyInstance) {
@@ -500,20 +501,25 @@ export async function menuRoutes(app: FastifyInstance) {
     }
   });
 
-  /** 删除菜单分组 */
+  /** 批量删除菜单分组 */
   app.delete<{
-    Params: { id: string };
+    Body: BatchDeleteMenuGroupsInput;
     Reply: ApiResponse<null>;
-  }>('/menus/groups/:id', {
+  }>('/menus/groups', {
     schema: {
-      description: '删除菜单分组',
+      description: '批量删除菜单分组',
       tags: ['Menus'],
-      params: {
+      body: {
         type: 'object',
         properties: {
-          id: { type: 'string', minLength: 1, description: '分组ID' },
+          groupIds: {
+            type: 'array',
+            minItems: 1,
+            items: { type: 'integer' },
+            description: '分组ID列表',
+          },
         },
-        required: ['id'],
+        required: ['groupIds'],
       },
       response: {
         200: {
@@ -530,19 +536,19 @@ export async function menuRoutes(app: FastifyInstance) {
   }, async (request) => {
     try {
       const db = await getDb();
-      const id = parsePositiveInt(request.params.id, '分组ID');
+      const { groupIds } = request.body;
 
-      await deleteMenuGroup(db, id);
+      await batchDeleteMenuGroups(db, groupIds);
 
       return {
         code: 0,
         data: null,
-        message: '删除成功',
+        message: `成功删除 ${groupIds.length} 个分组`,
       };
     } catch (error) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.GROUP_DELETE_FAILED);
+      throw new AppError(menuErrors.GROUP_BATCH_DELETE_FAILED);
     }
   });
 

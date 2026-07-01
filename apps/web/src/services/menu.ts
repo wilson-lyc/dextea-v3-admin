@@ -41,8 +41,8 @@ export function createMenuGroup(menuId: number, data: Omit<CreateMenuGroupInput,
   return http.post<ApiResponse<CreateMenuGroupResponse>>(`/menus/${menuId}/groups`, data).then((res) => res.data)
 }
 
-export function deleteMenuGroup(id: number) {
-  return http.delete<ApiResponse<null>>(`/menus/groups/${id}`).then((res) => res.data)
+export function deleteMenuGroup(groupIds: number[]) {
+  return http.delete<ApiResponse<null>>('/menus/groups', { data: { groupIds } }).then((res) => res.data)
 }
 
 export function getMenuGroupProducts(groupId: number) {
