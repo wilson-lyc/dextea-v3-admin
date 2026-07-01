@@ -67,12 +67,6 @@ export const menuErrors = {
     httpStatus: 200,
   } satisfies BizError,
 
-  PRODUCT_UNBIND_FAILED: {
-    code: 11111,
-    message: '从分组移除商品失败',
-    httpStatus: 200,
-  } satisfies BizError,
-
   LIST_GROUPS_FAILED: {
     code: 11113,
     message: '获取菜单分组列表失败',
@@ -94,6 +88,24 @@ export const menuErrors = {
   DESCRIPTION_TOO_LONG: {
     code: 11116,
     message: '菜单描述不能超过500个字符',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  PRODUCT_NOT_BOUND: {
+    code: 11117,
+    message: '分组中不存在该商品',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  PRODUCT_SORT_UPDATE_FAILED: {
+    code: 11118,
+    message: '更新商品排序失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  PRODUCT_BATCH_UNBIND_FAILED: {
+    code: 11119,
+    message: '批量解绑商品失败',
     httpStatus: 200,
   } satisfies BizError,
 } as const satisfies Record<string, BizError>;

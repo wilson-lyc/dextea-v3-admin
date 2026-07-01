@@ -320,6 +320,8 @@ export async function listMenuProducts(
       groupId: menuProductsTable.groupId,
       productId: menuProductsTable.productId,
       productName: productsTable.name,
+      price: productsTable.price,
+      status: productsTable.status,
       sortOrder: menuProductsTable.sortOrder,
       createdAt: menuProductsTable.createdAt,
       updatedAt: menuProductsTable.updatedAt,
@@ -332,13 +334,12 @@ export async function listMenuProducts(
   return items;
 }
 
-export async function addMenuProducts(
+export async function addMenuProduct(
   db: Db,
   groupId: number,
-  productIds: number[],
-): Promise<{ boundCount: number }> {
-  const uniqueIds = [...new Set(productIds)];
-
+  productId: number,
+  sortOrder: number,
+): Promise<{ bound: boolean }> {
   const [group] = await db
     .select()
     .from(menuGroupsTable)
@@ -349,44 +350,91 @@ export async function addMenuProducts(
     throw new AppError(menuErrors.GROUP_NOT_FOUND);
   }
 
-  const existingProducts = await db
+  const [existingProduct] = await db
     .select({ id: productsTable.id })
     .from(productsTable)
-    .where(inArray(productsTable.id, uniqueIds));
+    .where(eq(productsTable.id, productId))
+    .limit(1);
 
-  if (existingProducts.length !== uniqueIds.length) {
+  if (!existingProduct) {
     throw new AppError(productErrors.PRODUCT_NOT_FOUND);
   }
 
-  const existingBindings = await db
+  const [existingBinding] = await db
     .select({ productId: menuProductsTable.productId })
     .from(menuProductsTable)
     .where(
       and(
         eq(menuProductsTable.groupId, groupId),
-        inArray(menuProductsTable.productId, uniqueIds),
+        eq(menuProductsTable.productId, productId),
       ),
-    );
+    )
+    .limit(1);
 
-  const boundProductIds = new Set(existingBindings.map(r => r.productId));
-  const toInsert = uniqueIds.filter(pid => !boundProductIds.has(pid));
-
-  if (toInsert.length > 0) {
-    await db.insert(menuProductsTable).values(
-      toInsert.map(productId => ({ groupId, productId })),
-    );
+  if (existingBinding) {
+    return { bound: false };
   }
 
-  return { boundCount: toInsert.length };
+  await db.insert(menuProductsTable).values({
+    groupId,
+    productId,
+    sortOrder,
+  });
+
+  return { bound: true };
 }
 
-export async function removeMenuProduct(
+export async function batchRemoveMenuProducts(
+  db: Db,
+  groupId: number,
+  productIds: number[],
+): Promise<void> {
+  if (productIds.length === 0) return;
+
+  await db
+    .delete(menuProductsTable)
+    .where(
+      and(
+        eq(menuProductsTable.groupId, groupId),
+        inArray(menuProductsTable.productId, productIds),
+      ),
+    );
+}
+
+export async function updateMenuProductSort(
   db: Db,
   groupId: number,
   productId: number,
+  sortOrder: number,
 ): Promise<void> {
+  const [group] = await db
+    .select()
+    .from(menuGroupsTable)
+    .where(eq(menuGroupsTable.id, groupId))
+    .limit(1);
+
+  if (!group) {
+    throw new AppError(menuErrors.GROUP_NOT_FOUND);
+  }
+
+  const [existing] = await db
+    .select({ productId: menuProductsTable.productId })
+    .from(menuProductsTable)
+    .where(
+      and(
+        eq(menuProductsTable.groupId, groupId),
+        eq(menuProductsTable.productId, productId),
+      ),
+    )
+    .limit(1);
+
+  if (!existing) {
+    throw new AppError(menuErrors.PRODUCT_NOT_BOUND);
+  }
+
   await db
-    .delete(menuProductsTable)
+    .update(menuProductsTable)
+    .set({ sortOrder })
     .where(
       and(
         eq(menuProductsTable.groupId, groupId),

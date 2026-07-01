@@ -21,6 +21,8 @@ export interface MenuProduct {
   groupId: number;
   productId: number;
   productName?: string;
+  price?: number;
+  status?: number;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -48,13 +50,17 @@ export interface UpdateMenuGroupInput {
 }
 
 export interface AddMenuProductInput {
-  groupId: number;
-  productIds: number[];
+  productId: number;
+  sortOrder?: number;
 }
 
 export interface UpdateMenuProductSortInput {
-  groupId: number;
-  products: { productId: number; sortOrder: number }[];
+  productId: number;
+  sortOrder: number;
+}
+
+export interface BatchUnbindMenuProductsInput {
+  productIds: number[];
 }
 
 export interface CreateMenuResponse {

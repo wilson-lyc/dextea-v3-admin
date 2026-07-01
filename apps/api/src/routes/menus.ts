@@ -14,8 +14,9 @@ import {
   updateMenuGroup,
   deleteMenuGroup,
   listMenuProducts,
-  addMenuProducts,
-  removeMenuProduct,
+  addMenuProduct,
+  batchRemoveMenuProducts,
+  updateMenuProductSort,
 } from '../services/menu.service.js';
 import type {
   ApiResponse,
@@ -29,6 +30,9 @@ import type {
   UpdateMenuResponse,
   CreateMenuGroupResponse,
   MenuQuery,
+  AddMenuProductInput,
+  UpdateMenuProductSortInput,
+  BatchUnbindMenuProductsInput,
 } from '@dextea/shared-types';
 
 export async function menuRoutes(app: FastifyInstance) {
@@ -570,6 +574,8 @@ export async function menuRoutes(app: FastifyInstance) {
                   groupId: { type: 'integer' },
                   productId: { type: 'integer' },
                   productName: { type: 'string' },
+                  price: { type: 'number', description: '商品价格' },
+                  status: { type: 'integer', description: '全局状态，0=下架 1=可售' },
                   sortOrder: { type: 'integer' },
                   createdAt: { type: 'string' },
                   updatedAt: { type: 'string' },
@@ -601,14 +607,74 @@ export async function menuRoutes(app: FastifyInstance) {
     }
   });
 
-  /** 批量添加商品到分组 */
+  /** 添加商品到分组 */
   app.post<{
     Params: { id: string };
-    Body: { productIds: number[] };
+    Body: AddMenuProductInput;
     Reply: ApiResponse<null>;
   }>('/menus/groups/:id/products', {
     schema: {
-      description: '批量添加商品到分组',
+      description: '添加商品到分组',
+      tags: ['Menus'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '分组ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          productId: { type: 'integer', description: '商品ID' },
+          sortOrder: { type: 'integer', description: '排序值，默认 0' },
+        },
+        required: ['productId'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: { type: 'null', description: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const groupId = parsePositiveInt(request.params.id, '分组ID');
+      const { productId, sortOrder = 0 } = request.body;
+
+      const result = await addMenuProduct(db, groupId, productId, sortOrder);
+
+      if (!result.bound) {
+        throw new AppError(menuErrors.PRODUCT_ALREADY_BOUND);
+      }
+
+      return {
+        code: 0,
+        data: null,
+        message: '绑定成功',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(menuErrors.PRODUCT_BIND_FAILED);
+    }
+  });
+
+  /** 批量从分组移除商品 */
+  app.delete<{
+    Params: { id: string };
+    Body: BatchUnbindMenuProductsInput;
+    Reply: ApiResponse<null>;
+  }>('/menus/groups/:id/products', {
+    schema: {
+      description: '批量从分组移除商品',
       tags: ['Menus'],
       params: {
         type: 'object',
@@ -622,8 +688,8 @@ export async function menuRoutes(app: FastifyInstance) {
         properties: {
           productIds: {
             type: 'array',
-            items: { type: 'integer' },
             minItems: 1,
+            items: { type: 'integer' },
             description: '商品ID列表',
           },
         },
@@ -647,39 +713,43 @@ export async function menuRoutes(app: FastifyInstance) {
       const groupId = parsePositiveInt(request.params.id, '分组ID');
       const { productIds } = request.body;
 
-      const result = await addMenuProducts(db, groupId, productIds);
-
-      if (result.boundCount === 0) {
-        throw new AppError(menuErrors.PRODUCT_ALREADY_BOUND);
-      }
+      await batchRemoveMenuProducts(db, groupId, productIds);
 
       return {
         code: 0,
         data: null,
-        message: `成功绑定 ${result.boundCount} 个商品`,
+        message: `成功解绑 ${productIds.length} 个商品`,
       };
     } catch (error) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.PRODUCT_BIND_FAILED);
+      throw new AppError(menuErrors.PRODUCT_BATCH_UNBIND_FAILED);
     }
   });
 
-  /** 从分组移除商品 */
-  app.delete<{
-    Params: { id: string; productId: string };
+  /** 更新分组商品排序 */
+  app.put<{
+    Params: { id: string };
+    Body: UpdateMenuProductSortInput;
     Reply: ApiResponse<null>;
-  }>('/menus/groups/:id/products/:productId', {
+  }>('/menus/groups/:id/products/sort', {
     schema: {
-      description: '从分组移除商品',
+      description: '更新分组商品排序',
       tags: ['Menus'],
       params: {
         type: 'object',
         properties: {
           id: { type: 'string', minLength: 1, description: '分组ID' },
-          productId: { type: 'string', minLength: 1, description: '商品ID' },
         },
-        required: ['id', 'productId'],
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          productId: { type: 'integer', description: '商品ID' },
+          sortOrder: { type: 'integer', description: '排序值' },
+        },
+        required: ['productId', 'sortOrder'],
       },
       response: {
         200: {
@@ -697,19 +767,19 @@ export async function menuRoutes(app: FastifyInstance) {
     try {
       const db = await getDb();
       const groupId = parsePositiveInt(request.params.id, '分组ID');
-      const productId = parsePositiveInt(request.params.productId, '商品ID');
+      const { productId, sortOrder } = request.body;
 
-      await removeMenuProduct(db, groupId, productId);
+      await updateMenuProductSort(db, groupId, productId, sortOrder);
 
       return {
         code: 0,
         data: null,
-        message: '移除成功',
+        message: '排序更新成功',
       };
     } catch (error) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.PRODUCT_UNBIND_FAILED);
+      throw new AppError(menuErrors.PRODUCT_SORT_UPDATE_FAILED);
     }
   });
 }

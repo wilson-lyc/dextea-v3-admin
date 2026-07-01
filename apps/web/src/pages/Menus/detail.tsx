@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/tabs"
 import { getMenu } from "@/services"
 import BasicInfoPanel from "./components/BasicInfoPanel"
+import GroupsPanel from "./components/GroupsPanel"
 
 export default function MenuDetailPage() {
   const navigate = useNavigate()
@@ -28,7 +29,7 @@ export default function MenuDetailPage() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
-  const tabValues = useMemo(() => ["basic", "groups", "products"], [])
+  const tabValues = useMemo(() => ["basic", "groups"], [])
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace("#", "")
     return tabValues.includes(hash) ? hash : "basic"
@@ -117,24 +118,19 @@ export default function MenuDetailPage() {
       </div>
 
       <ScrollArea className="flex-1 min-h-0">
-        <div className="flex flex-col px-6 pb-6 pt-3">
-          <Tabs value={activeTab} onValueChange={handleTabChange}>
+        <div className="flex h-full flex-col px-6 pb-6 pt-3">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="flex min-h-0 flex-1 flex-col">
             <TabsList variant="line">
               <TabsTrigger value="basic">基础信息</TabsTrigger>
               <TabsTrigger value="groups">菜单分组</TabsTrigger>
-              <TabsTrigger value="products">菜单商品</TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic" className="mt-6 flex flex-col gap-6">
               {id && <BasicInfoPanel menuId={id} />}
             </TabsContent>
 
-            <TabsContent value="groups" className="mt-6 flex flex-col gap-6">
-              {/* TODO: GroupsPanel */}
-            </TabsContent>
-
-            <TabsContent value="products" className="mt-6 flex flex-col gap-6">
-              {/* TODO: ProductsPanel */}
+            <TabsContent value="groups" className="mt-6 flex min-h-0 flex-1 flex-col gap-4">
+              {id && <GroupsPanel menuId={id} />}
             </TabsContent>
           </Tabs>
         </div>
