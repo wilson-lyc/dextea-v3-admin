@@ -307,13 +307,15 @@ export async function batchDeleteMenuGroups(
 ): Promise<void> {
   if (groupIds.length === 0) return;
 
-  await db
-    .delete(menuProductsTable)
-    .where(inArray(menuProductsTable.groupId, groupIds));
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(menuProductsTable)
+      .where(inArray(menuProductsTable.groupId, groupIds));
 
-  await db
-    .delete(menuGroupsTable)
-    .where(inArray(menuGroupsTable.id, groupIds));
+    await tx
+      .delete(menuGroupsTable)
+      .where(inArray(menuGroupsTable.id, groupIds));
+  });
 }
 
 export async function listMenuProducts(
