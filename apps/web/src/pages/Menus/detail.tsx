@@ -100,7 +100,7 @@ export default function MenuDetailPage() {
   }
 
   return (
-    <div className="h-full p-6 flex flex-col">
+    <div className="h-full p-6 flex flex-col gap-3">
       {/* 顶栏：返回按钮与面包屑 */}
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
