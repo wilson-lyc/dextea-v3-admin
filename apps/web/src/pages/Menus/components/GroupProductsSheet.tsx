@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { PackageIcon, GripVerticalIcon, LinkIcon, Link2OffIcon, PencilIcon, ExternalLinkIcon, Trash2Icon } from "lucide-react"
+import { PackageIcon, GripVerticalIcon, LinkIcon, PencilIcon, ExternalLinkIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 
@@ -304,9 +304,8 @@ export default function GroupProductsSheet({
             </Button>
             {selectedIds.size > 0 && (
               <Button
-                variant="outline"
+                variant="outline-destructive"
                 size="sm"
-                className="text-red-500 hover:text-red-500"
                 onClick={() => setBatchDeleteOpen(true)}
               >
                 <Trash2Icon data-icon="inline-start" />
@@ -389,12 +388,11 @@ export default function GroupProductsSheet({
                             修改排序
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="outline-destructive"
                             size="sm"
-                            className="text-red-500 hover:text-red-500"
                             onClick={() => openDeleteConfirm(p)}
                           >
-                            <Link2OffIcon data-icon="inline-start" />
+                            <Trash2Icon data-icon="inline-start" />
                             解绑
                           </Button>
                         </div>

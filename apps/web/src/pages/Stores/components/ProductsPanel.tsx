@@ -314,7 +314,7 @@ export function ProductsPanel({ storeId }: ProductsPanelProps) {
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
-                      variant="outline"
+                      variant={item.storeStatus === 1 ? "outline-destructive" : "outline-success"}
                       size="sm"
                       onClick={() =>
                         setToggleTarget({
@@ -322,11 +322,6 @@ export function ProductsPanel({ storeId }: ProductsPanelProps) {
                           name: item.name,
                           currentStatus: item.storeStatus,
                         })
-                      }
-                      className={
-                        item.storeStatus === 1
-                          ? "text-red-500 hover:text-red-500"
-                          : "text-green-600 hover:text-green-600"
                       }
                     >
                       {item.storeStatus === 1 ? "转门店售罄" : "转门店可售"}

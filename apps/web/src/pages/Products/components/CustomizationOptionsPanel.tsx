@@ -274,9 +274,8 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
                         <PencilIcon className="size-4" />
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="outline-destructive"
                         size="sm"
-                        className="text-red-500 hover:text-red-500"
                         onClick={() => handleDelete(o.id)}
                       >
                         <Trash2Icon className="size-4" data-icon="inline-start" />

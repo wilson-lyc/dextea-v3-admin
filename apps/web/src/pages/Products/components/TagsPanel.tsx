@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { Link2OffIcon, LinkIcon, TagIcon } from "lucide-react"
+import { Trash2Icon, LinkIcon, TagIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { ProductTag } from "@dextea/shared-types"
@@ -152,12 +152,11 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
                   <TableCell>{tag.name}</TableCell>
                   <TableCell className="text-right">
                     <Button
-                      variant="outline"
+                      variant="outline-destructive"
                       size="sm"
-                      className="text-red-500 hover:text-red-500"
                       onClick={() => handleRemoveTag(tag)}
                     >
-                      <Link2OffIcon className="size-4" data-icon="inline-start" />
+                      <Trash2Icon className="size-4" data-icon="inline-start" />
                       解绑
                     </Button>
                   </TableCell>

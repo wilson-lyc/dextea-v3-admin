@@ -248,9 +248,8 @@ export default function TagListPage() {
 关联商品
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="outline-destructive"
                       size="sm"
-                      className="text-red-500 hover:text-red-500"
                       onClick={() => openDeleteDialog(tag)}
                     >
                       <Trash2Icon data-icon="inline-start" />

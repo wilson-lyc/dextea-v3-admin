@@ -221,15 +221,10 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Button
-                          variant="outline"
+                          variant={item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "outline-success" : "outline-destructive"}
                           size="sm"
                           onClick={() => handleToggleStatus(item)}
                           disabled={togglingId === item.id}
-                          className={
-                            item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value
-                              ? "text-green-600 hover:text-green-600 dark:text-green-400 dark:hover:text-green-400"
-                              : "text-red-600 hover:text-red-600 dark:text-red-400 dark:hover:text-red-400"
-                          }
                         >
                           {item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "转激活" : "转禁用"}
                         </Button>

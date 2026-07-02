@@ -266,9 +266,8 @@ export default function CustomizationOptionBindingPanel({ ingredientId, unit }: 
                         编辑
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="outline-destructive"
                         size="sm"
-                        className="text-red-500 hover:text-red-500"
                         onClick={() => openUnbindConfirm(o)}
                       >
                         <Trash2Icon className="size-4" data-icon="inline-start" />

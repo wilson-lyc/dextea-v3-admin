@@ -189,8 +189,7 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
         </div>
         {selectedIds.size > 0 && (
           <Button
-            variant="outline"
-            className="text-red-500 hover:text-red-500"
+            variant="outline-destructive"
             onClick={() => setBatchDeleteOpen(true)}
           >
             <Trash2Icon data-icon="inline-start" />
@@ -241,9 +240,8 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
                       查看商品
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="outline-destructive"
                       size="sm"
-                      className="text-red-500 hover:text-red-500"
                       onClick={() => openDeleteDialog(group)}
                     >
                       <Trash2Icon data-icon="inline-start" />

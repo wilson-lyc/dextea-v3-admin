@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Trash2Icon, TrashIcon, Settings, ClipboardListIcon, RotateCwIcon, PlusIcon } from "lucide-react"
+import { Trash2Icon, Settings, ClipboardListIcon, RotateCwIcon, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Menu } from "@dextea/shared-types"
@@ -32,12 +32,11 @@ export default function MenusPage() {
 
   // UI 状态
   const [loading, setLoading] = useState(true)
-  const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
-  const [singleDeleteId, setSingleDeleteId] = useState<number | null>(null)
 
   // 获取菜单列表
   const fetchMenus = useCallback(async (targetPage: number) => {
@@ -85,30 +84,15 @@ export default function MenusPage() {
     }
   }
 
-  // 打开批量确认弹窗
-  const handleBatchDeleteClick = () => {
-    if (selectedIds.size === 0) return
-    setSingleDeleteId(null)
-    setDeleteError(null)
-    setConfirmDialogOpen(true)
-  }
-
-  // 打开单个删除确认弹窗
-  const handleSingleDeleteClick = (id: number) => {
-    setSingleDeleteId(id)
-    setDeleteError(null)
-    setConfirmDialogOpen(true)
-  }
-
-  // 执行删除（单个或批量）
+  // 执行删除
   const handleDeleteConfirm = async () => {
     setDeleting(true)
     setDeleteError(null)
     try {
-      const ids = singleDeleteId !== null ? [singleDeleteId] : Array.from(selectedIds)
+      const ids = Array.from(selectedIds)
       const res = await batchDeleteMenus(ids)
       if (res.code === 0) {
-        setConfirmDialogOpen(false)
+        setDeleteDialogOpen(false)
         toast.success(`成功删除 ${ids.length} 个菜单`)
         fetchMenus(page)
       } else {
@@ -130,12 +114,12 @@ export default function MenusPage() {
       {/* 顶栏：新建、批量删除与刷新 */}
       <div className="flex shrink-0 items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button onClick={() => setDialogOpen(true)}>
+          <Button onClick={() => setCreateDialogOpen(true)}>
             <PlusIcon data-icon="inline-start" />
             新建菜单
           </Button>
           {selectedIds.size > 0 && (
-            <Button variant="destructive" onClick={handleBatchDeleteClick} disabled={deleting}>
+            <Button variant="destructive" onClick={() => { setDeleteError(null); setDeleteDialogOpen(true) }} disabled={deleting}>
               <Trash2Icon data-icon="inline-start" />
               删除选中 ({selectedIds.size})
             </Button>
@@ -206,8 +190,8 @@ export default function MenusPage() {
                         <Settings data-icon="inline-start" />
                         管理
                       </Button>
-                      <Button variant="outline-destructive" size="sm" onClick={() => handleSingleDeleteClick(item.id)}>
-                        <TrashIcon data-icon="inline-start" />
+                      <Button variant="outline-destructive" size="sm" onClick={() => { setSelectedIds(new Set([item.id])); setDeleteError(null); setDeleteDialogOpen(true) }}>
+                        <Trash2Icon data-icon="inline-start" />
                         删除
                       </Button>
                     </div>
@@ -232,22 +216,20 @@ export default function MenusPage() {
 
       {/* 新建菜单对话框 */}
       <CreateMenuDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
         onSuccess={() => fetchMenus(page)}
       />
 
       {/* 删除确认弹窗 */}
       <ConfirmDialog
-        open={confirmDialogOpen}
-        onOpenChange={setConfirmDialogOpen}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
         title="确认删除"
         description={
-          singleDeleteId !== null
-            ? "确定要删除这个菜单吗？已被门店绑定的菜单无法删除。"
-            : <>
-                确定要删除选中的 <span className="font-semibold text-foreground">{selectedIds.size}</span> 个菜单吗？已被门店绑定的菜单无法删除。
-              </>
+          <>
+            确定要删除选中的 <span className="font-semibold text-foreground">{selectedIds.size}</span> 个菜单吗？已被门店绑定的菜单无法删除。
+          </>
         }
         confirmText="删除"
         variant="destructive"

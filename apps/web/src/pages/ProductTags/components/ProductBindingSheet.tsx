@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ExternalLinkIcon, GripVerticalIcon, Link2OffIcon, LinkIcon, PackageIcon } from "lucide-react"
+import { ExternalLinkIcon, GripVerticalIcon, Trash2Icon, LinkIcon, PackageIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -275,12 +275,11 @@ export default function ProductBindingSheet({
                               查看商品
                             </Button>
                             <Button
-                              variant="outline"
+                              variant="outline-destructive"
                               size="sm"
-                              className="text-red-500 hover:text-red-500"
                               onClick={() => openDeleteConfirm(product)}
                             >
-                              <Link2OffIcon data-icon="inline-start" />
+                              <Trash2Icon data-icon="inline-start" />
                               解绑
                             </Button>
                           </div>

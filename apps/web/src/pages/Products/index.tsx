@@ -323,9 +323,8 @@ export default function ProductsPage() {
                       </Button>
                       {product.status === 0 && (
                         <Button
-                          variant="outline"
+                          variant="outline-success"
                           size="sm"
-                          className="text-green-600 hover:text-green-600 dark:text-green-400 dark:hover:text-green-400"
                           onClick={() => openStatusConfirm(product, 1)}
                         >
                           转全局可售
@@ -333,9 +332,8 @@ export default function ProductsPage() {
                       )}
                       {product.status === 1 && (
                         <Button
-                          variant="outline"
+                          variant="outline-destructive"
                           size="sm"
-                          className="text-red-500 hover:text-red-500 dark:text-red-400 dark:hover:text-red-400"
                           onClick={() => openStatusConfirm(product, 0)}
                         >
                           转全局下架

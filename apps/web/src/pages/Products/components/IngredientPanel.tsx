@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ExternalLinkIcon, LinkIcon, PencilIcon, UnlinkIcon } from "lucide-react"
+import { ExternalLinkIcon, LinkIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { PaginatedData } from "@dextea/shared-types"
@@ -282,12 +282,11 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
 修改用量
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="outline-destructive"
                         size="sm"
-                        className="text-red-500 hover:text-red-500"
                         onClick={() => openUnbindConfirm(item)}
                       >
-                        <UnlinkIcon className="size-4" data-icon="inline-start" />
+                        <Trash2Icon className="size-4" data-icon="inline-start" />
                          解绑
                       </Button>
                     </div>
