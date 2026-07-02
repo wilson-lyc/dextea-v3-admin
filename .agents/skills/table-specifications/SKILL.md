@@ -122,8 +122,8 @@ Page Container (flex h-full flex-col gap-4 p-6)
 ```tsx
 <div className="flex flex-1 flex-col overflow-auto rounded-lg border">
         <Table className={`base-class ${(items.length === 0 || loading) && 'flex-1'}`}>
-    <TableHeader>
-      <TableRow className="sticky top-0 bg-background">
+    <TableHeader className="sticky top-0 bg-background">
+      <TableRow>
         <TableHead className="w-24">xxID</TableHead>
         {/* 按需求配置更多列... */}
         <TableHead className="w-36 text-right">操作</TableHead>

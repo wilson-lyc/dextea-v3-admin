@@ -152,6 +152,7 @@ export type {
   UpdateMenuProductSortInput,
   BatchUnbindMenuProductsInput,
   BatchDeleteMenuGroupsInput,
+  BatchDeleteMenusInput,
   CreateMenuResponse,
   UpdateMenuResponse,
   CreateMenuGroupResponse,

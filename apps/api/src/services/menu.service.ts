@@ -8,6 +8,7 @@ import { menuErrors } from '../errorcode/menus.js';
 import { productErrors } from '../errorcode/products.js';
 import { storeErrors } from '../errorcode/stores.js';
 import { validateMaxLength } from '../utils/validation.js';
+import { withPagination } from '../utils/pagination.js';
 import type { PaginatedData, Menu, MenuGroup, MenuProduct, CreateMenuInput, UpdateMenuInput, CreateMenuGroupInput, UpdateMenuGroupInput } from '@dextea/shared-types';
 
 export async function listMenus(
@@ -16,7 +17,6 @@ export async function listMenus(
 ): Promise<PaginatedData<Menu>> {
   const page = Math.max(1, params.page);
   const pageSize = Math.min(100, Math.max(1, params.pageSize));
-  const offset = (page - 1) * pageSize;
 
   const countResult = await db
     .select({ count: sql<number>`count(*)` })
@@ -24,18 +24,21 @@ export async function listMenus(
 
   const total = Number(countResult[0]?.count ?? 0);
 
-  const items = await db
-    .select({
-      id: menusTable.id,
-      name: menusTable.name,
-      description: menusTable.description,
-      createdAt: menusTable.createdAt,
-      updatedAt: menusTable.updatedAt,
-    })
-    .from(menusTable)
-    .orderBy(menusTable.id)
-    .limit(pageSize)
-    .offset(offset);
+  const items = await withPagination(
+    db
+      .select({
+        id: menusTable.id,
+        name: menusTable.name,
+        description: menusTable.description,
+        createdAt: menusTable.createdAt,
+        updatedAt: menusTable.updatedAt,
+      })
+      .from(menusTable)
+      .orderBy(menusTable.id)
+      .$dynamic(),
+    page,
+    pageSize,
+  );
 
   return { items, total, page, pageSize };
 }
@@ -174,6 +177,46 @@ export async function deleteMenu(
   await db
     .delete(menusTable)
     .where(eq(menusTable.id, id));
+}
+
+export async function batchDeleteMenus(
+  db: Db,
+  menuIds: number[],
+): Promise<void> {
+  if (menuIds.length === 0) return;
+
+  const boundStores = await db
+    .select({ id: storesTable.id })
+    .from(storesTable)
+    .where(inArray(storesTable.menuId, menuIds))
+    .limit(1);
+
+  if (boundStores.length > 0) {
+    throw new AppError(menuErrors.MENU_IN_USE);
+  }
+
+  await db.transaction(async (tx) => {
+    const groups = await tx
+      .select({ id: menuGroupsTable.id })
+      .from(menuGroupsTable)
+      .where(inArray(menuGroupsTable.menuId, menuIds));
+
+    const groupIds = groups.map(g => g.id);
+
+    if (groupIds.length > 0) {
+      await tx
+        .delete(menuProductsTable)
+        .where(inArray(menuProductsTable.groupId, groupIds));
+    }
+
+    await tx
+      .delete(menuGroupsTable)
+      .where(inArray(menuGroupsTable.menuId, menuIds));
+
+    await tx
+      .delete(menusTable)
+      .where(inArray(menusTable.id, menuIds));
+  });
 }
 
 export async function listMenuGroups(

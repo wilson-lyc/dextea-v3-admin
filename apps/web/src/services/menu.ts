@@ -29,6 +29,10 @@ export function deleteMenu(id: number) {
   return http.delete<ApiResponse<null>>(`/menus/${id}`).then((res) => res.data)
 }
 
+export function batchDeleteMenus(menuIds: number[]) {
+  return http.delete<ApiResponse<null>>('/menus', { data: { menuIds } }).then((res) => res.data)
+}
+
 export function getMenu(id: number) {
   return http.get<ApiResponse<Menu>>(`/menus/${id}`).then((res) => res.data)
 }

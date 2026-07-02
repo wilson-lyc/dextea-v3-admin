@@ -66,6 +66,10 @@ export interface BatchDeleteMenuGroupsInput {
   groupIds: number[];
 }
 
+export interface BatchDeleteMenusInput {
+  menuIds: number[];
+}
+
 export interface CreateMenuResponse {
   id: number;
 }

@@ -9,6 +9,7 @@ import {
   getMenu,
   updateMenu,
   deleteMenu,
+  batchDeleteMenus,
   listMenuGroups,
   createMenuGroup,
   updateMenuGroup,
@@ -34,6 +35,7 @@ import type {
   UpdateMenuProductSortInput,
   BatchUnbindMenuProductsInput,
   BatchDeleteMenuGroupsInput,
+  BatchDeleteMenusInput,
 } from '@dextea/shared-types';
 
 export async function menuRoutes(app: FastifyInstance) {
@@ -268,6 +270,57 @@ export async function menuRoutes(app: FastifyInstance) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
       throw new AppError(menuErrors.UPDATE_FAILED);
+    }
+  });
+
+  /** 批量删除菜单 */
+  app.delete<{
+    Body: BatchDeleteMenusInput;
+    Reply: ApiResponse<null>;
+  }>('/menus', {
+    schema: {
+      description: '批量删除菜单',
+      tags: ['Menus'],
+      body: {
+        type: 'object',
+        properties: {
+          menuIds: {
+            type: 'array',
+            minItems: 1,
+            items: { type: 'integer' },
+            description: '菜单ID列表',
+          },
+        },
+        required: ['menuIds'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: { type: 'null', description: 'null' },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const { menuIds } = request.body as BatchDeleteMenusInput;
+
+      await batchDeleteMenus(db, menuIds);
+
+      return {
+        code: 0,
+        data: null,
+        message: `成功删除 ${menuIds.length} 个菜单`,
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(menuErrors.DELETE_FAILED);
     }
   });
 
