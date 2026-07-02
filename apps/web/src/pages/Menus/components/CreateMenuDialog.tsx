@@ -30,13 +30,23 @@ export default function CreateMenuDialog({ open, onOpenChange, onSuccess }: Crea
   const [formDescription, setFormDescription] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [nameError, setNameError] = useState("")
+  const [descriptionError, setDescriptionError] = useState("")
 
   const handleSubmit = async () => {
+    let hasError = false
     if (!formName) {
       setNameError("菜单名称不能为空")
-      return
+      hasError = true
+    } else {
+      setNameError("")
     }
-    setNameError("")
+    if (!formDescription) {
+      setDescriptionError("菜单描述不能为空")
+      hasError = true
+    } else {
+      setDescriptionError("")
+    }
+    if (hasError) return
 
     setSubmitting(true)
     try {
@@ -74,9 +84,7 @@ export default function CreateMenuDialog({ open, onOpenChange, onSuccess }: Crea
 
         <FieldGroup className="py-2">
           <Field data-invalid={!!nameError || undefined}>
-            <FieldLabel htmlFor="menu-name">
-              菜单名称 <span className="text-destructive">*</span>
-            </FieldLabel>
+            <FieldLabel htmlFor="menu-name">菜单名称</FieldLabel>
             <Input
               id="menu-name"
               placeholder="请输入菜单名称"
@@ -90,15 +98,20 @@ export default function CreateMenuDialog({ open, onOpenChange, onSuccess }: Crea
             {nameError && <FieldError>{nameError}</FieldError>}
           </Field>
 
-          <Field>
-            <FieldLabel htmlFor="menu-description">描述</FieldLabel>
+          <Field data-invalid={!!descriptionError || undefined}>
+            <FieldLabel htmlFor="menu-description">菜单描述</FieldLabel>
             <Textarea
               id="menu-description"
               placeholder="请输入菜单描述"
               rows={3}
               value={formDescription}
-              onChange={(e) => setFormDescription(e.target.value)}
+              onChange={(e) => {
+                setFormDescription(e.target.value)
+                if (descriptionError) setDescriptionError("")
+              }}
+              aria-invalid={!!descriptionError || undefined}
             />
+            {descriptionError && <FieldError>{descriptionError}</FieldError>}
           </Field>
         </FieldGroup>
 

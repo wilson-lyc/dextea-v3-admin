@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { PlusIcon, Settings, ClipboardListIcon, RotateCwIcon, Trash2Icon } from "lucide-react"
+import { Trash2Icon, TrashIcon, Settings, ClipboardListIcon, RotateCwIcon, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Menu } from "@dextea/shared-types"
@@ -37,6 +37,7 @@ export default function MenusPage() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [singleDeleteId, setSingleDeleteId] = useState<number | null>(null)
 
   // 获取菜单列表
   const fetchMenus = useCallback(async (targetPage: number) => {
@@ -84,29 +85,38 @@ export default function MenusPage() {
     }
   }
 
-  // 打开确认弹窗
+  // 打开批量确认弹窗
   const handleBatchDeleteClick = () => {
     if (selectedIds.size === 0) return
+    setSingleDeleteId(null)
     setDeleteError(null)
     setConfirmDialogOpen(true)
   }
 
-  // 执行批量删除
-  const handleBatchDeleteConfirm = async () => {
+  // 打开单个删除确认弹窗
+  const handleSingleDeleteClick = (id: number) => {
+    setSingleDeleteId(id)
+    setDeleteError(null)
+    setConfirmDialogOpen(true)
+  }
+
+  // 执行删除（单个或批量）
+  const handleDeleteConfirm = async () => {
     setDeleting(true)
     setDeleteError(null)
     try {
-      const res = await batchDeleteMenus(Array.from(selectedIds))
+      const ids = singleDeleteId !== null ? [singleDeleteId] : Array.from(selectedIds)
+      const res = await batchDeleteMenus(ids)
       if (res.code === 0) {
         setConfirmDialogOpen(false)
-        toast.success(`成功删除 ${selectedIds.size} 个菜单`)
+        toast.success(`成功删除 ${ids.length} 个菜单`)
         fetchMenus(page)
       } else {
         setDeleteError(res.message)
       }
     } catch (err) {
       console.error(err)
-      setDeleteError("批量删除异常")
+      setDeleteError("删除异常")
     } finally {
       setDeleting(false)
     }
@@ -191,10 +201,16 @@ export default function MenusPage() {
                   <TableCell>{item.description || "—"}</TableCell>
                   <TableCell>{item.createdAt}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" size="sm" onClick={() => navigate(`/menus/${item.id}`)}>
-                      <Settings data-icon="inline-start" />
-                      管理
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/menus/${item.id}`)}>
+                        <Settings data-icon="inline-start" />
+                        管理
+                      </Button>
+                      <Button variant="outline-destructive" size="sm" onClick={() => handleSingleDeleteClick(item.id)}>
+                        <TrashIcon data-icon="inline-start" />
+                        删除
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -221,21 +237,23 @@ export default function MenusPage() {
         onSuccess={() => fetchMenus(page)}
       />
 
-      {/* 批量删除确认弹窗 */}
+      {/* 删除确认弹窗 */}
       <ConfirmDialog
         open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}
         title="确认删除"
         description={
-          <>
-            确定要删除选中的 <span className="font-semibold text-foreground">{selectedIds.size}</span> 个菜单吗？已被门店绑定的菜单无法删除。
-          </>
+          singleDeleteId !== null
+            ? "确定要删除这个菜单吗？已被门店绑定的菜单无法删除。"
+            : <>
+                确定要删除选中的 <span className="font-semibold text-foreground">{selectedIds.size}</span> 个菜单吗？已被门店绑定的菜单无法删除。
+              </>
         }
         confirmText="删除"
         variant="destructive"
         loading={deleting}
         errorMessage={deleteError}
-        onConfirm={handleBatchDeleteConfirm}
+        onConfirm={handleDeleteConfirm}
       />
 
     </div>
