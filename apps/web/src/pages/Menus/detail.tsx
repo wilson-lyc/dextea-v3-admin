@@ -29,13 +29,14 @@ export default function MenuDetailPage() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
+  // Tab 配置与初始化
   const tabValues = useMemo(() => ["basic", "groups"], [])
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace("#", "")
     return tabValues.includes(hash) ? hash : "basic"
   })
 
-  // Sync tab ← hash changes (browser back/forward)
+  // 浏览器前进后退时同步 Tab
   useEffect(() => {
     const onHashChange = () => {
       const hash = window.location.hash.replace("#", "")
@@ -47,7 +48,7 @@ export default function MenuDetailPage() {
     return () => window.removeEventListener("hashchange", onHashChange)
   }, [tabValues])
 
-  // Sync hash ← tab changes
+  // 切换 Tab 时同步 hash
   const handleTabChange = useCallback(
     (value: string) => {
       setActiveTab(value)
@@ -61,6 +62,7 @@ export default function MenuDetailPage() {
     [],
   )
 
+  // 加载菜单数据
   useEffect(() => {
     if (!id) return
     setLoading(true)
@@ -76,6 +78,7 @@ export default function MenuDetailPage() {
       .finally(() => setLoading(false))
   }, [id])
 
+  // 加载中
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -84,6 +87,7 @@ export default function MenuDetailPage() {
     )
   }
 
+  // 菜单不存在
   if (notFound || !menuName) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4">
@@ -96,45 +100,43 @@ export default function MenuDetailPage() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-3">
-      <div className="shrink-0 px-6 pt-6">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeftIcon data-icon="inline-start" />
-            返回
-          </Button>
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbPage>菜单管理</BreadcrumbPage>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{menuName}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+    <div className="h-full p-6 flex flex-col">
+      {/* 顶栏：返回按钮与面包屑 */}
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+          <ArrowLeftIcon data-icon="inline-start" />
+          返回
+        </Button>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbPage>菜单管理</BreadcrumbPage>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{menuName}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0">
-        <div className="flex h-full flex-col px-6 pb-6 pt-3">
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="flex min-h-0 flex-1 flex-col">
-            <TabsList variant="line">
-              <TabsTrigger value="basic">基础信息</TabsTrigger>
-              <TabsTrigger value="groups">菜单分组</TabsTrigger>
-            </TabsList>
+      {/* Tab 面板 */}
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-1 min-h-0 flex-col">
+        <TabsList variant="line">
+          <TabsTrigger value="basic">基础信息</TabsTrigger>
+          <TabsTrigger value="groups">菜单分组</TabsTrigger>
+        </TabsList>
 
-            <TabsContent value="basic" className="mt-6 flex flex-col gap-6">
-              {id && <BasicInfoPanel menuId={id} />}
-            </TabsContent>
+        <ScrollArea className="flex-1 min-h-0 p-1">
+          <TabsContent value="basic">
+            {id && <BasicInfoPanel menuId={id} />}
+          </TabsContent>
 
-            <TabsContent value="groups" className="mt-6 flex min-h-0 flex-1 flex-col gap-4">
-              {id && <GroupsPanel menuId={id} />}
-            </TabsContent>
-          </Tabs>
-        </div>
-      </ScrollArea>
+          <TabsContent value="groups">
+            {id && <GroupsPanel menuId={id} />}
+          </TabsContent>
+        </ScrollArea>
+      </Tabs>
     </div>
   )
 }

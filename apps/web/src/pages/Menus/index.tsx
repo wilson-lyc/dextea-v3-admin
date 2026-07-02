@@ -49,16 +49,27 @@ export default function MenusPage() {
         setTotal(res.data.total)
         setPage(targetPage)
         setSelectedIds(new Set())
+        return true
       } else {
         toast.error(res.message)
+        return false
       }
     } catch (err) {
       console.error(err)
       toast.error("数据加载异常")
+      return false
     } finally {
       setLoading(false)
     }
   }, [pageSize])
+
+  // 刷新（强制等待 1 秒）
+  const handleRefresh = useCallback(async () => {
+    setLoading(true)
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    const ok = await fetchMenus(page)
+    if (ok) toast.success("刷新成功")
+  }, [fetchMenus, page])
 
   // 初始加载第一页
   useEffect(() => {
@@ -124,7 +135,7 @@ export default function MenusPage() {
               删除选中 ({selectedIds.size})
             </Button>
           )}
-          <Button variant="outline" size="icon" onClick={() => { setLoading(true); setTimeout(() => fetchMenus(page), 1000) }}>
+          <Button variant="outline" size="icon" onClick={handleRefresh} disabled={loading}>
             <RotateCwIcon className="size-4" />
           </Button>
         </div>

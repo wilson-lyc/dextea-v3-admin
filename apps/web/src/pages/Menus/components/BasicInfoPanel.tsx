@@ -74,7 +74,7 @@ export default function BasicInfoPanel({ menuId }: BasicInfoPanelProps) {
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       {/* 基础信息 */}
       <Card>
         <CardHeader>
@@ -125,6 +125,6 @@ export default function BasicInfoPanel({ menuId }: BasicInfoPanelProps) {
         menu={menu}
         onUpdated={fetchMenu}
       />
-    </>
+    </div>
   )
 }
