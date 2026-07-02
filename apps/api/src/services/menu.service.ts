@@ -29,7 +29,6 @@ export async function listMenus(
       id: menusTable.id,
       name: menusTable.name,
       description: menusTable.description,
-      groupCount: sql<number>`(select count(*) from ${menuGroupsTable} where ${menuGroupsTable.menuId} = ${menusTable.id})`,
       createdAt: menusTable.createdAt,
       updatedAt: menusTable.updatedAt,
     })
@@ -75,7 +74,6 @@ export async function getMenu(
       id: menusTable.id,
       name: menusTable.name,
       description: menusTable.description,
-      groupCount: sql<number>`(select count(*) from ${menuGroupsTable} where ${menuGroupsTable.menuId} = ${menusTable.id})`,
       createdAt: menusTable.createdAt,
       updatedAt: menusTable.updatedAt,
     })

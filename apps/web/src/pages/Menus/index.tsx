@@ -15,29 +15,24 @@ import {
 } from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
+import PaginationBar from "@/components/ui/pagination-bar"
 import { getMenus } from "@/services"
 import CreateMenuDialog from "./components/CreateMenuDialog"
 
 export default function MenusPage() {
   const navigate = useNavigate()
 
+  // 列表数据与分页状态
   const [items, setItems] = useState<Menu[]>([])
-  const [loading, setLoading] = useState(true)
-  const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
   const pageSize = 20
 
+  // UI 状态
+  const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
 
+  // 获取菜单列表
   const fetchMenus = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
@@ -58,6 +53,7 @@ export default function MenusPage() {
     }
   }, [pageSize])
 
+  // 初始加载第一页
   useEffect(() => {
     fetchMenus(1)
   }, [fetchMenus])
@@ -65,6 +61,7 @@ export default function MenusPage() {
   return (
     <div className="flex h-full flex-col gap-4 p-6">
 
+      {/* 顶栏：新建与刷新 */}
       <div className="flex shrink-0 items-center justify-between">
         <div className="flex items-center gap-2">
           <Button onClick={() => setDialogOpen(true)}>
@@ -77,11 +74,12 @@ export default function MenusPage() {
         </div>
       </div>
 
+      {/* 菜单表格 */}
       <div className="flex flex-1 flex-col overflow-auto rounded-lg border">
         <Table className={`base-class ${(items.length === 0 || loading) && 'flex-1'}`}>
           <TableHeader>
             <TableRow className="sticky top-0 bg-background">
-              <TableHead className="w-16">菜单ID</TableHead>
+              <TableHead className="w-24">菜单ID</TableHead>
               <TableHead className="w-44">菜单名称</TableHead>
               <TableHead>描述</TableHead>
               <TableHead className="w-44">创建时间</TableHead>
@@ -134,59 +132,18 @@ export default function MenusPage() {
         </Table>
       </div>
 
-      {items.length > 0 && (() => {
-        const totalPages = Math.ceil(total / pageSize)
-        const pages: (number | "...")[] = []
-        if (totalPages <= 6) {
-          for (let i = 1; i <= totalPages; i++) pages.push(i)
-        } else {
-          pages.push(1)
-          if (page > 3) pages.push("...")
-          for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
-            pages.push(i)
-          }
-          if (page < totalPages - 2) pages.push("...")
-          pages.push(totalPages)
-        }
-        return (
-          <Pagination className="shrink-0 justify-end">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  text="上一页"
-                  onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchMenus(page - 1) }}
-                />
-              </PaginationItem>
-              {pages.map((p, idx) =>
-                p === "..." ? (
-                  <PaginationItem key={`ellipsis-${idx}`}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={p}>
-                    <PaginationLink
-                      href="#"
-                      isActive={p === page}
-                      onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchMenus(p) }}
-                    >
-                      {p}
-                    </PaginationLink>
-                  </PaginationItem>
-                )
-              )}
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  text="下一页"
-                  onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < totalPages) fetchMenus(page + 1) }}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )
-      })()}
+      {/* 分页 */}
+      {items.length > 0 && (
+        <PaginationBar
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={fetchMenus}
+          className="shrink-0 justify-end"
+        />
+      )}
 
+      {/* 新建菜单对话框 */}
       <CreateMenuDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}

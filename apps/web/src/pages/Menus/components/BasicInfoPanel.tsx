@@ -98,8 +98,6 @@ export default function BasicInfoPanel({ menuId }: BasicInfoPanelProps) {
             <span className="text-sm text-muted-foreground">描述</span>
             <span className="text-sm">{menu.description || "-"}</span>
 
-            <span className="text-sm text-muted-foreground">分组数量</span>
-            <span className="text-sm tabular-nums">{menu.groupCount ?? "-"}</span>
           </div>
         </CardContent>
       </Card>

@@ -24,7 +24,7 @@ pages/{EntityName}/
 imports
   → react
   → @dextea/shared-types (type only)
-  → @/components/ui/* (Table, Pagination, Spinner, Empty)
+  → @/components/ui/* (Table, PaginationBar, Spinner, Empty)
   → @/services
 
 export default function Page()
@@ -89,7 +89,7 @@ Page Container (flex h-full flex-col gap-4 p-6)
 │   └── Table
 │       ├── TableHeader (sticky top-0 bg-background)
 │       └── TableBody (三态互斥渲染: loading/empty/数据行)
-└── Pagination (数据非空时渲染, 样式: shrink-0, justify-end)
+└── PaginationBar (数据非空时渲染, 样式: shrink-0 justify-end)
 ```
 
 ### 3.1 顶部操作栏
@@ -189,63 +189,20 @@ Page Container (flex h-full flex-col gap-4 p-6)
 ### 3.3 分页
 
 ```tsx
-{items.length > 0 && (() => {
-  const totalPages = Math.ceil(total / pageSize)
-  const pages: (number | "...")[] = []
-  if (totalPages <= 6) {
-    for (let i = 1; i <= totalPages; i++) pages.push(i)
-  } else {
-    pages.push(1)
-    if (page > 3) pages.push("...")
-    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
-      pages.push(i)
-    }
-    if (page < totalPages - 2) pages.push("...")
-    pages.push(totalPages)
-  }
-  return (
-    <Pagination className="shrink-0 justify-end">
-      <PaginationContent>
-        <PaginationItem>
-          <PaginationPrevious
-            href="#"
-            text="上一页"
-            onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchData(page - 1) }}
-          />
-        </PaginationItem>
-        {pages.map((p, idx) =>
-          p === "..." ? (
-            <PaginationItem key={`ellipsis-${idx}`}>
-              <PaginationEllipsis />
-            </PaginationItem>
-          ) : (
-            <PaginationItem key={p}>
-              <PaginationLink
-                href="#"
-                isActive={p === page}
-                onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchData(p) }}
-              >
-                {p}
-              </PaginationLink>
-            </PaginationItem>
-          )
-        )}
-        <PaginationItem>
-          <PaginationNext
-            href="#"
-            text="下一页"
-            onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < totalPages) fetchData(page + 1) }}
-          />
-        </PaginationItem>
-      </PaginationContent>
-    </Pagination>
-  )
-})()}
+{items.length > 0 && (
+  <PaginationBar
+    page={page}
+    pageSize={pageSize}
+    total={total}
+    onPageChange={fetchData}
+    className="shrink-0 justify-end"
+  />
+)}
 ```
 **规则**:
 - 分页组件仅在数据非空时渲染（`items.length > 0 && (...)`）
-- 使用 IIFE 内联计算页码数组
-- 页码按钮最多显示 6 个，超出时用 `"..."` 省略
+- 传入 `total`、`pageSize`、`page` 和 `onPageChange` 回调，组件自动计算总页数和页码列表
+- 不可使用 `@/components/ui/pagination` 原始组件组合，始终使用 `PaginationBar` 封装组件
 
 ---
 
@@ -268,18 +225,9 @@ import {
 } from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
+import PaginationBar from "@/components/ui/pagination-bar"
 import { getXxxList } from "@/services"
 ```
----
 
 ## 5. 实现 checklist
 
@@ -287,4 +235,12 @@ import { getXxxList } from "@/services"
 - [ ] 实现 `fetchData`（useCallback + useEffect）
 - [ ] Render 顶部操作栏（新建按钮 + 刷新按钮）
 - [ ] Render 表格容器（三态渲染）
-- [ ] Render 分页（数据非空时显示）
+- [ ] Render 分页（PaginationBar，数据非空时显示）
+
+---
+
+## 6. 注释规范
+
+- 在关键逻辑和区块分界处适当加入注释，提升代码可读性
+- 注释使用纯文本描述，禁止使用 `---`、`===`、`***`、`+++` 等装饰性符号
+- JSX 区块注释使用 `{/* 描述 */}`，代码逻辑注释使用 `// 描述`
