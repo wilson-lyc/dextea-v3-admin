@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner"
 
 import type { Product } from "@dextea/shared-types"
+import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
@@ -46,11 +47,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-
-const STATUS_TEXT: Record<number, { label: string; className: string }> = {
-  0: { label: "下架", className: "text-red-600 dark:text-red-400" },
-  1: { label: "可售", className: "text-green-600 dark:text-green-400" },
-}
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
@@ -300,8 +296,8 @@ export default function ProductsPage() {
                   <TableCell>{product.name}</TableCell>
                   <TableCell><span className="tabular-nums">¥ {product.price.toFixed(2)}</span></TableCell>
                   <TableCell>
-                    <span className={STATUS_TEXT[product.status]?.className ?? ""}>
-                      {STATUS_TEXT[product.status]?.label ?? "—"}
+                    <span className={PRODUCT_STATUS_TEXT_CLASSES[product.status] ?? ""}>
+                      {PRODUCT_STATUS_LABEL[product.status] ?? "—"}
                     </span>
                   </TableCell>
                   <TableCell>

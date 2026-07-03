@@ -18,6 +18,7 @@ import {
   addMenuProduct,
   batchRemoveMenuProducts,
   updateMenuProductSort,
+  dispatchMenuByArea,
 } from '../services/menu.service.js';
 import type {
   ApiResponse,
@@ -36,6 +37,8 @@ import type {
   BatchUnbindMenuProductsInput,
   BatchDeleteMenuGroupsInput,
   BatchDeleteMenusInput,
+  DispatchMenuByAreaRequest,
+  DispatchMenuByAreaResponse,
 } from '@dextea/shared-types';
 
 export async function menuRoutes(app: FastifyInstance) {
@@ -836,6 +839,69 @@ export async function menuRoutes(app: FastifyInstance) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
       throw new AppError(menuErrors.PRODUCT_SORT_UPDATE_FAILED);
+    }
+  });
+
+  /** 按地域分发菜单 */
+  app.post<{
+    Params: { id: string };
+    Body: DispatchMenuByAreaRequest;
+    Reply: ApiResponse<DispatchMenuByAreaResponse>;
+  }>('/menus/:id/dispatch/area', {
+    schema: {
+      description: '按地域分发菜单到匹配的门店',
+      tags: ['Menus'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '菜单ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          province: { type: 'string', minLength: 1, description: '省份（必填）' },
+          city: { type: 'string', description: '城市（选填）' },
+          district: { type: 'string', description: '区县（选填）' },
+        },
+        required: ['province'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                matched: { type: 'integer', description: '符合区域条件的门店总数' },
+                dispatched: { type: 'integer', description: '成功分发的门店数' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const menuId = parsePositiveInt(request.params.id, '菜单ID');
+      const { province, city, district } = request.body;
+
+      const result = await dispatchMenuByArea(db, menuId, { province, city, district });
+
+      return {
+        code: 0,
+        data: result,
+        message: `区域内共 ${result.matched} 家门店，成功分发 ${result.dispatched} 家`,
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(menuErrors.DISPATCH_AREA_FAILED);
     }
   });
 }

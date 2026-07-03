@@ -76,7 +76,7 @@ export default function BasicInfoPanel({ menuId }: BasicInfoPanelProps) {
   return (
     <div className="flex flex-col gap-4">
       {/* 基础信息 */}
-      <Card>
+      < Card >
         <CardHeader>
           <CardTitle>基础信息</CardTitle>
           <CardAction>
@@ -100,10 +100,10 @@ export default function BasicInfoPanel({ menuId }: BasicInfoPanelProps) {
 
           </div>
         </CardContent>
-      </Card>
+      </Card >
 
       {/* 维护记录 */}
-      <Card>
+      < Card >
         <CardHeader>
           <CardTitle>维护记录</CardTitle>
         </CardHeader>
@@ -116,7 +116,7 @@ export default function BasicInfoPanel({ menuId }: BasicInfoPanelProps) {
             <span className="text-sm">{formatDate(menu.updatedAt)}</span>
           </div>
         </CardContent>
-      </Card>
+      </Card >
 
       <EditBasicInfoDialog
         open={infoDialogOpen}
@@ -125,6 +125,6 @@ export default function BasicInfoPanel({ menuId }: BasicInfoPanelProps) {
         menu={menu}
         onUpdated={fetchMenu}
       />
-    </div>
+    </div >
   )
 }

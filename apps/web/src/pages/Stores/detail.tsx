@@ -3,15 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom"
 import { ArrowLeftIcon, PencilIcon, KeyRoundIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { Store, StoreStatus } from "@dextea/shared-types"
-import { STORE_STATUS } from "@dextea/shared-types"
-
-const STORE_STATUS_LABEL: Record<number, string> = {
-  [STORE_STATUS.RESTING.value]: "休息中",
-  [STORE_STATUS.OPEN.value]: "营业中",
-  [STORE_STATUS.PREPARING.value]: "筹备中",
-  [STORE_STATUS.CLOSED.value]: "已注销",
-}
+import type { Store } from "@dextea/shared-types"
+import { STORE_STATUS_LABEL, STORE_STATUS_TEXT_CLASSES } from "@/lib/status"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -212,17 +205,7 @@ export default function StoreDetailPage() {
                 <CardContent>
                   <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
                     <span className="text-sm text-muted-foreground">当前状态</span>
-                    <span
-                      className={`text-sm ${
-                        store.status === STORE_STATUS.OPEN.value
-                          ? 'text-green-600'
-                          : store.status === STORE_STATUS.RESTING.value
-                            ? 'text-amber-600'
-                            : store.status === STORE_STATUS.PREPARING.value
-                              ? 'text-blue-600'
-                              : 'text-muted-foreground'
-                      }`}
-                    >
+                    <span className={`text-sm ${STORE_STATUS_TEXT_CLASSES[store.status]}`}>
                       {STORE_STATUS_LABEL[store.status]}
                     </span>
                   </div>

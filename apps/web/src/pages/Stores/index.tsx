@@ -3,15 +3,8 @@ import { useNavigate } from "react-router-dom"
 import { PlusIcon, RefreshCwIcon, RotateCwIcon, SearchIcon, SettingsIcon, Building2Icon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { Store, StoreStatus } from "@dextea/shared-types"
-import { STORE_STATUS } from "@dextea/shared-types"
-
-const STORE_STATUS_LABEL: Record<number, string> = {
-  [STORE_STATUS.RESTING.value]: "休息中",
-  [STORE_STATUS.OPEN.value]: "营业中",
-  [STORE_STATUS.PREPARING.value]: "筹备中",
-  [STORE_STATUS.CLOSED.value]: "已注销",
-}
+import type { Store } from "@dextea/shared-types"
+import { STORE_STATUS_LABEL, STORE_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -41,13 +34,6 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { CreateStoreDialog } from "./components/CreateStoreDialog"
-
-const STATUS_CLASSES: Record<StoreStatus, string> = {
-  0: "text-red-600 dark:text-red-400",
-  1: "text-green-600 dark:text-green-400",
-  2: "text-blue-600 dark:text-blue-400",
-  3: "text-muted-foreground",
-}
 
 export default function StoresPage() {
   const navigate = useNavigate()
@@ -232,7 +218,7 @@ export default function StoresPage() {
                     <TableCell>{store.phone || "-"}</TableCell>
                     <TableCell>{store.businessHours || "-"}</TableCell>
                     <TableCell>
-                      <span className={STATUS_CLASSES[store.status]}>
+                      <span className={STORE_STATUS_TEXT_CLASSES[store.status]}>
                         {STORE_STATUS_LABEL[store.status]}
                       </span>
                     </TableCell>

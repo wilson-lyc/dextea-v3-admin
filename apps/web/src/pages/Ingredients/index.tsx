@@ -10,6 +10,7 @@ import { toast } from "sonner"
 
 import type { Ingredient } from "@dextea/shared-types"
 import { INGREDIENT_STATUS } from "@dextea/shared-types"
+import { INGREDIENT_STATUS_LABEL, INGREDIENT_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -34,11 +35,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-
-const STATUS_TEXT: Record<number, { label: string; className: string }> = {
-  0: { label: "下架", className: "text-red-500" },
-  1: { label: "启用", className: "text-green-600" },
-}
 
 export default function IngredientsPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([])
@@ -168,8 +164,8 @@ export default function IngredientsPage() {
                     <TableCell>{ingredient.boundCount}</TableCell>
                     <TableCell>{ingredient.optionCount}</TableCell>
                     <TableCell>
-                      <span className={STATUS_TEXT[ingredient.status]?.className ?? ""}>
-                        {STATUS_TEXT[ingredient.status]?.label ?? "—"}
+                      <span className={INGREDIENT_STATUS_TEXT_CLASSES[ingredient.status] ?? ""}>
+                        {INGREDIENT_STATUS_LABEL[ingredient.status] ?? "—"}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">

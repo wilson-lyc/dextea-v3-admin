@@ -157,4 +157,6 @@ export type {
   UpdateMenuResponse,
   CreateMenuGroupResponse,
   MenuQuery,
+  DispatchMenuByAreaRequest,
+  DispatchMenuByAreaResponse,
 } from './types/index.js';

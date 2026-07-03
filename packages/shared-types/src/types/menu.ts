@@ -86,3 +86,14 @@ export interface MenuQuery {
   page?: string;
   pageSize?: string;
 }
+
+export interface DispatchMenuByAreaRequest {
+  province: string;
+  city?: string;
+  district?: string;
+}
+
+export interface DispatchMenuByAreaResponse {
+  matched: number;
+  dispatched: number;
+}

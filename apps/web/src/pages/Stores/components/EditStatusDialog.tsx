@@ -3,6 +3,7 @@ import { toast } from "sonner"
 
 import type { StoreStatus } from "@dextea/shared-types"
 import { STORE_STATUS } from "@dextea/shared-types"
+import { STORE_STATUS_LABEL } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -66,16 +67,11 @@ export function EditStatusDialog({ open, onOpenChange, storeId, currentStatus, o
         <FieldGroup className="py-2">
           <Field>
             <FieldLabel>
-              门店状态 <span className="text-destructive">*</span>
+              门店状态
             </FieldLabel>
             <StatusSelectPicker
               statusEnum={STORE_STATUS}
-              labels={{
-                [STORE_STATUS.RESTING.value]: "休息中",
-                [STORE_STATUS.OPEN.value]: "营业中",
-                [STORE_STATUS.PREPARING.value]: "筹备中",
-                [STORE_STATUS.CLOSED.value]: "已注销",
-              }}
+              labels={STORE_STATUS_LABEL}
               value={selected}
               onValueChange={setSelected}
               placeholder="请选择门店状态"

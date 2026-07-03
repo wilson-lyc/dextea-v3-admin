@@ -1,7 +1,7 @@
 import type { MySql2Database } from 'drizzle-orm/mysql2';
 
 type Db = MySql2Database<Record<string, unknown>>;
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, eq, inArray, ne, sql } from 'drizzle-orm';
 import { menusTable, menuGroupsTable, menuProductsTable, productsTable, storesTable } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { menuErrors } from '../errorcode/menus.js';
@@ -9,7 +9,7 @@ import { productErrors } from '../errorcode/products.js';
 import { storeErrors } from '../errorcode/stores.js';
 import { validateMaxLength } from '../utils/validation.js';
 import { withPagination } from '../utils/pagination.js';
-import type { PaginatedData, Menu, MenuGroup, MenuProduct, CreateMenuInput, UpdateMenuInput, CreateMenuGroupInput, UpdateMenuGroupInput } from '@dextea/shared-types';
+import type { PaginatedData, Menu, MenuGroup, MenuProduct, CreateMenuInput, UpdateMenuInput, CreateMenuGroupInput, UpdateMenuGroupInput, DispatchMenuByAreaRequest, DispatchMenuByAreaResponse } from '@dextea/shared-types';
 
 export async function listMenus(
   db: Db,
@@ -542,4 +542,58 @@ export async function bindStoreMenu(
     if (error instanceof AppError) throw error;
     throw new AppError(menuErrors.UPDATE_FAILED);
   }
+}
+
+export async function dispatchMenuByArea(
+  db: Db,
+  menuId: number,
+  input: DispatchMenuByAreaRequest,
+): Promise<DispatchMenuByAreaResponse> {
+  // 校验菜单存在
+  const [menu] = await db
+    .select()
+    .from(menusTable)
+    .where(eq(menusTable.id, menuId))
+    .limit(1);
+
+  if (!menu) {
+    throw new AppError(menuErrors.MENU_NOT_FOUND);
+  }
+
+  // 校验省份必填
+  if (!input.province || input.province.trim().length === 0) {
+    throw new AppError(menuErrors.PROVINCE_REQUIRED);
+  }
+
+  // 构建区域匹配条件
+  const conditions = [eq(storesTable.province, input.province.trim())];
+  if (input.city && input.city.trim().length > 0) {
+    conditions.push(eq(storesTable.city, input.city.trim()));
+  }
+  if (input.district && input.district.trim().length > 0) {
+    conditions.push(eq(storesTable.district, input.district.trim()));
+  }
+  const whereClause = and(...conditions);
+
+  // 查询符合区域的门店总数
+  const [countResult] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(storesTable)
+    .where(whereClause);
+
+  const matched = Number(countResult?.count ?? 0);
+
+  if (matched === 0) {
+    throw new AppError(menuErrors.NO_MATCHED_STORES);
+  }
+
+  // 分发：将匹配区域的门店绑定到菜单（排除已绑定的）
+  const updateResult = await db
+    .update(storesTable)
+    .set({ menuId })
+    .where(and(whereClause, ne(storesTable.menuId, menuId)));
+
+  const dispatched = Number(updateResult[0]?.affectedRows ?? 0);
+
+  return { matched, dispatched };
 }

@@ -4,11 +4,7 @@ import { toast } from "sonner"
 
 import type { User, UserStatus } from "@dextea/shared-types"
 import { USER_STATUS } from "@dextea/shared-types"
-
-const USER_STATUS_LABEL: Record<number, string> = {
-  [USER_STATUS.DISABLED.value]: "禁用",
-  [USER_STATUS.ACTIVE.value]: "激活",
-}
+import { USER_STATUS_LABEL, USER_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -287,13 +283,7 @@ export default function EmployeesPage() {
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.displayName}</TableCell>
                   <TableCell>
-                    <span
-                      className={
-                        user.status === USER_STATUS.ACTIVE.value
-                          ? "text-green-600 dark:text-green-400"
-                          : "text-muted-foreground"
-                      }
-                    >
+                    <span className={USER_STATUS_TEXT_CLASSES[user.status] ?? ""}>
                       {USER_STATUS_LABEL[user.status]}
                     </span>
                   </TableCell>

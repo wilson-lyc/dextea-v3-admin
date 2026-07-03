@@ -120,4 +120,22 @@ export const menuErrors = {
     message: '该菜单已被门店绑定，无法删除',
     httpStatus: 200,
   } satisfies BizError,
+
+  PROVINCE_REQUIRED: {
+    code: 11122,
+    message: '请选择至少一个省份',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  DISPATCH_AREA_FAILED: {
+    code: 11123,
+    message: '按地域分发菜单失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  NO_MATCHED_STORES: {
+    code: 11124,
+    message: '指定区域内没有找到门店',
+    httpStatus: 200,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

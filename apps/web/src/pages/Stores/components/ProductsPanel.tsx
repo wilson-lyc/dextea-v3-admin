@@ -3,6 +3,7 @@ import { PackageIcon, AlertTriangleIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { StoreProductItem } from "@dextea/shared-types"
+import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES, STORE_PRODUCT_STATUS_LABEL, STORE_PRODUCT_STATUS_TEXT_CLASSES, getProductFinalStatus } from "@/lib/status"
 
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -41,38 +42,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { getStoreProducts, updateProductStoreStatus } from "@/services/store-status"
-
-const PRODUCT_STATUS_TEXT: Record<number, { label: string; className: string }> = {
-  0: {
-    label: "下架",
-    className: "text-red-700 dark:text-red-400",
-  },
-  1: {
-    label: "可售",
-    className: "text-green-700 dark:text-green-400",
-  },
-}
-
-const STORE_STATUS_TEXT: Record<number, { label: string; className: string }> = {
-  0: {
-    label: "售罄",
-    className: "text-red-700 dark:text-red-400",
-  },
-  1: {
-    label: "可售",
-    className: "text-green-700 dark:text-green-400",
-  },
-}
-
-function getFinalStatus(globalStatus: number, storeStatus: number) {
-  if (globalStatus === 0) {
-    return { label: "下架", className: "text-red-700 dark:text-red-400" }
-  }
-  if (storeStatus === 0) {
-    return { label: "售罄", className: "text-red-700 dark:text-red-400" }
-  }
-  return { label: "可售", className: "text-green-700 dark:text-green-400" }
-}
 
 interface ProductsPanelProps {
   storeId: number
@@ -286,30 +255,18 @@ export function ProductsPanel({ storeId }: ProductsPanelProps) {
                   <TableCell>{item.name}</TableCell>
                   <TableCell>¥ {item.price.toFixed(2)}</TableCell>
                   <TableCell>
-                    <span
-                      className={
-                        PRODUCT_STATUS_TEXT[item.globalStatus]?.className ??
-                        ""
-                      }
-                    >
-                      {PRODUCT_STATUS_TEXT[item.globalStatus]?.label ??
-                        String(item.globalStatus)}
+                    <span className={PRODUCT_STATUS_TEXT_CLASSES[item.globalStatus] ?? ""}>
+                      {PRODUCT_STATUS_LABEL[item.globalStatus] ?? String(item.globalStatus)}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span
-                      className={
-                        STORE_STATUS_TEXT[item.storeStatus]?.className ??
-                        ""
-                      }
-                    >
-                      {STORE_STATUS_TEXT[item.storeStatus]?.label ??
-                        String(item.storeStatus)}
+                    <span className={STORE_PRODUCT_STATUS_TEXT_CLASSES[item.storeStatus] ?? ""}>
+                      {STORE_PRODUCT_STATUS_LABEL[item.storeStatus] ?? String(item.storeStatus)}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className={getFinalStatus(item.globalStatus, item.storeStatus).className}>
-                      {getFinalStatus(item.globalStatus, item.storeStatus).label}
+                    <span className={getProductFinalStatus(item.globalStatus, item.storeStatus).className}>
+                      {getProductFinalStatus(item.globalStatus, item.storeStatus).label}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">

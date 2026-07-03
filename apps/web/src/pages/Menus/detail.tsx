@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Tabs,
   TabsContent,
@@ -21,6 +20,7 @@ import {
 import { getMenu } from "@/services"
 import BasicInfoPanel from "./components/BasicInfoPanel"
 import GroupsPanel from "./components/GroupsPanel"
+import StoresPanel from "./components/StoresPanel"
 
 export default function MenuDetailPage() {
   const navigate = useNavigate()
@@ -30,7 +30,7 @@ export default function MenuDetailPage() {
   const [notFound, setNotFound] = useState(false)
 
   // Tab 配置与初始化
-  const tabValues = useMemo(() => ["basic", "groups"], [])
+  const tabValues = useMemo(() => ["basic", "groups", "stores"], [])
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace("#", "")
     return tabValues.includes(hash) ? hash : "basic"
@@ -125,17 +125,20 @@ export default function MenuDetailPage() {
         <TabsList variant="line">
           <TabsTrigger value="basic">基础信息</TabsTrigger>
           <TabsTrigger value="groups">菜单分组</TabsTrigger>
+          <TabsTrigger value="stores">关联门店</TabsTrigger>
         </TabsList>
 
-        <ScrollArea className="flex-1 min-h-0 p-1">
-          <TabsContent value="basic">
-            {id && <BasicInfoPanel menuId={id} />}
-          </TabsContent>
+        <TabsContent value="basic" className="flex-1 min-h-0 overflow-y-auto p-1">
+          {id && <BasicInfoPanel menuId={id} />}
+        </TabsContent>
 
-          <TabsContent value="groups">
-            {id && <GroupsPanel menuId={id} />}
-          </TabsContent>
-        </ScrollArea>
+        <TabsContent value="groups">
+          {id && <GroupsPanel menuId={id} />}
+        </TabsContent>
+
+        <TabsContent value="stores">
+          {id && <StoresPanel menuId={id} menuName={menuName} />}
+        </TabsContent>
       </Tabs>
     </div>
   )

@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom"
 
 import type { MenuProduct } from "@dextea/shared-types"
 import { PRODUCT_STATUS } from "@dextea/shared-types"
+import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES } from "@/lib/status"
 import {
   Sheet,
   SheetContent,
@@ -15,11 +16,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 
 const MIN_SHEET_WIDTH = 600
 const MAX_SHEET_WIDTH_RATIO = 0.9
-
-const STATUS_TEXT: Record<number, { label: string; className: string }> = {
-  [PRODUCT_STATUS.OFF.value]: { label: "下架", className: "text-red-600 dark:text-red-400" },
-  [PRODUCT_STATUS.ON.value]: { label: "可售", className: "text-green-600 dark:text-green-400" },
-}
 import {
   Table,
   TableHeader,
@@ -364,8 +360,8 @@ export default function GroupProductsSheet({
                       <TableCell>{p.productName ?? "-"}</TableCell>
                       <TableCell className="font-mono text-xs">{p.price != null ? `¥ ${p.price.toFixed(2)}` : "-"}</TableCell>
                       <TableCell>
-                        <span className={STATUS_TEXT[p.status ?? -1]?.className ?? ""}>
-                          {STATUS_TEXT[p.status ?? -1]?.label ?? "—"}
+                        <span className={PRODUCT_STATUS_TEXT_CLASSES[p.status ?? -1] ?? ""}>
+                          {PRODUCT_STATUS_LABEL[p.status ?? -1] ?? "—"}
                         </span>
                       </TableCell>
                       <TableCell className="font-mono text-xs">{p.sortOrder}</TableCell>

@@ -43,4 +43,6 @@ export type {
   UpdateMenuResponse,
   CreateMenuGroupResponse,
   MenuQuery,
+  DispatchMenuByAreaRequest,
+  DispatchMenuByAreaResponse,
 } from './menu.js';

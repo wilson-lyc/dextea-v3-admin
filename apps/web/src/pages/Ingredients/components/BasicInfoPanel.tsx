@@ -3,11 +3,7 @@ import { PencilIcon } from "lucide-react"
 
 import type { Ingredient } from "@dextea/shared-types"
 import { INGREDIENT_STATUS } from "@dextea/shared-types"
-
-const INGREDIENT_STATUS_LABEL: Record<number, string> = {
-  [INGREDIENT_STATUS.OFF.value]: "下架",
-  [INGREDIENT_STATUS.ON.value]: "启用",
-}
+import { INGREDIENT_STATUS_LABEL, INGREDIENT_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -100,13 +96,7 @@ export default function BasicInfoPanel({ ingredientId }: BasicInfoPanelProps) {
         <CardContent>
           <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
             <span className="text-sm text-muted-foreground">当前状态</span>
-            <span
-              className={
-                ingredient.status === INGREDIENT_STATUS.OFF.value
-                  ? "text-sm text-red-500"
-                  : "text-sm text-green-600"
-              }
-            >
+            <span className={`text-sm ${INGREDIENT_STATUS_TEXT_CLASSES[ingredient.status] ?? ""}`}>
               {INGREDIENT_STATUS_LABEL[ingredient.status]}
             </span>
           </div>

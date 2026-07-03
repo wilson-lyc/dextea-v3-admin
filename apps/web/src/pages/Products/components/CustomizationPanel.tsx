@@ -4,6 +4,7 @@ import { toast } from "sonner"
 
 import type { ProductCustomization } from "@dextea/shared-types"
 import { PRODUCT_CUSTOMIZATION_STATUS } from "@dextea/shared-types"
+import { PRODUCT_CUSTOMIZATION_STATUS_LABEL, PRODUCT_CUSTOMIZATION_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -207,14 +208,8 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                 <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>
-                      <span
-                        className={
-                          item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value
-                            ? "text-red-600 dark:text-red-400"
-                            : "text-green-600 dark:text-green-400"
-                        }
-                      >
-                        {item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "禁用" : "激活"}
+                      <span className={PRODUCT_CUSTOMIZATION_STATUS_TEXT_CLASSES[item.status] ?? ""}>
+                        {PRODUCT_CUSTOMIZATION_STATUS_LABEL[item.status]}
                       </span>
                     </TableCell>
                     <TableCell className="font-mono text-xs">{item.optionCount ?? 0}</TableCell>
