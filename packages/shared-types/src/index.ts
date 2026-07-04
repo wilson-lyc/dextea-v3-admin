@@ -159,4 +159,6 @@ export type {
   MenuQuery,
   DispatchMenuByAreaRequest,
   DispatchMenuByAreaResponse,
+  DispatchMenuByIdRequest,
+  DispatchMenuByIdResponse,
 } from './types/index.js';

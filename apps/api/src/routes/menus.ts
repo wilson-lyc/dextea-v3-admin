@@ -20,6 +20,7 @@ import {
 } from '../services/menu.service.js';
 import {
   dispatchMenuByArea,
+  dispatchMenuById,
   getMenuStores,
 } from '../services/store.service.js';
 import type {
@@ -42,6 +43,8 @@ import type {
   BatchDeleteMenusInput,
   DispatchMenuByAreaRequest,
   DispatchMenuByAreaResponse,
+  DispatchMenuByIdRequest,
+  DispatchMenuByIdResponse,
 } from '@dextea/shared-types';
 
 export async function menuRoutes(app: FastifyInstance) {
@@ -945,6 +948,72 @@ export async function menuRoutes(app: FastifyInstance) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
       throw new AppError(menuErrors.DISPATCH_AREA_FAILED);
+    }
+  });
+
+  /** 按ID分发菜单 */
+  app.post<{
+    Params: { id: string };
+    Body: DispatchMenuByIdRequest;
+    Reply: ApiResponse<DispatchMenuByIdResponse>;
+  }>('/menus/:id/dispatch/id', {
+    schema: {
+      description: '按ID分发菜单到指定门店',
+      tags: ['Menus'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '菜单ID' },
+        },
+        required: ['id'],
+      },
+      body: {
+        type: 'object',
+        properties: {
+          storeIds: {
+            type: 'array',
+            minItems: 1,
+            items: { type: 'integer' },
+            description: '门店ID列表',
+          },
+        },
+        required: ['storeIds'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                matched: { type: 'integer', description: '匹配的门店数量' },
+                dispatched: { type: 'integer', description: '成功分发的门店数' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const menuId = parsePositiveInt(request.params.id, '菜单ID');
+      const { storeIds } = request.body;
+
+      const result = await dispatchMenuById(db, menuId, { storeIds });
+
+      return {
+        code: 0,
+        data: result,
+        message: `共匹配 ${result.matched} 家门店，成功分发 ${result.dispatched} 家`,
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(menuErrors.DISPATCH_ID_FAILED);
     }
   });
 }

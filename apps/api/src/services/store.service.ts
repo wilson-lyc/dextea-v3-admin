@@ -1,7 +1,7 @@
 import type { MySql2Database } from 'drizzle-orm/mysql2';
 
 type Db = MySql2Database<Record<string, unknown>>;
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { storesTable, menusTable, storeMenuRelationsTable } from '../db/schema.js';
 import { geocode } from '../utils/geocode.js';
@@ -26,6 +26,9 @@ import type {
   UpdateStoreLocationRequest,
   DispatchMenuByAreaRequest,
   DispatchMenuByAreaResponse,
+  BindStoreMenuResponse,
+  DispatchMenuByIdRequest,
+  DispatchMenuByIdResponse,
 } from '@dextea/shared-types';
 import { STORE_STATUS_VALUES } from '@dextea/shared-types';
 
@@ -606,4 +609,57 @@ export async function dispatchMenuByArea(
   await db.insert(storeMenuRelationsTable).values(values);
 
   return { matched, dispatched: stores.length };
+}
+
+/**
+ * 按ID分发菜单
+ */
+export async function dispatchMenuById(
+  db: Db,
+  menuId: number,
+  input: DispatchMenuByIdRequest,
+): Promise<DispatchMenuByIdResponse> {
+  // 校验菜单存在
+  const [menu] = await db
+    .select()
+    .from(menusTable)
+    .where(eq(menusTable.id, menuId))
+    .limit(1);
+
+  if (!menu) {
+    throw new AppError(menuErrors.MENU_NOT_FOUND);
+  }
+
+  // 校验门店存在
+  const existingStores = await db
+    .select({ id: storesTable.id })
+    .from(storesTable)
+    .where(inArray(storesTable.id, input.storeIds));
+
+  const existingIds = new Set(existingStores.map(s => s.id));
+  const validIds = input.storeIds.filter(id => existingIds.has(id));
+
+  if (validIds.length === 0) {
+    throw new AppError(storeErrors.STORE_NOT_FOUND);
+  }
+
+  // 查询已绑定该菜单的门店
+  const boundStores = await db
+    .select({ storeId: storeMenuRelationsTable.storeId })
+    .from(storeMenuRelationsTable)
+    .where(and(
+      eq(storeMenuRelationsTable.menuId, menuId),
+      inArray(storeMenuRelationsTable.storeId, validIds),
+    ));
+
+  const boundIds = new Set(boundStores.map(s => s.storeId));
+  const toBindIds = validIds.filter(id => !boundIds.has(id));
+
+  // 批量插入绑定关系
+  if (toBindIds.length > 0) {
+    const values = toBindIds.map(storeId => ({ storeId, menuId }));
+    await db.insert(storeMenuRelationsTable).values(values);
+  }
+
+  return { matched: validIds.length, dispatched: toBindIds.length };
 }

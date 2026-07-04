@@ -138,4 +138,16 @@ export const menuErrors = {
     message: '指定区域内没有找到门店',
     httpStatus: 200,
   } satisfies BizError,
+
+  DISPATCH_ID_FAILED: {
+    code: 11125,
+    message: '按ID分发菜单失败',
+    httpStatus: 200,
+  } satisfies BizError,
+
+  STORE_ALREADY_BOUND: {
+    code: 11126,
+    message: '门店已绑定该菜单，无法重复绑定',
+    httpStatus: 200,
+  } satisfies BizError,
 } as const satisfies Record<string, BizError>;

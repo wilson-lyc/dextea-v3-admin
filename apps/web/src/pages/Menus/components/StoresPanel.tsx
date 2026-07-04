@@ -34,6 +34,7 @@ import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import PaginationBar from "@/components/ui/pagination-bar"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 import DispatchByAreaDialog from "./DispatchByAreaDialog"
+import DispatchByIdDialog from "./DispatchByIdDialog"
 
 interface StoresPanelProps {
   menuId: string
@@ -60,6 +61,9 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
 
   // 按地域分发弹窗状态
   const [dispatchAreaOpen, setDispatchAreaOpen] = useState(false)
+
+  // 按ID分发弹窗状态
+  const [dispatchByIdOpen, setDispatchByIdOpen] = useState(false)
 
   // 获取关联门店列表
   const fetchData = useCallback(
@@ -139,9 +143,7 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
                 按地域分发
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => {
-                  // TODO: 按ID分发
-                }}
+                onClick={() => setDispatchByIdOpen(true)}
               >
                 <ClipboardListIcon />
                 按ID分发
@@ -276,6 +278,15 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
       <DispatchByAreaDialog
         open={dispatchAreaOpen}
         onOpenChange={setDispatchAreaOpen}
+        menuId={Number(menuId)}
+        menuName={menuName}
+        onDispatched={() => fetchData(1)}
+      />
+
+      {/* 按ID分发弹窗 */}
+      <DispatchByIdDialog
+        open={dispatchByIdOpen}
+        onOpenChange={setDispatchByIdOpen}
         menuId={Number(menuId)}
         menuName={menuName}
         onDispatched={() => fetchData(1)}

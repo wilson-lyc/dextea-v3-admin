@@ -45,4 +45,6 @@ export type {
   MenuQuery,
   DispatchMenuByAreaRequest,
   DispatchMenuByAreaResponse,
+  DispatchMenuByIdRequest,
+  DispatchMenuByIdResponse,
 } from './menu.js';

@@ -13,6 +13,8 @@ import type {
   CreateMenuGroupResponse,
   DispatchMenuByAreaRequest,
   DispatchMenuByAreaResponse,
+  DispatchMenuByIdRequest,
+  DispatchMenuByIdResponse,
 } from '@dextea/shared-types'
 import { http } from './http'
 
@@ -93,6 +95,16 @@ export function updateMenuProductSort(groupId: number, productId: number, sortOr
 export function dispatchMenuByArea(menuId: number, data: DispatchMenuByAreaRequest) {
   return http
     .post<ApiResponse<DispatchMenuByAreaResponse>>(`/menus/${menuId}/dispatch/area`, data)
+    .then((res) => res.data)
+}
+
+/**
+ * 按ID分发菜单
+ * POST /menus/:id/dispatch/id
+ */
+export function dispatchMenuById(menuId: number, data: DispatchMenuByIdRequest) {
+  return http
+    .post<ApiResponse<DispatchMenuByIdResponse>>(`/menus/${menuId}/dispatch/id`, data)
     .then((res) => res.data)
 }
 

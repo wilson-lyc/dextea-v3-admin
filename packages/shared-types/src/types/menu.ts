@@ -97,3 +97,12 @@ export interface DispatchMenuByAreaResponse {
   matched: number;
   dispatched: number;
 }
+
+export interface DispatchMenuByIdRequest {
+  storeIds: number[];
+}
+
+export interface DispatchMenuByIdResponse {
+  matched: number;
+  dispatched: number;
+}
