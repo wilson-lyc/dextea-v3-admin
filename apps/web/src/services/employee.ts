@@ -47,7 +47,7 @@ export function updateEmployee(id: number, data: UpdateEmployeeInput) {
  */
 export function toggleEmployeeStatus(id: number) {
   return http
-    .patch<ApiResponse<ToggleEmployeeStatusResponse>>(`/employees/${id}/status`)
+    .put<ApiResponse<ToggleEmployeeStatusResponse>>(`/employees/${id}/status`)
     .then((res) => res.data)
 }
 

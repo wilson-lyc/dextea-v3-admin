@@ -144,8 +144,8 @@ export async function employeeRoutes(app: FastifyInstance) {
   /** 更新员工 */
   app.put<{
     Params: { id: string };
-    Body: { email: string; displayName: string; status: number };
-    Reply: ApiResponse<{ id: number; email: string; displayName: string; status: number }>;
+    Body: { email: string; displayName: string };
+    Reply: ApiResponse<{ id: number; email: string; displayName: string }>;
   }>('/employees/:id', {
     schema: {
       description: '更新员工',
@@ -162,9 +162,8 @@ export async function employeeRoutes(app: FastifyInstance) {
         properties: {
           email: { type: 'string', minLength: 1, description: '邮箱' },
           displayName: { type: 'string', minLength: 1, description: '显示名称' },
-          status: { type: 'integer', description: '0=禁用 1=激活' },
         },
-        required: ['email', 'displayName', 'status'],
+        required: ['email', 'displayName'],
       },
       response: {
         200: {
@@ -177,7 +176,6 @@ export async function employeeRoutes(app: FastifyInstance) {
                 id: { type: 'integer' },
                 email: { type: 'string' },
                 displayName: { type: 'string' },
-                status: { type: 'integer', description: '0=禁用 1=激活' },
               },
             },
             message: { type: 'string' },
@@ -205,9 +203,9 @@ export async function employeeRoutes(app: FastifyInstance) {
   });
 
   /** 启用/禁用员工 */
-  app.patch<{
+  app.put<{
     Params: { id: string };
-    Reply: ApiResponse<{ status: number }>;
+    Reply: ApiResponse<{ email: string; status: number }>;
   }>('/employees/:id/status', {
     schema: {
       description: '启用或禁用员工',
@@ -227,6 +225,7 @@ export async function employeeRoutes(app: FastifyInstance) {
             data: {
               type: 'object',
               properties: {
+                email: { type: 'string', description: '员工邮箱' },
                 status: { type: 'integer', description: '0=禁用 1=激活' },
               },
             },

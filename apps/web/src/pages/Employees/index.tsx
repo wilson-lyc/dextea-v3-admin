@@ -2,24 +2,16 @@ import { useCallback, useEffect, useState } from "react"
 import { PlusIcon, PencilIcon, BanIcon, CheckCircleIcon, UsersIcon, SearchIcon, RotateCwIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { Employee, EmployeeStatus } from "@dextea/shared-types"
+import type { Employee } from "@dextea/shared-types"
 import { EMPLOYEE_STATUS } from "@dextea/shared-types"
 import { EMPLOYEE_STATUS_LABEL, EMPLOYEE_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field"
-import { StatusSelectPicker } from "@/components/ui/status-select-picker"
-import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
 import {
@@ -32,18 +24,11 @@ import {
 } from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
-import { getEmployees, createEmployee, updateEmployee, toggleEmployeeStatus } from "@/services"
-
-type DialogMode = "create" | "edit"
+import PaginationBar from "@/components/ui/pagination-bar"
+import { getEmployees, toggleEmployeeStatus } from "@/services"
+import CreateEmployeeModal from "./components/CreateEmployeeModal"
+import EditEmployeeModal from "./components/EditEmployeeModal"
+import ConfirmDialog from "@/components/ui/confirm-dialog"
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -55,19 +40,17 @@ export default function EmployeesPage() {
   const pageSize = 20
 
   // Dialog state
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [dialogMode, setDialogMode] = useState<DialogMode>("create")
-  const [editEmployeeId, setEditEmployeeId] = useState<number | null>(null)
-  const [formEmail, setFormEmail] = useState("")
-  const [formDisplayName, setFormDisplayName] = useState("")
-  const [formStatus, setFormStatus] = useState<EmployeeStatus>(0)
-  const [submitting, setSubmitting] = useState(false)
-  const [emailError, setEmailError] = useState("")
-  const [nameError, setNameError] = useState("")
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
 
   // Password dialog state
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
   const [initialPassword, setInitialPassword] = useState("")
+
+  // Confirm toggle status dialog
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [confirmEmployee, setConfirmEmployee] = useState<Employee | null>(null)
 
   const fetchEmployees = useCallback(async (targetPage: number) => {
     setLoading(true)
@@ -85,7 +68,7 @@ export default function EmployeesPage() {
         toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "获取员工列表失败")
+      toast.error(err instanceof Error ? err.message : "系统异常，稍后重试")
     } finally {
       setLoading(false)
     }
@@ -101,81 +84,27 @@ export default function EmployeesPage() {
 
   // Open create dialog
   const openCreateDialog = () => {
-    setDialogMode("create")
-    setEditEmployeeId(null)
-    setFormEmail("")
-    setFormDisplayName("")
-    setFormStatus(0)
-    setEmailError("")
-    setNameError("")
-    setDialogOpen(true)
+    setCreateDialogOpen(true)
   }
 
   // Open edit dialog
   const openEditDialog = (employee: Employee) => {
-    setDialogMode("edit")
-    setEditEmployeeId(employee.id)
-    setFormEmail(employee.email)
-    setFormDisplayName(employee.displayName)
-    setFormStatus(employee.status)
-    setEmailError("")
-    setNameError("")
-    setDialogOpen(true)
+    setSelectedEmployee(employee)
+    setEditDialogOpen(true)
   }
 
-  // Handle form submit
-  const handleSubmit = async () => {
-    let hasError = false
-
-    if (!formEmail) {
-      setEmailError("邮箱不能为空")
-      hasError = true
-    } else {
-      setEmailError("")
-    }
-
-    if (!formDisplayName) {
-      setNameError("用户名不能为空")
-      hasError = true
-    } else {
-      setNameError("")
-    }
-
-    if (hasError) return
-
-    setSubmitting(true)
-    try {
-      if (dialogMode === "create") {
-        const res = await createEmployee({ email: formEmail, displayName: formDisplayName })
-        if (res.code === 0) {
-          toast.success(res.message)
-          setDialogOpen(false)
-          // Show initial password dialog
-          setInitialPassword(res.data.initialPassword)
-          setPasswordDialogOpen(true)
-          await fetchEmployees(page)
-        } else {
-          toast.error(res.message)
-        }
-      } else {
-        const res = await updateEmployee(editEmployeeId!, { email: formEmail, displayName: formDisplayName, status: formStatus })
-        if (res.code === 0) {
-          toast.success(res.message)
-          setDialogOpen(false)
-          await fetchEmployees(page)
-        } else {
-          toast.error(res.message)
-        }
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "操作失败")
-    } finally {
-      setSubmitting(false)
-    }
+  // Open confirm dialog for toggling status
+  const handleToggleStatus = (employee: Employee) => {
+    setConfirmEmployee(employee)
+    setConfirmDialogOpen(true)
   }
 
-  // Toggle employee status
-  const handleToggleStatus = async (employee: Employee) => {
+  // Actually toggle employee status after confirmation
+  const handleConfirmToggleStatus = async () => {
+    if (!confirmEmployee) return
+    const employee = confirmEmployee
+    setConfirmDialogOpen(false)
+    setConfirmEmployee(null)
     try {
       const res = await toggleEmployeeStatus(employee.id)
       if (res.code === 0) {
@@ -187,7 +116,7 @@ export default function EmployeesPage() {
         toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "操作失败")
+      toast.error(err instanceof Error ? err.message : "系统异常，稍后重试")
     }
   }
 
@@ -240,13 +169,13 @@ export default function EmployeesPage() {
 
       {/* Table */}
       <div className="flex flex-1 flex-col overflow-auto rounded-lg border">
-        <Table className={`base-class ${(employees.length === 0 || loading) && 'flex-1'}`}>
+        <Table className={`table-fixed ${(employees.length === 0 || loading) && 'flex-1'}`}>
           <TableHeader>
-            <TableRow className="sticky top-0 bg-background">
-              <TableHead className="w-24">ID</TableHead>
-              <TableHead className="w-24">邮箱</TableHead>
-              <TableHead className="w-24">用户名</TableHead>
-              <TableHead className="w-24">状态</TableHead>
+            <TableRow className="sticky top-0 z-50 bg-background">
+              <TableHead className="w-20">ID</TableHead>
+              <TableHead>邮箱</TableHead>
+              <TableHead>用户名</TableHead>
+              <TableHead className="w-20">状态</TableHead>
               <TableHead className="w-36 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
@@ -279,7 +208,7 @@ export default function EmployeesPage() {
             <TableBody>
               {employees.map((employee) => (
                 <TableRow key={employee.id}>
-                  <TableCell>{employee.id}</TableCell>
+                  <TableCell className="font-mono text-xs">{employee.id}</TableCell>
                   <TableCell>{employee.email}</TableCell>
                   <TableCell>{employee.displayName}</TableCell>
                   <TableCell>
@@ -288,7 +217,7 @@ export default function EmployeesPage() {
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-1">
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(employee)}>
                         <PencilIcon data-icon="inline-start" />
                         编辑
@@ -320,145 +249,32 @@ export default function EmployeesPage() {
       </div>
 
       {/* Pagination */}
-      {employees.length > 0 && (() => {
-        const totalPages = Math.ceil(total / pageSize)
-        const pages: (number | "...")[] = []
-        if (totalPages <= 6) {
-          for (let i = 1; i <= totalPages; i++) pages.push(i)
-        } else {
-          pages.push(1)
-          if (page > 3) pages.push("...")
-          for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
-            pages.push(i)
-          }
-          if (page < totalPages - 2) pages.push("...")
-          pages.push(totalPages)
-        }
-        return (
-          <Pagination className="shrink-0 justify-end">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  text="上一页"
-                  onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchEmployees(page - 1) }}
-                />
-              </PaginationItem>
-              {pages.map((p, idx) =>
-                p === "..." ? (
-                  <PaginationItem key={`ellipsis-${idx}`}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={p}>
-                    <PaginationLink
-                      href="#"
-                      isActive={p === page}
-                      onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchEmployees(p) }}
-                    >
-                      {p}
-                    </PaginationLink>
-                  </PaginationItem>
-                )
-              )}
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  text="下一页"
-                  onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < totalPages) fetchEmployees(page + 1) }}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )
-      })()}
+      {employees.length > 0 && (
+        <PaginationBar
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={fetchEmployees}
+          className="shrink-0 justify-end"
+        />
+      )}
 
-      {/* Create / Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{dialogMode === "create" ? "创建员工" : "编辑员工"}</DialogTitle>
-            <DialogDescription>
-              {dialogMode === "create"
-                ? "填写新员工的信息，创建后系统将自动生成初始密码"
-                : "修改员工的信息"}
-            </DialogDescription>
-          </DialogHeader>
-
-          <FieldGroup className="py-2">
-            {/* ID field (edit mode only) */}
-            {dialogMode === "edit" && (
-              <Field data-disabled>
-                <FieldLabel htmlFor="edit-id">ID</FieldLabel>
-                <Input id="edit-id" value={editEmployeeId ?? ""} disabled />
-              </Field>
-            )}
-
-            {/* Email */}
-            <Field data-invalid={!!emailError || undefined}>
-              <FieldLabel htmlFor="user-email">
-                邮箱 <span className="text-destructive">*</span>
-              </FieldLabel>
-              <Input
-                id="user-email"
-                type="email"
-                placeholder="请输入邮箱地址"
-                value={formEmail}
-                onChange={(e) => {
-                  setFormEmail(e.target.value)
-                  if (emailError) setEmailError("")
-                }}
-                aria-invalid={!!emailError || undefined}
-              />
-              {emailError && <FieldError>{emailError}</FieldError>}
-            </Field>
-
-            {/* DisplayName */}
-            <Field data-invalid={!!nameError || undefined}>
-              <FieldLabel htmlFor="user-display-name">
-                用户名 <span className="text-destructive">*</span>
-              </FieldLabel>
-              <Input
-                id="user-display-name"
-                placeholder="请输入用户名"
-                value={formDisplayName}
-                onChange={(e) => {
-                  setFormDisplayName(e.target.value)
-                  if (nameError) setNameError("")
-                }}
-                aria-invalid={!!nameError || undefined}
-              />
-              {nameError && <FieldError>{nameError}</FieldError>}
-            </Field>
-
-            {/* Status (edit mode only) */}
-            {dialogMode === "edit" && (
-              <Field>
-                <FieldLabel htmlFor="user-status">
-                  状态 <span className="text-destructive">*</span>
-                </FieldLabel>
-                <StatusSelectPicker
-                  statusEnum={EMPLOYEE_STATUS}
-                  labels={{ [EMPLOYEE_STATUS.DISABLED.value]: "禁用", [EMPLOYEE_STATUS.ACTIVE.value]: "激活" }}
-                  value={String(formStatus)}
-                  onValueChange={(val) => setFormStatus(Number(val) as EmployeeStatus)}
-                  placeholder="请选择状态"
-                  className="w-full"
-                />
-              </Field>
-            )}
-          </FieldGroup>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              取消
-            </Button>
-            <Button onClick={handleSubmit} disabled={submitting}>
-              {submitting ? "提交中..." : "确定"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Create / Edit Dialogs */}
+      <CreateEmployeeModal
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onCreated={(initialPassword) => {
+          setInitialPassword(initialPassword)
+          setPasswordDialogOpen(true)
+          fetchEmployees(page)
+        }}
+      />
+      <EditEmployeeModal
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        employee={selectedEmployee}
+        onUpdated={() => fetchEmployees(page)}
+      />
 
       {/* Initial Password Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
@@ -478,11 +294,22 @@ export default function EmployeesPage() {
 
           <DialogFooter>
             <Button onClick={() => setPasswordDialogOpen(false)}>
-              我已保存，关闭
+              确定
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirm toggle status dialog */}
+      <ConfirmDialog
+        open={confirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        title="确认操作"
+        description={`确定${confirmEmployee?.status === EMPLOYEE_STATUS.ACTIVE.value ? "禁用" : "激活"} ${confirmEmployee?.displayName} 吗？`}
+        confirmText="确定"
+        variant="default"
+        onConfirm={handleConfirmToggleStatus}
+      />
     </div>
   )
 }

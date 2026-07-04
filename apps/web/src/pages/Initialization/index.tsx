@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -51,7 +50,6 @@ export default function Initialization() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>系统初始化</CardTitle>
-          <CardDescription>完成管理员账户配置</CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -62,7 +60,7 @@ export default function Initialization() {
             className="flex flex-col gap-6"
           >
             <div className="grid gap-2">
-              <Label htmlFor="email">邮箱 <span className="text-destructive">*</span></Label>
+              <Label htmlFor="email">邮箱</Label>
               <Input
                 id="email"
                 type="email"
@@ -73,7 +71,7 @@ export default function Initialization() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="displayName">用户名 <span className="text-destructive">*</span></Label>
+              <Label htmlFor="displayName">用户名</Label>
               <Input
                 id="displayName"
                 type="text"
@@ -84,7 +82,7 @@ export default function Initialization() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="password">密码 <span className="text-destructive">*</span></Label>
+              <Label htmlFor="password">密码</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -113,7 +111,6 @@ export default function Initialization() {
         </CardContent>
         <CardFooter>
           <Button type="submit" className="w-full" disabled={loading} onClick={handleInit}>
-            <LogInIcon data-icon="inline-start" />
             {loading ? "初始化中..." : "初 始 化"}
           </Button>
         </CardFooter>

@@ -21,7 +21,6 @@ export interface CreateEmployeeInput {
 export interface UpdateEmployeeInput {
   email: string;
   displayName: string;
-  status: EmployeeStatus;
 }
 
 export interface CreateEmployeeResponse {
@@ -38,10 +37,10 @@ export interface UpdateEmployeeResponse {
   id: number;
   email: string;
   displayName: string;
-  status: number;
 }
 
 export interface ToggleEmployeeStatusResponse {
+  email: string;
   status: EmployeeStatus;
 }
 

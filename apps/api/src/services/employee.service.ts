@@ -3,16 +3,18 @@ import { eq, sql } from 'drizzle-orm';
 
 type Db = MySql2Database<Record<string, unknown>>;
 import { nanoid } from 'nanoid';
+import { withPagination } from '../utils/pagination.js';
 import { employeesTable } from '../db/schema.js';
 import { AppError } from '../errorcode/index.js';
 import { employeeErrors } from '../errorcode/employees.js';
-import { validateEmail, validateMaxLength, validateStatus } from '../utils/validation.js';
+import { validateEmail, validateMaxLength } from '../utils/validation.js';
 import { hashPassword } from '../utils/password.js';
 import type { PaginatedData, Employee, CreateEmployeeInput, UpdateEmployeeInput } from '@dextea/shared-types';
-import { EMPLOYEE_STATUS, EMPLOYEE_STATUS_VALUES } from '@dextea/shared-types';
+import { EMPLOYEE_STATUS } from '@dextea/shared-types';
 
 /**
- * 获取员工列表（分页 + 关键词搜索）
+ * 获取员工列表
+ * 支持分页查询和关键词搜索
  */
 export async function listEmployees(
   db: Db,
@@ -21,7 +23,6 @@ export async function listEmployees(
   const page = Math.max(1, params.page);
   const pageSize = Math.min(100, Math.max(1, params.pageSize));
   const keyword = params.keyword?.trim();
-  const offset = (page - 1) * pageSize;
 
   const baseQuery = db
     .select({
@@ -32,7 +33,9 @@ export async function listEmployees(
       createdAt: employeesTable.createdAt,
       updatedAt: employeesTable.updatedAt,
     })
-    .from(employeesTable);
+    .from(employeesTable)
+    .orderBy(employeesTable.id)
+    .$dynamic();
 
   const countQuery = db.select({ count: sql<number>`count(*)` }).from(employeesTable);
 
@@ -44,7 +47,7 @@ export async function listEmployees(
   }
 
   const [items, countResult] = await Promise.all([
-    baseQuery.limit(pageSize).offset(offset).orderBy(employeesTable.id),
+    withPagination(baseQuery, page, pageSize),
     countQuery,
   ]);
 
@@ -55,8 +58,7 @@ export async function listEmployees(
 
 /**
  * 创建员工
- *
- * 自动生成 12 位随机初始密码（argon2 加密后入库），员工默认禁用。
+ * 自动生成 12 位随机初始密码，并经 argon2 加密后入库。员工默认禁用。
  */
 export async function createEmployee(
   db: Db,
@@ -101,20 +103,18 @@ export async function createEmployee(
 }
 
 /**
- * 更新员工信息
- *
+ * 更新员工基础信息
  * 同时校验邮箱唯一性（排除自身）、状态值合法性。
  */
 export async function updateEmployee(
   db: Db,
   id: number,
   input: UpdateEmployeeInput,
-): Promise<{ id: number; email: string; displayName: string; status: number }> {
-  const { email, displayName, status } = input;
+): Promise<{ id: number; email: string; displayName: string }> {
+  const { email, displayName } = input;
 
   validateEmail(email);
   validateMaxLength(displayName, 255, '显示名称');
-  validateStatus(status, EMPLOYEE_STATUS_VALUES, '员工状态');
 
   const employee = await db
     .select()
@@ -138,21 +138,20 @@ export async function updateEmployee(
 
   await db
     .update(employeesTable)
-    .set({ email, displayName, status })
+    .set({ email, displayName })
     .where(eq(employeesTable.id, id));
 
-  return { id, email, displayName, status };
+  return { id, email, displayName };
 }
 
 /**
- * 启用/禁用员工（状态翻转）
- *
+ * 启用/禁用员工
  * 当前状态为禁用 → 激活，当前状态为激活 → 禁用。
  */
 export async function toggleEmployeeStatus(
   db: Db,
   id: number,
-): Promise<{ status: number }> {
+): Promise<{ email: string; status: number }> {
   const employee = await db
     .select()
     .from(employeesTable)
@@ -172,5 +171,5 @@ export async function toggleEmployeeStatus(
     .set({ status: newStatus })
     .where(eq(employeesTable.id, id));
 
-  return { status: newStatus };
+  return { email: employee[0].email, status: newStatus };
 }

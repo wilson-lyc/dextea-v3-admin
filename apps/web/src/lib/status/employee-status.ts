@@ -7,7 +7,7 @@ export const EMPLOYEE_STATUS_LABEL: Record<number, string> = {
 }
 
 export const EMPLOYEE_STATUS_TEXT_CLASSES: Record<EmployeeStatus, string> = {
-  [EMPLOYEE_STATUS.DISABLED.value]: "text-muted-foreground",
+  [EMPLOYEE_STATUS.DISABLED.value]: "text-destructive",
   [EMPLOYEE_STATUS.ACTIVE.value]: "text-green-600 dark:text-green-400",
 }
 
