@@ -3,12 +3,12 @@ import type { MySql2Database } from 'drizzle-orm/mysql2';
 import { eq } from 'drizzle-orm';
 
 type Db = MySql2Database<Record<string, unknown>>;
-import { usersTable } from '../db/schema.js';
+import { employeesTable } from '../db/schema.js';
 import { verifyPassword } from '../utils/password.js';
 import { AppError } from '../errorcode/index.js';
 import { authErrors } from '../errorcode/auth.js';
 import { validateEmail, validatePassword } from '../utils/validation.js';
-import { USER_STATUS } from '@dextea/shared-types';
+import { EMPLOYEE_STATUS } from '@dextea/shared-types';
 
 const TOKEN_PREFIX = 'dextea:admin:token:';
 const TOKEN_TTL = 60 * 30; // 30 分钟
@@ -50,31 +50,31 @@ export async function login(
   validateEmail(account, '账号');
   validatePassword(password);
 
-  const users = await db
+  const employees = await db
     .select()
-    .from(usersTable)
-    .where(eq(usersTable.email, account))
+    .from(employeesTable)
+    .where(eq(employeesTable.email, account))
     .limit(1);
 
-  const user = users[0];
-  if (!user) {
+  const employee = employees[0];
+  if (!employee) {
     throw new AppError(authErrors.INVALID_CREDENTIALS);
   }
 
-  const valid = await verifyPassword(password, user.password);
+  const valid = await verifyPassword(password, employee.password);
   if (!valid) {
     throw new AppError(authErrors.INVALID_CREDENTIALS);
   }
 
-  if (user.status === USER_STATUS.DISABLED.value) {
+  if (employee.status === EMPLOYEE_STATUS.DISABLED.value) {
     throw new AppError(authErrors.ACCOUNT_DISABLED);
   }
 
   const token = randomUUID();
   const sessionData = JSON.stringify({
-    userId: user.id,
-    email: user.email,
-    displayName: user.displayName,
+    userId: employee.id,
+    email: employee.email,
+    displayName: employee.displayName,
   });
 
   await extra.redisClient.setex(`${TOKEN_PREFIX}${token}`, TOKEN_TTL, sessionData);
@@ -82,9 +82,9 @@ export async function login(
   return {
     token,
     user: {
-      id: user.id,
-      email: user.email,
-      displayName: user.displayName,
+      id: employee.id,
+      email: employee.email,
+      displayName: employee.displayName,
     },
   };
 }

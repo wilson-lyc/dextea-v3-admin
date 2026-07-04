@@ -51,7 +51,7 @@ export default function Login() {
       if (res.code === 0) {
         toast.success("登录成功")
         sessionStorage.setItem("token", res.data.token)
-        sessionStorage.setItem("user", JSON.stringify(res.data.user))
+        sessionStorage.setItem("employee", JSON.stringify(res.data.user))
         navigate("/", { replace: true })
       } else {
         toast.error(res.message)

@@ -16,9 +16,9 @@ import ThemeToggle from "./ThemeToggle"
 
 export default function Header() {
   const navigate = useNavigate()
-  const user = (() => {
+  const employee = (() => {
     try {
-      const raw = sessionStorage.getItem("user")
+      const raw = sessionStorage.getItem("employee")
       return raw ? (JSON.parse(raw) as { displayName: string }) : null
     } catch {
       return null
@@ -44,7 +44,7 @@ export default function Header() {
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger render={<Button variant="ghost" />}>
-            {user?.displayName ?? "admin"}
+            {employee?.displayName ?? "admin"}
             <ChevronDownIcon data-icon="inline-end" />
           </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

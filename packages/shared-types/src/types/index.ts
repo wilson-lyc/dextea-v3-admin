@@ -2,7 +2,7 @@ export type { ApiResponse, PaginatedData, PaginatedResponse } from './api-respon
 export type { HealthResponse } from './health.js';
 export type { InitStatusData, InitRequest } from './init.js';
 export type { LoginRequest, LoginResponse, AuthMeResponse } from './auth.js';
-export type { User, CreateUserInput, UpdateUserInput, CreateUserResponse, UpdateUserResponse, ToggleUserStatusResponse, UserQuery } from './user.js';
+export type { Employee, CreateEmployeeInput, UpdateEmployeeInput, CreateEmployeeResponse, UpdateEmployeeResponse, ToggleEmployeeStatusResponse, EmployeeQuery } from './employee.js';
 export type { Store, CreateStoreInput, UpdateStoreInput, CreateStoreResponse, UpdateStoreResponse, UpdateStoreStatusRequest, UpdateStoreStatusResponse, UpdateStoreBasicInfoRequest, UpdateStoreBasicInfoResponse, UpdateStoreLocationRequest, UpdateStoreLocationResponse, ResetStorePasswordResponse, BindStoreMenuRequest, BindStoreMenuResponse, StoreQuery } from './store.js';
 export type { Division, ResolveAreaRequest } from './area.js';
 export type { AmapConfig } from './config.js';

@@ -1,6 +1,6 @@
 // ---- status layer ----
-export { USER_STATUS, USER_STATUS_VALUES } from './status/index.js';
-export type { UserStatus } from './status/index.js';
+export { EMPLOYEE_STATUS, EMPLOYEE_STATUS_VALUES } from './status/index.js';
+export type { EmployeeStatus } from './status/index.js';
 
 export { STORE_STATUS, STORE_STATUS_VALUES } from './status/index.js';
 export type { StoreStatus } from './status/index.js';
@@ -41,13 +41,13 @@ export type {
 } from './types/index.js';
 
 export type {
-  User,
-  CreateUserInput,
-  UpdateUserInput,
-  CreateUserResponse,
-  UpdateUserResponse,
-  ToggleUserStatusResponse,
-  UserQuery,
+  Employee,
+  CreateEmployeeInput,
+  UpdateEmployeeInput,
+  CreateEmployeeResponse,
+  UpdateEmployeeResponse,
+  ToggleEmployeeStatusResponse,
+  EmployeeQuery,
 } from './types/index.js';
 
 export type {

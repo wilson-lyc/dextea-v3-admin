@@ -48,7 +48,7 @@ export class AppError extends Error {
 
 export { systemErrors } from './system.js';
 export { authErrors } from './auth.js';
-export { userErrors } from './users.js';
+export { employeeErrors } from './employees.js';
 export { storeErrors } from './stores.js';
 export { areaErrors } from './areas.js';
 export { initErrors } from './init.js';

@@ -1,6 +1,6 @@
 import type { MySql2Database } from 'drizzle-orm/mysql2';
 import { eq } from 'drizzle-orm';
-import { configTable, usersTable } from '../db/schema.js';
+import { configTable, employeesTable } from '../db/schema.js';
 import { hashPassword } from '../utils/password.js';
 import { AppError } from '../errorcode/index.js';
 import { initErrors } from '../errorcode/init.js';
@@ -50,18 +50,18 @@ export async function initialize(
   validatePassword(password);
   validateMaxLength(displayName, 255, '显示名称');
 
-  const existingUser = await db
+  const existingEmployee = await db
     .select()
-    .from(usersTable)
-    .where(eq(usersTable.email, email))
+    .from(employeesTable)
+    .where(eq(employeesTable.email, email))
     .limit(1);
 
-  if (existingUser.length > 0) {
+  if (existingEmployee.length > 0) {
     throw new AppError(initErrors.EMAIL_EXISTS);
   }
 
   const hashedPassword = await hashPassword(password);
-  await db.insert(usersTable).values({
+  await db.insert(employeesTable).values({
     email,
     password: hashedPassword,
     displayName,

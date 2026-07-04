@@ -5,10 +5,10 @@ export {
 } from "./store-status"
 
 export {
-  USER_STATUS_LABEL,
-  USER_STATUS_TEXT_CLASSES,
-  USER_STATUS_BADGE_CLASSES,
-} from "./user-status"
+  EMPLOYEE_STATUS_LABEL,
+  EMPLOYEE_STATUS_TEXT_CLASSES,
+  EMPLOYEE_STATUS_BADGE_CLASSES,
+} from "./employee-status"
 
 export {
   PRODUCT_STATUS_LABEL,

@@ -1,25 +1,25 @@
 import type { FastifyInstance } from 'fastify';
 import { getDb } from '../db/index.js';
 import { AppError } from '../errorcode/index.js';
-import { userErrors } from '../errorcode/users.js';
+import { employeeErrors } from '../errorcode/employees.js';
 import { parsePositiveInt } from '../utils/validation.js';
-import { listUsers, createUser, updateUser, toggleUserStatus } from '../services/user.service.js';
+import { listEmployees, createEmployee, updateEmployee, toggleEmployeeStatus } from '../services/employee.service.js';
 import type {
   ApiResponse,
   PaginatedData,
-  User,
-  UserQuery,
+  Employee,
+  EmployeeQuery,
 } from '@dextea/shared-types';
 
-export async function userRoutes(app: FastifyInstance) {
-  /** 用户列表 */
+export async function employeeRoutes(app: FastifyInstance) {
+  /** 员工列表 */
   app.get<{
-    Querystring: UserQuery;
-    Reply: ApiResponse<PaginatedData<User>>;
-  }>('/users', {
+    Querystring: EmployeeQuery;
+    Reply: ApiResponse<PaginatedData<Employee>>;
+  }>('/employees', {
     schema: {
-      description: '获取用户列表',
-      tags: ['Users'],
+      description: '获取员工列表',
+      tags: ['Employees'],
       querystring: {
         type: 'object',
         properties: {
@@ -68,7 +68,7 @@ export async function userRoutes(app: FastifyInstance) {
       const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
       const keyword = request.query.keyword?.trim();
 
-      const data = await listUsers(db, { page, pageSize, keyword });
+      const data = await listEmployees(db, { page, pageSize, keyword });
 
       return {
         code: 0,
@@ -78,18 +78,18 @@ export async function userRoutes(app: FastifyInstance) {
     } catch (error) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
-      throw new AppError(userErrors.LIST_FAILED);
+      throw new AppError(employeeErrors.LIST_FAILED);
     }
   });
 
-  /** 新增用户 */
+  /** 新增员工 */
   app.post<{
     Body: { email: string; displayName: string };
     Reply: ApiResponse<{ user: { id: number; email: string; displayName: string; status: number }; initialPassword: string }>;
-  }>('/users', {
+  }>('/employees', {
     schema: {
-      description: '新增用户',
-      tags: ['Users'],
+      description: '新增员工',
+      tags: ['Employees'],
       body: {
         type: 'object',
         properties: {
@@ -127,7 +127,7 @@ export async function userRoutes(app: FastifyInstance) {
   }, async (request) => {
     try {
       const db = await getDb();
-      const data = await createUser(db, request.body);
+      const data = await createEmployee(db, request.body);
 
       return {
         code: 0,
@@ -137,23 +137,23 @@ export async function userRoutes(app: FastifyInstance) {
     } catch (error) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
-      throw new AppError(userErrors.CREATE_FAILED);
+      throw new AppError(employeeErrors.CREATE_FAILED);
     }
   });
 
-  /** 更新用户 */
+  /** 更新员工 */
   app.put<{
     Params: { id: string };
     Body: { email: string; displayName: string; status: number };
     Reply: ApiResponse<{ id: number; email: string; displayName: string; status: number }>;
-  }>('/users/:id', {
+  }>('/employees/:id', {
     schema: {
-      description: '更新用户',
-      tags: ['Users'],
+      description: '更新员工',
+      tags: ['Employees'],
       params: {
         type: 'object',
         properties: {
-          id: { type: 'string', minLength: 1, description: '用户ID' },
+          id: { type: 'string', minLength: 1, description: '员工ID' },
         },
         required: ['id'],
       },
@@ -189,8 +189,8 @@ export async function userRoutes(app: FastifyInstance) {
   }, async (request) => {
     try {
       const db = await getDb();
-      const id = parsePositiveInt(request.params.id, '用户ID');
-      const data = await updateUser(db, id, request.body);
+      const id = parsePositiveInt(request.params.id, '员工ID');
+      const data = await updateEmployee(db, id, request.body);
 
       return {
         code: 0,
@@ -200,22 +200,22 @@ export async function userRoutes(app: FastifyInstance) {
     } catch (error) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
-      throw new AppError(userErrors.UPDATE_FAILED);
+      throw new AppError(employeeErrors.UPDATE_FAILED);
     }
   });
 
-  /** 启用/禁用用户 */
+  /** 启用/禁用员工 */
   app.patch<{
     Params: { id: string };
     Reply: ApiResponse<{ status: number }>;
-  }>('/users/:id/status', {
+  }>('/employees/:id/status', {
     schema: {
-      description: '启用或禁用用户',
-      tags: ['Users'],
+      description: '启用或禁用员工',
+      tags: ['Employees'],
       params: {
         type: 'object',
         properties: {
-          id: { type: 'string', minLength: 1, description: '用户ID' },
+          id: { type: 'string', minLength: 1, description: '员工ID' },
         },
         required: ['id'],
       },
@@ -239,8 +239,8 @@ export async function userRoutes(app: FastifyInstance) {
   }, async (request) => {
     try {
       const db = await getDb();
-      const id = parsePositiveInt(request.params.id, '用户ID');
-      const data = await toggleUserStatus(db, id);
+      const id = parsePositiveInt(request.params.id, '员工ID');
+      const data = await toggleEmployeeStatus(db, id);
 
       return {
         code: 0,
@@ -250,7 +250,7 @@ export async function userRoutes(app: FastifyInstance) {
     } catch (error) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
-      throw new AppError(userErrors.OPERATE_FAILED);
+      throw new AppError(employeeErrors.OPERATE_FAILED);
     }
   });
 }

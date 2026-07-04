@@ -38,7 +38,7 @@ export async function authRoutes(app: FastifyInstance) {
       },
     },
   }, async (request, reply) => {
-    const { userId, email, displayName } = request.authUser!;
+    const { userId, email, displayName } = request.authEmployee!;
     return {
       code: 0,
       data: {

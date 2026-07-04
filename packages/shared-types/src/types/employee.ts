@@ -1,52 +1,52 @@
-// ====== 用户 ======
+// ====== 员工 ======
 // JSON 结构定义，状态类型从 status/ 导入
 // ──────────────────────────────
 
-import type { UserStatus } from '../status/user.js';
+import type { EmployeeStatus } from '../status/employee.js';
 
-export interface User {
+export interface Employee {
   id: number;
   email: string;
   displayName: string;
-  status: UserStatus;
+  status: EmployeeStatus;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreateUserInput {
+export interface CreateEmployeeInput {
   email: string;
   displayName: string;
 }
 
-export interface UpdateUserInput {
+export interface UpdateEmployeeInput {
   email: string;
   displayName: string;
-  status: UserStatus;
+  status: EmployeeStatus;
 }
 
-export interface CreateUserResponse {
+export interface CreateEmployeeResponse {
   user: {
     id: number;
     email: string;
     displayName: string;
-    status: UserStatus;
+    status: EmployeeStatus;
   };
   initialPassword: string;
 }
 
-export interface UpdateUserResponse {
+export interface UpdateEmployeeResponse {
   id: number;
   email: string;
   displayName: string;
   status: number;
 }
 
-export interface ToggleUserStatusResponse {
-  status: UserStatus;
+export interface ToggleEmployeeStatusResponse {
+  status: EmployeeStatus;
 }
 
-/** Query string shape for GET /users */
-export interface UserQuery {
+/** Query string shape for GET /employees */
+export interface EmployeeQuery {
   page?: string;
   pageSize?: string;
   keyword?: string;

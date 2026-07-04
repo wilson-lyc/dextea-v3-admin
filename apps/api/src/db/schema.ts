@@ -12,9 +12,9 @@ import {
 } from 'drizzle-orm/mysql-core';
 
 /**
- * 用户表
+ * 员工表
  */
-export const usersTable = mysqlTable('users', {
+export const employeesTable = mysqlTable('employees', {
   id: serial().primaryKey(),
   email: varchar({ length: 255 }).notNull().unique(),
   password: varchar({ length: 255 }).notNull(),
@@ -52,18 +52,18 @@ export const permissionsTable = mysqlTable(
 );
 
 /**
- * 用户-角色关联表
+ * 员工-角色关联表
  */
-export const userRoleRelationsTable = mysqlTable(
-  'user_role_relations',
+export const employeeRoleRelationsTable = mysqlTable(
+  'employee_role_relations',
   {
-    userId: bigint('user_id', { mode: 'number', unsigned: true }).notNull(),
+    employeeId: bigint('employee_id', { mode: 'number', unsigned: true }).notNull(),
     roleId: bigint('role_id', { mode: 'number', unsigned: true }).notNull(),
   },
   (table) => ({
     primaryKey: primaryKey({
-      name: 'pk_user_role_relations',
-      columns: [table.userId, table.roleId],
+      name: 'pk_employee_role_relations',
+      columns: [table.employeeId, table.roleId],
     }),
   }),
 );

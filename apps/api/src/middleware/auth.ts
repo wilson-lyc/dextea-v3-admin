@@ -21,7 +21,7 @@ function isWhitelisted(pathname: string): boolean {
 
 declare module 'fastify' {
   interface FastifyRequest {
-    authUser: {
+    authEmployee: {
       userId: number;
       email: string;
       displayName: string;
@@ -63,5 +63,5 @@ export async function authHook(request: FastifyRequest, reply: FastifyReply) {
   }
 
   // 将用户信息附加到请求上，供下游处理
-  request.authUser = JSON.parse(sessionData);
+  request.authEmployee = JSON.parse(sessionData);
 }

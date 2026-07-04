@@ -18,12 +18,12 @@ export function ProtectedRoute() {
 
     getMe()
       .then((res) => {
-        sessionStorage.setItem("user", JSON.stringify(res.data.user))
+        sessionStorage.setItem("employee", JSON.stringify(res.data.user))
         setValid(true)
       })
       .catch(() => {
         sessionStorage.removeItem("token")
-        sessionStorage.removeItem("user")
+        sessionStorage.removeItem("employee")
         setValid(false)
       })
       .finally(() => {

@@ -2,7 +2,7 @@ export { http, API_BASE } from './http'
 
 export { login, logout, getMe } from './auth'
 export { getInitStatus, initSystem } from './init'
-export { getUsers, createUser, updateUser, toggleUserStatus } from './user'
+export { getEmployees, createEmployee, updateEmployee, toggleEmployeeStatus } from './employee'
 export { getStores, getStore, createStore, updateStore, updateStoreStatus, updateStoreBasicInfo, updateStoreLocation, resetStorePassword, syncStoreLocations } from './store'
 export { getProducts, getProductBasicInfo, getProductTags, createProduct, updateProduct, toggleProductStatus, addProductTag, removeProductTag, getProductBoundIngredients, bindIngredientToProduct, updateProductIngredientQuantity, unbindIngredientFromProduct, getProductOptions } from './product'
 export { getTags, createTag, updateTag, deleteTag, getTagBoundProducts, bindProductToTag, unbindProductFromTag, getTagOptions } from './tag'
@@ -19,11 +19,11 @@ export type {
   LoginResponse,
   InitRequest,
   InitStatusData,
-  CreateUserInput,
-  UpdateUserInput,
-  CreateUserResponse,
-  UpdateUserResponse,
-  ToggleUserStatusResponse,
+  CreateEmployeeInput,
+  UpdateEmployeeInput,
+  CreateEmployeeResponse,
+  UpdateEmployeeResponse,
+  ToggleEmployeeStatusResponse,
   CreateStoreInput,
   UpdateStoreInput,
   CreateStoreResponse,

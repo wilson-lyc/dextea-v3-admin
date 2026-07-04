@@ -1,5 +1,5 @@
-export { USER_STATUS, USER_STATUS_VALUES } from './user.js';
-export type { UserStatus } from './user.js';
+export { EMPLOYEE_STATUS, EMPLOYEE_STATUS_VALUES } from './employee.js';
+export type { EmployeeStatus } from './employee.js';
 
 export { STORE_STATUS, STORE_STATUS_VALUES } from './store.js';
 export type { StoreStatus } from './store.js';

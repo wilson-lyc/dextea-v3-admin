@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from "react"
 import { PlusIcon, PencilIcon, BanIcon, CheckCircleIcon, UsersIcon, SearchIcon, RotateCwIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { User, UserStatus } from "@dextea/shared-types"
-import { USER_STATUS } from "@dextea/shared-types"
-import { USER_STATUS_LABEL, USER_STATUS_TEXT_CLASSES } from "@/lib/status"
+import type { Employee, EmployeeStatus } from "@dextea/shared-types"
+import { EMPLOYEE_STATUS } from "@dextea/shared-types"
+import { EMPLOYEE_STATUS_LABEL, EMPLOYEE_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -41,12 +41,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { getUsers, createUser, updateUser, toggleUserStatus } from "@/services"
+import { getEmployees, createEmployee, updateEmployee, toggleEmployeeStatus } from "@/services"
 
 type DialogMode = "create" | "edit"
 
 export default function EmployeesPage() {
-  const [users, setUsers] = useState<User[]>([])
+  const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
   const [keyword, setKeyword] = useState("")
   const [searchKeyword, setSearchKeyword] = useState("")
@@ -57,10 +57,10 @@ export default function EmployeesPage() {
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogMode, setDialogMode] = useState<DialogMode>("create")
-  const [editUserId, setEditUserId] = useState<number | null>(null)
+  const [editEmployeeId, setEditEmployeeId] = useState<number | null>(null)
   const [formEmail, setFormEmail] = useState("")
   const [formDisplayName, setFormDisplayName] = useState("")
-  const [formStatus, setFormStatus] = useState<UserStatus>(0)
+  const [formStatus, setFormStatus] = useState<EmployeeStatus>(0)
   const [submitting, setSubmitting] = useState(false)
   const [emailError, setEmailError] = useState("")
   const [nameError, setNameError] = useState("")
@@ -69,31 +69,31 @@ export default function EmployeesPage() {
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
   const [initialPassword, setInitialPassword] = useState("")
 
-  const fetchUsers = useCallback(async (targetPage: number) => {
+  const fetchEmployees = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
       const params: { page?: number; pageSize?: number; keyword?: string } = { page: targetPage, pageSize }
       if (searchKeyword) {
         params.keyword = searchKeyword
       }
-      const res = await getUsers(params)
+      const res = await getEmployees(params)
       if (res.code === 0) {
-        setUsers(res.data.items)
+        setEmployees(res.data.items)
         setTotal(res.data.total)
         setPage(targetPage)
       } else {
         toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "获取用户列表失败")
+      toast.error(err instanceof Error ? err.message : "获取员工列表失败")
     } finally {
       setLoading(false)
     }
   }, [searchKeyword, pageSize])
 
   useEffect(() => {
-    fetchUsers(1)
-  }, [fetchUsers])
+    fetchEmployees(1)
+  }, [fetchEmployees])
 
   const handleSearch = () => {
     setSearchKeyword(keyword)
@@ -102,7 +102,7 @@ export default function EmployeesPage() {
   // Open create dialog
   const openCreateDialog = () => {
     setDialogMode("create")
-    setEditUserId(null)
+    setEditEmployeeId(null)
     setFormEmail("")
     setFormDisplayName("")
     setFormStatus(0)
@@ -112,12 +112,12 @@ export default function EmployeesPage() {
   }
 
   // Open edit dialog
-  const openEditDialog = (user: User) => {
+  const openEditDialog = (employee: Employee) => {
     setDialogMode("edit")
-    setEditUserId(user.id)
-    setFormEmail(user.email)
-    setFormDisplayName(user.displayName)
-    setFormStatus(user.status)
+    setEditEmployeeId(employee.id)
+    setFormEmail(employee.email)
+    setFormDisplayName(employee.displayName)
+    setFormStatus(employee.status)
     setEmailError("")
     setNameError("")
     setDialogOpen(true)
@@ -146,23 +146,23 @@ export default function EmployeesPage() {
     setSubmitting(true)
     try {
       if (dialogMode === "create") {
-        const res = await createUser({ email: formEmail, displayName: formDisplayName })
+        const res = await createEmployee({ email: formEmail, displayName: formDisplayName })
         if (res.code === 0) {
           toast.success(res.message)
           setDialogOpen(false)
           // Show initial password dialog
           setInitialPassword(res.data.initialPassword)
           setPasswordDialogOpen(true)
-          await fetchUsers(page)
+          await fetchEmployees(page)
         } else {
           toast.error(res.message)
         }
       } else {
-        const res = await updateUser(editUserId!, { email: formEmail, displayName: formDisplayName, status: formStatus })
+        const res = await updateEmployee(editEmployeeId!, { email: formEmail, displayName: formDisplayName, status: formStatus })
         if (res.code === 0) {
           toast.success(res.message)
           setDialogOpen(false)
-          await fetchUsers(page)
+          await fetchEmployees(page)
         } else {
           toast.error(res.message)
         }
@@ -174,14 +174,14 @@ export default function EmployeesPage() {
     }
   }
 
-  // Toggle user status
-  const handleToggleStatus = async (user: User) => {
+  // Toggle employee status
+  const handleToggleStatus = async (employee: Employee) => {
     try {
-      const res = await toggleUserStatus(user.id)
+      const res = await toggleEmployeeStatus(employee.id)
       if (res.code === 0) {
         toast.success(res.message)
-        setUsers((prev) =>
-          prev.map((u) => (u.id === user.id ? { ...u, status: res.data.status } : u))
+        setEmployees((prev) =>
+          prev.map((e) => (e.id === employee.id ? { ...e, status: res.data.status } : e))
         )
       } else {
         toast.error(res.message)
@@ -203,7 +203,7 @@ export default function EmployeesPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => { setLoading(true); setTimeout(() => fetchUsers(page), 1000) }}
+            onClick={() => { setLoading(true); setTimeout(() => fetchEmployees(page), 1000) }}
           >
             <RotateCwIcon className="size-4" />
           </Button>
@@ -240,7 +240,7 @@ export default function EmployeesPage() {
 
       {/* Table */}
       <div className="flex flex-1 flex-col overflow-auto rounded-lg border">
-        <Table className={`base-class ${(users.length === 0 || loading) && 'flex-1'}`}>
+        <Table className={`base-class ${(employees.length === 0 || loading) && 'flex-1'}`}>
           <TableHeader>
             <TableRow className="sticky top-0 bg-background">
               <TableHead className="w-24">ID</TableHead>
@@ -260,7 +260,7 @@ export default function EmployeesPage() {
                 </TableCell>
               </TableRow>
             </TableBody>
-          ) : users.length === 0 ? (
+          ) : employees.length === 0 ? (
             <TableBody>
               <TableRow>
                 <TableCell colSpan={5} className="h-96">
@@ -277,28 +277,28 @@ export default function EmployeesPage() {
             </TableBody>
           ) : (
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.id}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.displayName}</TableCell>
+              {employees.map((employee) => (
+                <TableRow key={employee.id}>
+                  <TableCell>{employee.id}</TableCell>
+                  <TableCell>{employee.email}</TableCell>
+                  <TableCell>{employee.displayName}</TableCell>
                   <TableCell>
-                    <span className={USER_STATUS_TEXT_CLASSES[user.status] ?? ""}>
-                      {USER_STATUS_LABEL[user.status]}
+                    <span className={EMPLOYEE_STATUS_TEXT_CLASSES[employee.status] ?? ""}>
+                      {EMPLOYEE_STATUS_LABEL[employee.status]}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(employee)}>
                         <PencilIcon data-icon="inline-start" />
                         编辑
                       </Button>
                       <Button
-                        variant={user.status === USER_STATUS.ACTIVE.value ? "outline-destructive" : "outline-success"}
+                        variant={employee.status === EMPLOYEE_STATUS.ACTIVE.value ? "outline-destructive" : "outline-success"}
                         size="sm"
-                        onClick={() => handleToggleStatus(user)}
+                        onClick={() => handleToggleStatus(employee)}
                       >
-                        {user.status === USER_STATUS.ACTIVE.value ? (
+                        {employee.status === EMPLOYEE_STATUS.ACTIVE.value ? (
                           <>
                             <BanIcon data-icon="inline-start" />
                             禁用
@@ -320,7 +320,7 @@ export default function EmployeesPage() {
       </div>
 
       {/* Pagination */}
-      {users.length > 0 && (() => {
+      {employees.length > 0 && (() => {
         const totalPages = Math.ceil(total / pageSize)
         const pages: (number | "...")[] = []
         if (totalPages <= 6) {
@@ -341,7 +341,7 @@ export default function EmployeesPage() {
                 <PaginationPrevious
                   href="#"
                   text="上一页"
-                  onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchUsers(page - 1) }}
+                  onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchEmployees(page - 1) }}
                 />
               </PaginationItem>
               {pages.map((p, idx) =>
@@ -354,7 +354,7 @@ export default function EmployeesPage() {
                     <PaginationLink
                       href="#"
                       isActive={p === page}
-                      onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchUsers(p) }}
+                      onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchEmployees(p) }}
                     >
                       {p}
                     </PaginationLink>
@@ -365,7 +365,7 @@ export default function EmployeesPage() {
                 <PaginationNext
                   href="#"
                   text="下一页"
-                  onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < totalPages) fetchUsers(page + 1) }}
+                  onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < totalPages) fetchEmployees(page + 1) }}
                 />
               </PaginationItem>
             </PaginationContent>
@@ -377,11 +377,11 @@ export default function EmployeesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{dialogMode === "create" ? "创建用户" : "编辑用户"}</DialogTitle>
+            <DialogTitle>{dialogMode === "create" ? "创建员工" : "编辑员工"}</DialogTitle>
             <DialogDescription>
               {dialogMode === "create"
-                ? "填写新用户的信息，创建后系统将自动生成初始密码"
-                : "修改用户的信息"}
+                ? "填写新员工的信息，创建后系统将自动生成初始密码"
+                : "修改员工的信息"}
             </DialogDescription>
           </DialogHeader>
 
@@ -390,7 +390,7 @@ export default function EmployeesPage() {
             {dialogMode === "edit" && (
               <Field data-disabled>
                 <FieldLabel htmlFor="edit-id">ID</FieldLabel>
-                <Input id="edit-id" value={editUserId ?? ""} disabled />
+                <Input id="edit-id" value={editEmployeeId ?? ""} disabled />
               </Field>
             )}
 
@@ -438,10 +438,10 @@ export default function EmployeesPage() {
                   状态 <span className="text-destructive">*</span>
                 </FieldLabel>
                 <StatusSelectPicker
-                  statusEnum={USER_STATUS}
-                  labels={{ [USER_STATUS.DISABLED.value]: "禁用", [USER_STATUS.ACTIVE.value]: "激活" }}
+                  statusEnum={EMPLOYEE_STATUS}
+                  labels={{ [EMPLOYEE_STATUS.DISABLED.value]: "禁用", [EMPLOYEE_STATUS.ACTIVE.value]: "激活" }}
                   value={String(formStatus)}
-                  onValueChange={(val) => setFormStatus(Number(val) as UserStatus)}
+                  onValueChange={(val) => setFormStatus(Number(val) as EmployeeStatus)}
                   placeholder="请选择状态"
                   className="w-full"
                 />
