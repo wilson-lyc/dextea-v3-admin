@@ -10,7 +10,6 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
-import { SelectPicker } from "@/components/ui/select-picker"
 import { StatusSelectPicker } from "@/components/ui/status-select-picker"
 import {
   Dialog,
@@ -21,7 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { updateStoreStatus } from "@/services"
 
-interface EditStatusDialogProps {
+interface EditStoreStatusDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   storeId: number
@@ -29,7 +28,7 @@ interface EditStatusDialogProps {
   onUpdated: () => void
 }
 
-export function EditStatusDialog({ open, onOpenChange, storeId, currentStatus, onUpdated }: EditStatusDialogProps) {
+export function EditStoreStatusDialog({ open, onOpenChange, storeId, currentStatus, onUpdated }: EditStoreStatusDialogProps) {
   const [selected, setSelected] = useState<string>(String(currentStatus))
   const [submitting, setSubmitting] = useState(false)
 

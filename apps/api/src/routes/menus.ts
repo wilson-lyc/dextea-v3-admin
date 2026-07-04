@@ -8,7 +8,6 @@ import {
   createMenu,
   getMenu,
   updateMenu,
-  deleteMenu,
   batchDeleteMenus,
   listMenuGroups,
   createMenuGroup,
@@ -18,14 +17,18 @@ import {
   addMenuProduct,
   batchRemoveMenuProducts,
   updateMenuProductSort,
-  dispatchMenuByArea,
 } from '../services/menu.service.js';
+import {
+  dispatchMenuByArea,
+  getMenuStores,
+} from '../services/store.service.js';
 import type {
   ApiResponse,
   PaginatedData,
   Menu,
   MenuGroup,
   MenuProduct,
+  Store,
   CreateMenuInput,
   UpdateMenuInput,
   CreateMenuResponse,
@@ -319,52 +322,6 @@ export async function menuRoutes(app: FastifyInstance) {
         code: 0,
         data: null,
         message: `成功删除 ${menuIds.length} 个菜单`,
-      };
-    } catch (error) {
-      if (error instanceof AppError) throw error;
-      request.log.error(error);
-      throw new AppError(menuErrors.DELETE_FAILED);
-    }
-  });
-
-  /** 删除菜单 */
-  app.delete<{
-    Params: { id: string };
-    Reply: ApiResponse<null>;
-  }>('/menus/:id', {
-    schema: {
-      description: '删除菜单',
-      tags: ['Menus'],
-      params: {
-        type: 'object',
-        properties: {
-          id: { type: 'string', minLength: 1, description: '菜单ID' },
-        },
-        required: ['id'],
-      },
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            code: { type: 'integer', description: '业务状态码，0=成功' },
-            data: { type: 'null', description: 'null' },
-            message: { type: 'string' },
-          },
-        },
-      },
-      security: [{ bearerAuth: [] }],
-    },
-  }, async (request) => {
-    try {
-      const db = await getDb();
-      const id = parsePositiveInt(request.params.id, '菜单ID');
-
-      await deleteMenu(db, id);
-
-      return {
-        code: 0,
-        data: null,
-        message: '删除成功',
       };
     } catch (error) {
       if (error instanceof AppError) throw error;
@@ -839,6 +796,92 @@ export async function menuRoutes(app: FastifyInstance) {
       if (error instanceof AppError) throw error;
       request.log.error(error);
       throw new AppError(menuErrors.PRODUCT_SORT_UPDATE_FAILED);
+    }
+  });
+
+  /** 获取菜单关联的门店列表 */
+  app.get<{
+    Params: { id: string };
+    Querystring: MenuQuery;
+    Reply: ApiResponse<PaginatedData<Store>>;
+  }>('/menus/:id/stores', {
+    schema: {
+      description: '获取菜单关联的门店列表',
+      tags: ['Menus'],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', minLength: 1, description: '菜单ID' },
+        },
+        required: ['id'],
+      },
+      querystring: {
+        type: 'object',
+        properties: {
+          page: { type: 'string', description: '页码' },
+          pageSize: { type: 'string', description: '每页条数' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'object',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'integer' },
+                      name: { type: 'string' },
+                      province: { type: 'string' },
+                      city: { type: 'string' },
+                      district: { type: 'string' },
+                      address: { type: 'string' },
+                      status: { type: 'integer', description: '0=休息中 1=营业中 2=筹备中 3=已注销' },
+                      businessHours: { type: 'string' },
+                      phone: { type: 'string' },
+                      longitude: { type: 'number' },
+                      latitude: { type: 'number' },
+                      account: { type: 'string' },
+                      email: { type: 'string' },
+                      createdAt: { type: 'string' },
+                      updatedAt: { type: 'string' },
+                    },
+                  },
+                },
+                total: { type: 'integer' },
+                page: { type: 'integer' },
+                pageSize: { type: 'integer' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request) => {
+    try {
+      const db = await getDb();
+      const menuId = parsePositiveInt(request.params.id, '菜单ID');
+      const page = Math.max(1, parseInt(request.query.page ?? '1', 10));
+      const pageSize = Math.min(100, Math.max(1, parseInt(request.query.pageSize ?? '20', 10)));
+
+      const data = await getMenuStores(db, menuId, { page, pageSize });
+
+      return {
+        code: 0,
+        data,
+        message: 'ok',
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      request.log.error(error);
+      throw new AppError(menuErrors.LIST_FAILED);
     }
   });
 

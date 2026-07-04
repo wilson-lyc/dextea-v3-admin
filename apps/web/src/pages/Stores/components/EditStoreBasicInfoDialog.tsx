@@ -19,14 +19,14 @@ import {
 } from "@/components/ui/dialog"
 import { updateStoreBasicInfo } from "@/services"
 
-interface EditBasicInfoDialogProps {
+interface EditStoreBasicInfoDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   store: Store
   onUpdated: () => void
 }
 
-export function EditBasicInfoDialog({ open, onOpenChange, store, onUpdated }: EditBasicInfoDialogProps) {
+export function EditStoreBasicInfoDialog({ open, onOpenChange, store, onUpdated }: EditStoreBasicInfoDialogProps) {
   const [name, setName] = useState(store.name)
   const [phone, setPhone] = useState(store.phone)
   const [businessHours, setBusinessHours] = useState(store.businessHours)

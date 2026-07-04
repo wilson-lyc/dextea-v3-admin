@@ -27,14 +27,14 @@ import {
 import { updateStoreLocation } from "@/services"
 import AmapMapPicker from "@/components/amap/amap-map-picker"
 
-interface EditLocationDialogProps {
+interface EditStoreLocationDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   store: Store
   onUpdated: () => void
 }
 
-export function EditLocationDialog({ open, onOpenChange, store, onUpdated }: EditLocationDialogProps) {
+export function EditStoreLocationDialog({ open, onOpenChange, store, onUpdated }: EditStoreLocationDialogProps) {
   const [province, setProvince] = useState(store.province)
   const [city, setCity] = useState(store.city)
   const [district, setDistrict] = useState(store.district)

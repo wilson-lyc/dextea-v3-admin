@@ -115,10 +115,29 @@ export const storesTable = mysqlTable('stores', {
   account: varchar({ length: 255 }).notNull().unique(),
   password: varchar({ length: 255 }).notNull(),
   email: varchar({ length: 255 }).notNull().default(''),
-  menuId: bigint('menu_id', { mode: 'number', unsigned: true }),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
+
+/**
+ * 门店-菜单关联表
+ * 记录门店与菜单的绑定关系，支持同一门店绑定多个菜单（通过复合主键扩展）
+ */
+export const storeMenuRelationsTable = mysqlTable(
+  'store_menu_relations',
+  {
+    storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(),
+    menuId: bigint('menu_id', { mode: 'number', unsigned: true }).notNull(),
+    createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    primaryKey: primaryKey({
+      name: 'pk_store_menu_relations',
+      columns: [table.storeId, table.menuId],
+    }),
+  }),
+);
 
 /**
  * 商品表

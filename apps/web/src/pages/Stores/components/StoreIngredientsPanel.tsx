@@ -24,11 +24,11 @@ import {
 } from "@/components/ui/pagination"
 import { getStoreIngredients } from "@/services/store-status"
 
-interface IngredientsPanelProps {
+interface StoreIngredientsPanelProps {
   storeId: number
 }
 
-export function IngredientsPanel({ storeId }: IngredientsPanelProps) {
+export function StoreIngredientsPanel({ storeId }: StoreIngredientsPanelProps) {
   const [data, setData] = useState<StoreIngredientItem[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)

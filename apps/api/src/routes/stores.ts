@@ -14,7 +14,7 @@ import {
   resetStorePassword,
   syncStoreLocations,
 } from '../services/store.service.js';
-import { bindStoreMenu } from '../services/menu.service.js';
+import { bindStoreMenu } from '../services/store.service.js';
 import type {
   ApiResponse,
   PaginatedData,
@@ -86,7 +86,6 @@ export async function storeRoutes(app: FastifyInstance) {
                       latitude: { type: 'number' },
                       account: { type: 'string' },
                       email: { type: 'string' },
-                      menuId: { type: ['integer', 'null'], description: '绑定的菜单ID' },
                       createdAt: { type: 'string' },
                       updatedAt: { type: 'string' },
                     },
@@ -160,7 +159,6 @@ export async function storeRoutes(app: FastifyInstance) {
                 latitude: { type: 'number' },
                 account: { type: 'string' },
                 email: { type: 'string' },
-                menuId: { type: ['integer', 'null'], description: '绑定的菜单ID' },
                 createdAt: { type: 'string' },
                 updatedAt: { type: 'string' },
               },
@@ -633,7 +631,6 @@ export async function storeRoutes(app: FastifyInstance) {
               type: 'object',
               properties: {
                 id: { type: 'integer' },
-                menuId: { type: ['integer', 'null'] },
               },
             },
             message: { type: 'string' },

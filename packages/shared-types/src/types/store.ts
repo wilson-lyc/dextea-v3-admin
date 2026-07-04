@@ -14,7 +14,6 @@ export interface Store {
   latitude: number;
   account: string;
   email: string;
-  menuId: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -97,7 +96,6 @@ export interface BindStoreMenuRequest {
 
 export interface BindStoreMenuResponse {
   id: number;
-  menuId: number | null;
 }
 
 /** Query string shape for GET /stores */

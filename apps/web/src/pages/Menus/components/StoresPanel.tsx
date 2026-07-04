@@ -13,8 +13,8 @@ import { toast } from "sonner"
 
 import type { Store } from "@dextea/shared-types"
 import { STORE_STATUS_LABEL, STORE_STATUS_TEXT_CLASSES } from "@/lib/status"
+import { getStoresByMenuId } from "@/services"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,21 +66,14 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
     async (targetPage: number) => {
       setLoading(true)
       try {
-        // TODO: 替换为按 menuId 获取关联门店的 API
-        void menuId
-        void targetPage
-        // const res = await getStoresByMenuId(Number(menuId), { page: targetPage, pageSize })
-        // if (res.code === 0) {
-        //   setStores(res.data.items)
-        //   setTotal(res.data.total)
-        //   setPage(targetPage)
-        // } else {
-        //   toast.error(res.message)
-        // }
-        // 模拟空数据
-        setStores([])
-        setTotal(0)
-        setPage(targetPage)
+        const res = await getStoresByMenuId(Number(menuId), { page: targetPage, pageSize })
+        if (res.code === 0) {
+          setStores(res.data.items)
+          setTotal(res.data.total)
+          setPage(targetPage)
+        } else {
+          toast.error(res.message)
+        }
       } catch (err) {
         console.error(err)
         toast.error("数据加载异常")
@@ -160,10 +153,7 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => {
-              setLoading(true)
-              setTimeout(() => fetchData(page), 1000)
-            }}
+            onClick={() => fetchData(page)}
           >
             <RotateCwIcon className="size-4" />
           </Button>
@@ -176,15 +166,18 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
           <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
               <TableHead className="w-24">门店ID</TableHead>
-              <TableHead>省市区</TableHead>
-              <TableHead className="w-28">状态</TableHead>
+              <TableHead className="w-48">门店名称</TableHead>
+              <TableHead>省份</TableHead>
+              <TableHead>城市</TableHead>
+              <TableHead>区县</TableHead>
+              <TableHead className="w-28">门店状态</TableHead>
               <TableHead className="w-48 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           {loading ? (
             <TableBody>
               <TableRow>
-                <TableCell colSpan={4} className="h-96">
+                <TableCell colSpan={7} className="h-96">
                   <div className="flex items-center justify-center">
                     <Spinner className="size-6 text-muted-foreground" />
                   </div>
@@ -194,7 +187,7 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
           ) : stores.length === 0 ? (
             <TableBody>
               <TableRow>
-                <TableCell colSpan={4} className="h-96">
+                <TableCell colSpan={7} className="h-96">
                   <div className="flex items-center justify-center">
                     <Empty>
                       <EmptyMedia variant="icon">
@@ -211,18 +204,19 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
               {stores.map((store) => (
                 <TableRow key={store.id}>
                   <TableCell className="font-mono text-xs">{store.id}</TableCell>
+                  <TableCell className="max-w-48 truncate">{store.name}</TableCell>
+                  <TableCell>{store.province}</TableCell>
+                  <TableCell>{store.city}</TableCell>
+                  <TableCell>{store.district}</TableCell>
                   <TableCell>
-                    {store.province}{store.city}{store.district}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={STORE_STATUS_TEXT_CLASSES[store.status]}>
+                    <span className={STORE_STATUS_TEXT_CLASSES[store.status]}>
                       {STORE_STATUS_LABEL[store.status]}
-                    </Badge>
+                    </span>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => navigate(`/stores/${store.id}`)}
                       >
@@ -230,7 +224,7 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
                         查看门店
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline-destructive"
                         size="sm"
                         onClick={() => handleUnbindClick(store)}
                       >
@@ -264,9 +258,9 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
         title="确认解绑"
         description={
           <>
-            确定要解绑门店{" "}
+            确定要解绑{" "}
             <span className="font-semibold text-foreground">
-              {unbindTarget?.id}
+              {unbindTarget?.name}
             </span>{" "}
             与当前菜单的关联吗？解绑后该门店将无法使用此菜单。
           </>

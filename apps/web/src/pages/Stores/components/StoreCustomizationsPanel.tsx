@@ -39,11 +39,11 @@ import {
   updateCustomizationOptionStoreStatus,
 } from "@/services/store-status"
 
-interface CustomizationsPanelProps {
+interface StoreCustomizationsPanelProps {
   storeId: number
 }
 
-export function CustomizationsPanel({ storeId }: CustomizationsPanelProps) {
+export function StoreCustomizationsPanel({ storeId }: StoreCustomizationsPanelProps) {
   const [data, setData] = useState<StoreCustomizationItem[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)

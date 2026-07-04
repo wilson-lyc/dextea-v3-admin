@@ -132,7 +132,7 @@ export default function MenuDetailPage() {
           {id && <BasicInfoPanel menuId={id} />}
         </TabsContent>
 
-        <TabsContent value="groups">
+        <TabsContent value="groups" className="flex-1 min-h-0 overflow-y-auto p-1">
           {id && <GroupsPanel menuId={id} />}
         </TabsContent>
 

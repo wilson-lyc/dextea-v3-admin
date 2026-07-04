@@ -2,6 +2,7 @@ import type {
   Menu,
   MenuGroup,
   MenuProduct,
+  Store,
   ApiResponse,
   PaginatedData,
   CreateMenuInput,
@@ -28,7 +29,7 @@ export function updateMenu(id: number, data: UpdateMenuInput) {
 }
 
 export function deleteMenu(id: number) {
-  return http.delete<ApiResponse<null>>(`/menus/${id}`).then((res) => res.data)
+  return batchDeleteMenus([id])
 }
 
 export function batchDeleteMenus(menuIds: number[]) {
@@ -92,5 +93,15 @@ export function updateMenuProductSort(groupId: number, productId: number, sortOr
 export function dispatchMenuByArea(menuId: number, data: DispatchMenuByAreaRequest) {
   return http
     .post<ApiResponse<DispatchMenuByAreaResponse>>(`/menus/${menuId}/dispatch/area`, data)
+    .then((res) => res.data)
+}
+
+/**
+ * 获取菜单关联的门店列表
+ * GET /menus/:id/stores
+ */
+export function getStoresByMenuId(menuId: number, params?: { page?: number; pageSize?: number }) {
+  return http
+    .get<ApiResponse<PaginatedData<Store>>>(`/menus/${menuId}/stores`, { params })
     .then((res) => res.data)
 }

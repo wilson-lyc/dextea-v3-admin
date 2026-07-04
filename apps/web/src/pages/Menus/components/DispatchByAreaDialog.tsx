@@ -98,7 +98,7 @@ export default function DispatchByAreaDialog({
           <DialogDescription>
             {confirming
               ? "请确认分发信息"
-              : "选择要分发的地域范围，至少选择省份。未选中的层级将分发该层级下所有门店。"}
+              : "选择地域范围，未选中则分发全部"}
           </DialogDescription>
         </DialogHeader>
 

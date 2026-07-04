@@ -33,12 +33,12 @@ import {
 } from "@/components/ui/dialog"
 import AmapMap from "@/components/amap"
 import { getStore, resetStorePassword } from "@/services"
-import { EditStatusDialog } from "./components/EditStatusDialog"
-import { EditBasicInfoDialog } from "./components/EditBasicInfoDialog"
-import { EditLocationDialog } from "./components/EditLocationDialog"
-import { ProductsPanel } from "./components/ProductsPanel"
-import { CustomizationsPanel } from "./components/CustomizationsPanel"
-import { IngredientsPanel } from "./components/IngredientsPanel"
+import { EditStoreStatusDialog } from "./components/EditStoreStatusDialog"
+import { EditStoreBasicInfoDialog } from "./components/EditStoreBasicInfoDialog"
+import { EditStoreLocationDialog } from "./components/EditStoreLocationDialog"
+import { StoreProductsPanel } from "./components/StoreProductsPanel"
+import { StoreCustomizationsPanel } from "./components/StoreCustomizationsPanel"
+import { StoreIngredientsPanel } from "./components/StoreIngredientsPanel"
 
 function formatDate(iso: string) {
   const d = new Date(iso)
@@ -297,15 +297,15 @@ export default function StoreDetailPage() {
         </TabsContent>
 
         <TabsContent value="products" className="flex-1 min-h-0 min-w-0 m-0 p-6">
-          {store && <ProductsPanel storeId={store.id} />}
+          {store && <StoreProductsPanel storeId={store.id} />}
         </TabsContent>
 
         <TabsContent value="customizations" className="flex-1 min-h-0 min-w-0 m-0 p-6">
-          {store && <CustomizationsPanel storeId={store.id} />}
+          {store && <StoreCustomizationsPanel storeId={store.id} />}
         </TabsContent>
 
         <TabsContent value="ingredients" className="flex-1 min-h-0 min-w-0 m-0 p-6">
-          {store && <IngredientsPanel storeId={store.id} />}
+          {store && <StoreIngredientsPanel storeId={store.id} />}
         </TabsContent>
       </Tabs>
 
@@ -335,20 +335,20 @@ export default function StoreDetailPage() {
 
       {store && (
         <>
-          <EditStatusDialog
+          <EditStoreStatusDialog
             open={statusDialogOpen}
             onOpenChange={setStatusDialogOpen}
             storeId={store.id}
             currentStatus={store.status}
             onUpdated={fetchStore}
           />
-          <EditBasicInfoDialog
+          <EditStoreBasicInfoDialog
             open={basicInfoDialogOpen}
             onOpenChange={setBasicInfoDialogOpen}
             store={store}
             onUpdated={fetchStore}
           />
-          <EditLocationDialog
+          <EditStoreLocationDialog
             open={locationDialogOpen}
             onOpenChange={setLocationDialogOpen}
             store={store}

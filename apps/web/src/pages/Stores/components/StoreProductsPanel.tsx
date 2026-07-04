@@ -43,11 +43,11 @@ import {
 } from "@/components/ui/dialog"
 import { getStoreProducts, updateProductStoreStatus } from "@/services/store-status"
 
-interface ProductsPanelProps {
+interface StoreProductsPanelProps {
   storeId: number
 }
 
-export function ProductsPanel({ storeId }: ProductsPanelProps) {
+export function StoreProductsPanel({ storeId }: StoreProductsPanelProps) {
   const [data, setData] = useState<StoreProductItem[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)

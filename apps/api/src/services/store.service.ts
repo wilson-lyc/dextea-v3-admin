@@ -1,13 +1,14 @@
 import type { MySql2Database } from 'drizzle-orm/mysql2';
 
 type Db = MySql2Database<Record<string, unknown>>;
-import { eq, sql } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
-import { storesTable } from '../db/schema.js';
+import { storesTable, menusTable, storeMenuRelationsTable } from '../db/schema.js';
 import { geocode } from '../utils/geocode.js';
 import { hashPassword } from '../utils/password.js';
 import { AppError } from '../errorcode/index.js';
 import { storeErrors } from '../errorcode/stores.js';
+import { menuErrors } from '../errorcode/menus.js';
 import {
   validateMaxLength,
   validatePhone,
@@ -15,6 +16,7 @@ import {
   validateLongitude,
   validateLatitude,
 } from '../utils/validation.js';
+import { withPagination } from '../utils/pagination.js';
 import type {
   PaginatedData,
   Store,
@@ -22,6 +24,8 @@ import type {
   UpdateStoreInput,
   UpdateStoreBasicInfoRequest,
   UpdateStoreLocationRequest,
+  DispatchMenuByAreaRequest,
+  DispatchMenuByAreaResponse,
 } from '@dextea/shared-types';
 import { STORE_STATUS_VALUES } from '@dextea/shared-types';
 
@@ -437,4 +441,169 @@ export async function syncStoreLocations(
     if (error instanceof AppError) throw error;
     throw new AppError(storeErrors.SYNC_FAILED);
   }
+}
+
+/**
+ * 绑定/解绑门店菜单
+ */
+export async function bindStoreMenu(
+  db: Db,
+  storeId: number,
+  menuId: number | null,
+): Promise<{ id: number }> {
+  try {
+    const store = await db
+      .select()
+      .from(storesTable)
+      .where(eq(storesTable.id, storeId))
+      .limit(1);
+
+    if (store.length === 0) {
+      throw new AppError(storeErrors.STORE_NOT_FOUND);
+    }
+
+    if (menuId !== null) {
+      const menu = await db
+        .select()
+        .from(menusTable)
+        .where(eq(menusTable.id, menuId))
+        .limit(1);
+
+      if (menu.length === 0) {
+        throw new AppError(menuErrors.MENU_NOT_FOUND);
+      }
+    }
+
+    // 先删除该门店的所有菜单绑定
+    await db
+      .delete(storeMenuRelationsTable)
+      .where(eq(storeMenuRelationsTable.storeId, storeId));
+
+    // 如果 menuId 不为 null，则插入新绑定
+    if (menuId !== null) {
+      await db
+        .insert(storeMenuRelationsTable)
+        .values({ storeId, menuId });
+    }
+
+    return { id: storeId };
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(storeErrors.UPDATE_FAILED);
+  }
+}
+
+/**
+ * 获取菜单关联的门店列表（分页）
+ */
+export async function getMenuStores(
+  db: Db,
+  menuId: number,
+  params: { page: number; pageSize: number },
+): Promise<PaginatedData<Store>> {
+  const page = Math.max(1, params.page);
+  const pageSize = Math.min(100, Math.max(1, params.pageSize));
+
+  const countResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(storeMenuRelationsTable)
+    .where(eq(storeMenuRelationsTable.menuId, menuId));
+
+  const total = Number(countResult[0]?.count ?? 0);
+
+  const items = await withPagination(
+    db
+      .select({
+        id: storesTable.id,
+        name: storesTable.name,
+        province: storesTable.province,
+        city: storesTable.city,
+        district: storesTable.district,
+        address: storesTable.address,
+        status: storesTable.status,
+        businessHours: storesTable.businessHours,
+        phone: storesTable.phone,
+        longitude: storesTable.longitude,
+        latitude: storesTable.latitude,
+        account: storesTable.account,
+        email: storesTable.email,
+        createdAt: storesTable.createdAt,
+        updatedAt: storesTable.updatedAt,
+      })
+      .from(storeMenuRelationsTable)
+      .innerJoin(storesTable, eq(storeMenuRelationsTable.storeId, storesTable.id))
+      .where(eq(storeMenuRelationsTable.menuId, menuId))
+      .orderBy(storesTable.id)
+      .$dynamic(),
+    page,
+    pageSize,
+  );
+
+  return { items, total, page, pageSize };
+}
+
+/**
+ * 按地域分发菜单
+ */
+export async function dispatchMenuByArea(
+  db: Db,
+  menuId: number,
+  input: DispatchMenuByAreaRequest,
+): Promise<DispatchMenuByAreaResponse> {
+  // 校验菜单存在
+  const [menu] = await db
+    .select()
+    .from(menusTable)
+    .where(eq(menusTable.id, menuId))
+    .limit(1);
+
+  if (!menu) {
+    throw new AppError(menuErrors.MENU_NOT_FOUND);
+  }
+
+  // 校验省份必填
+  if (!input.province || input.province.trim().length === 0) {
+    throw new AppError(menuErrors.PROVINCE_REQUIRED);
+  }
+
+  // 构建区域匹配条件
+  const conditions = [eq(storesTable.province, input.province.trim())];
+  if (input.city && input.city.trim().length > 0) {
+    conditions.push(eq(storesTable.city, input.city.trim()));
+  }
+  if (input.district && input.district.trim().length > 0) {
+    conditions.push(eq(storesTable.district, input.district.trim()));
+  }
+  const whereClause = and(...conditions);
+
+  // 查询符合区域的门店总数
+  const [countResult] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(storesTable)
+    .where(whereClause);
+
+  const matched = Number(countResult?.count ?? 0);
+
+  if (matched === 0) {
+    throw new AppError(menuErrors.NO_MATCHED_STORES);
+  }
+
+  // 查询符合区域且尚未绑定该菜单的门店ID
+  const stores = await db
+    .select({ id: storesTable.id })
+    .from(storesTable)
+    .where(and(
+      whereClause,
+      sql`not exists (select 1 from ${storeMenuRelationsTable} where ${storeMenuRelationsTable.storeId} = ${storesTable.id} and ${storeMenuRelationsTable.menuId} = ${menuId})`,
+    ));
+
+  if (stores.length === 0) {
+    return { matched, dispatched: 0 };
+  }
+
+  // 批量插入绑定关系
+  const values = stores.map(s => ({ storeId: s.id, menuId }));
+  await db.insert(storeMenuRelationsTable).values(values);
+
+  return { matched, dispatched: stores.length };
 }
