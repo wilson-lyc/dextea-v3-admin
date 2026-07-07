@@ -32,6 +32,9 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 
-# Opencode
+# Agent
 .sisyphus
 .trae
+.workbuddy
+.mimocode
+.claude

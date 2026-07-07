@@ -9,6 +9,7 @@ import {
   double,
   int,
   primaryKey,
+  uniqueIndex,
 } from 'drizzle-orm/mysql-core';
 
 /**
@@ -347,5 +348,23 @@ export const menuProductsTable = mysqlTable(
       name: 'pk_menu_products',
       columns: [table.groupId, table.productId],
     }),
+  }),
+);
+
+/**
+ * 顾客表
+ */
+export const customersTable = mysqlTable(
+  'customers',
+  {
+    id: serial().primaryKey(),
+    source: tinyint().notNull(), // 来源平台：1=微信小程序，2=支付宝小程序
+    openId: varchar('open_id', { length: 255 }).notNull(),
+    nickname: varchar({ length: 255 }).notNull().default(''),
+    createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    uniqueOpenIdPerSource: uniqueIndex('uq_customers_source_openid').on(table.source, table.openId),
   }),
 );
