@@ -366,5 +366,48 @@ export const customersTable = mysqlTable(
   },
   (table) => ({
     uniqueOpenIdPerSource: uniqueIndex('uq_customers_source_openid').on(table.source, table.openId),
+    uniqueOpenId: uniqueIndex('uq_customers_openid').on(table.openId),
+  }),
+);
+
+/**
+ * 订单表
+ * 记录订单基础信息，归属某位顾客（customers）与某一门店（stores）。
+ * status：0=待支付 1=已支付/制作中 2=已完成 3=已取消 4=已退款
+ * payMethod：1=微信支付 2=支付宝（与顾客来源平台对应）
+ * paidAt：支付时间，未支付时为 null
+ */
+export const ordersTable = mysqlTable('orders', {
+  id: serial().primaryKey(),
+  orderNo: varchar('order_no', { length: 64 }).notNull().unique(), // 业务订单号（对外展示/对账用，区别于自增 id）
+  customerId: bigint('customer_id', { mode: 'number', unsigned: true }).notNull(), // 关联顾客
+  storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(), // 关联门店
+  status: tinyint().notNull().default(0),
+  totalAmount: double('total_amount').notNull().default(0), // 订单总金额
+  payMethod: tinyint('pay_method'), // 支付方式：1=微信 2=支付宝
+  remark: varchar({ length: 500 }).notNull().default(''), // 订单备注
+  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(), // 创建时间
+  paidAt: timestamp('paid_at', { mode: 'string' }), // 支付时间
+  updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+});
+
+/**
+ * 订单详情表
+ * 记录订单下顾客实际购买的商品行，一行对应一个 SKU（商品 + 客制化组合）。
+ */
+export const orderItemsTable = mysqlTable(
+  'order_items',
+  {
+    id: serial().primaryKey(),
+    orderId: bigint('order_id', { mode: 'number', unsigned: true }).notNull(), // 关联订单
+    productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(), // 关联商品
+    skuId: varchar('sku_id', { length: 255 }).notNull().default(''), // SKU 标识（生成规则待定，此处仅占位）
+    unitPrice: double('unit_price').notNull().default(0), // 实际单价（已含客制化加价，奶茶加料后价格不同）
+    quantity: int().notNull().default(1), // 购买数量
+    createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    uniqueOrderSku: uniqueIndex('uq_order_items_order_sku').on(table.orderId, table.skuId), // 同一订单内同一 SKU 仅一行
   }),
 );
