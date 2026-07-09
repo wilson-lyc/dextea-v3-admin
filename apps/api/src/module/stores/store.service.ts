@@ -1,0 +1,201 @@
+import { nanoid } from 'nanoid';
+import { BizError } from '@/common/exceptions/index.js';
+import { StoreErrorCodes } from './store.errorcode.js';
+import { storeRepository } from './store.repository.js';
+import { redis } from '@/plugins/db/redis/index.js';
+import { geocode } from '@/plugins/utils/geocode.js';
+import { hashPassword } from '@/plugins/utils/password.js';
+import { STORE_STATUS_VALUES } from './store.type.js';
+import type { StoreListRequest, CreateStoreRequest, UpdateStoreRequest, UpdateStoreBasicInfoRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest, BindStoreMenuRequest } from './store.type.js';
+
+export const storeService = {
+  async getStoreList(params: StoreListRequest) {
+    return storeRepository.getStoreList(params.page, params.pageSize, params.keyword);
+  },
+
+  async getStoreById(id: number) {
+    const store = await storeRepository.getStoreById(id);
+    if (!store) {
+      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
+    }
+    return store;
+  },
+
+  async createStore(input: CreateStoreRequest) {
+    const { name, province, city, district, address, businessHours, phone, account, email } = input;
+
+    const existing = await storeRepository.getStoreByAccount(account ?? '');
+    if (existing) {
+      throw new BizError(StoreErrorCodes.ACCOUNT_EXISTS);
+    }
+
+    const coords = await geocode(province ?? '', city ?? '', district ?? '', address ?? '');
+    const longitude = coords?.longitude ?? 0;
+    const latitude = coords?.latitude ?? 0;
+
+    if (!coords) {
+      console.warn(`Geocoding failed for ${[province, city, district, address].filter(Boolean).join('')}`);
+    }
+
+    const initialPassword = nanoid(12);
+    const hashedPassword = await hashPassword(initialPassword);
+
+    const id = await storeRepository.createStore({
+      name,
+      province: province ?? '',
+      city: city ?? '',
+      district: district ?? '',
+      address: address ?? '',
+      businessHours: businessHours ?? '',
+      phone: phone ?? '',
+      account,
+      password: hashedPassword,
+      email: email ?? '',
+      longitude,
+      latitude,
+    });
+
+    await redis.geoadd('dextea:store:location', longitude, latitude, String(id));
+
+    return { id, initialPassword };
+  },
+
+  async updateStore(id: number, input: UpdateStoreRequest) {
+    const { name, province, city, district, address, status, businessHours, phone, longitude, latitude } = input;
+
+    const store = await storeRepository.getStoreById(id);
+    if (!store) {
+      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
+    }
+
+    const updateData: Record<string, unknown> = {};
+    if (name !== undefined) updateData.name = name;
+    if (province !== undefined) updateData.province = province;
+    if (city !== undefined) updateData.city = city;
+    if (district !== undefined) updateData.district = district;
+    if (address !== undefined) updateData.address = address;
+    if (status !== undefined) updateData.status = status;
+    if (businessHours !== undefined) updateData.businessHours = businessHours;
+    if (phone !== undefined) updateData.phone = phone;
+    if (longitude !== undefined) updateData.longitude = longitude;
+    if (latitude !== undefined) updateData.latitude = latitude;
+
+    await storeRepository.updateStoreById(id, updateData);
+
+    return { id };
+  },
+
+  async updateStoreBasicInfo(id: number, input: UpdateStoreBasicInfoRequest) {
+    const { name, phone, businessHours, email } = input;
+
+    const store = await storeRepository.getStoreById(id);
+    if (!store) {
+      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
+    }
+
+    await storeRepository.updateStoreById(id, {
+      name,
+      phone: phone ?? '',
+      businessHours: businessHours ?? '',
+      email: email ?? '',
+    });
+
+    return { id };
+  },
+
+  async updateStoreLocation(id: number, input: UpdateStoreLocationRequest) {
+    const { province, city, district, address, longitude, latitude } = input;
+
+    const store = await storeRepository.getStoreById(id);
+    if (!store) {
+      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
+    }
+
+    await storeRepository.updateStoreById(id, {
+      province: province ?? '',
+      city: city ?? '',
+      district: district ?? '',
+      address: address ?? '',
+      longitude,
+      latitude,
+    });
+
+    await redis.zrem('dextea:store:location', String(id));
+    if (longitude && latitude) {
+      await redis.geoadd('dextea:store:location', longitude, latitude, String(id));
+    }
+
+    return { id };
+  },
+
+  async updateStoreStatus(id: number, input: UpdateStoreStatusRequest) {
+    const { status } = input;
+
+    if (!STORE_STATUS_VALUES.includes(status as 0 | 1 | 2 | 3)) {
+      throw new BizError(StoreErrorCodes.INVALID_STATUS);
+    }
+
+    const store = await storeRepository.getStoreById(id);
+    if (!store) {
+      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
+    }
+
+    await storeRepository.updateStoreById(id, { status });
+
+    return { status };
+  },
+
+  async resetStorePassword(id: number) {
+    const store = await storeRepository.getStoreById(id);
+    if (!store) {
+      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
+    }
+
+    const newPassword = nanoid(12);
+    const hashedPassword = await hashPassword(newPassword);
+
+    await storeRepository.updateStoreById(id, { password: hashedPassword });
+
+    return { newPassword };
+  },
+
+  async syncStoreLocations() {
+    await redis.del('dextea:store:location');
+
+    const stores = await storeRepository.getAllStoreLocations();
+
+    let synced = 0;
+    for (const store of stores) {
+      if (store.longitude && store.latitude) {
+        await redis.geoadd('dextea:store:location', store.longitude, store.latitude, String(store.id));
+        synced++;
+      }
+    }
+
+    return { synced };
+  },
+
+  async bindStoreMenu(storeId: number, input: BindStoreMenuRequest) {
+    const { menuId } = input;
+
+    const store = await storeRepository.getStoreById(storeId);
+    if (!store) {
+      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
+    }
+
+    if (menuId !== null) {
+      const menu = await storeRepository.getMenuById(menuId);
+      if (!menu) {
+        throw new BizError(StoreErrorCodes.MENU_NOT_FOUND);
+      }
+    }
+
+    await storeRepository.deleteStoreMenuRelations(storeId);
+
+    if (menuId !== null) {
+      await storeRepository.insertStoreMenuRelation(storeId, menuId);
+    }
+
+    return { id: storeId };
+  },
+};
