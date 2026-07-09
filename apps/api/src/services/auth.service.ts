@@ -6,7 +6,7 @@ type Db = MySql2Database<Record<string, unknown>>;
 import { employeesTable } from '../plugins/db/mysql/schema.js';
 import { verifyPassword } from '../utils/password.js';
 import { BizError } from '@/common/exceptions/index.js';
-import { AuthErrorCodes } from '../errorcode/auth.js';
+import { AuthErrorCodes } from '@/module/auth/auth.errorcode.js';
 import { validateEmail, validatePassword } from '../utils/validation.js';
 import { EMPLOYEE_STATUS } from '@dextea/shared-types';
 

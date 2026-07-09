@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { getDb } from '../plugins/db/mysql/index.js';
 import { BizError } from '@/common/exceptions/index.js';
-import { TagErrorCodes } from '../errorcode/tags.js';
+import { TagErrorCodes } from '@/module/tags/tag.errorcode.js';
 import { parsePositiveInt } from '../utils/validation.js';
 import {
   listTagOptions,

@@ -3,7 +3,8 @@ import { config } from './config/index.js';
 import { registerPlugins } from './plugins/index.js';
 import { registerRoutes } from './routes/index.js';
 import { BizError } from '@/common/exceptions/index.js';
-import { SystemErrorCodes } from './errorcode/system.js';
+import { ApiResponse } from '@/common/types/index.js';
+import { SystemErrorCodes } from '@/module/system/system.errorcode.js';
 
 export async function buildApp() {
   const app = Fastify({
@@ -54,41 +55,25 @@ export async function buildApp() {
     return new Error(message);
   });
 
-  app.setErrorHandler((error, request, reply) => {
+  app.setErrorHandler((error: FastifyError, _request, reply) => {
     if (error instanceof BizError) {
-      request.log.warn({ code: error.code, err: error.message }, 'BizError');
-      return reply.status(error.httpStatus).send(error.toResponse());
+      return reply.status(error.httpStatus).send(
+        ApiResponse.error(error.code, error.message)
+      );
     }
 
-    if (
-      error &&
-      typeof error === 'object' &&
-      'code' in error &&
-      'httpStatus' in error &&
-      typeof (error as BizError).toResponse === 'function'
-    ) {
-      const bizErr = error as BizError;
-      request.log.warn({ code: bizErr.code, err: bizErr.message }, 'BizError (structural)');
-      return reply.status(bizErr.httpStatus).send(bizErr.toResponse());
+    // Fastify 验证错误
+    if (error.validation) {
+      return reply.status(400).send(
+        ApiResponse.error(400, error.message)
+      );
     }
 
-    const fErr = error as FastifyError;
-    if (fErr.validation) {
-      request.log.warn({ validation: fErr.validation, err: fErr.message }, 'Validation Error');
-      return reply.status(200).send({
-        code: SystemErrorCodes.INVALID_REQUEST.code,
-        data: null,
-        message: fErr.message,
-      });
-    }
-
-    request.log.error(error);
-    const message = error instanceof Error ? error.message : SystemErrorCodes.INTERNAL_ERROR.message;
-    return reply.status(500).send({
-      code: SystemErrorCodes.INTERNAL_ERROR.code,
-      data: null,
-      message,
-    });
+    // 未知错误
+    reply.log.error(error);
+    return reply.status(500).send(
+      ApiResponse.error(SystemErrorCodes.INTERNAL_ERROR.code, SystemErrorCodes.INTERNAL_ERROR.message)
+    );
   });
 
   await registerPlugins(app);

@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { configTable, employeesTable } from '../plugins/db/mysql/schema.js';
 import { hashPassword } from '../utils/password.js';
 import { BizError } from '@/common/exceptions/index.js';
-import { InitErrorCodes } from '../errorcode/init.js';
+import { InitErrorCodes } from '@/module/init/init.errorcode.js';
 import { validateEmail, validatePassword, validateMaxLength } from '../utils/validation.js';
 import type { InitStatusData, InitRequest } from '@dextea/shared-types';
 

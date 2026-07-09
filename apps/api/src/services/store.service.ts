@@ -7,8 +7,8 @@ import { storesTable, menusTable, storeMenuRelationsTable } from '../plugins/db/
 import { geocode } from '../utils/geocode.js';
 import { hashPassword } from '../utils/password.js';
 import { BizError } from '@/common/exceptions/index.js';
-import { StoreErrorCodes } from '../errorcode/stores.js';
-import { MenuErrorCodes } from '../errorcode/menus.js';
+import { StoreErrorCodes } from '@/module/stores/store.errorcode.js';
+import { MenuErrorCodes } from '@/module/menus/menu.errorcode.js';
 import {
   validateMaxLength,
   validatePhone,

@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { getDb } from '../plugins/db/mysql/index.js';
 import { BizError } from '@/common/exceptions/index.js';
-import { IngredientErrorCodes } from '../errorcode/ingredients.js';
+import { IngredientErrorCodes } from '@/module/ingredients/ingredient.errorcode.js';
 import { parsePositiveInt } from '../utils/validation.js';
 import {
   listIngredients,

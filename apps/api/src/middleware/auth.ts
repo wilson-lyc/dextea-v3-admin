@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { BizError } from '@/common/exceptions/index.js';
-import { AuthErrorCodes } from '../errorcode/auth.js';
+import { AuthErrorCodes } from '@/module/auth/auth.errorcode.js';
 
 // Redis key 前缀
 const TOKEN_PREFIX = 'dextea:admin:token:';

@@ -13,7 +13,7 @@ import {
   storeInventoryTable,
 } from '../plugins/db/mysql/schema.js';
 import { BizError } from '@/common/exceptions/index.js';
-import { StoreErrorCodes } from '../errorcode/stores.js';
+import { StoreErrorCodes } from '@/module/stores/store.errorcode.js';
 import type {
   PaginatedData,
   StoreProductItem,

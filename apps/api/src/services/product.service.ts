@@ -10,8 +10,8 @@ import {
   ingredientsTable,
 } from '../plugins/db/mysql/schema.js';
 import { BizError } from '@/common/exceptions/index.js';
-import { ProductErrorCodes } from '../errorcode/products.js';
-import { TagErrorCodes } from '../errorcode/tags.js';
+import { ProductErrorCodes } from '@/module/products/product.errorcode.js';
+import { TagErrorCodes } from '@/module/tags/tag.errorcode.js';
 import { validateMaxLength, validatePrice, validateStatus } from '../utils/validation.js';
 import type { PaginatedData, Product, ProductTag } from '@dextea/shared-types';
 import { PRODUCT_STATUS_VALUES } from '@dextea/shared-types';

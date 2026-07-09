@@ -11,7 +11,7 @@
  */
 
 import { BizError } from '@/common/exceptions/index.js';
-import { SystemErrorCodes } from '../errorcode/system.js';
+import { SystemErrorCodes } from '@/module/system/system.errorcode.js';
 
 // ─── 路径参数 ID 解析 ──────────────────────────────────
 

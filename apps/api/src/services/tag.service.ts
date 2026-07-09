@@ -4,8 +4,8 @@ type Db = MySql2Database<Record<string, unknown>>;
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { productTagsTable, productTagRelationsTable, productsTable } from '../plugins/db/mysql/schema.js';
 import { BizError } from '@/common/exceptions/index.js';
-import { TagErrorCodes } from '../errorcode/tags.js';
-import { ProductErrorCodes } from '../errorcode/products.js';
+import { TagErrorCodes } from '@/module/tags/tag.errorcode.js';
+import { ProductErrorCodes } from '@/module/products/product.errorcode.js';
 import { validateMaxLength } from '../utils/validation.js';
 import type { PaginatedData, ProductTag } from '@dextea/shared-types';
 

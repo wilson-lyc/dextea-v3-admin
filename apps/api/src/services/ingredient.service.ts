@@ -10,7 +10,7 @@ import {
   productCustomizationsTable,
 } from '../plugins/db/mysql/schema.js';
 import { BizError } from '@/common/exceptions/index.js';
-import { IngredientErrorCodes } from '../errorcode/ingredients.js';
+import { IngredientErrorCodes } from '@/module/ingredients/ingredient.errorcode.js';
 import { validateMaxLength, validateStatus } from '../utils/validation.js';
 import type { PaginatedData, Ingredient, CreateIngredientInput, UpdateIngredientInput } from '@dextea/shared-types';
 import { INGREDIENT_STATUS_VALUES } from '@dextea/shared-types';

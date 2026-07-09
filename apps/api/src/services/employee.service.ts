@@ -6,7 +6,7 @@ import { nanoid } from 'nanoid';
 import { withPagination } from '../utils/pagination.js';
 import { employeesTable } from '../plugins/db/mysql/schema.js';
 import { BizError } from '@/common/exceptions/index.js';
-import { EmployeeErrorCodes } from '../errorcode/employees.js';
+import { EmployeeErrorCodes } from '@/module/employees/employees.errorcode.js';
 import { validateEmail, validateMaxLength } from '../utils/validation.js';
 import { hashPassword } from '../utils/password.js';
 import type { PaginatedData, Employee, CreateEmployeeInput, UpdateEmployeeInput } from '@dextea/shared-types';

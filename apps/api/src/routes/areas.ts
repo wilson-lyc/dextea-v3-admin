@@ -5,7 +5,7 @@ import {
   matchDivisionByNames,
 } from '@aurouscia/china-areas/dist/index.js';
 import { BizError } from '@/common/exceptions/index.js';
-import { AreaErrorCodes } from '../errorcode/areas.js';
+import { AreaErrorCodes } from '@/module/areas/area.errorcode.js';
 import type { ApiResponse, Division, ResolveAreaRequest } from '@dextea/shared-types';
 
 export async function areaRoutes(app: FastifyInstance) {

@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { getDb } from '../plugins/db/mysql/index.js';
 import { BizError } from '@/common/exceptions/index.js';
-import { AuthErrorCodes } from '../errorcode/auth.js';
+import { AuthErrorCodes } from '@/module/auth/auth.errorcode.js';
 import { validateRequired } from '../utils/validation.js';
 import { login, logout } from '../services/auth.service.js';
 import type { ApiResponse, AuthMeResponse, LoginRequest, LoginResponse } from '@dextea/shared-types';

@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { getDb } from '../plugins/db/mysql/index.js';
 import { BizError } from '@/common/exceptions/index.js';
-import { StoreErrorCodes } from '../errorcode/stores.js';
+import { StoreErrorCodes } from '@/module/stores/store.errorcode.js';
 import { parsePositiveInt } from '../utils/validation.js';
 import {
   listStores,
