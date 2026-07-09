@@ -67,7 +67,7 @@ export const registerXxxRoutes: FastifyPluginAsyncZod = async (app) => {
       },
     },
     async (request, _reply) => {
-      const data = await xxxService.getListWithPage(request.query);
+      const data = await xxxService.getXxxList(request.query);
       return ApiResponse.success(data);
     },
   );
@@ -84,7 +84,7 @@ export const registerXxxRoutes: FastifyPluginAsyncZod = async (app) => {
       },
     },
     async (request, _reply) => {
-      const data = await xxxService.create(request.body);
+      const data = await xxxService.createXxx(request.body);
       return ApiResponse.success(data);
     },
   );
@@ -102,7 +102,7 @@ export const registerXxxRoutes: FastifyPluginAsyncZod = async (app) => {
       },
     },
     async (request, _reply) => {
-      const data = await xxxService.update(request.params.id, request.body);
+      const data = await xxxService.updateXxx(request.params.id, request.body);
       return ApiResponse.success(data);
     },
   );
@@ -119,7 +119,7 @@ export const registerXxxRoutes: FastifyPluginAsyncZod = async (app) => {
       },
     },
     async (request, _reply) => {
-      const data = await xxxService.toggleStatus(request.params.id);
+      const data = await xxxService.toggleXxxStatus(request.params.id);
       return ApiResponse.success(data);
     },
   );
@@ -140,7 +140,7 @@ export const registerXxxRoutes: FastifyPluginAsyncZod = async (app) => {
 import { z } from 'zod/v4';
 import { PaginatedDataSchema } from '@/common/types/index.js';
 
-// ── 状态枚举（可选，取决于是否需要暴露给前端） ──
+// 状态枚举（可选。若数据库用数字表示分类/状态，则必须定义，作为数字含义的字典）
 
 export const XXX_STATUS = {
   DISABLED: { key: 'disabled', value: 0 },
@@ -150,7 +150,7 @@ export const XXX_STATUS = {
 export type XxxStatus = (typeof XXX_STATUS)[keyof typeof XXX_STATUS]['value'];
 export const XXX_STATUS_VALUES: readonly XxxStatus[] = [0, 1];
 
-// ── 实体 ──
+// 实体
 
 export const XxxSchema = z.object({
   id: z.number(),
@@ -161,7 +161,7 @@ export const XxxSchema = z.object({
 });
 export type Xxx = z.infer<typeof XxxSchema>;
 
-// ── 列表查询 ──
+// 列表查询
 
 export const XxxListRequestSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
@@ -173,7 +173,7 @@ export type XxxListRequest = z.infer<typeof XxxListRequestSchema>;
 export const XxxListResponseSchema = PaginatedDataSchema(XxxSchema);
 export type XxxListResponse = z.infer<typeof XxxListResponseSchema>;
 
-// ── 创建 ──
+// 创建
 
 export const XxxCreateRequestSchema = z.object({
   name: z.string().min(1, '名称不能为空'),
@@ -186,7 +186,7 @@ export const XxxCreateResponseSchema = z.object({
 });
 export type XxxCreateResponse = z.infer<typeof XxxCreateResponseSchema>;
 
-// ── 更新 ──
+// 更新
 
 export const XxxUpdateRequestSchema = z.object({
   name: z.string().min(1, '名称不能为空'),
@@ -199,7 +199,7 @@ export const XxxUpdateResponseSchema = z.object({
 });
 export type XxxUpdateResponse = z.infer<typeof XxxUpdateResponseSchema>;
 
-// ── 状态变更 ──
+// 状态变更
 
 export const XxxStatusResponseSchema = z.object({
   name: z.string(),
@@ -209,7 +209,7 @@ export type XxxStatusResponse = z.infer<typeof XxxStatusResponseSchema>;
 ```
 
 **核心规则：**
-- **状态枚举**直接定义在 type 文件中（不是必须放在 shared-types），用 `const` + `as const` 模式，不用 `enum`
+- **状态枚举**直接定义在 type 文件中（不是必须放在 shared-types），用 `const` + `as const` 模式，不用 `enum`。若数据库使用数字表示分类或状态（如 `0`=禁用, `1`=启用），则必须定义状态枚举，作为数字含义的字典
 - **分页响应**使用 `PaginatedDataSchema(XxxSchema)` 通用包装
 - **请求 schema** 中查询参数用 `z.coerce.number()` 自动转换 query string
 - 所有 `z.string().min(1, ...)` 提供中文错误消息
@@ -225,7 +225,7 @@ import { xxxTable } from '@/plugins/db/mysql/schema.js';
 import { withPagination } from '@/plugins/utils/pagination.js';
 
 export const xxxRepository = {
-  async getListWithPage(page: number, pageSize: number, keyword?: string) {
+  async getXxxList(page: number, pageSize: number, keyword?: string) {
     page = Math.max(1, page);
     pageSize = Math.min(100, Math.max(1, pageSize));
     keyword = keyword?.trim();
@@ -254,7 +254,7 @@ export const xxxRepository = {
     return { items, total, page, pageSize };
   },
 
-  async getById(id: number) {
+  async getXxxById(id: number) {
     const rows = await db
       .select()
       .from(xxxTable)
@@ -263,7 +263,7 @@ export const xxxRepository = {
     return rows[0] ?? null;
   },
 
-  async getByField(field: string, value: string) {
+  async getXxxByField(field: string, value: string) {
     const rows = await db
       .select()
       .from(xxxTable)
@@ -272,12 +272,12 @@ export const xxxRepository = {
     return rows[0] ?? null;
   },
 
-  async create(data: Record<string, unknown>) {
+  async createXxx(data: Record<string, unknown>) {
     const result = await db.insert(xxxTable).values(data);
     return Number(result[0]?.insertId ?? 0);
   },
 
-  async updateById(id: number, data: Partial<typeof xxxTable.$inferInsert>) {
+  async updateXxxById(id: number, data: Partial<typeof xxxTable.$inferInsert>) {
     await db
       .update(xxxTable)
       .set(data)
@@ -287,7 +287,7 @@ export const xxxRepository = {
 ```
 
 **核心规则：**
-- 方法名以 `getBy`/`create`/`updateBy`/`deleteBy` 开头
+- 方法名以 `get`/`create`/`update` 开头。获取列表用 `get{Entity}List`（如 `getEmployeeList`），获取单个用 `get{Entity}ById`（如 `getEmployeeById`），创建用 `create{Entity}`，更新用 `update{Entity}ById`
 - 返回值统一为 `Plain Old Object` 或 `null`（不存在时），不抛业务异常
 - 分页查询使用 `$dynamic()` + 条件拼装
 - 使用 `withPagination` 工具处理 `limit`/`offset`
@@ -305,50 +305,50 @@ import { XXX_STATUS } from './xxx.type.js';
 import type { XxxListRequest, XxxCreateRequest, XxxUpdateRequest } from './xxx.type.js';
 
 export const xxxService = {
-  async getListWithPage(params: XxxListRequest) {
-    return xxxRepository.getListWithPage(params.page, params.pageSize, params.keyword);
+  async getXxxList(params: XxxListRequest) {
+    return xxxRepository.getXxxList(params.page, params.pageSize, params.keyword);
   },
 
-  async create(input: XxxCreateRequest) {
+  async createXxx(input: XxxCreateRequest) {
     const { name } = input;
 
     // 校验
     validateMaxLength(name, 255, '名称');
 
     // 判重
-    const existing = await xxxRepository.getByField('name', name);
+    const existing = await xxxRepository.getXxxByField('name', name);
     if (existing) {
       throw new BizError(XxxErrorCodes.NAME_EXISTS);
     }
 
     // 创建
-    const id = await xxxRepository.create({ name, status: XXX_STATUS.DISABLED.value });
+    const id = await xxxRepository.createXxx({ name, status: XXX_STATUS.DISABLED.value });
 
     return { id, name };
   },
 
-  async update(id: number, input: XxxUpdateRequest) {
+  async updateXxx(id: number, input: XxxUpdateRequest) {
     const { name } = input;
 
     validateMaxLength(name, 255, '名称');
 
-    const entity = await xxxRepository.getById(id);
+    const entity = await xxxRepository.getXxxById(id);
     if (!entity) {
       throw new BizError(XxxErrorCodes.NOT_FOUND);
     }
 
-    const existing = await xxxRepository.getByField('name', name);
+    const existing = await xxxRepository.getXxxByField('name', name);
     if (existing && existing.id !== id) {
       throw new BizError(XxxErrorCodes.NAME_EXISTS_OTHER);
     }
 
-    await xxxRepository.updateById(id, { name });
+    await xxxRepository.updateXxxById(id, { name });
 
     return { id, name };
   },
 
-  async toggleStatus(id: number) {
-    const entity = await xxxRepository.getById(id);
+  async toggleXxxStatus(id: number) {
+    const entity = await xxxRepository.getXxxById(id);
     if (!entity) {
       throw new BizError(XxxErrorCodes.NOT_FOUND);
     }
@@ -358,7 +358,7 @@ export const xxxService = {
         ? XXX_STATUS.ACTIVE.value
         : XXX_STATUS.DISABLED.value;
 
-    await xxxRepository.updateById(id, { status: newStatus });
+    await xxxRepository.updateXxxById(id, { status: newStatus });
 
     return { name: entity.name, status: newStatus };
   },
@@ -366,6 +366,7 @@ export const xxxService = {
 ```
 
 **核心规则：**
+- service 方法名遵循与 repository 相同的命名约定：`get`/`create`/`update` 开头，列表带 `List`，单个带 `ById`
 - service 方法不要 `try/catch`，`BizError` 会自然传播到全局 error handler
 - 校验优先使用 `@/plugins/utils/validation.ts` 中的工具函数
 - 判重检查需要排除自身（`existing.id !== id`）
