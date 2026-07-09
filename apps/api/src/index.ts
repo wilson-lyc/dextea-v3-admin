@@ -1,19 +1,161 @@
-import { buildApp } from './app.js';
+import 'dotenv/config';
+import Fastify, { type FastifyError } from 'fastify';
+import cors from '@fastify/cors';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
+import {
+  ZodTypeProvider,
+  jsonSchemaTransform,
+  validatorCompiler,
+  serializerCompiler,
+} from 'fastify-type-provider-zod';
 import { config } from './config/index.js';
+import { registerRoutes } from './routes/index.js';
+import { authHook } from './middleware/auth.js';
 import { registerEmployeeModule } from './module/employees/Employee.Module.js';
+import { registerRedis } from './plugins/db/redis/index.js';
+import mailPlugin from './plugins/mail/index.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { ApiResponse } from '@/common/types/index.js';
+import { SystemErrorCodes } from '@/module/system/system.errorcode.js';
 
 async function main() {
-  const app = await buildApp();
+  const app = Fastify({
+    logger: {
+      level: config.logLevel,
+      transport: config.isDev
+        ? { target: 'pino-pretty', options: { colorize: true } }
+        : undefined,
+    },
+  }).withTypeProvider<ZodTypeProvider>();
 
+  // Zod 校验编译
+  app.setValidatorCompiler(validatorCompiler);
+  app.setSerializerCompiler(serializerCompiler);
+
+  // CORS 跨域
+  await app.register(cors, {
+    origin: config.corsOrigin,
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  });
+
+  // Redis 缓存
+  await registerRedis(app);
+
+  // Swagger OpenAPI 文档
+  await app.register(swagger, {
+    transform: jsonSchemaTransform,
+    openapi: {
+      info: {
+        title: 'DexTea Admin API',
+        description: 'DexTea 茶饮连锁管理系统后端接口文档',
+        version: '0.0.1',
+      },
+      servers: [
+        {
+          url: `http://localhost:${config.port}`,
+          description: '开发服务器',
+        },
+      ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+            description: '输入 Bearer token（登录接口返回的 token 值）',
+          },
+        },
+      },
+    },
+  });
+
+  // Swagger UI
+  await app.register(swaggerUi, {
+    routePrefix: `${config.apiPrefix}/docs`,
+    uiConfig: {
+      docExpansion: 'list',
+      deepLinking: true,
+      defaultModelsExpandDepth: 3,
+    },
+  });
+
+  // 邮件插件
+  await app.register(mailPlugin);
+
+  // 参数校验错误格式化
+  app.setSchemaErrorFormatter((errors, _dataVar) => {
+    const err = errors[0];
+    if (!err) return new Error('请求参数校验失败');
+
+    let message: string;
+    switch (err.keyword) {
+      case 'required': {
+        const field = (err.params as { missingProperty?: string }).missingProperty ?? '';
+        message = `缺少必填字段「${field}」`;
+        break;
+      }
+      case 'type': {
+        const field = err.instancePath.replace(/^\//, '');
+        message = field ? `「${field}」格式不正确` : '请求参数格式不正确';
+        break;
+      }
+      case 'minLength': {
+        const field = err.instancePath.replace(/^\//, '');
+        message = `「${field}」不能为空`;
+        break;
+      }
+      case 'minimum':
+      case 'maximum': {
+        const field = err.instancePath.replace(/^\//, '');
+        message = `「${field}」超出范围`;
+        break;
+      }
+      case 'enum': {
+        const field = err.instancePath.replace(/^\//, '');
+        message = `「${field}」的值无效`;
+        break;
+      }
+      default:
+        message = err.message ?? '请求参数校验失败';
+    }
+
+    return new Error(message);
+  });
+
+  // 全局异常处理
+  app.setErrorHandler((error: FastifyError, _request, reply) => {
+    if (error instanceof BizError) {
+      return reply.status(error.httpStatus).send(
+        ApiResponse.error(error.code, error.message),
+      );
+    }
+
+    // Fastify 验证错误
+    if (error.validation) {
+      return reply.status(400).send(
+        ApiResponse.error(400, error.message),
+      );
+    }
+
+    // 未知错误
+    reply.log.error(error);
+    return reply.status(500).send(
+      ApiResponse.error(SystemErrorCodes.INTERNAL_ERROR.code, SystemErrorCodes.INTERNAL_ERROR.message),
+    );
+  });
+
+  // 全局认证钩子
+  app.addHook('preHandler', authHook);
+
+  // 注册路由模块
+  await registerRoutes(app);
   await app.register(registerEmployeeModule);
 
-  try {
-    await app.listen({ port: config.port, host: config.host });
-    console.log(`Server running at http://${config.host}:${config.port}`);
-  } catch (err) {
-    app.log.error(err);
-    process.exit(1);
-  }
+  // 启动服务
+  await app.listen({ port: config.port, host: config.host });
+  app.log.info(`Server running at http://${config.host}:${config.port}`);
 }
 
 main();
