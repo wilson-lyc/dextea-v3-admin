@@ -1,16 +1,5 @@
 import { MySqlSelect } from 'drizzle-orm/mysql-core';
 
-/**
- * 为动态查询构建器追加 LIMIT / OFFSET 分页子句。
- * 基于 Drizzle 动态查询构建模式，需先调用 `.$dynamic()` 开启动态模式。
- *
- * @example
- * const rows = await withPagination(
- *   db.select().from(table).where(...).$dynamic(),
- *   1,
- *   20,
- * );
- */
 export function withPagination<T extends MySqlSelect>(
   qb: T,
   page: number,

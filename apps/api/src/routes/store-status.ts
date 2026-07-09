@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { getDb } from '../plugins/db/mysql/index.js';
 import { BizError } from '@/common/exceptions/index.js';
 import { StoreStatusErrorCodes } from '@/module/store-status/store-status.errorcode.js';
-import { parsePositiveInt } from '../utils/validation.js';
+import { parsePositiveInt } from '../plugins/utils/validation.js';
 import {
   listStoreProducts,
   upsertProductStoreStatus,

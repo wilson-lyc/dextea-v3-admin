@@ -2,7 +2,6 @@ import type { FastifyInstance } from 'fastify';
 import { healthRoutes } from './health.js';
 import { initRoutes } from './init.js';
 import { authRoutes } from './auth.js';
-import { employeeRoutes } from './employees.js';
 import { storeRoutes } from './stores.js';
 import { areaRoutes } from './areas.js';
 import { configRoutes } from './config.js';
@@ -26,7 +25,6 @@ export async function registerRoutes(app: FastifyInstance) {
   // API v1 routes
   await app.register(initRoutes, { prefix: config.apiPrefix });
   await app.register(authRoutes, { prefix: config.apiPrefix });
-  await app.register(employeeRoutes, { prefix: config.apiPrefix });
   await app.register(storeRoutes, { prefix: config.apiPrefix });
   await app.register(areaRoutes, { prefix: config.apiPrefix });
   await app.register(configRoutes, { prefix: config.apiPrefix });

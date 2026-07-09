@@ -6,7 +6,7 @@ import { productTagsTable, productTagRelationsTable, productsTable } from '../pl
 import { BizError } from '@/common/exceptions/index.js';
 import { TagErrorCodes } from '@/module/tags/tag.errorcode.js';
 import { ProductErrorCodes } from '@/module/products/product.errorcode.js';
-import { validateMaxLength } from '../utils/validation.js';
+import { validateMaxLength } from '../plugins/utils/validation.js';
 import type { PaginatedData, ProductTag } from '@dextea/shared-types';
 
 /**

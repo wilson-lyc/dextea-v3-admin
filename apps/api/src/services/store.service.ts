@@ -4,8 +4,8 @@ type Db = MySql2Database<Record<string, unknown>>;
 import { eq, and, inArray, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { storesTable, menusTable, storeMenuRelationsTable } from '../plugins/db/mysql/schema.js';
-import { geocode } from '../utils/geocode.js';
-import { hashPassword } from '../utils/password.js';
+import { geocode } from '../plugins/utils/geocode.js';
+import { hashPassword } from '../plugins/utils/password.js';
 import { BizError } from '@/common/exceptions/index.js';
 import { StoreErrorCodes } from '@/module/stores/store.errorcode.js';
 import { MenuErrorCodes } from '@/module/menus/menu.errorcode.js';
@@ -15,8 +15,8 @@ import {
   validateEmail,
   validateLongitude,
   validateLatitude,
-} from '../utils/validation.js';
-import { withPagination } from '../utils/pagination.js';
+} from '../plugins/utils/validation.js';
+import { withPagination } from '../plugins/utils/pagination.js';
 import type {
   PaginatedData,
   Store,

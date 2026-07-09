@@ -4,10 +4,10 @@ import { eq } from 'drizzle-orm';
 
 type Db = MySql2Database<Record<string, unknown>>;
 import { employeesTable } from '../plugins/db/mysql/schema.js';
-import { verifyPassword } from '../utils/password.js';
+import { verifyPassword } from '../plugins/utils/password.js';
 import { BizError } from '@/common/exceptions/index.js';
 import { AuthErrorCodes } from '@/module/auth/auth.errorcode.js';
-import { validateEmail, validatePassword } from '../utils/validation.js';
+import { validateEmail, validatePassword } from '../plugins/utils/validation.js';
 import { EMPLOYEE_STATUS } from '@dextea/shared-types';
 
 const TOKEN_PREFIX = 'dextea:admin:token:';

@@ -10,7 +10,7 @@ import {
 } from '../plugins/db/mysql/schema.js';
 import { BizError } from '@/common/exceptions/index.js';
 import { ProductCustomizationErrorCodes } from '@/module/product-customizations/product-customization.errorcode.js';
-import { validateMaxLength } from '../utils/validation.js';
+import { validateMaxLength } from '../plugins/utils/validation.js';
 import type { PaginatedData, ProductCustomization, CustomizationOption } from '@dextea/shared-types';
 import {
   PRODUCT_CUSTOMIZATION_STATUS_VALUES,

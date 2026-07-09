@@ -3,12 +3,12 @@ import { eq, sql } from 'drizzle-orm';
 
 type Db = MySql2Database<Record<string, unknown>>;
 import { nanoid } from 'nanoid';
-import { withPagination } from '../utils/pagination.js';
+import { withPagination } from '../plugins/utils/pagination.js';
 import { employeesTable } from '../plugins/db/mysql/schema.js';
 import { BizError } from '@/common/exceptions/index.js';
 import { EmployeeErrorCodes } from '@/module/employees/employees.errorcode.js';
-import { validateEmail, validateMaxLength } from '../utils/validation.js';
-import { hashPassword } from '../utils/password.js';
+import { validateEmail, validateMaxLength } from '../plugins/utils/validation.js';
+import { hashPassword } from '../plugins/utils/password.js';
 import type { PaginatedData, Employee, CreateEmployeeInput, UpdateEmployeeInput } from '@dextea/shared-types';
 import { EMPLOYEE_STATUS } from '@dextea/shared-types';
 

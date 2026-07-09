@@ -6,8 +6,8 @@ import { menusTable, menuGroupsTable, menuProductsTable, productsTable, storeMen
 import { BizError } from '@/common/exceptions/index.js';
 import { MenuErrorCodes } from '@/module/menus/menu.errorcode.js';
 import { ProductErrorCodes } from '@/module/products/product.errorcode.js';
-import { validateMaxLength } from '../utils/validation.js';
-import { withPagination } from '../utils/pagination.js';
+import { validateMaxLength } from '../plugins/utils/validation.js';
+import { withPagination } from '../plugins/utils/pagination.js';
 import type { PaginatedData, Menu, MenuGroup, MenuProduct, CreateMenuInput, UpdateMenuInput, CreateMenuGroupInput, UpdateMenuGroupInput } from '@dextea/shared-types';
 
 export async function listMenus(
