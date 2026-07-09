@@ -8,10 +8,10 @@ import {
   productTagsTable,
   productIngredientRelationsTable,
   ingredientsTable,
-} from '../db/schema.js';
-import { AppError } from '../errorcode/index.js';
-import { productErrors } from '../errorcode/products.js';
-import { tagErrors } from '../errorcode/tags.js';
+} from '../plugins/db/mysql/schema.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { ProductErrorCodes } from '../errorcode/products.js';
+import { TagErrorCodes } from '../errorcode/tags.js';
 import { validateMaxLength, validatePrice, validateStatus } from '../utils/validation.js';
 import type { PaginatedData, Product, ProductTag } from '@dextea/shared-types';
 import { PRODUCT_STATUS_VALUES } from '@dextea/shared-types';
@@ -150,7 +150,7 @@ export async function getProductBasicInfo(
     .limit(1);
 
   if (!product) {
-    throw new AppError(productErrors.PRODUCT_NOT_FOUND);
+    throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
   }
 
   return product as Product;
@@ -215,11 +215,11 @@ export async function updateProduct(
     .limit(1);
 
   if (!product) {
-    throw new AppError(productErrors.PRODUCT_NOT_FOUND);
+    throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
   }
 
   if (name !== undefined) {
-    if (!name) throw new AppError(productErrors.NAME_REQUIRED);
+    if (!name) throw new BizError(ProductErrorCodes.NAME_REQUIRED);
     validateMaxLength(name, 255, '商品名称');
   }
   validateMaxLength(brief, 500, '简介');
@@ -272,7 +272,7 @@ export async function updateProductStatus(
     .limit(1);
 
   if (!product) {
-    throw new AppError(productErrors.PRODUCT_NOT_FOUND);
+    throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
   }
 
   await db
@@ -343,7 +343,7 @@ export async function bindTagToProduct(
     .limit(1);
 
   if (!product) {
-    throw new AppError(productErrors.PRODUCT_NOT_FOUND);
+    throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
   }
 
   // 检查所有标签是否存在
@@ -353,7 +353,7 @@ export async function bindTagToProduct(
     .where(inArray(productTagsTable.id, uniqueIds));
 
   if (existingTags.length !== uniqueIds.length) {
-    throw new AppError(tagErrors.TAG_NOT_FOUND);
+    throw new BizError(TagErrorCodes.TAG_NOT_FOUND);
   }
 
   // 过滤已绑定的标签
@@ -371,7 +371,7 @@ export async function bindTagToProduct(
   const toInsert = uniqueIds.filter(tid => !boundTagIds.has(tid));
 
   if (toInsert.length === 0) {
-    throw new AppError(productErrors.TAG_ALREADY_EXISTS);
+    throw new BizError(ProductErrorCodes.TAG_ALREADY_EXISTS);
   }
 
   await db.insert(productTagRelationsTable).values(
@@ -453,7 +453,7 @@ export async function bindIngredientToProduct(
     .limit(1);
 
   if (!ingredient) {
-    throw new AppError(productErrors.INGREDIENT_NOT_FOUND);
+    throw new BizError(ProductErrorCodes.INGREDIENT_NOT_FOUND);
   }
 
   const [existing] = await db
@@ -468,7 +468,7 @@ export async function bindIngredientToProduct(
     .limit(1);
 
   if (existing) {
-    throw new AppError(productErrors.INGREDIENT_ALREADY_BOUND);
+    throw new BizError(ProductErrorCodes.INGREDIENT_ALREADY_BOUND);
   }
 
   await db.insert(productIngredientRelationsTable).values({
@@ -499,7 +499,7 @@ export async function updateIngredientQuantity(
     .limit(1);
 
   if (!existing) {
-    throw new AppError(productErrors.INGREDIENT_BIND_NOT_FOUND);
+    throw new BizError(ProductErrorCodes.INGREDIENT_BIND_NOT_FOUND);
   }
 
   await db

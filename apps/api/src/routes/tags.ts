@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
-import { getDb } from '../db/index.js';
-import { AppError } from '../errorcode/index.js';
-import { tagErrors } from '../errorcode/tags.js';
+import { getDb } from '../plugins/db/mysql/index.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { TagErrorCodes } from '../errorcode/tags.js';
 import { parsePositiveInt } from '../utils/validation.js';
 import {
   listTagOptions,
@@ -64,9 +64,9 @@ export async function tagRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(tagErrors.LIST_FAILED);
+      throw new BizError(TagErrorCodes.LIST_FAILED);
     }
   });
 
@@ -131,9 +131,9 @@ export async function tagRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(tagErrors.LIST_FAILED);
+      throw new BizError(TagErrorCodes.LIST_FAILED);
     }
   });
 
@@ -183,9 +183,9 @@ export async function tagRoutes(app: FastifyInstance) {
         message: '创建成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(tagErrors.CREATE_FAILED);
+      throw new BizError(TagErrorCodes.CREATE_FAILED);
     }
   });
 
@@ -244,9 +244,9 @@ export async function tagRoutes(app: FastifyInstance) {
         message: '更新成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(tagErrors.UPDATE_FAILED);
+      throw new BizError(TagErrorCodes.UPDATE_FAILED);
     }
   });
 
@@ -317,9 +317,9 @@ export async function tagRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(tagErrors.LIST_FAILED);
+      throw new BizError(TagErrorCodes.LIST_FAILED);
     }
   });
 
@@ -372,7 +372,7 @@ export async function tagRoutes(app: FastifyInstance) {
       const result = await bindProductToTag(db, id, productIds);
 
       if (result.boundCount === 0) {
-        throw new AppError(tagErrors.PRODUCT_ALREADY_BOUND);
+        throw new BizError(TagErrorCodes.PRODUCT_ALREADY_BOUND);
       }
 
       return {
@@ -381,9 +381,9 @@ export async function tagRoutes(app: FastifyInstance) {
         message: `成功绑定 ${result.boundCount} 个商品`,
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(tagErrors.BIND_FAILED);
+      throw new BizError(TagErrorCodes.BIND_FAILED);
     }
   });
 
@@ -441,9 +441,9 @@ export async function tagRoutes(app: FastifyInstance) {
         message: '解绑成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(tagErrors.UNBIND_FAILED);
+      throw new BizError(TagErrorCodes.UNBIND_FAILED);
     }
   });
 
@@ -487,9 +487,9 @@ export async function tagRoutes(app: FastifyInstance) {
         message: '删除成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(tagErrors.DELETE_FAILED);
+      throw new BizError(TagErrorCodes.DELETE_FAILED);
     }
   });
 }

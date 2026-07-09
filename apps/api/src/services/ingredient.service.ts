@@ -8,9 +8,9 @@ import {
   productIngredientRelationsTable,
   customizationOptionsTable,
   productCustomizationsTable,
-} from '../db/schema.js';
-import { AppError } from '../errorcode/index.js';
-import { ingredientErrors } from '../errorcode/ingredients.js';
+} from '../plugins/db/mysql/schema.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { IngredientErrorCodes } from '../errorcode/ingredients.js';
 import { validateMaxLength, validateStatus } from '../utils/validation.js';
 import type { PaginatedData, Ingredient, CreateIngredientInput, UpdateIngredientInput } from '@dextea/shared-types';
 import { INGREDIENT_STATUS_VALUES } from '@dextea/shared-types';
@@ -72,8 +72,8 @@ export async function createIngredient(
 ): Promise<{ id: number }> {
   const { name, unit, status } = input;
 
-  if (!name) throw new AppError(ingredientErrors.NAME_REQUIRED);
-  if (!unit) throw new AppError(ingredientErrors.UNIT_REQUIRED);
+  if (!name) throw new BizError(IngredientErrorCodes.NAME_REQUIRED);
+  if (!unit) throw new BizError(IngredientErrorCodes.UNIT_REQUIRED);
 
   validateMaxLength(name, 255, '原料名称');
   validateMaxLength(unit, 50, '单位');
@@ -115,7 +115,7 @@ export async function getIngredient(
     .limit(1);
 
   if (!ingredient) {
-    throw new AppError(ingredientErrors.INGREDIENT_NOT_FOUND);
+    throw new BizError(IngredientErrorCodes.INGREDIENT_NOT_FOUND);
   }
 
   return ingredient;
@@ -136,17 +136,17 @@ export async function updateIngredient(
     .limit(1);
 
   if (!existing) {
-    throw new AppError(ingredientErrors.INGREDIENT_NOT_FOUND);
+    throw new BizError(IngredientErrorCodes.INGREDIENT_NOT_FOUND);
   }
 
   const { name, unit, status } = input;
 
   if (name !== undefined) {
-    if (!name) throw new AppError(ingredientErrors.NAME_REQUIRED);
+    if (!name) throw new BizError(IngredientErrorCodes.NAME_REQUIRED);
     validateMaxLength(name, 255, '原料名称');
   }
   if (unit !== undefined) {
-    if (!unit) throw new AppError(ingredientErrors.UNIT_REQUIRED);
+    if (!unit) throw new BizError(IngredientErrorCodes.UNIT_REQUIRED);
     validateMaxLength(unit, 50, '单位');
   }
   if (status !== undefined) {
@@ -183,7 +183,7 @@ export async function updateIngredientStatus(
     .limit(1);
 
   if (!existing) {
-    throw new AppError(ingredientErrors.INGREDIENT_NOT_FOUND);
+    throw new BizError(IngredientErrorCodes.INGREDIENT_NOT_FOUND);
   }
 
   validateStatus(status, INGREDIENT_STATUS_VALUES, '原料状态');
@@ -262,7 +262,7 @@ export async function bindProductToIngredient(
     .limit(1);
 
   if (!product) {
-    throw new AppError(ingredientErrors.PRODUCT_NOT_FOUND);
+    throw new BizError(IngredientErrorCodes.PRODUCT_NOT_FOUND);
   }
 
   const [existing] = await db
@@ -274,7 +274,7 @@ export async function bindProductToIngredient(
     .limit(1);
 
   if (existing) {
-    throw new AppError(ingredientErrors.PRODUCT_ALREADY_BOUND);
+    throw new BizError(IngredientErrorCodes.PRODUCT_ALREADY_BOUND);
   }
 
   await db.insert(productIngredientRelationsTable).values({
@@ -302,7 +302,7 @@ export async function updateBindQuantity(
     .limit(1);
 
   if (!existing) {
-    throw new AppError(ingredientErrors.BIND_NOT_FOUND);
+    throw new BizError(IngredientErrorCodes.BIND_NOT_FOUND);
   }
 
   await db
@@ -379,7 +379,7 @@ export async function bindOptionToIngredient(
     .limit(1);
 
   if (!option) {
-    throw new AppError(ingredientErrors.OPTION_NOT_FOUND);
+    throw new BizError(IngredientErrorCodes.OPTION_NOT_FOUND);
   }
 
   await db
@@ -404,7 +404,7 @@ export async function updateOptionQuantity(
     .limit(1);
 
   if (!option || option.ingredientId !== ingredientId) {
-    throw new AppError(ingredientErrors.OPTION_BIND_NOT_FOUND);
+    throw new BizError(IngredientErrorCodes.OPTION_BIND_NOT_FOUND);
   }
 
   await db
@@ -428,7 +428,7 @@ export async function unbindOptionFromIngredient(
     .limit(1);
 
   if (!option || option.ingredientId !== ingredientId) {
-    throw new AppError(ingredientErrors.OPTION_BIND_NOT_FOUND);
+    throw new BizError(IngredientErrorCodes.OPTION_BIND_NOT_FOUND);
   }
 
   await db

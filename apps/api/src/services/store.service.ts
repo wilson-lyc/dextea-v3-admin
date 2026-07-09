@@ -3,12 +3,12 @@ import type { MySql2Database } from 'drizzle-orm/mysql2';
 type Db = MySql2Database<Record<string, unknown>>;
 import { eq, and, inArray, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
-import { storesTable, menusTable, storeMenuRelationsTable } from '../db/schema.js';
+import { storesTable, menusTable, storeMenuRelationsTable } from '../plugins/db/mysql/schema.js';
 import { geocode } from '../utils/geocode.js';
 import { hashPassword } from '../utils/password.js';
-import { AppError } from '../errorcode/index.js';
-import { storeErrors } from '../errorcode/stores.js';
-import { menuErrors } from '../errorcode/menus.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { StoreErrorCodes } from '../errorcode/stores.js';
+import { MenuErrorCodes } from '../errorcode/menus.js';
 import {
   validateMaxLength,
   validatePhone,
@@ -99,8 +99,8 @@ export async function listStores(
 
     return { items, total, page, pageSize };
   } catch (error) {
-    if (error instanceof AppError) throw error;
-    throw new AppError(storeErrors.LIST_FAILED);
+    if (error instanceof BizError) throw error;
+    throw new BizError(StoreErrorCodes.LIST_FAILED);
   }
 }
 
@@ -119,13 +119,13 @@ export async function getStore(
       .limit(1);
 
     if (store.length === 0) {
-      throw new AppError(storeErrors.STORE_NOT_FOUND);
+      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
 
     return store[0];
   } catch (error) {
-    if (error instanceof AppError) throw error;
-    throw new AppError(storeErrors.GET_FAILED);
+    if (error instanceof BizError) throw error;
+    throw new BizError(StoreErrorCodes.GET_FAILED);
   }
 }
 
@@ -157,7 +157,7 @@ export async function createStore(
       .limit(1);
 
     if (existingStore.length > 0) {
-      throw new AppError(storeErrors.ACCOUNT_EXISTS);
+      throw new BizError(StoreErrorCodes.ACCOUNT_EXISTS);
     }
 
     const coords = await geocode(province, city, district, address);
@@ -201,8 +201,8 @@ export async function createStore(
 
     return { id: insertId, initialPassword };
   } catch (error) {
-    if (error instanceof AppError) throw error;
-    throw new AppError(storeErrors.CREATE_FAILED);
+    if (error instanceof BizError) throw error;
+    throw new BizError(StoreErrorCodes.CREATE_FAILED);
   }
 }
 
@@ -231,7 +231,7 @@ export async function updateStore(
       .limit(1);
 
     if (store.length === 0) {
-      throw new AppError(storeErrors.STORE_NOT_FOUND);
+      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
 
     await db
@@ -252,8 +252,8 @@ export async function updateStore(
 
     return { id };
   } catch (error) {
-    if (error instanceof AppError) throw error;
-    throw new AppError(storeErrors.UPDATE_FAILED);
+    if (error instanceof BizError) throw error;
+    throw new BizError(StoreErrorCodes.UPDATE_FAILED);
   }
 }
 
@@ -279,7 +279,7 @@ export async function updateStoreBasicInfo(
       .limit(1);
 
     if (store.length === 0) {
-      throw new AppError(storeErrors.STORE_NOT_FOUND);
+      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
 
     await db
@@ -289,8 +289,8 @@ export async function updateStoreBasicInfo(
 
     return { id };
   } catch (error) {
-    if (error instanceof AppError) throw error;
-    throw new AppError(storeErrors.BASIC_INFO_UPDATE_FAILED);
+    if (error instanceof BizError) throw error;
+    throw new BizError(StoreErrorCodes.BASIC_INFO_UPDATE_FAILED);
   }
 }
 
@@ -321,7 +321,7 @@ export async function updateStoreLocation(
       .limit(1);
 
     if (store.length === 0) {
-      throw new AppError(storeErrors.STORE_NOT_FOUND);
+      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
 
     await db
@@ -342,8 +342,8 @@ export async function updateStoreLocation(
 
     return { id };
   } catch (error) {
-    if (error instanceof AppError) throw error;
-    throw new AppError(storeErrors.LOCATION_UPDATE_FAILED);
+    if (error instanceof BizError) throw error;
+    throw new BizError(StoreErrorCodes.LOCATION_UPDATE_FAILED);
   }
 }
 
@@ -357,7 +357,7 @@ export async function updateStoreStatus(
 ): Promise<{ status: number }> {
   try {
     if (!STORE_STATUS_VALUES.includes(status)) {
-      throw new AppError(storeErrors.INVALID_STATUS);
+      throw new BizError(StoreErrorCodes.INVALID_STATUS);
     }
 
     const store = await db
@@ -367,7 +367,7 @@ export async function updateStoreStatus(
       .limit(1);
 
     if (store.length === 0) {
-      throw new AppError(storeErrors.STORE_NOT_FOUND);
+      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
 
     await db
@@ -377,8 +377,8 @@ export async function updateStoreStatus(
 
     return { status };
   } catch (error) {
-    if (error instanceof AppError) throw error;
-    throw new AppError(storeErrors.STATUS_UPDATE_FAILED);
+    if (error instanceof BizError) throw error;
+    throw new BizError(StoreErrorCodes.STATUS_UPDATE_FAILED);
   }
 }
 
@@ -397,7 +397,7 @@ export async function resetStorePassword(
       .limit(1);
 
     if (store.length === 0) {
-      throw new AppError(storeErrors.STORE_NOT_FOUND);
+      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
 
     const newPassword = nanoid(12);
@@ -410,8 +410,8 @@ export async function resetStorePassword(
 
     return { newPassword };
   } catch (error) {
-    if (error instanceof AppError) throw error;
-    throw new AppError(storeErrors.RESET_PASSWORD_FAILED);
+    if (error instanceof BizError) throw error;
+    throw new BizError(StoreErrorCodes.RESET_PASSWORD_FAILED);
   }
 }
 
@@ -441,8 +441,8 @@ export async function syncStoreLocations(
 
     return { synced };
   } catch (error) {
-    if (error instanceof AppError) throw error;
-    throw new AppError(storeErrors.SYNC_FAILED);
+    if (error instanceof BizError) throw error;
+    throw new BizError(StoreErrorCodes.SYNC_FAILED);
   }
 }
 
@@ -462,7 +462,7 @@ export async function bindStoreMenu(
       .limit(1);
 
     if (store.length === 0) {
-      throw new AppError(storeErrors.STORE_NOT_FOUND);
+      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
 
     if (menuId !== null) {
@@ -473,7 +473,7 @@ export async function bindStoreMenu(
         .limit(1);
 
       if (menu.length === 0) {
-        throw new AppError(menuErrors.MENU_NOT_FOUND);
+        throw new BizError(MenuErrorCodes.MENU_NOT_FOUND);
       }
     }
 
@@ -491,8 +491,8 @@ export async function bindStoreMenu(
 
     return { id: storeId };
   } catch (error) {
-    if (error instanceof AppError) throw error;
-    throw new AppError(storeErrors.UPDATE_FAILED);
+    if (error instanceof BizError) throw error;
+    throw new BizError(StoreErrorCodes.UPDATE_FAILED);
   }
 }
 
@@ -561,12 +561,12 @@ export async function dispatchMenuByArea(
     .limit(1);
 
   if (!menu) {
-    throw new AppError(menuErrors.MENU_NOT_FOUND);
+    throw new BizError(MenuErrorCodes.MENU_NOT_FOUND);
   }
 
   // 校验省份必填
   if (!input.province || input.province.trim().length === 0) {
-    throw new AppError(menuErrors.PROVINCE_REQUIRED);
+    throw new BizError(MenuErrorCodes.PROVINCE_REQUIRED);
   }
 
   // 构建区域匹配条件
@@ -588,7 +588,7 @@ export async function dispatchMenuByArea(
   const matched = Number(countResult?.count ?? 0);
 
   if (matched === 0) {
-    throw new AppError(menuErrors.NO_MATCHED_STORES);
+    throw new BizError(MenuErrorCodes.NO_MATCHED_STORES);
   }
 
   // 查询符合区域且尚未绑定该菜单的门店ID
@@ -627,7 +627,7 @@ export async function dispatchMenuById(
     .limit(1);
 
   if (!menu) {
-    throw new AppError(menuErrors.MENU_NOT_FOUND);
+    throw new BizError(MenuErrorCodes.MENU_NOT_FOUND);
   }
 
   // 校验门店存在
@@ -640,7 +640,7 @@ export async function dispatchMenuById(
   const validIds = input.storeIds.filter(id => existingIds.has(id));
 
   if (validIds.length === 0) {
-    throw new AppError(storeErrors.STORE_NOT_FOUND);
+    throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
   }
 
   // 查询已绑定该菜单的门店

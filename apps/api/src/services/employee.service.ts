@@ -4,9 +4,9 @@ import { eq, sql } from 'drizzle-orm';
 type Db = MySql2Database<Record<string, unknown>>;
 import { nanoid } from 'nanoid';
 import { withPagination } from '../utils/pagination.js';
-import { employeesTable } from '../db/schema.js';
-import { AppError } from '../errorcode/index.js';
-import { employeeErrors } from '../errorcode/employees.js';
+import { employeesTable } from '../plugins/db/mysql/schema.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { EmployeeErrorCodes } from '../errorcode/employees.js';
 import { validateEmail, validateMaxLength } from '../utils/validation.js';
 import { hashPassword } from '../utils/password.js';
 import type { PaginatedData, Employee, CreateEmployeeInput, UpdateEmployeeInput } from '@dextea/shared-types';
@@ -76,7 +76,7 @@ export async function createEmployee(
     .limit(1);
 
   if (existingEmployee.length > 0) {
-    throw new AppError(employeeErrors.EMAIL_EXISTS);
+    throw new BizError(EmployeeErrorCodes.EMAIL_EXISTS);
   }
 
   const initialPassword = nanoid(12);
@@ -123,7 +123,7 @@ export async function updateEmployee(
     .limit(1);
 
   if (employee.length === 0) {
-    throw new AppError(employeeErrors.EMPLOYEE_NOT_FOUND);
+    throw new BizError(EmployeeErrorCodes.EMPLOYEE_NOT_FOUND);
   }
 
   const existingEmail = await db
@@ -133,7 +133,7 @@ export async function updateEmployee(
     .limit(1);
 
   if (existingEmail.length > 0 && existingEmail[0].id !== id) {
-    throw new AppError(employeeErrors.EMAIL_EXISTS_OTHER);
+    throw new BizError(EmployeeErrorCodes.EMAIL_EXISTS_OTHER);
   }
 
   await db
@@ -159,7 +159,7 @@ export async function toggleEmployeeStatus(
     .limit(1);
 
   if (employee.length === 0) {
-    throw new AppError(employeeErrors.EMPLOYEE_NOT_FOUND);
+    throw new BizError(EmployeeErrorCodes.EMPLOYEE_NOT_FOUND);
   }
 
   const newStatus = employee[0].status === EMPLOYEE_STATUS.DISABLED.value

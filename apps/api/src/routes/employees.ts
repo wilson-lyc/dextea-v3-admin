@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
-import { getDb } from '../db/index.js';
-import { AppError } from '../errorcode/index.js';
-import { employeeErrors } from '../errorcode/employees.js';
+import { getDb } from '../plugins/db/mysql/index.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { EmployeeErrorCodes } from '../errorcode/employees.js';
 import { parsePositiveInt } from '../utils/validation.js';
 import { listEmployees, createEmployee, updateEmployee, toggleEmployeeStatus } from '../services/employee.service.js';
 import type {
@@ -76,9 +76,9 @@ export async function employeeRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(employeeErrors.LIST_FAILED);
+      throw new BizError(EmployeeErrorCodes.LIST_FAILED);
     }
   });
 
@@ -135,9 +135,9 @@ export async function employeeRoutes(app: FastifyInstance) {
         message: '创建成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(employeeErrors.CREATE_FAILED);
+      throw new BizError(EmployeeErrorCodes.CREATE_FAILED);
     }
   });
 
@@ -196,9 +196,9 @@ export async function employeeRoutes(app: FastifyInstance) {
         message: '更新成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(employeeErrors.UPDATE_FAILED);
+      throw new BizError(EmployeeErrorCodes.UPDATE_FAILED);
     }
   });
 
@@ -247,9 +247,9 @@ export async function employeeRoutes(app: FastifyInstance) {
         message: data.status === 1 ? '已激活' : '已禁用',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(employeeErrors.OPERATE_FAILED);
+      throw new BizError(EmployeeErrorCodes.OPERATE_FAILED);
     }
   });
 }

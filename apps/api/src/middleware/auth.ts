@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import { authErrors } from '../errorcode/auth.js';
-import { AppError } from '../errorcode/index.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { AuthErrorCodes } from '../errorcode/auth.js';
 
 // Redis key 前缀
 const TOKEN_PREFIX = 'dextea:admin:token:';
@@ -41,7 +41,7 @@ export async function authHook(request: FastifyRequest, reply: FastifyReply) {
   // 从请求头中提取 Bearer token
   const authHeader = request.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    const err = new AppError(authErrors.INVALID_TOKEN);
+    const err = new BizError(AuthErrorCodes.INVALID_TOKEN, undefined, 401);
     return reply.status(err.httpStatus).send(err.toResponse());
   }
 
@@ -53,12 +53,12 @@ export async function authHook(request: FastifyRequest, reply: FastifyReply) {
     sessionData = await request.server.redis.get(`${TOKEN_PREFIX}${token}`);
   } catch (error) {
     request.log.error({ err: error }, 'Redis lookup failed during auth');
-    const err = new AppError(authErrors.INVALID_TOKEN);
+    const err = new BizError(AuthErrorCodes.INVALID_TOKEN, undefined, 401);
     return reply.status(err.httpStatus).send(err.toResponse());
   }
 
   if (!sessionData) {
-    const err = new AppError(authErrors.INVALID_TOKEN);
+    const err = new BizError(AuthErrorCodes.INVALID_TOKEN, undefined, 401);
     return reply.status(err.httpStatus).send(err.toResponse());
   }
 

@@ -122,7 +122,6 @@ export const storesTable = mysqlTable('stores', {
 
 /**
  * 门店-菜单关联表
- * 记录门店与菜单的绑定关系，支持同一门店绑定多个菜单（通过复合主键扩展）
  */
 export const storeMenusTable = mysqlTable(
   'store_menus',
@@ -183,7 +182,6 @@ export const productTagMapTable = mysqlTable(
 
 /**
  * 客制化项目表
- * productId 与商品表 1对多 关联（一个商品可以有多个客制化项目）
  */
 export const productCustomizationsTable = mysqlTable('product_customizations', {
   id: serial().primaryKey(),
@@ -244,7 +242,6 @@ export const customizationOptionsTable = mysqlTable('customization_options', {
 
 /**
  * 商品-门店状态表
- * 记录商品在每个门店的独立状态（独立于 productsTable.status 全局状态）
  */
 export const productStoreStatusTable = mysqlTable(
   'product_store_status',
@@ -265,7 +262,6 @@ export const productStoreStatusTable = mysqlTable(
 
 /**
  * 客制化选项-门店状态表
- * 记录客制化选项在每个门店的独立状态（独立于 customizationOptionsTable.status 全局状态）
  */
 export const customizationOptionStoreStatusTable = mysqlTable(
   'customization_option_store_status',
@@ -286,7 +282,6 @@ export const customizationOptionStoreStatusTable = mysqlTable(
 
 /**
  * 原料-门店库存表
- * 记录每种原料在每家门店的库存数量
  */
 export const storeInventoryTable = mysqlTable(
   'store_inventory',
@@ -307,7 +302,6 @@ export const storeInventoryTable = mysqlTable(
 
 /**
  * 菜单表
- * 管理菜单的基本信息，独立于门店存在，可被多个门店共享
  */
 export const menusTable = mysqlTable('menus', {
   id: serial().primaryKey(),
@@ -319,7 +313,6 @@ export const menusTable = mysqlTable('menus', {
 
 /**
  * 菜单分组表
- * 菜单下的分类容器（如"推荐"、"咖啡"、"甜点"），决定商品的分组展示
  */
 export const menuGroupsTable = mysqlTable('menu_groups', {
   id: serial().primaryKey(),
@@ -332,7 +325,6 @@ export const menuGroupsTable = mysqlTable('menu_groups', {
 
 /**
  * 菜单商品关联表
- * 记录分组与商品的关联关系及排序，同一分组下同一商品只能绑定一次
  */
 export const menuProductsTable = mysqlTable(
   'menu_products',
@@ -358,7 +350,7 @@ export const customersTable = mysqlTable(
   'customers',
   {
     id: serial().primaryKey(),
-    source: tinyint().notNull(), // 来源平台：1=微信小程序，2=支付宝小程序
+    source: tinyint().notNull(),
     openId: varchar('open_id', { length: 255 }).notNull(),
     nickname: varchar({ length: 255 }).notNull().default(''),
     createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
@@ -372,42 +364,37 @@ export const customersTable = mysqlTable(
 
 /**
  * 订单表
- * 记录订单基础信息，归属某位顾客（customers）与某一门店（stores）。
- * status：0=待支付 1=已支付/制作中 2=已完成 3=已取消 4=已退款
- * payMethod：1=微信支付 2=支付宝（与顾客来源平台对应）
- * paidAt：支付时间，未支付时为 null
  */
 export const ordersTable = mysqlTable('orders', {
   id: serial().primaryKey(),
-  orderNo: varchar('order_no', { length: 64 }).notNull().unique(), // 业务订单号（对外展示/对账用，区别于自增 id）
-  customerId: bigint('customer_id', { mode: 'number', unsigned: true }).notNull(), // 关联顾客
-  storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(), // 关联门店
+  orderNo: varchar('order_no', { length: 64 }).notNull().unique(),
+  customerId: bigint('customer_id', { mode: 'number', unsigned: true }).notNull(),
+  storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(),
   status: tinyint().notNull().default(0),
-  totalAmount: double('total_amount').notNull().default(0), // 订单总金额
-  payMethod: tinyint('pay_method'), // 支付方式：1=微信 2=支付宝
-  remark: varchar({ length: 500 }).notNull().default(''), // 订单备注
-  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(), // 创建时间
-  paidAt: timestamp('paid_at', { mode: 'string' }), // 支付时间
+  totalAmount: double('total_amount').notNull().default(0),
+  payMethod: tinyint('pay_method'),
+  remark: varchar({ length: 500 }).notNull().default(''),
+  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+  paidAt: timestamp('paid_at', { mode: 'string' }),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 /**
  * 订单详情表
- * 记录订单下顾客实际购买的商品行，一行对应一个 SKU（商品 + 客制化组合）。
  */
 export const orderItemsTable = mysqlTable(
   'order_items',
   {
     id: serial().primaryKey(),
-    orderId: bigint('order_id', { mode: 'number', unsigned: true }).notNull(), // 关联订单
-    productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(), // 关联商品
-    skuId: varchar('sku_id', { length: 255 }).notNull().default(''), // SKU 标识（生成规则待定，此处仅占位）
-    unitPrice: double('unit_price').notNull().default(0), // 实际单价（已含客制化加价，奶茶加料后价格不同）
-    quantity: int().notNull().default(1), // 购买数量
+    orderId: bigint('order_id', { mode: 'number', unsigned: true }).notNull(),
+    productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
+    skuId: varchar('sku_id', { length: 255 }).notNull().default(''),
+    unitPrice: double('unit_price').notNull().default(0),
+    quantity: int().notNull().default(1),
     createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
   (table) => ({
-    uniqueOrderSku: uniqueIndex('uq_order_items_order_sku').on(table.orderId, table.skuId), // 同一订单内同一 SKU 仅一行
+    uniqueOrderSku: uniqueIndex('uq_order_items_order_sku').on(table.orderId, table.skuId),
   }),
 );

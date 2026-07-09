@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
-import { getDb } from '../db/index.js';
-import { AppError } from '../errorcode/index.js';
-import { menuErrors } from '../errorcode/menus.js';
+import { getDb } from '../plugins/db/mysql/index.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { MenuErrorCodes } from '../errorcode/menus.js';
 import { parsePositiveInt } from '../utils/validation.js';
 import {
   listMenus,
@@ -109,9 +109,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.LIST_FAILED);
+      throw new BizError(MenuErrorCodes.LIST_FAILED);
     }
   });
 
@@ -161,9 +161,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: '创建成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.CREATE_FAILED);
+      throw new BizError(MenuErrorCodes.CREATE_FAILED);
     }
   });
 
@@ -216,9 +216,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.LIST_FAILED);
+      throw new BizError(MenuErrorCodes.LIST_FAILED);
     }
   });
 
@@ -276,9 +276,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: '更新成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.UPDATE_FAILED);
+      throw new BizError(MenuErrorCodes.UPDATE_FAILED);
     }
   });
 
@@ -327,9 +327,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: `成功删除 ${menuIds.length} 个菜单`,
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.DELETE_FAILED);
+      throw new BizError(MenuErrorCodes.DELETE_FAILED);
     }
   });
 
@@ -387,9 +387,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.LIST_GROUPS_FAILED);
+      throw new BizError(MenuErrorCodes.LIST_GROUPS_FAILED);
     }
   });
 
@@ -448,9 +448,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: '创建成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.GROUP_CREATE_FAILED);
+      throw new BizError(MenuErrorCodes.GROUP_CREATE_FAILED);
     }
   });
 
@@ -508,9 +508,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: '更新成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.GROUP_UPDATE_FAILED);
+      throw new BizError(MenuErrorCodes.GROUP_UPDATE_FAILED);
     }
   });
 
@@ -559,9 +559,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: `成功删除 ${groupIds.length} 个分组`,
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.GROUP_BATCH_DELETE_FAILED);
+      throw new BizError(MenuErrorCodes.GROUP_BATCH_DELETE_FAILED);
     }
   });
 
@@ -620,9 +620,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.LIST_PRODUCTS_FAILED);
+      throw new BizError(MenuErrorCodes.LIST_PRODUCTS_FAILED);
     }
   });
 
@@ -671,7 +671,7 @@ export async function menuRoutes(app: FastifyInstance) {
       const result = await addMenuProduct(db, groupId, productId, sortOrder);
 
       if (!result.bound) {
-        throw new AppError(menuErrors.PRODUCT_ALREADY_BOUND);
+        throw new BizError(MenuErrorCodes.PRODUCT_ALREADY_BOUND);
       }
 
       return {
@@ -680,9 +680,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: '绑定成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.PRODUCT_BIND_FAILED);
+      throw new BizError(MenuErrorCodes.PRODUCT_BIND_FAILED);
     }
   });
 
@@ -740,9 +740,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: `成功解绑 ${productIds.length} 个商品`,
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.PRODUCT_BATCH_UNBIND_FAILED);
+      throw new BizError(MenuErrorCodes.PRODUCT_BATCH_UNBIND_FAILED);
     }
   });
 
@@ -796,9 +796,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: '排序更新成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.PRODUCT_SORT_UPDATE_FAILED);
+      throw new BizError(MenuErrorCodes.PRODUCT_SORT_UPDATE_FAILED);
     }
   });
 
@@ -882,9 +882,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.LIST_FAILED);
+      throw new BizError(MenuErrorCodes.LIST_FAILED);
     }
   });
 
@@ -945,9 +945,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: `区域内共 ${result.matched} 家门店，成功分发 ${result.dispatched} 家`,
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.DISPATCH_AREA_FAILED);
+      throw new BizError(MenuErrorCodes.DISPATCH_AREA_FAILED);
     }
   });
 
@@ -1011,9 +1011,9 @@ export async function menuRoutes(app: FastifyInstance) {
         message: `共匹配 ${result.matched} 家门店，成功分发 ${result.dispatched} 家`,
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(menuErrors.DISPATCH_ID_FAILED);
+      throw new BizError(MenuErrorCodes.DISPATCH_ID_FAILED);
     }
   });
 }

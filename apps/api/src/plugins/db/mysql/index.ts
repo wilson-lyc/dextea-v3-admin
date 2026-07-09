@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2';
-import { config } from '../config/index.js';
+import { config } from '../../../config/index.js';
 
 let db: ReturnType<typeof drizzle> | null = null;
 

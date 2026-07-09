@@ -11,9 +11,9 @@ import {
   customizationOptionStoreStatusTable,
   ingredientsTable,
   storeInventoryTable,
-} from '../db/schema.js';
-import { AppError } from '../errorcode/index.js';
-import { storeErrors } from '../errorcode/stores.js';
+} from '../plugins/db/mysql/schema.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { StoreErrorCodes } from '../errorcode/stores.js';
 import type {
   PaginatedData,
   StoreProductItem,
@@ -28,7 +28,7 @@ async function ensureStoreExists(db: Database, storeId: number): Promise<void> {
     .from(storesTable)
     .where(eq(storesTable.id, storeId))
     .limit(1);
-  if (!store) throw new AppError(storeErrors.STORE_NOT_FOUND);
+  if (!store) throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
 }
 
 /**

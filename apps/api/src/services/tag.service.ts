@@ -2,10 +2,10 @@ import type { MySql2Database } from 'drizzle-orm/mysql2';
 
 type Db = MySql2Database<Record<string, unknown>>;
 import { and, eq, inArray, sql } from 'drizzle-orm';
-import { productTagsTable, productTagRelationsTable, productsTable } from '../db/schema.js';
-import { AppError } from '../errorcode/index.js';
-import { tagErrors } from '../errorcode/tags.js';
-import { productErrors } from '../errorcode/products.js';
+import { productTagsTable, productTagRelationsTable, productsTable } from '../plugins/db/mysql/schema.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { TagErrorCodes } from '../errorcode/tags.js';
+import { ProductErrorCodes } from '../errorcode/products.js';
 import { validateMaxLength } from '../utils/validation.js';
 import type { PaginatedData, ProductTag } from '@dextea/shared-types';
 
@@ -80,7 +80,7 @@ export async function createTag(
     .limit(1);
 
   if (existing) {
-    throw new AppError(tagErrors.DUPLICATE_NAME);
+    throw new BizError(TagErrorCodes.DUPLICATE_NAME);
   }
 
   const result = await db
@@ -112,7 +112,7 @@ export async function updateTag(
     .limit(1);
 
   if (!tag) {
-    throw new AppError(tagErrors.TAG_NOT_FOUND);
+    throw new BizError(TagErrorCodes.TAG_NOT_FOUND);
   }
 
   const [duplicate] = await db
@@ -122,7 +122,7 @@ export async function updateTag(
     .limit(1);
 
   if (duplicate && duplicate.id !== id) {
-    throw new AppError(tagErrors.DUPLICATE_NAME);
+    throw new BizError(TagErrorCodes.DUPLICATE_NAME);
   }
 
   await db
@@ -187,7 +187,7 @@ export async function bindProductToTag(
     .limit(1);
 
   if (!tag) {
-    throw new AppError(tagErrors.TAG_NOT_FOUND);
+    throw new BizError(TagErrorCodes.TAG_NOT_FOUND);
   }
 
   const existingProducts = await db
@@ -196,7 +196,7 @@ export async function bindProductToTag(
     .where(inArray(productsTable.id, uniqueIds));
 
   if (existingProducts.length !== uniqueIds.length) {
-    throw new AppError(productErrors.PRODUCT_NOT_FOUND);
+    throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
   }
 
   const existingBindings = await db
@@ -255,7 +255,7 @@ export async function deleteTag(
     .limit(1);
 
   if (!tag) {
-    throw new AppError(tagErrors.TAG_NOT_FOUND);
+    throw new BizError(TagErrorCodes.TAG_NOT_FOUND);
   }
 
   await db

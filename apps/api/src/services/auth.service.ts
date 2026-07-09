@@ -3,10 +3,10 @@ import type { MySql2Database } from 'drizzle-orm/mysql2';
 import { eq } from 'drizzle-orm';
 
 type Db = MySql2Database<Record<string, unknown>>;
-import { employeesTable } from '../db/schema.js';
+import { employeesTable } from '../plugins/db/mysql/schema.js';
 import { verifyPassword } from '../utils/password.js';
-import { AppError } from '../errorcode/index.js';
-import { authErrors } from '../errorcode/auth.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { AuthErrorCodes } from '../errorcode/auth.js';
 import { validateEmail, validatePassword } from '../utils/validation.js';
 import { EMPLOYEE_STATUS } from '@dextea/shared-types';
 
@@ -58,16 +58,16 @@ export async function login(
 
   const employee = employees[0];
   if (!employee) {
-    throw new AppError(authErrors.INVALID_CREDENTIALS);
+    throw new BizError(AuthErrorCodes.INVALID_CREDENTIALS, undefined, 401);
   }
 
   const valid = await verifyPassword(password, employee.password);
   if (!valid) {
-    throw new AppError(authErrors.INVALID_CREDENTIALS);
+    throw new BizError(AuthErrorCodes.INVALID_CREDENTIALS, undefined, 401);
   }
 
   if (employee.status === EMPLOYEE_STATUS.DISABLED.value) {
-    throw new AppError(authErrors.ACCOUNT_DISABLED);
+    throw new BizError(AuthErrorCodes.ACCOUNT_DISABLED, undefined, 401);
   }
 
   const token = randomUUID();
@@ -97,7 +97,7 @@ export async function login(
 export async function logout(extra: LogoutExtra): Promise<void> {
   const { authHeader, redisClient } = extra;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new AppError(authErrors.INVALID_TOKEN);
+    throw new BizError(AuthErrorCodes.INVALID_TOKEN, undefined, 401);
   }
 
   const token = authHeader.slice(7);

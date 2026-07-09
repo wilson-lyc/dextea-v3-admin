@@ -1,61 +1,32 @@
 /**
  * ErrorCode 层 — 业务错误码与消息定义
  *
- * 所有错误码统一使用 1xxxx 格式：
- *   10000-10099  系统级通用错误
- *   10100-10199  认证模块
- *   10200-10299  用户管理
- *   10300-10399  门店管理
- *   10400-10499  地区服务
- *   10500-10599  系统初始化
- *   10600-10699  系统配置
- *   10700-10799  商品标签
- *   10800-10899  商品管理
- *   10900-10999  客制化项目
- *   11000-11099  原料管理
- *   11100-11199  菜单管理
+ * 所有错误码统一使用 1xx+++ 格式（1 + 模块序号 + 模块内序号）：
+ *   10000-10099  系统级通用错误 (00)
+ *   10100-10199  认证模块 (01)
+ *   10200-10299  用户管理 (02)
+ *   10300-10399  门店管理 (03)
+ *   10400-10499  地区服务 (04)
+ *   10500-10599  系统初始化 (05)
+ *   10600-10699  系统配置 (06)
+ *   10700-10799  商品标签 (07)
+ *   10800-10899  商品管理 (08)
+ *   10900-10999  客制化项目 (09)
+ *   11000-11099  原料管理 (10)
+ *   11100-11199  菜单管理 (11)
+ *   11200-11299  门店状态管理 (12)
  */
 
-export interface BizError {
-  /** 业务错误码 */
-  code: number;
-  /** 用户可见的错误消息 */
-  message: string;
-  /** 对应的 HTTP 状态码 */
-  httpStatus: number;
-}
-
-export class AppError extends Error {
-  public readonly code: number;
-  public readonly httpStatus: number;
-
-  constructor(bizError: BizError, detail?: string) {
-    super(detail ?? bizError.message);
-    this.name = 'AppError';
-    this.code = bizError.code;
-    this.httpStatus = bizError.httpStatus;
-  }
-
-  /** 转换为 API 响应体 */
-  toResponse() {
-    return {
-      code: this.code,
-      data: null,
-      message: this.message,
-    };
-  }
-}
-
-export { systemErrors } from './system.js';
-export { authErrors } from './auth.js';
-export { employeeErrors } from './employees.js';
-export { storeErrors } from './stores.js';
-export { areaErrors } from './areas.js';
-export { initErrors } from './init.js';
-export { configErrors } from './config.js';
-export { productErrors } from './products.js';
-export { tagErrors } from './tags.js';
-export { productCustomizationErrors } from './product-customizations.js';
-export { ingredientErrors } from './ingredients.js';
-export { storeStatusErrors } from './store-status.js';
-export { menuErrors } from './menus.js';
+export { SystemErrorCodes } from './system.js';
+export { AuthErrorCodes } from './auth.js';
+export { EmployeeErrorCodes } from './employees.js';
+export { StoreErrorCodes } from './stores.js';
+export { AreaErrorCodes } from './areas.js';
+export { InitErrorCodes } from './init.js';
+export { ConfigErrorCodes } from './config.js';
+export { ProductErrorCodes } from './products.js';
+export { TagErrorCodes } from './tags.js';
+export { ProductCustomizationErrorCodes } from './product-customizations.js';
+export { IngredientErrorCodes } from './ingredients.js';
+export { MenuErrorCodes } from './menus.js';
+export { StoreStatusErrorCodes } from './store-status.js';

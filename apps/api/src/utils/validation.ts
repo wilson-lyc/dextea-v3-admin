@@ -2,7 +2,7 @@
  * 共享输入校验工具模块
  *
  * 统一提供给所有路由 handler 使用，遵循"快速失败"原则：
- * 校验不通过时直接 throw AppError，由全局 error handler 统一处理。
+ * 校验不通过时直接 throw BizError，由全局 error handler 统一处理。
  *
  * 使用示例:
  *   const id = parsePositiveInt(request.params.id, '门店ID');
@@ -10,19 +10,19 @@
  *   validateMaxLength(request.body.name, 255, '名称');
  */
 
-import { AppError } from '../errorcode/index.js';
-import { systemErrors } from '../errorcode/system.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { SystemErrorCodes } from '../errorcode/system.js';
 
 // ─── 路径参数 ID 解析 ──────────────────────────────────
 
 /**
  * 将路径参数字符串解析为正整数 ID。
- * NaN / ≤0 / 非整数 → 抛 AppError (INVALID_REQUEST)
+ * NaN / ≤0 / 非整数 → 抛 BizError (INVALID_REQUEST)
  */
 export function parsePositiveInt(value: string, fieldName: string = 'ID'): number {
   const num = Number(value);
   if (!Number.isInteger(num) || num <= 0) {
-    throw new AppError(systemErrors.INVALID_REQUEST, `无效的${fieldName}`);
+    throw new BizError(SystemErrorCodes.INVALID_REQUEST, `无效的${fieldName}`);
   }
   return num;
 }
@@ -35,10 +35,10 @@ export function parsePositiveInt(value: string, fieldName: string = 'ID'): numbe
  */
 export function validateRequired(value: unknown, fieldName: string): asserts value is NonNullable<unknown> {
   if (value === null || value === undefined) {
-    throw new AppError(systemErrors.VALIDATION_ERROR, `${fieldName} 不能为空`);
+    throw new BizError(SystemErrorCodes.VALIDATION_ERROR, `${fieldName} 不能为空`);
   }
   if (typeof value === 'string' && value.trim().length === 0) {
-    throw new AppError(systemErrors.VALIDATION_ERROR, `${fieldName} 不能为空`);
+    throw new BizError(SystemErrorCodes.VALIDATION_ERROR, `${fieldName} 不能为空`);
   }
 }
 
@@ -53,7 +53,7 @@ export function validateEmail(email: string, fieldName: string = '邮箱'): void
   // 简单的邮箱正则：匹配大多数常见格式
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    throw new AppError(systemErrors.VALIDATION_ERROR, `${fieldName} 格式不正确`);
+    throw new BizError(SystemErrorCodes.VALIDATION_ERROR, `${fieldName} 格式不正确`);
   }
 }
 
@@ -67,7 +67,7 @@ export function validatePhone(phone: string, fieldName: string = '联系电话')
   if (!phone) return; // 可选字段，空值跳过
   const phoneRegex = /^(1\d{10}|0\d{2,3}-?\d{7,8})$/;
   if (!phoneRegex.test(phone)) {
-    throw new AppError(systemErrors.VALIDATION_ERROR, `${fieldName} 格式不正确`);
+    throw new BizError(SystemErrorCodes.VALIDATION_ERROR, `${fieldName} 格式不正确`);
   }
 }
 
@@ -79,7 +79,7 @@ export function validatePhone(phone: string, fieldName: string = '联系电话')
 export function validatePassword(password: string, fieldName: string = '密码'): void {
   validateRequired(password, fieldName);
   if (password.length < 6) {
-    throw new AppError(systemErrors.VALIDATION_ERROR, `${fieldName} 长度不能少于 6 位`);
+    throw new BizError(SystemErrorCodes.VALIDATION_ERROR, `${fieldName} 长度不能少于 6 位`);
   }
 }
 
@@ -92,7 +92,7 @@ export function validatePassword(password: string, fieldName: string = '密码')
 export function validateMaxLength(value: string | undefined | null, max: number, fieldName: string): void {
   if (value === null || value === undefined) return;
   if (typeof value === 'string' && value.length > max) {
-    throw new AppError(systemErrors.VALIDATION_ERROR, `${fieldName} 长度不能超过 ${max} 个字符`);
+    throw new BizError(SystemErrorCodes.VALIDATION_ERROR, `${fieldName} 长度不能超过 ${max} 个字符`);
   }
 }
 
@@ -103,7 +103,7 @@ export function validateMaxLength(value: string | undefined | null, max: number,
  */
 export function validatePrice(price: number, fieldName: string = '价格'): void {
   if (price < 0 || price > 999999) {
-    throw new AppError(systemErrors.VALIDATION_ERROR, `${fieldName} 必须在 0 ~ 999999 之间`);
+    throw new BizError(SystemErrorCodes.VALIDATION_ERROR, `${fieldName} 必须在 0 ~ 999999 之间`);
   }
 }
 
@@ -112,7 +112,7 @@ export function validatePrice(price: number, fieldName: string = '价格'): void
  */
 export function validateLongitude(lng: number, fieldName: string = '经度'): void {
   if (lng < -180 || lng > 180) {
-    throw new AppError(systemErrors.VALIDATION_ERROR, `${fieldName} 必须在 -180 ~ 180 之间`);
+    throw new BizError(SystemErrorCodes.VALIDATION_ERROR, `${fieldName} 必须在 -180 ~ 180 之间`);
   }
 }
 
@@ -121,7 +121,7 @@ export function validateLongitude(lng: number, fieldName: string = '经度'): vo
  */
 export function validateLatitude(lat: number, fieldName: string = '纬度'): void {
   if (lat < -90 || lat > 90) {
-    throw new AppError(systemErrors.VALIDATION_ERROR, `${fieldName} 必须在 -90 ~ 90 之间`);
+    throw new BizError(SystemErrorCodes.VALIDATION_ERROR, `${fieldName} 必须在 -90 ~ 90 之间`);
   }
 }
 
@@ -134,6 +134,6 @@ export function validateStatus<T extends number>(
   fieldName: string = '状态',
 ): asserts status is T {
   if (!validValues.includes(status as T)) {
-    throw new AppError(systemErrors.VALIDATION_ERROR, `${fieldName} 的值无效`);
+    throw new BizError(SystemErrorCodes.VALIDATION_ERROR, `${fieldName} 的值无效`);
   }
 }

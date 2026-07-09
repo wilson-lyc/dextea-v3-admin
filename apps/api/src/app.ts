@@ -2,8 +2,8 @@ import Fastify, { type FastifyError } from 'fastify';
 import { config } from './config/index.js';
 import { registerPlugins } from './plugins/index.js';
 import { registerRoutes } from './routes/index.js';
-import { AppError } from './errorcode/index.js';
-import { systemErrors } from './errorcode/system.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { SystemErrorCodes } from './errorcode/system.js';
 
 export async function buildApp() {
   const app = Fastify({
@@ -55,8 +55,8 @@ export async function buildApp() {
   });
 
   app.setErrorHandler((error, request, reply) => {
-    if (error instanceof AppError) {
-      request.log.warn({ code: error.code, err: error.message }, 'AppError');
+    if (error instanceof BizError) {
+      request.log.warn({ code: error.code, err: error.message }, 'BizError');
       return reply.status(error.httpStatus).send(error.toResponse());
     }
 
@@ -65,27 +65,27 @@ export async function buildApp() {
       typeof error === 'object' &&
       'code' in error &&
       'httpStatus' in error &&
-      typeof (error as AppError).toResponse === 'function'
+      typeof (error as BizError).toResponse === 'function'
     ) {
-      const appErr = error as AppError;
-      request.log.warn({ code: appErr.code, err: appErr.message }, 'AppError (structural)');
-      return reply.status(appErr.httpStatus).send(appErr.toResponse());
+      const bizErr = error as BizError;
+      request.log.warn({ code: bizErr.code, err: bizErr.message }, 'BizError (structural)');
+      return reply.status(bizErr.httpStatus).send(bizErr.toResponse());
     }
 
     const fErr = error as FastifyError;
     if (fErr.validation) {
       request.log.warn({ validation: fErr.validation, err: fErr.message }, 'Validation Error');
       return reply.status(200).send({
-        code: systemErrors.INVALID_REQUEST.code,
+        code: SystemErrorCodes.INVALID_REQUEST.code,
         data: null,
         message: fErr.message,
       });
     }
 
     request.log.error(error);
-    const message = error instanceof Error ? error.message : systemErrors.INTERNAL_ERROR.message;
+    const message = error instanceof Error ? error.message : SystemErrorCodes.INTERNAL_ERROR.message;
     return reply.status(500).send({
-      code: systemErrors.INTERNAL_ERROR.code,
+      code: SystemErrorCodes.INTERNAL_ERROR.code,
       data: null,
       message,
     });

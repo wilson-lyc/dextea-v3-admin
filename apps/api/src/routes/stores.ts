@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
-import { getDb } from '../db/index.js';
-import { AppError } from '../errorcode/index.js';
-import { storeErrors } from '../errorcode/stores.js';
+import { getDb } from '../plugins/db/mysql/index.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { StoreErrorCodes } from '../errorcode/stores.js';
 import { parsePositiveInt } from '../utils/validation.js';
 import {
   listStores,
@@ -117,9 +117,9 @@ export async function storeRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeErrors.LIST_FAILED);
+      throw new BizError(StoreErrorCodes.LIST_FAILED);
     }
   });
 
@@ -182,9 +182,9 @@ export async function storeRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeErrors.GET_FAILED);
+      throw new BizError(StoreErrorCodes.GET_FAILED);
     }
   });
 
@@ -246,9 +246,9 @@ export async function storeRoutes(app: FastifyInstance) {
         message: '创建成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeErrors.CREATE_FAILED);
+      throw new BizError(StoreErrorCodes.CREATE_FAILED);
     }
   });
 
@@ -314,9 +314,9 @@ export async function storeRoutes(app: FastifyInstance) {
         message: '更新成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeErrors.UPDATE_FAILED);
+      throw new BizError(StoreErrorCodes.UPDATE_FAILED);
     }
   });
 
@@ -376,9 +376,9 @@ export async function storeRoutes(app: FastifyInstance) {
         message: '门店基础信息更新成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeErrors.BASIC_INFO_UPDATE_FAILED);
+      throw new BizError(StoreErrorCodes.BASIC_INFO_UPDATE_FAILED);
     }
   });
 
@@ -440,9 +440,9 @@ export async function storeRoutes(app: FastifyInstance) {
         message: '门店位置更新成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeErrors.LOCATION_UPDATE_FAILED);
+      throw new BizError(StoreErrorCodes.LOCATION_UPDATE_FAILED);
     }
   });
 
@@ -482,9 +482,9 @@ export async function storeRoutes(app: FastifyInstance) {
         message: `同步完成，共同步 ${data.synced} 家门店`,
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeErrors.SYNC_FAILED);
+      throw new BizError(StoreErrorCodes.SYNC_FAILED);
     }
   });
 
@@ -542,9 +542,9 @@ export async function storeRoutes(app: FastifyInstance) {
         message: `门店状态已更新为「${STORE_STATUS_LABEL[status] ?? status}」`,
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeErrors.STATUS_UPDATE_FAILED);
+      throw new BizError(StoreErrorCodes.STATUS_UPDATE_FAILED);
     }
   });
 
@@ -593,9 +593,9 @@ export async function storeRoutes(app: FastifyInstance) {
         message: '密码重置成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeErrors.RESET_PASSWORD_FAILED);
+      throw new BizError(StoreErrorCodes.RESET_PASSWORD_FAILED);
     }
   });
 
@@ -653,9 +653,9 @@ export async function storeRoutes(app: FastifyInstance) {
         message: menuId === null ? '菜单解绑成功' : '菜单绑定成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeErrors.MENU_BIND_FAILED);
+      throw new BizError(StoreErrorCodes.MENU_BIND_FAILED);
     }
   });
 }

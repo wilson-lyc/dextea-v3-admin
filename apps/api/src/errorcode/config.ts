@@ -1,18 +1,9 @@
-import type { BizError } from './index.js';
+import type { BizErrorCode } from '@/common/types';
 
 /**
- * 系统配置错误码 (1600-1699)
+ * 系统配置错误码 (10600-10699)
  */
-export const configErrors = {
-  GET_FAILED: {
-    code: 10600,
-    message: '获取配置信息失败',
-    httpStatus: 200,
-  } satisfies BizError,
-
-  CONFIG_NOT_FOUND: {
-    code: 10601,
-    message: '配置项不存在',
-    httpStatus: 200,
-  } satisfies BizError,
-} as const satisfies Record<string, BizError>;
+export const ConfigErrorCodes = {
+  GET_FAILED: { code: 10600, message: '获取配置信息失败' },
+  CONFIG_NOT_FOUND: { code: 10601, message: '配置项不存在' },
+} as const satisfies Record<string, BizErrorCode>;

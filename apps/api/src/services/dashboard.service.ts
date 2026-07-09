@@ -1,6 +1,6 @@
 import type { MySql2Database } from 'drizzle-orm/mysql2';
 import { sql } from 'drizzle-orm';
-import { employeesTable, storesTable } from '../db/schema.js';
+import { employeesTable, storesTable } from '../plugins/db/mysql/schema.js';
 
 interface DashboardStatsResult {
   employeeCount: number;

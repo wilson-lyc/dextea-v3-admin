@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
-import { getDb } from '../db/index.js';
-import { AppError } from '../errorcode/index.js';
+import { getDb } from '../plugins/db/mysql/index.js';
+import { BizError } from '@/common/exceptions/index.js';
 import { getDashboardStats } from '../services/dashboard.service.js';
 import type { ApiResponse, DashboardStats } from '@dextea/shared-types';
 
@@ -41,9 +41,9 @@ export async function dashboardRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError({ code: 10008, message: '获取统计数据失败', httpStatus: 200 });
+      throw new BizError({ code: 10008, message: '获取统计数据失败' }, undefined, 200);
     }
   });
 }

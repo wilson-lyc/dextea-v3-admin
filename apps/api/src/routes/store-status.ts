@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
-import { getDb } from '../db/index.js';
-import { AppError } from '../errorcode/index.js';
-import { storeStatusErrors } from '../errorcode/store-status.js';
+import { getDb } from '../plugins/db/mysql/index.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { StoreStatusErrorCodes } from '../errorcode/store-status.js';
 import { parsePositiveInt } from '../utils/validation.js';
 import {
   listStoreProducts,
@@ -115,9 +115,9 @@ export async function storeStatusRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeStatusErrors.LIST_PRODUCTS_FAILED);
+      throw new BizError(StoreStatusErrorCodes.LIST_PRODUCTS_FAILED);
     }
   });
 
@@ -175,9 +175,9 @@ export async function storeStatusRoutes(app: FastifyInstance) {
         message: status === 1 ? '已启用' : '已禁用',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeStatusErrors.UPDATE_PRODUCT_STATUS_FAILED);
+      throw new BizError(StoreStatusErrorCodes.UPDATE_PRODUCT_STATUS_FAILED);
     }
   });
 
@@ -255,9 +255,9 @@ export async function storeStatusRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeStatusErrors.LIST_CUSTOMIZATIONS_FAILED);
+      throw new BizError(StoreStatusErrorCodes.LIST_CUSTOMIZATIONS_FAILED);
     }
   });
 
@@ -337,9 +337,9 @@ export async function storeStatusRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeStatusErrors.LIST_OPTIONS_FAILED);
+      throw new BizError(StoreStatusErrorCodes.LIST_OPTIONS_FAILED);
     }
   });
 
@@ -397,9 +397,9 @@ export async function storeStatusRoutes(app: FastifyInstance) {
         message: status === 1 ? '已启用' : '已禁用',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeStatusErrors.UPDATE_OPTION_STATUS_FAILED);
+      throw new BizError(StoreStatusErrorCodes.UPDATE_OPTION_STATUS_FAILED);
     }
   });
 
@@ -476,9 +476,9 @@ export async function storeStatusRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(storeStatusErrors.LIST_INGREDIENTS_FAILED);
+      throw new BizError(StoreStatusErrorCodes.LIST_INGREDIENTS_FAILED);
     }
   });
 }

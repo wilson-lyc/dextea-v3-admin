@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
-import { getDb } from '../db/index.js';
-import { AppError } from '../errorcode/index.js';
-import { productCustomizationErrors } from '../errorcode/product-customizations.js';
+import { getDb } from '../plugins/db/mysql/index.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { ProductCustomizationErrorCodes } from '../errorcode/product-customizations.js';
 import { parsePositiveInt } from '../utils/validation.js';
 import {
   listCustomizations,
@@ -101,9 +101,9 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productCustomizationErrors.LIST_FAILED);
+      throw new BizError(ProductCustomizationErrorCodes.LIST_FAILED);
     }
   });
 
@@ -158,9 +158,9 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productCustomizationErrors.LIST_FAILED);
+      throw new BizError(ProductCustomizationErrorCodes.LIST_FAILED);
     }
   });
 
@@ -214,9 +214,9 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         message: '创建成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productCustomizationErrors.CREATE_FAILED);
+      throw new BizError(ProductCustomizationErrorCodes.CREATE_FAILED);
     }
   });
 
@@ -281,9 +281,9 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         message: '更新成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productCustomizationErrors.UPDATE_FAILED);
+      throw new BizError(ProductCustomizationErrorCodes.UPDATE_FAILED);
     }
   });
 
@@ -346,9 +346,9 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         message: '状态更新成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productCustomizationErrors.UPDATE_FAILED);
+      throw new BizError(ProductCustomizationErrorCodes.UPDATE_FAILED);
     }
   });
 
@@ -410,9 +410,9 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productCustomizationErrors.OPTIONS_LIST_FAILED);
+      throw new BizError(ProductCustomizationErrorCodes.OPTIONS_LIST_FAILED);
     }
   });
 
@@ -482,9 +482,9 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         message: '创建成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productCustomizationErrors.OPTION_CREATE_FAILED);
+      throw new BizError(ProductCustomizationErrorCodes.OPTION_CREATE_FAILED);
     }
   });
 
@@ -554,9 +554,9 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         message: '更新成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productCustomizationErrors.OPTION_UPDATE_FAILED);
+      throw new BizError(ProductCustomizationErrorCodes.OPTION_UPDATE_FAILED);
     }
   });
 
@@ -602,9 +602,9 @@ export async function productCustomizationRoutes(app: FastifyInstance) {
         message: '删除成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productCustomizationErrors.OPTION_DELETE_FAILED);
+      throw new BizError(ProductCustomizationErrorCodes.OPTION_DELETE_FAILED);
     }
   });
 }

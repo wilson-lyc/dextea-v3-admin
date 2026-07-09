@@ -7,9 +7,9 @@ import {
   productsTable,
   customizationOptionsTable,
   ingredientsTable,
-} from '../db/schema.js';
-import { AppError } from '../errorcode/index.js';
-import { productCustomizationErrors } from '../errorcode/product-customizations.js';
+} from '../plugins/db/mysql/schema.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { ProductCustomizationErrorCodes } from '../errorcode/product-customizations.js';
 import { validateMaxLength } from '../utils/validation.js';
 import type { PaginatedData, ProductCustomization, CustomizationOption } from '@dextea/shared-types';
 import {
@@ -103,7 +103,7 @@ export async function getCustomization(
     .limit(1);
 
   if (!item) {
-    throw new AppError(productCustomizationErrors.NOT_FOUND);
+    throw new BizError(ProductCustomizationErrorCodes.NOT_FOUND);
   }
 
   return item as ProductCustomization;
@@ -127,7 +127,7 @@ export async function createCustomization(
     .limit(1);
 
   if (!product) {
-    throw new AppError(productCustomizationErrors.PRODUCT_NOT_FOUND);
+    throw new BizError(ProductCustomizationErrorCodes.PRODUCT_NOT_FOUND);
   }
 
   const trimmedName = name.trim();
@@ -167,7 +167,7 @@ export async function updateCustomization(
     .limit(1);
 
   if (!existing) {
-    throw new AppError(productCustomizationErrors.NOT_FOUND);
+    throw new BizError(ProductCustomizationErrorCodes.NOT_FOUND);
   }
 
   const trimmedName = name.trim();
@@ -207,7 +207,7 @@ export async function updateCustomizationStatus(
 ): Promise<ProductCustomization> {
   const validValues = PRODUCT_CUSTOMIZATION_STATUS_VALUES as readonly number[];
   if (!validValues.includes(status)) {
-    throw new AppError(productCustomizationErrors.INVALID_STATUS);
+    throw new BizError(ProductCustomizationErrorCodes.INVALID_STATUS);
   }
 
   const [existing] = await db
@@ -217,7 +217,7 @@ export async function updateCustomizationStatus(
     .limit(1);
 
   if (!existing) {
-    throw new AppError(productCustomizationErrors.NOT_FOUND);
+    throw new BizError(ProductCustomizationErrorCodes.NOT_FOUND);
   }
 
   await db
@@ -288,7 +288,7 @@ export async function createCustomizationOption(
       .where(eq(ingredientsTable.id, ingredientId))
       .limit(1);
     if (!ingredient) {
-      throw new AppError(productCustomizationErrors.INGREDIENT_NOT_FOUND);
+      throw new BizError(ProductCustomizationErrorCodes.INGREDIENT_NOT_FOUND);
     }
   }
 
@@ -346,7 +346,7 @@ export async function updateCustomizationOption(
     .limit(1);
 
   if (!existing || existing.customizationId !== customizationId) {
-    throw new AppError(productCustomizationErrors.OPTION_NOT_FOUND);
+    throw new BizError(ProductCustomizationErrorCodes.OPTION_NOT_FOUND);
   }
 
   const updateData: Record<string, unknown> = {};
@@ -371,7 +371,7 @@ export async function updateCustomizationOption(
         .where(eq(ingredientsTable.id, ingredientId))
         .limit(1);
       if (!ingredient) {
-        throw new AppError(productCustomizationErrors.INGREDIENT_NOT_FOUND);
+        throw new BizError(ProductCustomizationErrorCodes.INGREDIENT_NOT_FOUND);
       }
     }
     updateData.ingredientId = ingredientId;
@@ -444,7 +444,7 @@ export async function deleteCustomizationOption(
     .limit(1);
 
   if (!existing || existing.customizationId !== customizationId) {
-    throw new AppError(productCustomizationErrors.OPTION_NOT_FOUND);
+    throw new BizError(ProductCustomizationErrorCodes.OPTION_NOT_FOUND);
   }
 
   await db

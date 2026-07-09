@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
-import { getDb } from '../db/index.js';
-import { AppError } from '../errorcode/index.js';
-import { productErrors } from '../errorcode/products.js';
+import { getDb } from '../plugins/db/mysql/index.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { ProductErrorCodes } from '../errorcode/products.js';
 import { parsePositiveInt } from '../utils/validation.js';
 import {
   listProducts,
@@ -120,9 +120,9 @@ export async function productRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productErrors.LIST_FAILED);
+      throw new BizError(ProductErrorCodes.LIST_FAILED);
     }
   });
 
@@ -176,9 +176,9 @@ export async function productRoutes(app: FastifyInstance) {
         message: '创建成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productErrors.STATUS_UPDATE_FAILED);
+      throw new BizError(ProductErrorCodes.STATUS_UPDATE_FAILED);
     }
   });
 
@@ -244,9 +244,9 @@ export async function productRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productErrors.LIST_FAILED);
+      throw new BizError(ProductErrorCodes.LIST_FAILED);
     }
   });
 
@@ -317,9 +317,9 @@ export async function productRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productErrors.LIST_FAILED);
+      throw new BizError(ProductErrorCodes.LIST_FAILED);
     }
   });
 
@@ -397,9 +397,9 @@ export async function productRoutes(app: FastifyInstance) {
         message: '更新成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productErrors.UPDATE_FAILED);
+      throw new BizError(ProductErrorCodes.UPDATE_FAILED);
     }
   });
 
@@ -466,9 +466,9 @@ export async function productRoutes(app: FastifyInstance) {
         message: `「${updated.name}」的全局状态已更新为「${statusLabel}」`,
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productErrors.UPDATE_FAILED);
+      throw new BizError(ProductErrorCodes.UPDATE_FAILED);
     }
   });
 
@@ -526,9 +526,9 @@ export async function productRoutes(app: FastifyInstance) {
         message: `成功绑定 ${result.boundCount} 个标签`,
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productErrors.TAG_ADD_FAILED);
+      throw new BizError(ProductErrorCodes.TAG_ADD_FAILED);
     }
   });
 
@@ -586,9 +586,9 @@ export async function productRoutes(app: FastifyInstance) {
         message: '解绑成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productErrors.TAG_REMOVE_FAILED);
+      throw new BizError(ProductErrorCodes.TAG_REMOVE_FAILED);
     }
   });
 
@@ -663,9 +663,9 @@ export async function productRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productErrors.INGREDIENT_BIND_LIST_FAILED);
+      throw new BizError(ProductErrorCodes.INGREDIENT_BIND_LIST_FAILED);
     }
   });
 
@@ -719,9 +719,9 @@ export async function productRoutes(app: FastifyInstance) {
         message: '绑定成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productErrors.INGREDIENT_BIND_FAILED);
+      throw new BizError(ProductErrorCodes.INGREDIENT_BIND_FAILED);
     }
   });
 
@@ -776,9 +776,9 @@ export async function productRoutes(app: FastifyInstance) {
         message: '更新用量成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productErrors.INGREDIENT_QUANTITY_UPDATE_FAILED);
+      throw new BizError(ProductErrorCodes.INGREDIENT_QUANTITY_UPDATE_FAILED);
     }
   });
 
@@ -824,9 +824,9 @@ export async function productRoutes(app: FastifyInstance) {
         message: '解绑成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productErrors.INGREDIENT_UNBIND_FAILED);
+      throw new BizError(ProductErrorCodes.INGREDIENT_UNBIND_FAILED);
     }
   });
 
@@ -869,9 +869,9 @@ export async function productRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(productErrors.LIST_FAILED);
+      throw new BizError(ProductErrorCodes.LIST_FAILED);
     }
   });
 }

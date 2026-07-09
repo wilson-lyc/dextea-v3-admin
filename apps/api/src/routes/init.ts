@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
-import { getDb } from '../db/index.js';
-import { AppError } from '../errorcode/index.js';
+import { getDb } from '../plugins/db/mysql/index.js';
+import { BizError } from '@/common/exceptions/index.js';
 import { getInitStatus, initialize } from '../services/init.service.js';
 import type { ApiResponse, InitStatusData, InitRequest } from '@dextea/shared-types';
 
@@ -32,8 +32,8 @@ export async function initRoutes(app: FastifyInstance) {
       const data = await getInitStatus(db);
       return { code: 0, data, message: 'ok' };
     } catch (error) {
-      if (error instanceof AppError) throw error;
-      throw new AppError({ code: 10501, message: '初始化失败，请检查数据库连接或稍后重试', httpStatus: 200 });
+      if (error instanceof BizError) throw error;
+      throw new BizError({ code: 10501, message: '初始化失败，请检查数据库连接或稍后重试' }, undefined, 200);
     }
   });
 
@@ -68,9 +68,9 @@ export async function initRoutes(app: FastifyInstance) {
       await initialize(db, request.body);
       return { code: 0, data: null, message: '初始化成功' };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError({ code: 10501, message: '初始化失败，请检查数据库连接或稍后重试', httpStatus: 200 });
+      throw new BizError({ code: 10501, message: '初始化失败，请检查数据库连接或稍后重试' }, undefined, 200);
     }
   });
 }

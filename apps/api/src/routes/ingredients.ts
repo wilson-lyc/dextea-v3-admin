@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
-import { getDb } from '../db/index.js';
-import { AppError } from '../errorcode/index.js';
-import { ingredientErrors } from '../errorcode/ingredients.js';
+import { getDb } from '../plugins/db/mysql/index.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { IngredientErrorCodes } from '../errorcode/ingredients.js';
 import { parsePositiveInt } from '../utils/validation.js';
 import {
   listIngredients,
@@ -97,9 +97,9 @@ export async function ingredientRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(ingredientErrors.LIST_FAILED);
+      throw new BizError(IngredientErrorCodes.LIST_FAILED);
     }
   });
 
@@ -150,9 +150,9 @@ export async function ingredientRoutes(app: FastifyInstance) {
         message: '创建成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(ingredientErrors.CREATE_FAILED);
+      throw new BizError(IngredientErrorCodes.CREATE_FAILED);
     }
   });
 
@@ -206,9 +206,9 @@ export async function ingredientRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(ingredientErrors.LIST_FAILED);
+      throw new BizError(IngredientErrorCodes.LIST_FAILED);
     }
   });
 
@@ -267,9 +267,9 @@ export async function ingredientRoutes(app: FastifyInstance) {
         message: '更新成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(ingredientErrors.UPDATE_FAILED);
+      throw new BizError(IngredientErrorCodes.UPDATE_FAILED);
     }
   });
 
@@ -332,9 +332,9 @@ export async function ingredientRoutes(app: FastifyInstance) {
         message: '更新状态成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(ingredientErrors.STATUS_UPDATE_FAILED);
+      throw new BizError(IngredientErrorCodes.STATUS_UPDATE_FAILED);
     }
   });
 
@@ -406,9 +406,9 @@ export async function ingredientRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(ingredientErrors.BIND_LIST_FAILED);
+      throw new BizError(IngredientErrorCodes.BIND_LIST_FAILED);
     }
   });
 
@@ -462,9 +462,9 @@ export async function ingredientRoutes(app: FastifyInstance) {
         message: '绑定成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(ingredientErrors.BIND_FAILED);
+      throw new BizError(IngredientErrorCodes.BIND_FAILED);
     }
   });
 
@@ -519,9 +519,9 @@ export async function ingredientRoutes(app: FastifyInstance) {
         message: '更新用量成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(ingredientErrors.BIND_QUANTITY_UPDATE_FAILED);
+      throw new BizError(IngredientErrorCodes.BIND_QUANTITY_UPDATE_FAILED);
     }
   });
 
@@ -567,9 +567,9 @@ export async function ingredientRoutes(app: FastifyInstance) {
         message: '解绑成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(ingredientErrors.UNBIND_FAILED);
+      throw new BizError(IngredientErrorCodes.UNBIND_FAILED);
     }
   });
 
@@ -613,9 +613,9 @@ export async function ingredientRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(ingredientErrors.LIST_FAILED);
+      throw new BizError(IngredientErrorCodes.LIST_FAILED);
     }
   });
 
@@ -690,9 +690,9 @@ export async function ingredientRoutes(app: FastifyInstance) {
         message: 'ok',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(ingredientErrors.OPTION_BIND_LIST_FAILED);
+      throw new BizError(IngredientErrorCodes.OPTION_BIND_LIST_FAILED);
     }
   });
 
@@ -746,9 +746,9 @@ export async function ingredientRoutes(app: FastifyInstance) {
         message: '绑定成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(ingredientErrors.OPTION_BIND_FAILED);
+      throw new BizError(IngredientErrorCodes.OPTION_BIND_FAILED);
     }
   });
 
@@ -803,9 +803,9 @@ export async function ingredientRoutes(app: FastifyInstance) {
         message: '更新用量成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(ingredientErrors.OPTION_QUANTITY_UPDATE_FAILED);
+      throw new BizError(IngredientErrorCodes.OPTION_QUANTITY_UPDATE_FAILED);
     }
   });
 
@@ -851,9 +851,9 @@ export async function ingredientRoutes(app: FastifyInstance) {
         message: '解绑成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(ingredientErrors.OPTION_UNBIND_FAILED);
+      throw new BizError(IngredientErrorCodes.OPTION_UNBIND_FAILED);
     }
   });
 }

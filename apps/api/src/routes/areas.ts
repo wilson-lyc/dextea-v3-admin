@@ -4,8 +4,8 @@ import {
   getDivisionChildren,
   matchDivisionByNames,
 } from '@aurouscia/china-areas/dist/index.js';
-import { AppError } from '../errorcode/index.js';
-import { areaErrors } from '../errorcode/areas.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { AreaErrorCodes } from '../errorcode/areas.js';
 import type { ApiResponse, Division, ResolveAreaRequest } from '@dextea/shared-types';
 
 export async function areaRoutes(app: FastifyInstance) {
@@ -40,8 +40,8 @@ export async function areaRoutes(app: FastifyInstance) {
       const provinces = getTopDivisions();
       return { code: 0, data: provinces, message: 'ok' };
     } catch (error) {
-      if (error instanceof AppError) throw error;
-      throw new AppError(areaErrors.PROVINCES_FAILED);
+      if (error instanceof BizError) throw error;
+      throw new BizError(AreaErrorCodes.PROVINCES_FAILED);
     }
   });
 
@@ -87,8 +87,8 @@ export async function areaRoutes(app: FastifyInstance) {
       const children = getDivisionChildren(code);
       return { code: 0, data: children, message: 'ok' };
     } catch (error) {
-      if (error instanceof AppError) throw error;
-      throw new AppError(areaErrors.CHILDREN_FAILED);
+      if (error instanceof BizError) throw error;
+      throw new BizError(AreaErrorCodes.CHILDREN_FAILED);
     }
   });
 
@@ -136,13 +136,13 @@ export async function areaRoutes(app: FastifyInstance) {
     try {
       const { names } = request.body;
       if (!Array.isArray(names) || names.length === 0) {
-        throw new AppError(areaErrors.RESOLVE_FAILED);
+        throw new BizError(AreaErrorCodes.RESOLVE_FAILED);
       }
       const result = matchDivisionByNames(names);
       return { code: 0, data: result, message: 'ok' };
     } catch (error) {
-      if (error instanceof AppError) throw error;
-      throw new AppError(areaErrors.RESOLVE_FAILED);
+      if (error instanceof BizError) throw error;
+      throw new BizError(AreaErrorCodes.RESOLVE_FAILED);
     }
   });
 }

@@ -2,10 +2,10 @@ import type { MySql2Database } from 'drizzle-orm/mysql2';
 
 type Db = MySql2Database<Record<string, unknown>>;
 import { and, eq, inArray, sql } from 'drizzle-orm';
-import { menusTable, menuGroupsTable, menuProductsTable, productsTable, storeMenuRelationsTable } from '../db/schema.js';
-import { AppError } from '../errorcode/index.js';
-import { menuErrors } from '../errorcode/menus.js';
-import { productErrors } from '../errorcode/products.js';
+import { menusTable, menuGroupsTable, menuProductsTable, productsTable, storeMenuRelationsTable } from '../plugins/db/mysql/schema.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { MenuErrorCodes } from '../errorcode/menus.js';
+import { ProductErrorCodes } from '../errorcode/products.js';
 import { validateMaxLength } from '../utils/validation.js';
 import { withPagination } from '../utils/pagination.js';
 import type { PaginatedData, Menu, MenuGroup, MenuProduct, CreateMenuInput, UpdateMenuInput, CreateMenuGroupInput, UpdateMenuGroupInput } from '@dextea/shared-types';
@@ -49,7 +49,7 @@ export async function createMenu(
   const { name, description } = input;
 
   if (!name || name.trim().length === 0) {
-    throw new AppError(menuErrors.NAME_REQUIRED);
+    throw new BizError(MenuErrorCodes.NAME_REQUIRED);
   }
 
   const trimmedName = name.trim();
@@ -84,7 +84,7 @@ export async function getMenu(
     .limit(1);
 
   if (!menu) {
-    throw new AppError(menuErrors.MENU_NOT_FOUND);
+    throw new BizError(MenuErrorCodes.MENU_NOT_FOUND);
   }
 
   return menu;
@@ -102,7 +102,7 @@ export async function updateMenu(
     .limit(1);
 
   if (!menu) {
-    throw new AppError(menuErrors.MENU_NOT_FOUND);
+    throw new BizError(MenuErrorCodes.MENU_NOT_FOUND);
   }
 
   const values: Partial<{ name: string; description: string }> = {};
@@ -110,7 +110,7 @@ export async function updateMenu(
   if (input.name !== undefined) {
     const trimmedName = input.name.trim();
     if (trimmedName.length === 0) {
-      throw new AppError(menuErrors.NAME_REQUIRED);
+      throw new BizError(MenuErrorCodes.NAME_REQUIRED);
     }
     validateMaxLength(trimmedName, 255, '菜单名称');
     values.name = trimmedName;
@@ -145,7 +145,7 @@ export async function batchDeleteMenus(
     .limit(1);
 
   if (boundStores.length > 0) {
-    throw new AppError(menuErrors.MENU_IN_USE);
+    throw new BizError(MenuErrorCodes.MENU_IN_USE);
   }
 
   await db.transaction(async (tx) => {
@@ -183,7 +183,7 @@ export async function listMenuGroups(
     .limit(1);
 
   if (!menu) {
-    throw new AppError(menuErrors.MENU_NOT_FOUND);
+    throw new BizError(MenuErrorCodes.MENU_NOT_FOUND);
   }
 
   const items = await db
@@ -216,11 +216,11 @@ export async function createMenuGroup(
     .limit(1);
 
   if (!menu) {
-    throw new AppError(menuErrors.MENU_NOT_FOUND);
+    throw new BizError(MenuErrorCodes.MENU_NOT_FOUND);
   }
 
   if (!name || name.trim().length === 0) {
-    throw new AppError(menuErrors.NAME_REQUIRED);
+    throw new BizError(MenuErrorCodes.NAME_REQUIRED);
   }
 
   const trimmedName = name.trim();
@@ -247,7 +247,7 @@ export async function updateMenuGroup(
     .limit(1);
 
   if (!group) {
-    throw new AppError(menuErrors.GROUP_NOT_FOUND);
+    throw new BizError(MenuErrorCodes.GROUP_NOT_FOUND);
   }
 
   const values: Partial<{ name: string; sortOrder: number }> = {};
@@ -255,7 +255,7 @@ export async function updateMenuGroup(
   if (input.name !== undefined) {
     const trimmedName = input.name.trim();
     if (trimmedName.length === 0) {
-      throw new AppError(menuErrors.NAME_REQUIRED);
+      throw new BizError(MenuErrorCodes.NAME_REQUIRED);
     }
     validateMaxLength(trimmedName, 255, '分组名称');
     values.name = trimmedName;
@@ -286,7 +286,7 @@ export async function deleteMenuGroup(
     .limit(1);
 
   if (!group) {
-    throw new AppError(menuErrors.GROUP_NOT_FOUND);
+    throw new BizError(MenuErrorCodes.GROUP_NOT_FOUND);
   }
 
   await db
@@ -326,7 +326,7 @@ export async function listMenuProducts(
     .limit(1);
 
   if (!group) {
-    throw new AppError(menuErrors.GROUP_NOT_FOUND);
+    throw new BizError(MenuErrorCodes.GROUP_NOT_FOUND);
   }
 
   const items = await db
@@ -361,7 +361,7 @@ export async function addMenuProduct(
     .limit(1);
 
   if (!group) {
-    throw new AppError(menuErrors.GROUP_NOT_FOUND);
+    throw new BizError(MenuErrorCodes.GROUP_NOT_FOUND);
   }
 
   const [existingProduct] = await db
@@ -371,7 +371,7 @@ export async function addMenuProduct(
     .limit(1);
 
   if (!existingProduct) {
-    throw new AppError(productErrors.PRODUCT_NOT_FOUND);
+    throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
   }
 
   const [existingBinding] = await db
@@ -428,7 +428,7 @@ export async function updateMenuProductSort(
     .limit(1);
 
   if (!group) {
-    throw new AppError(menuErrors.GROUP_NOT_FOUND);
+    throw new BizError(MenuErrorCodes.GROUP_NOT_FOUND);
   }
 
   const [existing] = await db
@@ -443,7 +443,7 @@ export async function updateMenuProductSort(
     .limit(1);
 
   if (!existing) {
-    throw new AppError(menuErrors.PRODUCT_NOT_BOUND);
+    throw new BizError(MenuErrorCodes.PRODUCT_NOT_BOUND);
   }
 
   await db

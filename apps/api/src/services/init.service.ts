@@ -1,9 +1,9 @@
 import type { MySql2Database } from 'drizzle-orm/mysql2';
 import { eq } from 'drizzle-orm';
-import { configTable, employeesTable } from '../db/schema.js';
+import { configTable, employeesTable } from '../plugins/db/mysql/schema.js';
 import { hashPassword } from '../utils/password.js';
-import { AppError } from '../errorcode/index.js';
-import { initErrors } from '../errorcode/init.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { InitErrorCodes } from '../errorcode/init.js';
 import { validateEmail, validatePassword, validateMaxLength } from '../utils/validation.js';
 import type { InitStatusData, InitRequest } from '@dextea/shared-types';
 
@@ -41,7 +41,7 @@ export async function initialize(
     .limit(1);
 
   if (initialized.length > 0) {
-    throw new AppError(initErrors.ALREADY_INITIALIZED);
+    throw new BizError(InitErrorCodes.ALREADY_INITIALIZED);
   }
 
   const { email, password, displayName } = input;
@@ -57,7 +57,7 @@ export async function initialize(
     .limit(1);
 
   if (existingEmployee.length > 0) {
-    throw new AppError(initErrors.EMAIL_EXISTS);
+    throw new BizError(InitErrorCodes.EMAIL_EXISTS);
   }
 
   const hashedPassword = await hashPassword(password);

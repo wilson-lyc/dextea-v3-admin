@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
-import { getDb } from '../db/index.js';
-import { AppError } from '../errorcode/index.js';
-import { authErrors } from '../errorcode/auth.js';
+import { getDb } from '../plugins/db/mysql/index.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { AuthErrorCodes } from '../errorcode/auth.js';
 import { validateRequired } from '../utils/validation.js';
 import { login, logout } from '../services/auth.service.js';
 import type { ApiResponse, AuthMeResponse, LoginRequest, LoginResponse } from '@dextea/shared-types';
@@ -100,9 +100,9 @@ export async function authRoutes(app: FastifyInstance) {
         message: '登录成功',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(authErrors.LOGIN_FAILED);
+      throw new BizError(AuthErrorCodes.LOGIN_FAILED);
     }
   });
 
@@ -134,9 +134,9 @@ export async function authRoutes(app: FastifyInstance) {
         message: '已退出登录',
       };
     } catch (error) {
-      if (error instanceof AppError) throw error;
+      if (error instanceof BizError) throw error;
       request.log.error(error);
-      throw new AppError(authErrors.LOGOUT_FAILED);
+      throw new BizError(AuthErrorCodes.LOGOUT_FAILED);
     }
   });
 }
