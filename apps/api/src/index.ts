@@ -13,6 +13,17 @@ import { config } from './config/index.js';
 import { registerRoutes } from './routes/index.js';
 import { authHook } from './middleware/auth.js';
 import { registerEmployeeModule } from './module/employees/employees.module.js';
+import { registerStoreModule } from './module/stores/store.module.js';
+import { registerInitModule } from './module/init/init.module.js';
+import { registerConfigModule } from './module/config/config.module.js';
+import { registerAreaModule } from './module/areas/area.module.js';
+import { registerAuthModule } from './module/auth/auth.module.js';
+import { registerTagModule } from './module/tags/tag.module.js';
+import { registerProductModule } from './module/products/product.module.js';
+import { registerIngredientModule } from './module/ingredients/ingredient.module.js';
+import { registerMenuModule } from './module/menus/menu.module.js';
+import { registerProductCustomizationModule } from './module/product-customizations/product-customization.module.js';
+import { registerStoreStatusModule } from './module/store-status/store-status.module.js';
 import { registerRedis } from './plugins/db/redis/index.js';
 import { registerDb } from './plugins/db/mysql/index.js';
 import { BizError } from '@/common/exceptions/index.js';
@@ -152,6 +163,17 @@ async function main() {
   // 注册路由模块
   await registerRoutes(app);
   await app.register(registerEmployeeModule);
+  await app.register(registerStoreModule);
+  await app.register(registerInitModule);
+  await app.register(registerConfigModule);
+  await app.register(registerAreaModule);
+  await app.register(registerAuthModule);
+  await app.register(registerTagModule);
+  await app.register(registerProductModule);
+  await app.register(registerIngredientModule);
+  await app.register(registerMenuModule);
+  await app.register(registerProductCustomizationModule);
+  await app.register(registerStoreStatusModule);
 
   // 启动服务
   await app.listen({ port: config.port, host: config.host });
