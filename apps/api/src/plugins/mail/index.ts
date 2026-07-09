@@ -1,61 +1,45 @@
-import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
-import fp from 'fastify-plugin';
 import nodemailer from 'nodemailer';
 import type { SendMailOptions, Transporter } from 'nodemailer';
 import { config } from '../config/index.js';
-
-declare module 'fastify' {
-  interface FastifyInstance {
-    mailService: MailService;
-  }
-}
 
 export interface MailService {
   sendMail(options: SendMailOptions): Promise<void>;
 }
 
-const mailPlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
-  const { host, port, secure, user, pass, from } = config.mail;
+const { host, port, secure, user, pass, from } = config.mail;
 
-  if (!host || !user || !pass) {
-    fastify.log.warn(
-      'Mail service is not configured. Set MAIL_HOST, MAIL_USER, and MAIL_PASS env vars to enable email sending.'
-    );
-    fastify.decorate('mailService', {
-      async sendMail(_options: SendMailOptions) {
-        fastify.log.warn('Mail service not configured — skipping email send.');
-      },
-    } satisfies MailService);
-    return;
-  }
+let transporter: Transporter | null = null;
 
-  const transporter: Transporter = nodemailer.createTransport({
+if (!host || !user || !pass) {
+  console.warn(
+    '[mail] Mail service is not configured. Set MAIL_HOST, MAIL_USER, and MAIL_PASS env vars to enable email sending.',
+  );
+} else {
+  transporter = nodemailer.createTransport({
     host,
     port,
     secure,
     auth: { user, pass },
   });
 
-  // Verify connection configuration on startup
-  try {
-    await transporter.verify();
-    fastify.log.info('Mail service connected successfully');
-  } catch (err) {
-    fastify.log.warn({ err }, 'Mail service verification failed — will retry on send.');
-  }
+  // 异步验证（不阻塞启动）
+  transporter.verify().then(() => {
+    console.log('[mail] Mail service connected successfully');
+  }).catch((err) => {
+    console.warn('[mail] Mail service verification failed — will retry on send.', err);
+  });
+}
 
-  const mailService: MailService = {
-    async sendMail(options: SendMailOptions) {
-      await transporter.sendMail({
-        from: from || user,
-        ...options,
-      });
-    },
-  };
+export const mailService: MailService = {
+  async sendMail(options: SendMailOptions) {
+    if (!transporter) {
+      console.warn('[mail] Mail service not configured — skipping email send.');
+      return;
+    }
 
-  fastify.decorate('mailService', mailService);
+    await transporter.sendMail({
+      from: from || user!,
+      ...options,
+    });
+  },
 };
-
-export default fp(mailPlugin, {
-  name: 'mail',
-});

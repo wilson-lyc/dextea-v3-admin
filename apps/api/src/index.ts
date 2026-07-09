@@ -12,9 +12,9 @@ import {
 import { config } from './config/index.js';
 import { registerRoutes } from './routes/index.js';
 import { authHook } from './middleware/auth.js';
-import { registerEmployeeModule } from './module/employees/Employee.Module.js';
+import { registerEmployeeModule } from './module/employees/employees.module.js';
 import { registerRedis } from './plugins/db/redis/index.js';
-import mailPlugin from './plugins/mail/index.js';
+import { registerDb } from './plugins/db/mysql/index.js';
 import { BizError } from '@/common/exceptions/index.js';
 import { ApiResponse } from '@/common/types/index.js';
 import { SystemErrorCodes } from '@/module/system/system.errorcode.js';
@@ -39,6 +39,9 @@ async function main() {
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
   });
+
+  // MySQL 数据库连接池
+  await registerDb(app);
 
   // Redis 缓存
   await registerRedis(app);
@@ -80,9 +83,6 @@ async function main() {
       defaultModelsExpandDepth: 3,
     },
   });
-
-  // 邮件插件
-  await app.register(mailPlugin);
 
   // 参数校验错误格式化
   app.setSchemaErrorFormatter((errors, _dataVar) => {
