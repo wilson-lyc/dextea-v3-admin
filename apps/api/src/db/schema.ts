@@ -55,15 +55,15 @@ export const permissionsTable = mysqlTable(
 /**
  * 员工-角色关联表
  */
-export const employeeRoleRelationsTable = mysqlTable(
-  'employee_role_relations',
+export const employeeRolesTable = mysqlTable(
+  'employee_roles',
   {
     employeeId: bigint('employee_id', { mode: 'number', unsigned: true }).notNull(),
     roleId: bigint('role_id', { mode: 'number', unsigned: true }).notNull(),
   },
   (table) => ({
     primaryKey: primaryKey({
-      name: 'pk_employee_role_relations',
+      name: 'pk_employee_roles',
       columns: [table.employeeId, table.roleId],
     }),
   }),
@@ -72,15 +72,15 @@ export const employeeRoleRelationsTable = mysqlTable(
 /**
  * 角色-权限关联表
  */
-export const rolePermissionRelationsTable = mysqlTable(
-  'role_permission_relations',
+export const rolePermissionsTable = mysqlTable(
+  'role_permissions',
   {
     roleId: bigint('role_id', { mode: 'number', unsigned: true }).notNull(),
     permissionId: bigint('permission_id', { mode: 'number', unsigned: true }).notNull(),
   },
   (table) => ({
     primaryKey: primaryKey({
-      name: 'pk_role_permission_relations',
+      name: 'pk_role_permissions',
       columns: [table.roleId, table.permissionId],
     }),
   }),
@@ -124,8 +124,8 @@ export const storesTable = mysqlTable('stores', {
  * 门店-菜单关联表
  * 记录门店与菜单的绑定关系，支持同一门店绑定多个菜单（通过复合主键扩展）
  */
-export const storeMenuRelationsTable = mysqlTable(
-  'store_menu_relations',
+export const storeMenusTable = mysqlTable(
+  'store_menus',
   {
     storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(),
     menuId: bigint('menu_id', { mode: 'number', unsigned: true }).notNull(),
@@ -134,7 +134,7 @@ export const storeMenuRelationsTable = mysqlTable(
   },
   (table) => ({
     primaryKey: primaryKey({
-      name: 'pk_store_menu_relations',
+      name: 'pk_store_menus',
       columns: [table.storeId, table.menuId],
     }),
   }),
@@ -167,15 +167,15 @@ export const productTagsTable = mysqlTable('product_tags', {
 /**
  * 商品-标签关联表
  */
-export const productTagRelationsTable = mysqlTable(
-  'product_tag_relations',
+export const productTagMapTable = mysqlTable(
+  'product_tag_map',
   {
     productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
     tagId: bigint('tag_id', { mode: 'number', unsigned: true }).notNull(),
   },
   (table) => ({
     primaryKey: primaryKey({
-      name: 'pk_product_tag_relations',
+      name: 'pk_product_tag_map',
       columns: [table.productId, table.tagId],
     }),
   }),
@@ -197,8 +197,8 @@ export const productCustomizationsTable = mysqlTable('product_customizations', {
 /**
  * 商品-原料关联表
  */
-export const productIngredientRelationsTable = mysqlTable(
-  'product_ingredient_relations',
+export const productIngredientsTable = mysqlTable(
+  'product_ingredients',
   {
     productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
     ingredientId: bigint('ingredient_id', { mode: 'number', unsigned: true }).notNull(),
@@ -208,7 +208,7 @@ export const productIngredientRelationsTable = mysqlTable(
   },
   (table) => ({
     primaryKey: primaryKey({
-      name: 'pk_product_ingredient_relations',
+      name: 'pk_product_ingredients',
       columns: [table.productId, table.ingredientId],
     }),
   }),
