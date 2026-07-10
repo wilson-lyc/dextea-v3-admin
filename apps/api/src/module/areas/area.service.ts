@@ -1,35 +1,21 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { AreaErrorCodes } from './area.errorcode.js';
 import { areaRepository } from './area.repository.js';
+import type { ResolveAreaRequest } from '@dextea-admin/contracts';
 
 export const areaService = {
   async getProvinceList() {
-    try {
-      return areaRepository.getProvinceList();
-    } catch (error) {
-      throw new BizError(AreaErrorCodes.PROVINCES_FAILED);
-    }
+    return areaRepository.getProvinceList();
   },
 
   async getChildren(code: string) {
     if (!code.trim()) {
       throw new BizError(AreaErrorCodes.INVALID_AREA_CODE);
     }
-    try {
-      return areaRepository.getChildren(code);
-    } catch (error) {
-      throw new BizError(AreaErrorCodes.CHILDREN_FAILED);
-    }
+    return areaRepository.getChildren(code);
   },
 
-  async resolveAreas(names: string[]) {
-    if (!Array.isArray(names) || names.length === 0) {
-      throw new BizError(AreaErrorCodes.RESOLVE_FAILED);
-    }
-    try {
-      return areaRepository.resolveAreas(names);
-    } catch (error) {
-      throw new BizError(AreaErrorCodes.RESOLVE_FAILED);
-    }
+  async resolveAreas(names: ResolveAreaRequest['names']) {
+    return areaRepository.resolveAreas(names);
   },
 };

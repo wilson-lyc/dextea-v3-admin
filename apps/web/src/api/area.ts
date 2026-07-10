@@ -1,14 +1,5 @@
 import { createModuleClient, type ApiResponse } from "./client"
-
-// ──── DTO ────
-export interface Division {
-  code: string
-  name: string
-}
-
-export interface ResolveAreaRequest {
-  names: string[]
-}
+import type { Division, ResolveAreaRequest } from "@dextea-admin/contracts"
 
 const http = createModuleClient("area")
 

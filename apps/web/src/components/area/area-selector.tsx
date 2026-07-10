@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 
-import type { Division } from "@/api"
+import type { Division } from "@dextea-admin/contracts"
 import { getProvinces, getChildren, getDivisionPath } from "@/api"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"

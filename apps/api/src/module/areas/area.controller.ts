@@ -1,4 +1,3 @@
-import { z } from 'zod/v4';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { ApiResponse, ApiResponseSchema } from '@/common/types/index.js';
 import { areaService } from './area.service.js';
@@ -7,7 +6,7 @@ import {
   AreaChildrenParamsSchema,
   ResolveAreaRequestSchema,
   ResolveAreaResponseSchema,
-} from './area.type.js';
+} from '@dextea-admin/contracts';
 
 export const registerAreaRoutes: FastifyPluginAsyncZod = async (app) => {
   // 省份列表

@@ -1,11 +1,13 @@
 ---
 name: api-module-architecture
-description: dextea-admin 后端模块架构规范。当需要修改或创建 apps/api/src/module 下的模块代码时，根据本技能规范开发。使用 Zod v4 做运行时校验、Drizzle ORM 做数据访问、FastifyPluginAsyncZod 做模块注册。
+description: dextea-admin 后端模块架构规范。当需要修改或创建 apps/api/src/module 下的模块代码时，根据本技能规范开发。使用 Zod v4 做运行时校验、Drizzle ORM 做数据访问、FastifyPluginAsyncZod 做模块注册。类型与状态枚举统一放在 @dextea-admin/contracts 共享契约包中定义。
 ---
 
 # dextea-admin 后端模块架构规范
 
 本 skill 定义了 dextea-admin 项目中基于 **module** 层的新架构编码规范，参考 employees 模块实现。
+
+> ⚠️ **类型与状态枚举的归属**：自引入 `@dextea-admin/contracts` 共享契约包后，**模块内不再保留 `{module}.type.ts`**。所有请求/响应 DTO（Zod schema）与状态枚举都集中在 `packages/contracts`（`@dextea-admin/contracts`）中定义，作为前后端共享的单一真源。模块代码直接 `import ... from '@dextea-admin/contracts'`。详见文末「十、共享契约包 `@dextea-admin/contracts`」。
 
 ## 架构总览
 
@@ -13,10 +15,12 @@ description: dextea-admin 后端模块架构规范。当需要修改或创建 ap
 apps/api/src/module/{module}/
 ├── {module}.module.ts      # 入口：FastifyPluginAsyncZod，挂载路由
 ├── {module}.controller.ts  # 路由定义：Zod schema 校验 + ApiResponse 响应
-├── {module}.type.ts        # Zod v4 schema + infer TS 类型（含请求/响应/实体）
 ├── {module}.repository.ts  # 数据访问层：Drizzle ORM 查询封装
 ├── {module}.service.ts     # 业务逻辑层：校验/判重/状态变更/调用 repository
 └── {module}.errorcode.ts   # 错误码：static object + BizErrorCode 类型
+
+# ⚠️ 类型与状态枚举（DTO）不再放在模块内，统一在 packages/contracts（@dextea-admin/contracts）定义。
+# 详见下方「十、共享契约包 @dextea-admin/contracts」。模块内不保留 {module}.type.ts。
 ```
 
 ## 一、模块入口 — `{module}.module.ts`
@@ -42,7 +46,7 @@ await app.register(registerXxxModule);
 
 ## 二、路由控制器 — `{module}.controller.ts`
 
-使用 `FastifyPluginAsyncZod` 定义路由，利用 Fastify Zod 校验器自动做请求/响应校验。
+使用 `FastifyPluginAsyncZod` 定义路由，利用 Fastify Zod 校验器自动做请求/响应校验。DTO schema 从 `@dextea-admin/contracts` 引入，不再从模块内 `type.ts` 引入。
 
 ```typescript
 import { z } from 'zod/v4';
@@ -52,7 +56,9 @@ import { xxxService } from './xxx.service.js';
 import {
   XxxListRequestSchema, XxxListResponseSchema,
   XxxCreateRequestSchema, XxxCreateResponseSchema,
-} from './xxx.type.js';
+  XxxUpdateRequestSchema, XxxUpdateResponseSchema,
+  XxxStatusResponseSchema,
+} from '@dextea-admin/contracts';
 
 export const registerXxxRoutes: FastifyPluginAsyncZod = async (app) => {
   // 列表查询
@@ -130,28 +136,42 @@ export const registerXxxRoutes: FastifyPluginAsyncZod = async (app) => {
 - 路由 handler 中**不需要 try/catch** — 错误由 `BizError` 抛出，全局 error handler 统一捕获
 - handler 只做"调用 service → 返回 `ApiResponse.success(data)`" 这一件事
 - 路径参数使用 `z.coerce.number()` 做自动类型转换
-- `ApiResponseSchema(T)` 自动生成 `{ code, message, data }` 外包装
+- `ApiResponseSchema(T)` 自动生成 `{ code, message, data }` 外包装（该 schema 与 `PaginatedDataSchema` 均来自 `@dextea-admin/contracts` 的 `common/`，由 `@/common/types` 再导出）
+- **所有请求/响应 DTO schema 从 `@dextea-admin/contracts` 导入，禁止在模块内 `type.ts` 重复定义**
 
-## 三、类型定义 — `{module}.type.ts`
+## 三、类型与状态定义 — 统一放在 `@dextea-admin/contracts`
 
-所有请求/响应/实体的类型定义集中在此文件，使用 **Zod v4 (`zod/v4`)** 定义 schema 并通过 `z.infer` 提取 TS 类型。
+> ⚠️ 模块内不再保留 `{module}.type.ts`。所有请求/响应 DTO（Zod schema）与状态枚举都集中在 `packages/contracts`（`@dextea-admin/contracts`）中定义，作为前后端共享的单一真源。模块代码直接 `import ... from '@dextea-admin/contracts'`（类型用 `import type`）。
+
+在 `packages/contracts/src/` 下新增两个文件：
+
+**`status/xxx.ts` — 状态枚举（三字段 `key`/`label`/`value`）**
 
 ```typescript
 import { z } from 'zod/v4';
-import { PaginatedDataSchema } from '@/common/types/index.js';
 
-// 状态枚举（可选。若数据库用数字表示分类/状态，则必须定义，作为数字含义的字典）
-
+// 状态枚举：key=稳定字符串键，label=中文语义（前端展示用），value=数字（存储/传输用）
 export const XXX_STATUS = {
-  DISABLED: { key: 'disabled', value: 0 },
-  ACTIVE:   { key: 'active',   value: 1 },
+  DISABLED: { key: 'disabled', label: '禁用', value: 0 },
+  ACTIVE:   { key: 'active',   label: '激活', value: 1 },
 } as const;
 
 export type XxxStatus = (typeof XXX_STATUS)[keyof typeof XXX_STATUS]['value'];
 export const XXX_STATUS_VALUES: readonly XxxStatus[] = [0, 1];
 
-// 实体
+// 数字 → 中文 label 映射（后端日志/错误文案、前端展示通用）
+export const XXX_STATUS_LABEL: Record<number, string> = Object.fromEntries(
+  Object.values(XXX_STATUS).map((s) => [s.value, s.label]),
+);
+```
 
+**`dto/xxx.ts` — 请求/响应 DTO（Zod schema + 推断类型）**
+
+```typescript
+import { z } from 'zod/v4';
+import { PaginatedDataSchema } from '../common/pagination.js';
+
+// 实体
 export const XxxSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -162,7 +182,6 @@ export const XxxSchema = z.object({
 export type Xxx = z.infer<typeof XxxSchema>;
 
 // 列表查询
-
 export const XxxListRequestSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().positive().max(100).default(20),
@@ -174,45 +193,35 @@ export const XxxListResponseSchema = PaginatedDataSchema(XxxSchema);
 export type XxxListResponse = z.infer<typeof XxxListResponseSchema>;
 
 // 创建
-
 export const XxxCreateRequestSchema = z.object({
   name: z.string().min(1, '名称不能为空'),
 });
 export type XxxCreateRequest = z.infer<typeof XxxCreateRequestSchema>;
 
-export const XxxCreateResponseSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-});
+export const XxxCreateResponseSchema = z.object({ id: z.number(), name: z.string() });
 export type XxxCreateResponse = z.infer<typeof XxxCreateResponseSchema>;
 
 // 更新
-
-export const XxxUpdateRequestSchema = z.object({
-  name: z.string().min(1, '名称不能为空'),
-});
+export const XxxUpdateRequestSchema = z.object({ name: z.string().min(1, '名称不能为空') });
 export type XxxUpdateRequest = z.infer<typeof XxxUpdateRequestSchema>;
 
-export const XxxUpdateResponseSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-});
+export const XxxUpdateResponseSchema = z.object({ id: z.number(), name: z.string() });
 export type XxxUpdateResponse = z.infer<typeof XxxUpdateResponseSchema>;
 
 // 状态变更
-
-export const XxxStatusResponseSchema = z.object({
-  name: z.string(),
-  status: z.number(),
-});
+export const XxxStatusResponseSchema = z.object({ name: z.string(), status: z.number() });
 export type XxxStatusResponse = z.infer<typeof XxxStatusResponseSchema>;
 ```
 
+记得在 `src/status/index.ts`、`src/dto/index.ts`、`src/index.ts` 中再导出新模块，使主入口与 `/status`、`/dto` 子路径都能访问到。
+
 **核心规则：**
-- **状态枚举**直接定义在 type 文件中（不是必须放在 shared-types），用 `const` + `as const` 模式，不用 `enum`。若数据库使用数字表示分类或状态（如 `0`=禁用, `1`=启用），则必须定义状态枚举，作为数字含义的字典
-- **分页响应**使用 `PaginatedDataSchema(XxxSchema)` 通用包装
-- **请求 schema** 中查询参数用 `z.coerce.number()` 自动转换 query string
-- 所有 `z.string().min(1, ...)` 提供中文错误消息
+- **状态枚举**必须放在 `packages/contracts/src/status/` 下，且统一为三字段：`key`（稳定字符串键）、`label`（中文语义，界面展示用）、`value`（数字，存储/传输用）。用 `const` + `as const`，不用 `enum`。若数据库使用数字表示分类或状态（如 `0`=禁用, `1`=启用），则必须定义状态枚举，作为数字含义的字典。
+- **DTO** 必须放在 `packages/contracts/src/dto/` 下，用 **Zod v4 (`zod/v4`)** 定义 schema，通过 `z.infer` 提取 TS 类型。
+- **分页响应**使用 `PaginatedDataSchema(XxxSchema)`（来自 contracts 的 `common/pagination`）。
+- **请求 schema** 中查询参数用 `z.coerce.number()` 自动转换 query string。
+- 所有 `z.string().min(1, ...)` 提供中文错误消息。
+- 后端 `zod` 与前端 `zod` 版本需一致（contracts 固定 `zod@4.4.3`）；前端以 `import type` 引入类型，编译期擦除，不会把 zod 打进浏览器包。
 
 ## 四、数据访问层 — `{module}.repository.ts`
 
@@ -294,15 +303,15 @@ export const xxxRepository = {
 
 ## 五、业务逻辑层 — `{module}.service.ts`
 
-业务逻辑中转层，负责参数校验、存在性检查、判重、调用 repository。
+业务逻辑中转层，负责参数校验、存在性检查、判重、调用 repository。状态枚举与 DTO 类型从 `@dextea-admin/contracts` 引入。
 
 ```typescript
 import { BizError } from '@/common/exceptions/index.js';
 import { XxxErrorCodes } from './xxx.errorcode.js';
 import { xxxRepository } from './xxx.repository.js';
 import { validateEmail, validateMaxLength } from '@/plugins/utils/validation.js';
-import { XXX_STATUS } from './xxx.type.js';
-import type { XxxListRequest, XxxCreateRequest, XxxUpdateRequest } from './xxx.type.js';
+import { XXX_STATUS } from '@dextea-admin/contracts';
+import type { XxxListRequest, XxxCreateRequest, XxxUpdateRequest } from '@dextea-admin/contracts';
 
 export const xxxService = {
   async getXxxList(params: XxxListRequest) {
@@ -371,6 +380,7 @@ export const xxxService = {
 - 校验优先使用 `@/plugins/utils/validation.ts` 中的工具函数
 - 判重检查需要排除自身（`existing.id !== id`）
 - 状态切换用三元表达式而非 if/else
+- **状态枚举（`XXX_STATUS`）与请求/响应类型均从 `@dextea-admin/contracts` 导入，不可在模块内定义**
 
 ## 六、错误码 — `{module}.errorcode.ts`
 
@@ -406,7 +416,7 @@ export const XxxErrorCodes = {
 
 ## 七、共享基础设施
 
-### ApiResponse (位于 `@/common/types/`)
+### ApiResponse (定义位于 `@dextea-admin/contracts` 的 `common/response.ts`，由 `@/common/types` 再导出)
 
 ```typescript
 // 响应包装
@@ -416,7 +426,7 @@ ApiResponseSchema(T) → z.object({ code: z.number(), message: z.string(), data:
 ApiResponse.success(data)        → { code: 0, message: 'success', data }
 ApiResponse.error(code, message) → { code, message, data: null }
 
-// 分页包装
+// 分页包装（位于 contracts 的 common/pagination.ts）
 PaginatedDataSchema(T) → z.object({ items: T[], total, page, pageSize })
 ```
 
@@ -449,16 +459,16 @@ new BizError(bizErrorCode: BizErrorCode, detail?: string, httpStatus = 400)
 
 ## 八、Checklist — 新增模块自检
 
-- [ ] 1. **模块目录** — `apps/api/src/module/{module}/` 创建 6 文件
+- [ ] 1. **模块目录** — `apps/api/src/module/{module}/` 创建 5 文件（不含 `type.ts`）
 - [ ] 2. **DB Schema** — `apps/api/src/plugins/db/mysql/schema.ts` 如果新增表
-- [ ] 3. **类型定义** — `{module}.type.ts` 定义实体/请求/响应 Zod schema
+- [ ] 3. **契约定义** — 在 `packages/contracts` 中新增 `status/xxx.ts`（状态枚举）与 `dto/xxx.ts`（DTO），并在各 `index.ts` 再导出
 - [ ] 4. **错误码** — `{module}.errorcode.ts` 定义模块错误码
 - [ ] 5. **数据访问** — `{module}.repository.ts` 实现 CRUD
-- [ ] 6. **业务逻辑** — `{module}.service.ts` 校验/判重/状态变更
-- [ ] 7. **路由控制** — `{module}.controller.ts` 注册路由 handler
+- [ ] 6. **业务逻辑** — `{module}.service.ts` 校验/判重/状态变更（状态枚举/DTO 类型从 contracts 引入）
+- [ ] 7. **路由控制** — `{module}.controller.ts` 注册路由 handler（DTO schema 从 contracts 引入）
 - [ ] 8. **模块入口** — `{module}.module.ts` FastifyPluginAsyncZod 导出
 - [ ] 9. **全局注册** — 在 `apps/api/src/index.ts` 中 `app.register(registerXxxModule)`
-- [ ] 10. **类型检查** — `pnpm typecheck` 通过
+- [ ] 10. **类型检查** — `pnpm typecheck` 通过（会先构建 `@dextea-admin/contracts`）
 
 ## 九、模块文件全景图
 
@@ -467,7 +477,7 @@ apps/api/src/
 ├── index.ts                              # registerXxxModule() 调用
 ├── common/
 │   ├── types/
-│   │   ├── index.ts                      # ApiResponse, ApiResponseSchema, PaginatedDataSchema
+│   │   ├── index.ts                      # 再导出 ApiResponse, ApiResponseSchema, PaginatedDataSchema（来自 contracts）
 │   │   ├── api-response.interface.ts
 │   │   ├── biz-error-code.interface.ts
 │   │   └── paginated.interface.ts
@@ -477,18 +487,39 @@ apps/api/src/
 ├── plugins/
 │   ├── db/mysql/
 │   │   ├── index.ts                      # drizzle db instance
-│   │   └── schema.ts                     # 所有表定义
+│   │   └── schema.ts                      # 所有表定义
 │   └── utils/
-│       ├── pagination.ts                 # withPagination
-│       ├── validation.ts                 # 校验函数
-│       └── password.ts                   # argon2 密码工具
+│       ├── pagination.ts                  # withPagination
+│       ├── validation.ts                  # 校验函数
+│       └── password.ts                    # argon2 密码工具
 └── module/
     ├── system/system.errorcode.ts        # 系统级错误码
     └── {module}/                         # 🔺 新建模块
         ├── {module}.module.ts
         ├── {module}.controller.ts
-        ├── {module}.type.ts
         ├── {module}.repository.ts
         ├── {module}.service.ts
         └── {module}.errorcode.ts
+
+packages/
+└── contracts/                            # @dextea-admin/contracts 共享契约包（DTO + 状态枚举单一真源）
+    └── src/
+        ├── common/{response,pagination}.ts
+        ├── status/xxx.ts                 # 状态枚举（key/label/value）
+        └── dto/xxx.ts                     # DTO（Zod schema + 推断类型）
 ```
+
+## 十、共享契约包 `@dextea-admin/contracts`
+
+前后端共享的 DTO 与状态枚举的单一真源，位于 `packages/contracts/`（包名 `@dextea-admin/contracts`）。新增模块的类型/状态必须放这里，而不是模块内 `{module}.type.ts`。
+
+- **包结构**：`src/common/`（ApiResponse / PaginatedDataSchema 等通用契约）、`src/status/{module}.ts`（状态枚举）、`src/dto/{module}.ts`（DTO）。
+- **导出子路径**：
+  - `@dextea-admin/contracts` → 全部（公共响应体、各模块 DTO、状态枚举）
+  - `@dextea-admin/contracts/status` → 仅状态枚举（不含 zod，供前端运行时直接消费，不把 zod 打进浏览器包）
+  - `@dextea-admin/contracts/dto` → 仅 DTO
+- **消费方式**：
+  - 后端：直接 `import { XxxListRequestSchema, XXX_STATUS } from '@dextea-admin/contracts'`，类型用 `import type`。
+  - 前端：`import type { XxxListRequest } from '@dextea-admin/contracts'`（编译期擦除，不引入 zod）；运行时状态枚举用 `import { XXX_STATUS } from '@dextea-admin/contracts/status'`。
+- **构建顺序**：该包需先 `tsc` 构建出 `dist/`（含 `.d.ts`），前后端均以 `node_modules` 工作区依赖（`workspace:*`）形式消费（`.d.ts` 可绕过 API 的 `rootDir` 限制）。各 `build`/`typecheck`/`dev` 脚本已通过 `pnpm -C packages/contracts build` 先构建。**新增/修改 DTO 或枚举后必须重新构建本包**（`pnpm -C packages/contracts build`），否则前后端消费到的是旧产物。
+- **Zod 版本**：固定 `zod@4.4.3`，前后端须保持一致。
