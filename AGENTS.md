@@ -13,15 +13,14 @@ pnpm monorepo — Fastify 5 API (MySQL/Drizzle) + Vite 8 React 19 SPA (Tailwind 
 ```
 dextea-admin/
 ├── apps/api/              # Fastify backend (TS 5.8)
-├── apps/web/              # Vite + React frontend (TS 6.0, shadcn/ui)
-└── packages/shared-types/ # Shared TS interfaces (source-only, no build)
+└── apps/web/              # Vite + React frontend (TS 6.0, shadcn/ui)
 ```
 
 ## WHERE TO LOOK
 
 | Task | Location |
 |------|----------|
-| API routes | `apps/api/src/routes/*.ts` |
+| API routes | `apps/api/src/module/*/*.controller.ts` |
 | DB schema | `apps/api/src/db/schema.ts` |
 | Web pages | `apps/web/src/pages/{Login,Initialization,Employees}/` |
 | API service layer | `apps/web/src/services/*.ts` |
@@ -29,7 +28,6 @@ dextea-admin/
 | Layout components | `apps/web/src/components/layout/*.tsx` |
 | Custom hooks | `apps/web/src/hooks/*.ts(x)` |
 | Theme config | `apps/web/src/index.css` (`@theme inline {}`) |
-| Shared types | `packages/shared-types/src/index.ts` |
 | API config | `apps/api/src/config/index.ts` |
 
 ## CONVENTIONS
@@ -40,13 +38,12 @@ dextea-admin/
 - **Tailwind v4**: All theme config in CSS (`@theme inline {}`), no JS config file
 - **No enums in web**: `erasableSyntaxOnly: true` disallows enums/namespaces/parameter properties
 - **Auth token**: Stored in `sessionStorage` key `"token"`, auto-attached via axios interceptor
-- **`packages/shared-types`**: Direct `.ts` source imports (no build step — Vite/tsx resolve it)
 - **Pages**: PascalCase directory names (`Employees/`, `Login/`, etc.)
 
 ## ANTI-PATTERNS (THIS PROJECT)
 
 - **`as any` / `@ts-ignore` / `@ts-expect-error`** — never suppress type errors
-- **TypeScript version drift** — web runs TS 6.0, api/shared-types run TS 5.8. Do not use TS 6.0-only syntax in api/shared-types
+- **TypeScript version drift** — web runs TS 6.0, api runs TS 5.8. Do not use TS 6.0-only syntax in api
 - **Test deletions** — no test suite exists yet; do not delete non-existent tests
 
 ## UNIQUE STYLES

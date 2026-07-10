@@ -4,7 +4,7 @@ import { AuthErrorCodes } from './auth.errorcode.js';
 import { authRepository } from './auth.repository.js';
 import { validateEmail, validatePassword } from '@/plugins/utils/validation.js';
 import { verifyPassword } from '@/plugins/utils/password.js';
-import { EMPLOYEE_STATUS } from '@dextea/shared-types';
+import { EMPLOYEE_STATUS } from '../employees/employees.type.js';
 import type Redis from 'ioredis';
 
 const TOKEN_PREFIX = 'dextea:admin:token:';

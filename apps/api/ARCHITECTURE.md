@@ -37,7 +37,7 @@ HTTP 请求
 - **配置层** `config/index.ts` —— 环境变量与全局配置
 - **错误处理层** `errorcode/*` —— `AppError` 类与各模块业务错误码
 - **工具层** `utils/*` —— 校验、分页、密码、地理编码等纯函数
-- **类型层** `types/*` + `packages/shared-types` —— 共享 DTO 类型
+- **类型层** `types/*` + `module/*/*.type.ts` —— 各模块本地类型（Zod Schema + 状态枚举）
 
 ---
 
@@ -94,7 +94,7 @@ apps/api/src/
 | 数据层 | `db/` | 连接管理、表定义、ORM 实例 | 业务逻辑 |
 | 错误处理层 | `errorcode/` | 错误码定义、`AppError`、统一错误响应 | 业务逻辑 |
 | 工具层 | `utils/` | 可复用纯函数（校验/分页/加密） | 业务状态 |
-| 类型层 | `types/` + `shared-types` | 共享数据结构类型 | 运行时行为 |
+| 类型层 | `types/` + `module/*/*.type.ts` | 各模块本地类型（Zod Schema） | 运行时行为 |
 
 ---
 
@@ -267,10 +267,10 @@ throw new AppError(productErrors.PRODUCT_NOT_FOUND);
 - `password.ts`：argon2 密码哈希与校验。
 - `geocode.ts`：高德地图地理编码封装。
 
-### 3.11 类型层 —— `src/types/` + `packages/shared-types`
+### 3.11 类型层 —— `src/types/` + `module/*/*.type.ts`
 
 - `src/types/*.d.ts`：对第三方库补充类型声明。
-- `packages/shared-types`：前后端共享的 DTO 类型（`ApiResponse`、`PaginatedData`、`Product`、`CreateProductInput` 等），路由/服务通过 `@dextea/shared-types` 直接 import，作为接口契约。
+- `module/*/*.type.ts`：各业务领域在模块内就地定义的类型（由 Zod Schema 推导出的实体 / DTO 类型 + 状态枚举常量），不再依赖 `packages/shared-types` 共享包。
 
 ---
 
@@ -279,7 +279,7 @@ throw new AppError(productErrors.PRODUCT_NOT_FOUND);
 ```
 index → app → (plugins, routes → services → db)
                 middleware → (config, errorcode, redis)
-                routes/services → (errorcode, utils, config, shared-types)
+                routes/services → (errorcode, utils, config, module types)
 ```
 
 铁律：
@@ -291,7 +291,7 @@ index → app → (plugins, routes → services → db)
 3. **路由不写 DB**：路由只解析参数 + 调 Service + 包响应，不含 SQL/Drizzle 查询。
 4. **横切层无业务**：`config` / `errorcode` / `utils` / `types` 不依赖任何具体业务模块，可被任意层引用。
 5. **DB 注入而非自取**：Service 不自己 `getDb()`，由路由注入 `db` 参数，保证无状态、可测试。
-6. **共享类型走 `shared-types`**：前后端契约集中在 `packages/shared-types`，不在各层各自定义重复类型。
+6. **类型就地定义**：各模块类型集中在 `module/<domain>/*.type.ts`（Zod Schema + 状态枚举），不再使用跨端共享的 `shared-types` 包。
 
 ---
 
@@ -331,7 +331,7 @@ index → app → (plugins, routes → services → db)
 3. `routes/orders.ts`：实现 `orderRoutes(app)`，声明 `schema`、解析参数、调 Service、包响应；未知异常转 `orderErrors`。
 4. `errorcode/orders.ts`：定义订单模块错误码（建议段位 `11200-11299`），并在 `errorcode/index.ts` 导出。
 5. `routes/index.ts`：在 `registerRoutes` 中 `app.register(orderRoutes, { prefix: '/api/v1' })`（已弃用的旧版路由层）。
-6. `packages/shared-types`：补充 `Order`、`CreateOrderInput`、`PaginatedData<Order>` 等共享类型。
+6. `module/orders/order.type.ts`：以 Zod Schema 定义 `Order`、`CreateOrderRequest`、`OrderListResponse` 等请求 / 响应类型。
 7. （可选）`utils/`、`middleware/`：复用现有校验/鉴权，无需改动。
 
 > 遵循"路由薄、服务厚、数据在底层"的分层，新模块的改动被严格限制在这几处，互不污染。
