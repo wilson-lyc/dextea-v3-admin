@@ -1,2 +1,0 @@
-[permissions]
-allow = ["Bash(cd /Users/wilson/Projects/dextea-v3/dextea-admin && pnpm typecheck 2>&1 | tail -20)"]
