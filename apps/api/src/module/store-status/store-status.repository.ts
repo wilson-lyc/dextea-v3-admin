@@ -4,11 +4,11 @@ import {
   storesTable,
   productsTable,
   productStoreStatusTable,
-  productCustomizationsTable,
+  customizationsTable,
   customizationOptionsTable,
   customizationOptionStoreStatusTable,
   ingredientsTable,
-  storeInventoryTable,
+  storeIngredientsTable,
 } from '@/plugins/db/mysql/schema.js';
 
 export const storeStatusRepository = {
@@ -107,29 +107,29 @@ export const storeStatusRepository = {
     const [items, countResult] = await Promise.all([
       db
         .select({
-          id: productCustomizationsTable.id,
-          name: productCustomizationsTable.name,
-          globalStatus: productCustomizationsTable.status,
+          id: customizationsTable.id,
+          name: customizationsTable.name,
+          globalStatus: customizationsTable.status,
           storeStatus: sql<number>`COALESCE(${customizationOptionStoreStatusTable.status}, 0)`,
           optionCount: sql<number>`(
             SELECT COUNT(*) FROM ${customizationOptionsTable}
-            WHERE ${customizationOptionsTable.customizationId} = ${productCustomizationsTable.id}
+            WHERE ${customizationOptionsTable.customizationId} = ${customizationsTable.id}
           )`,
         })
-        .from(productCustomizationsTable)
+        .from(customizationsTable)
         .leftJoin(
           customizationOptionStoreStatusTable,
           and(
-            eq(customizationOptionStoreStatusTable.customizationOptionId, productCustomizationsTable.id),
+            eq(customizationOptionStoreStatusTable.customizationOptionId, customizationsTable.id),
             eq(customizationOptionStoreStatusTable.storeId, storeId),
           ),
         )
         .limit(pageSize)
         .offset(offset)
-        .orderBy(productCustomizationsTable.id),
+        .orderBy(customizationsTable.id),
       db
         .select({ count: sql<number>`count(*)` })
-        .from(productCustomizationsTable),
+        .from(customizationsTable),
     ]);
 
     const total = Number(countResult[0]?.count ?? 0);
@@ -196,7 +196,7 @@ export const storeStatusRepository = {
   /**
    * 门店原料库存列表
    *
-   * LEFT JOIN storeInventoryTable 查询门店级库存数量（COALESCE 默认 0）。
+   * LEFT JOIN storeIngredientsTable 查询门店级库存数量（COALESCE 默认 0）。
    */
   async listStoreIngredients(storeId: number, params: { page: number; pageSize: number }) {
     const page = Math.max(1, params.page);
@@ -209,14 +209,14 @@ export const storeStatusRepository = {
           id: ingredientsTable.id,
           name: ingredientsTable.name,
           unit: ingredientsTable.unit,
-          quantity: sql<number>`COALESCE(${storeInventoryTable.quantity}, 0)`,
+          quantity: sql<number>`COALESCE(${storeIngredientsTable.quantity}, 0)`,
         })
         .from(ingredientsTable)
         .leftJoin(
-          storeInventoryTable,
+          storeIngredientsTable,
           and(
-            eq(storeInventoryTable.ingredientId, ingredientsTable.id),
-            eq(storeInventoryTable.storeId, storeId),
+            eq(storeIngredientsTable.ingredientId, ingredientsTable.id),
+            eq(storeIngredientsTable.storeId, storeId),
           ),
         )
         .limit(pageSize)

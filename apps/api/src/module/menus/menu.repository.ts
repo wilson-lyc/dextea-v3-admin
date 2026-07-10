@@ -106,14 +106,14 @@ export const menuRepository = {
         id: menuGroupsTable.id,
         menuId: menuGroupsTable.menuId,
         name: menuGroupsTable.name,
-        sortOrder: menuGroupsTable.sortOrder,
+        sortOrder: menuGroupsTable.sort,
         productCount: sql<number>`(select count(*) from ${menuProductsTable} where ${menuProductsTable.groupId} = ${menuGroupsTable.id})`,
         createdAt: menuGroupsTable.createdAt,
         updatedAt: menuGroupsTable.updatedAt,
       })
       .from(menuGroupsTable)
       .where(eq(menuGroupsTable.menuId, menuId))
-      .orderBy(menuGroupsTable.sortOrder, menuGroupsTable.id);
+      .orderBy(menuGroupsTable.sort, menuGroupsTable.id);
   },
 
   async getMenuGroupById(id: number) {
@@ -126,14 +126,19 @@ export const menuRepository = {
   },
 
   async createMenuGroup(data: { menuId: number; name: string; sortOrder: number }) {
-    const result = await db.insert(menuGroupsTable).values(data);
+    const result = await db
+      .insert(menuGroupsTable)
+      .values({ menuId: data.menuId, name: data.name, sort: data.sortOrder });
     return Number(result[0]?.insertId ?? 0);
   },
 
   async updateMenuGroupById(id: number, data: Partial<{ name: string; sortOrder: number }>) {
+    const values: { name?: string; sort?: number } = {};
+    if (data.name !== undefined) values.name = data.name;
+    if (data.sortOrder !== undefined) values.sort = data.sortOrder;
     await db
       .update(menuGroupsTable)
-      .set(data)
+      .set(values)
       .where(eq(menuGroupsTable.id, id));
   },
 
@@ -173,14 +178,14 @@ export const menuRepository = {
         productName: productsTable.name,
         price: productsTable.price,
         status: productsTable.status,
-        sortOrder: menuProductsTable.sortOrder,
+        sortOrder: menuProductsTable.sort,
         createdAt: menuProductsTable.createdAt,
         updatedAt: menuProductsTable.updatedAt,
       })
       .from(menuProductsTable)
       .innerJoin(productsTable, eq(menuProductsTable.productId, productsTable.id))
       .where(eq(menuProductsTable.groupId, groupId))
-      .orderBy(menuProductsTable.sortOrder, menuProductsTable.productId);
+      .orderBy(menuProductsTable.sort, menuProductsTable.productId);
   },
 
   async getMenuProduct(groupId: number, productId: number) {
@@ -198,7 +203,9 @@ export const menuRepository = {
   },
 
   async addMenuProduct(data: { groupId: number; productId: number; sortOrder: number }) {
-    await db.insert(menuProductsTable).values(data);
+    await db
+      .insert(menuProductsTable)
+      .values({ groupId: data.groupId, productId: data.productId, sort: data.sortOrder });
   },
 
   async batchRemoveMenuProducts(groupId: number, productIds: number[]) {
@@ -217,7 +224,7 @@ export const menuRepository = {
   async updateMenuProductSort(groupId: number, productId: number, sortOrder: number) {
     await db
       .update(menuProductsTable)
-      .set({ sortOrder })
+      .set({ sort: sortOrder })
       .where(
         and(
           eq(menuProductsTable.groupId, groupId),

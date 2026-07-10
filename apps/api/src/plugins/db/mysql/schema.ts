@@ -12,9 +12,7 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/mysql-core';
 
-/**
- * 员工表
- */
+/** 员工表 */
 export const employeesTable = mysqlTable('employees', {
   id: serial().primaryKey(),
   email: varchar({ length: 255 }).notNull().unique(),
@@ -25,9 +23,7 @@ export const employeesTable = mysqlTable('employees', {
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
-/**
- * 角色表
- */
+/** 角色表 */
 export const rolesTable = mysqlTable('roles', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull().unique(),
@@ -37,9 +33,7 @@ export const rolesTable = mysqlTable('roles', {
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
-/**
- * 权限表
- */
+/** 权限表 */
 export const permissionsTable = mysqlTable(
   'permissions',
   {
@@ -52,9 +46,7 @@ export const permissionsTable = mysqlTable(
   },
 );
 
-/**
- * 员工-角色关联表
- */
+/** 员工-角色关联表 */
 export const employeeRolesTable = mysqlTable(
   'employee_roles',
   {
@@ -69,9 +61,7 @@ export const employeeRolesTable = mysqlTable(
   }),
 );
 
-/**
- * 角色-权限关联表
- */
+/** 角色-权限关联表 */
 export const rolePermissionsTable = mysqlTable(
   'role_permissions',
   {
@@ -86,9 +76,7 @@ export const rolePermissionsTable = mysqlTable(
   }),
 );
 
-/**
- * 配置表
- */
+/** 配置表 */
 export const configTable = mysqlTable('config', {
   id: serial().primaryKey(),
   key: varchar({ length: 255 }).notNull().unique(),
@@ -97,9 +85,7 @@ export const configTable = mysqlTable('config', {
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
-/**
- * 门店表
- */
+/** 门店表 */
 export const storesTable = mysqlTable('stores', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull(),
@@ -117,16 +103,13 @@ export const storesTable = mysqlTable('stores', {
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
-/**
- * 门店-菜单关联表
- */
+/** 门店-菜单关联表 */
 export const storeMenusTable = mysqlTable(
   'store_menus',
   {
     storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(),
     menuId: bigint('menu_id', { mode: 'number', unsigned: true }).notNull(),
     createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
   (table) => ({
     primaryKey: primaryKey({
@@ -136,9 +119,7 @@ export const storeMenusTable = mysqlTable(
   }),
 );
 
-/**
- * 商品表
- */
+/** 商品表 */
 export const productsTable = mysqlTable('products', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull(),
@@ -150,9 +131,7 @@ export const productsTable = mysqlTable('products', {
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
-/**
- * 商品标签表
- */
+/** 商品标签表 */
 export const productTagsTable = mysqlTable('product_tags', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull().unique(),
@@ -160,9 +139,7 @@ export const productTagsTable = mysqlTable('product_tags', {
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
-/**
- * 商品-标签关联表
- */
+/** 商品-标签关联表 */
 export const productTagMapTable = mysqlTable(
   'product_tag_map',
   {
@@ -177,10 +154,8 @@ export const productTagMapTable = mysqlTable(
   }),
 );
 
-/**
- * 客制化项目表
- */
-export const productCustomizationsTable = mysqlTable('product_customizations', {
+/** 客制化项目表 */
+export const customizationsTable = mysqlTable('customizations', {
   id: serial().primaryKey(),
   productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
   name: varchar({ length: 255 }).notNull(),
@@ -189,9 +164,31 @@ export const productCustomizationsTable = mysqlTable('product_customizations', {
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
-/**
- * 商品-原料关联表
- */
+/** 客制化选项表 */
+export const customizationOptionsTable = mysqlTable('customization_options', {
+  id: serial().primaryKey(),
+  customizationId: bigint('customization_id', { mode: 'number', unsigned: true }).notNull(),
+  name: varchar({ length: 255 }).notNull(),
+  price: double().notNull(),
+  sort: tinyint().notNull(),
+  status: tinyint().notNull(),
+  ingredientId: bigint('ingredient_id', { mode: 'number', unsigned: true }),
+  ingredientQuantity: double('ingredient_quantity').notNull(),
+  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+});
+
+/** 原料表 */
+export const ingredientsTable = mysqlTable('ingredients', {
+  id: serial().primaryKey(),
+  name: varchar({ length: 255 }).notNull(),
+  unit: varchar({ length: 50 }).notNull(),
+  status: tinyint().notNull(),
+  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+});
+
+/** 商品-原料关联表 */
 export const productIngredientsTable = mysqlTable(
   'product_ingredients',
   {
@@ -209,37 +206,7 @@ export const productIngredientsTable = mysqlTable(
   }),
 );
 
-/**
- * 原料表
- */
-export const ingredientsTable = mysqlTable('ingredients', {
-  id: serial().primaryKey(),
-  name: varchar({ length: 255 }).notNull(),
-  unit: varchar({ length: 50 }).notNull(),
-  status: tinyint().notNull(),
-  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
-
-/**
- * 客制化选项表
- */
-export const customizationOptionsTable = mysqlTable('customization_options', {
-  id: serial().primaryKey(),
-  customizationId: bigint('customization_id', { mode: 'number', unsigned: true }).notNull(),
-  name: varchar({ length: 255 }).notNull(),
-  price: double().notNull(),
-  sort: tinyint().notNull(),
-  status: tinyint().notNull(),
-  ingredientId: bigint('ingredient_id', { mode: 'number', unsigned: true }),
-  quantity: double().notNull(),
-  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
-
-/**
- * 商品-门店状态表
- */
+/** 商品-门店状态表 */
 export const productStoreStatusTable = mysqlTable(
   'product_store_status',
   {
@@ -257,9 +224,7 @@ export const productStoreStatusTable = mysqlTable(
   }),
 );
 
-/**
- * 客制化选项-门店状态表
- */
+/** 客制化选项-门店状态表 */
 export const customizationOptionStoreStatusTable = mysqlTable(
   'customization_option_store_status',
   {
@@ -277,11 +242,9 @@ export const customizationOptionStoreStatusTable = mysqlTable(
   }),
 );
 
-/**
- * 原料-门店库存表
- */
-export const storeInventoryTable = mysqlTable(
-  'store_inventory',
+/** 原料-门店库存表 */
+export const storeIngredientsTable = mysqlTable(
+  'store_ingredients',
   {
     ingredientId: bigint('ingredient_id', { mode: 'number', unsigned: true }).notNull(),
     storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(),
@@ -291,15 +254,13 @@ export const storeInventoryTable = mysqlTable(
   },
   (table) => ({
     primaryKey: primaryKey({
-      name: 'pk_store_inventory',
+      name: 'pk_store_ingredients',
       columns: [table.ingredientId, table.storeId],
     }),
   }),
 );
 
-/**
- * 菜单表
- */
+/** 菜单表 */
 export const menusTable = mysqlTable('menus', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull(),
@@ -308,27 +269,23 @@ export const menusTable = mysqlTable('menus', {
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
-/**
- * 菜单分组表
- */
+/** 菜单分组表 */
 export const menuGroupsTable = mysqlTable('menu_groups', {
   id: serial().primaryKey(),
   menuId: bigint('menu_id', { mode: 'number', unsigned: true }).notNull(),
   name: varchar({ length: 255 }).notNull(),
-  sortOrder: int('sort_order').notNull(),
+  sort: int('sort').notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
-/**
- * 菜单商品关联表
- */
+/** 菜单商品关联表 */
 export const menuProductsTable = mysqlTable(
   'menu_products',
   {
     groupId: bigint('group_id', { mode: 'number', unsigned: true }).notNull(),
     productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
-    sortOrder: int('sort_order').notNull(),
+    sort: int('sort').notNull(),
     createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
@@ -340,9 +297,7 @@ export const menuProductsTable = mysqlTable(
   }),
 );
 
-/**
- * 顾客表
- */
+/** 顾客表 */
 export const customersTable = mysqlTable(
   'customers',
   {
@@ -359,26 +314,23 @@ export const customersTable = mysqlTable(
   }),
 );
 
-/**
- * 订单表
- */
+/** 订单表 */
 export const ordersTable = mysqlTable('orders', {
   id: serial().primaryKey(),
   orderNo: varchar('order_no', { length: 64 }).notNull().unique(),
   customerId: bigint('customer_id', { mode: 'number', unsigned: true }).notNull(),
   storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(),
   status: tinyint().notNull(),
-  totalAmount: double('total_amount').notNull(),
+  price: double('price').notNull(),
   payMethod: tinyint('pay_method'),
   remark: varchar({ length: 500 }).notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   paidAt: timestamp('paid_at', { mode: 'string' }),
+  refundedAt: timestamp('refunded_at', { mode: 'string' }),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
-/**
- * 订单详情表
- */
+/** 订单详情表 */
 export const orderItemsTable = mysqlTable(
   'order_items',
   {

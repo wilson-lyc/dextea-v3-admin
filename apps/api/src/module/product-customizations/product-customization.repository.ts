@@ -1,7 +1,7 @@
 import { eq, sql } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
 import {
-  productCustomizationsTable,
+  customizationsTable,
   productsTable,
   customizationOptionsTable,
   ingredientsTable,
@@ -16,37 +16,37 @@ export const productCustomizationRepository = {
     pageSize = Math.min(100, Math.max(1, pageSize));
     keyword = keyword?.trim();
 
-    const optionCountSubquery = sql<number>`(select count(*) from ${customizationOptionsTable} where ${customizationOptionsTable.customizationId} = ${productCustomizationsTable.id})`;
+    const optionCountSubquery = sql<number>`(select count(*) from ${customizationOptionsTable} where ${customizationOptionsTable.customizationId} = ${customizationsTable.id})`;
 
     const baseQuery = db
       .select({
-        id: productCustomizationsTable.id,
-        productId: productCustomizationsTable.productId,
-        name: productCustomizationsTable.name,
-        status: productCustomizationsTable.status,
+        id: customizationsTable.id,
+        productId: customizationsTable.productId,
+        name: customizationsTable.name,
+        status: customizationsTable.status,
         optionCount: optionCountSubquery,
-        createdAt: productCustomizationsTable.createdAt,
-        updatedAt: productCustomizationsTable.updatedAt,
+        createdAt: customizationsTable.createdAt,
+        updatedAt: customizationsTable.updatedAt,
       })
-      .from(productCustomizationsTable)
-      .orderBy(productCustomizationsTable.id)
+      .from(customizationsTable)
+      .orderBy(customizationsTable.id)
       .$dynamic();
 
     const countQuery = db
       .select({ count: sql<number>`count(*)` })
-      .from(productCustomizationsTable)
+      .from(customizationsTable)
       .$dynamic();
 
     const conditions: ReturnType<typeof sql>[] = [];
     if (keyword) {
       const pattern = `%${keyword}%`;
-      conditions.push(sql`${productCustomizationsTable.name} like ${pattern}`);
+      conditions.push(sql`${customizationsTable.name} like ${pattern}`);
     }
     if (status !== undefined) {
-      conditions.push(eq(productCustomizationsTable.status, status));
+      conditions.push(eq(customizationsTable.status, status));
     }
     if (productId !== undefined) {
-      conditions.push(eq(productCustomizationsTable.productId, productId));
+      conditions.push(eq(customizationsTable.productId, productId));
     }
 
     if (conditions.length > 0) {
@@ -67,8 +67,8 @@ export const productCustomizationRepository = {
   async getCustomizationById(id: number) {
     const rows = await db
       .select()
-      .from(productCustomizationsTable)
-      .where(eq(productCustomizationsTable.id, id))
+      .from(customizationsTable)
+      .where(eq(customizationsTable.id, id))
       .limit(1);
     return rows[0] ?? null;
   },
@@ -76,8 +76,8 @@ export const productCustomizationRepository = {
   async getCustomizationByProductId(productId: number) {
     const rows = await db
       .select()
-      .from(productCustomizationsTable)
-      .where(eq(productCustomizationsTable.productId, productId))
+      .from(customizationsTable)
+      .where(eq(customizationsTable.productId, productId))
       .limit(1);
     return rows[0] ?? null;
   },
@@ -91,16 +91,16 @@ export const productCustomizationRepository = {
     return rows[0] ?? null;
   },
 
-  async createCustomization(data: typeof productCustomizationsTable.$inferInsert) {
-    const result = await db.insert(productCustomizationsTable).values(data);
+  async createCustomization(data: typeof customizationsTable.$inferInsert) {
+    const result = await db.insert(customizationsTable).values(data);
     return Number(result[0]?.insertId ?? 0);
   },
 
-  async updateCustomizationById(id: number, data: Partial<typeof productCustomizationsTable.$inferInsert>) {
+  async updateCustomizationById(id: number, data: Partial<typeof customizationsTable.$inferInsert>) {
     await db
-      .update(productCustomizationsTable)
+      .update(customizationsTable)
       .set(data)
-      .where(eq(productCustomizationsTable.id, id));
+      .where(eq(customizationsTable.id, id));
   },
 
   // ─── Option CRUD ────────────────────────────────
@@ -116,7 +116,7 @@ export const productCustomizationRepository = {
         status: customizationOptionsTable.status,
         ingredientId: customizationOptionsTable.ingredientId,
         ingredientName: sql<string>`coalesce(${ingredientsTable.name}, '')`,
-        quantity: customizationOptionsTable.quantity,
+        quantity: customizationOptionsTable.ingredientQuantity,
         createdAt: customizationOptionsTable.createdAt,
         updatedAt: customizationOptionsTable.updatedAt,
       })
@@ -146,7 +146,7 @@ export const productCustomizationRepository = {
         status: customizationOptionsTable.status,
         ingredientId: customizationOptionsTable.ingredientId,
         ingredientName: sql<string>`coalesce(${ingredientsTable.name}, '')`,
-        quantity: customizationOptionsTable.quantity,
+        quantity: customizationOptionsTable.ingredientQuantity,
         createdAt: customizationOptionsTable.createdAt,
         updatedAt: customizationOptionsTable.updatedAt,
       })

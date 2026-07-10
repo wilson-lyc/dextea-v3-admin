@@ -5,7 +5,7 @@ import {
   productsTable,
   productIngredientsTable,
   customizationOptionsTable,
-  productCustomizationsTable,
+  customizationsTable,
 } from '@/plugins/db/mysql/schema.js';
 import { withPagination } from '@/plugins/utils/pagination.js';
 
@@ -182,11 +182,11 @@ export const ingredientRepository = {
       .select({
         optionId: customizationOptionsTable.id,
         optionName: customizationOptionsTable.name,
-        customizationName: productCustomizationsTable.name,
-        quantity: customizationOptionsTable.quantity,
+        customizationName: customizationsTable.name,
+        quantity: customizationOptionsTable.ingredientQuantity,
       })
       .from(customizationOptionsTable)
-      .innerJoin(productCustomizationsTable, eq(customizationOptionsTable.customizationId, productCustomizationsTable.id))
+      .innerJoin(customizationsTable, eq(customizationOptionsTable.customizationId, customizationsTable.id))
       .where(eq(customizationOptionsTable.ingredientId, ingredientId))
       .orderBy(customizationOptionsTable.id)
       .$dynamic();
@@ -217,21 +217,21 @@ export const ingredientRepository = {
   async bindOption(optionId: number, ingredientId: number, quantity: number) {
     await db
       .update(customizationOptionsTable)
-      .set({ ingredientId, quantity })
+      .set({ ingredientId, ingredientQuantity: quantity })
       .where(eq(customizationOptionsTable.id, optionId));
   },
 
   async updateOptionQuantity(optionId: number, quantity: number) {
     await db
       .update(customizationOptionsTable)
-      .set({ quantity })
+      .set({ ingredientQuantity: quantity })
       .where(eq(customizationOptionsTable.id, optionId));
   },
 
   async unbindOption(optionId: number) {
     await db
       .update(customizationOptionsTable)
-      .set({ ingredientId: null, quantity: 0 })
+      .set({ ingredientId: null, ingredientQuantity: 0 })
       .where(eq(customizationOptionsTable.id, optionId));
   },
 

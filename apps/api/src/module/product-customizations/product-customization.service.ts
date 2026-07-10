@@ -123,7 +123,7 @@ export const productCustomizationService = {
       price: price ?? 0,
       sort: sort ?? 0,
       ingredientId: ingredientId ?? null,
-      quantity: quantity ?? 0,
+      ingredientQuantity: quantity ?? 0,
     });
 
     const created = await productCustomizationRepository.getOptionByIdWithIngredient(insertId);
@@ -160,7 +160,7 @@ export const productCustomizationService = {
       }
       updateData.ingredientId = ingredientId;
     }
-    if (quantity !== undefined) updateData.quantity = quantity;
+    if (quantity !== undefined) updateData.ingredientQuantity = quantity;
 
     if (Object.keys(updateData).length > 0) {
       await productCustomizationRepository.updateOptionById(optionId, updateData);
