@@ -7,7 +7,7 @@ export type {
   ApiResponse,
   PaginatedData,
   PaginatedResponse,
-} from "./shared.type"
+} from "./client"
 
 
 export * from "./auth"

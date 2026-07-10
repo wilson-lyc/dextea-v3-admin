@@ -1,14 +1,1 @@
-export type ApiResponse<T = unknown> = {
-  code: number
-  data: T
-  message: string
-}
-
-export type PaginatedData<T> = {
-  items: T[]
-  total: number
-  page: number
-  pageSize: number
-}
-
-export type PaginatedResponse<T> = ApiResponse<PaginatedData<T>>
+export type { ApiResponse, PaginatedData, PaginatedResponse } from "@dextea-admin/contracts"

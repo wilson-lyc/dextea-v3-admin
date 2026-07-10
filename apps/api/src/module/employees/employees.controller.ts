@@ -10,7 +10,7 @@ import {
   UpdateEmployeeRequestSchema,
   UpdateEmployeeResponseSchema,
   ToggleEmployeeStatusResponseSchema,
-} from './employees.type.js';
+} from '@dextea-admin/contracts';
 
 export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
   app.get(

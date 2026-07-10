@@ -4,8 +4,8 @@ import { EmployeeErrorCodes } from './employees.errorcode.js';
 import { employeeRepository } from './employees.repository.js';
 import { validateEmail, validateMaxLength } from '@/plugins/utils/validation.js';
 import { hashPassword } from '@/plugins/utils/password.js';
-import { EMPLOYEE_STATUS } from './employees.type.js';
-import type { GetEmployeeListRequest, CreateEmployeeRequest, UpdateEmployeeRequest } from './employees.type.js';
+import { EMPLOYEE_STATUS } from '@dextea-admin/contracts';
+import type { GetEmployeeListRequest, CreateEmployeeRequest, UpdateEmployeeRequest } from '@dextea-admin/contracts';
 
 export const employeeService = {
   async getEmployeeListWithPage(params: GetEmployeeListRequest) {

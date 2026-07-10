@@ -1,46 +1,23 @@
 import { createModuleClient, type ApiResponse, type PaginatedData } from "./client"
-import type { EmployeeStatus } from "@/lib/status"
+import type {
+  Employee,
+  CreateEmployeeRequest,
+  UpdateEmployeeRequest,
+  CreateEmployeeResponse,
+  UpdateEmployeeResponse,
+  ToggleEmployeeStatusResponse,
+  GetEmployeeListRequest,
+} from "@dextea-admin/contracts"
 
-// ──── DTO ────
-export interface Employee {
-  id: number
-  email: string
-  displayName: string
-  status: EmployeeStatus
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CreateEmployeeRequest {
-  email: string
-  displayName: string
-}
-
-export interface UpdateEmployeeRequest {
-  email: string
-  displayName: string
-}
-
-export interface CreateEmployeeResponse {
-  user: {
-    id: number
-    email: string
-    displayName: string
-    status: EmployeeStatus
-  }
-  initialPassword: string
-}
-
-export interface UpdateEmployeeResponse {
-  id: number
-  email: string
-  displayName: string
-}
-
-export interface ToggleEmployeeStatusResponse {
-  email: string
-  status: EmployeeStatus
-}
+// ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
+export type {
+  Employee,
+  CreateEmployeeRequest,
+  UpdateEmployeeRequest,
+  CreateEmployeeResponse,
+  UpdateEmployeeResponse,
+  ToggleEmployeeStatusResponse,
+} from "@dextea-admin/contracts"
 
 const http = createModuleClient("employee")
 
@@ -48,7 +25,7 @@ const http = createModuleClient("employee")
  * 获取员工列表（分页）
  * GET /employees
  */
-export function getEmployees(params?: { page?: number; pageSize?: number; keyword?: string }) {
+export function getEmployees(params?: Partial<GetEmployeeListRequest>) {
   return http
     .get<ApiResponse<PaginatedData<Employee>>>("/employees", { params })
     .then((res) => res.data)

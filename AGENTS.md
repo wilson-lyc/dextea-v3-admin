@@ -81,6 +81,27 @@ The old `src/routes/` layer is deprecated — use `src/module/` for new code.
 4. Register in `src/index.ts`: `await app.register(registerXxxModule)`.
 5. Run `pnpm --filter api typecheck` to verify.
 
+### Shared contracts package (`packages/contracts`)
+
+前后端共享的「契约」统一放在 `packages/contracts`（包名 `@dextea-admin/contracts`），是 DTO 与状态枚举的单一真源，避免前后端各写一份导致漂移。
+
+- **发布形态**：该包需先 `tsc` 构建出 `dist/`（含 `.d.ts`），前后端均以 `node_modules` 依赖形式消费——API 用 `tsc` 且 `rootDir: ./src`，只有 `.d.ts`/`.js` 产物能绕过 rootDir 限制；Web 由 Vite 直接打包。
+- **构建顺序**：`apps/api` 与 `apps/web` 的 `build`/`typecheck`/`dev` 脚本已通过 `pnpm -C packages/contracts build` 先构建本包（根 `pnpm typecheck`/`build` 同理）。
+- **依赖声明**：`apps/api` 与 `apps/web` 的 `package.json` 均已加入 `"@dextea-admin/contracts": "workspace:*"`（pnpm 仅会软链被声明依赖的工作区包）。
+- **导出子路径**：
+  - `@dextea-admin/contracts` → 全部（公共响应体 `ApiResponse`/`PaginatedData`/`ApiResponseSchema`/`PaginatedDataSchema`、各模块 DTO、状态枚举）。
+  - `@dextea-admin/contracts/status` → 仅状态枚举（不含 zod，供前端运行时使用而不引入 zod 包）。
+  - `@dextea-admin/contracts/dto` → 仅 DTO。
+- **状态枚举约定**：每个状态项统一包含三字段 `key`（稳定字符串键）、`label`（中文语义，界面展示用）、`value`（数字，存储/传输用）。例：
+  ```ts
+  export const EMPLOYEE_STATUS = {
+    DISABLED: { key: 'disabled', label: '禁用', value: 0 },
+    ACTIVE: { key: 'active', label: '激活', value: 1 },
+  } as const;
+  ```
+- **模块 type.ts 的写法**：已迁移模块不再保留 `module/{name}/{name}.type.ts` 薄层，直接在 controller/service 中 `import ... from '@dextea-admin/contracts'`，不要在模块内重复定义 schema/类型/枚举。若某模块有大量既有相对路径引用（如 `auth` 等其它模块 `import ... from '../employees/employees.type.js'`），可临时保留一个再导出薄层过渡，待引用方改完即删除。
+- **Zod 版本**：本包固定 `zod@4.4.3`，与 API 保持一致；前端以 `import type` 引入类型（编译期擦除，不会把 zod 打进浏览器包）。
+
 ## Frontend (`apps/web`)
 
 ### Stack
