@@ -103,9 +103,7 @@ export const configTable = mysqlTable('config', {
 export const storesTable = mysqlTable('stores', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull(),
-  province: varchar({ length: 100 }).notNull(),
-  city: varchar({ length: 100 }).notNull(),
-  district: varchar({ length: 100 }).notNull(),
+  regionCode: varchar('region_code', { length: 6 }).notNull(),
   address: varchar({ length: 500 }).notNull(),
   status: tinyint().notNull(),
   businessHours: varchar('business_hours', { length: 255 }).notNull(),

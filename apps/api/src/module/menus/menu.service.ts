@@ -1,6 +1,7 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { MenuErrorCodes } from './menu.errorcode.js';
 import { menuRepository } from './menu.repository.js';
+import { resolveAreaPrefix } from '@/plugins/utils/division.js';
 import type {
   MenuListRequest,
   CreateMenuRequest,
@@ -201,26 +202,22 @@ export const menuService = {
       throw new BizError(MenuErrorCodes.PROVINCE_REQUIRED);
     }
 
-    const trimmedProvince = province.trim();
-    const trimmedCity = city?.trim();
-    const trimmedDistrict = district?.trim();
-
-    const matched = await menuRepository.countStoresByArea(
-      trimmedProvince,
-      trimmedCity || undefined,
-      trimmedDistrict || undefined,
+    const regionPrefix = resolveAreaPrefix(
+      province.trim(),
+      city?.trim() || undefined,
+      district?.trim() || undefined,
     );
+    if (!regionPrefix) {
+      throw new BizError(MenuErrorCodes.NO_MATCHED_STORES);
+    }
+
+    const matched = await menuRepository.countStoresByArea(regionPrefix);
 
     if (matched === 0) {
       throw new BizError(MenuErrorCodes.NO_MATCHED_STORES);
     }
 
-    const unboundStores = await menuRepository.getUnboundStoreIdsByArea(
-      menuId,
-      trimmedProvince,
-      trimmedCity || undefined,
-      trimmedDistrict || undefined,
-    );
+    const unboundStores = await menuRepository.getUnboundStoreIdsByArea(menuId, regionPrefix);
 
     if (unboundStores.length === 0) {
       return { matched, dispatched: 0 };

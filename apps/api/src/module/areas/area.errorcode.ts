@@ -8,4 +8,5 @@ export const AreaErrorCodes = {
   CHILDREN_FAILED: { code: 10401, message: '获取子级地区失败' },
   RESOLVE_FAILED: { code: 10402, message: '解析地区失败' },
   INVALID_AREA_CODE: { code: 10403, message: '无效的地区编码' },
+  PATH_FAILED: { code: 10404, message: '获取行政区划链路失败' },
 } as const satisfies Record<string, BizErrorCode>;

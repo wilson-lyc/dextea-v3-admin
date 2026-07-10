@@ -28,9 +28,7 @@ interface CreateStoreDialogProps {
 
 export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStoreDialogProps) {
   const [formName, setFormName] = useState("")
-  const [formProvince, setFormProvince] = useState("")
-  const [formCity, setFormCity] = useState("")
-  const [formDistrict, setFormDistrict] = useState("")
+  const [formRegionCode, setFormRegionCode] = useState("")
   const [formAddress, setFormAddress] = useState("")
   const [formBusinessHours, setFormBusinessHours] = useState("")
   const [formPhone, setFormPhone] = useState("")
@@ -48,9 +46,7 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
   useEffect(() => {
     if (!open) {
       setFormName("")
-      setFormProvince("")
-      setFormCity("")
-      setFormDistrict("")
+      setFormRegionCode("")
       setFormAddress("")
       setFormBusinessHours("")
       setFormPhone("")
@@ -62,9 +58,7 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
   }, [open])
 
   const handleAreaChange = useCallback((value: AreaValue) => {
-    setFormProvince(value.province)
-    setFormCity(value.city)
-    setFormDistrict(value.district)
+    setFormRegionCode(value.code)
   }, [])
 
   const handleSubmit = async () => {
@@ -90,9 +84,7 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
     try {
       const res = await createStore({
         name: formName,
-        province: formProvince,
-        city: formCity,
-        district: formDistrict,
+        regionCode: formRegionCode,
         address: formAddress,
         businessHours: formBusinessHours,
         phone: formPhone,

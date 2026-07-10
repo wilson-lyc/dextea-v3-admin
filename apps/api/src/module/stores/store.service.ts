@@ -4,6 +4,7 @@ import { StoreErrorCodes } from './store.errorcode.js';
 import { storeRepository } from './store.repository.js';
 import { redis } from '@/plugins/db/redis/index.js';
 import { geocode } from '@/plugins/utils/geocode.js';
+import { resolveDivisionNames } from '@/plugins/utils/division.js';
 import { hashPassword } from '@/plugins/utils/password.js';
 import { STORE_STATUS_VALUES } from './store.type.js';
 import type { StoreListRequest, CreateStoreRequest, UpdateStoreRequest, UpdateStoreBasicInfoRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest, BindStoreMenuRequest } from './store.type.js';
@@ -22,19 +23,20 @@ export const storeService = {
   },
 
   async createStore(input: CreateStoreRequest) {
-    const { name, province, city, district, address, businessHours, phone, account, email } = input;
+    const { name, regionCode, address, businessHours, phone, account, email } = input;
 
     const existing = await storeRepository.getStoreByAccount(account ?? '');
     if (existing) {
       throw new BizError(StoreErrorCodes.ACCOUNT_EXISTS);
     }
 
-    const coords = await geocode(province ?? '', city ?? '', district ?? '', address ?? '');
+    const areaNames = resolveDivisionNames(regionCode ?? '');
+    const coords = await geocode(areaNames.province, areaNames.city, areaNames.district, address ?? '');
     const longitude = coords?.longitude ?? 0;
     const latitude = coords?.latitude ?? 0;
 
     if (!coords) {
-      console.warn(`Geocoding failed for ${[province, city, district, address].filter(Boolean).join('')}`);
+      console.warn(`Geocoding failed for ${[areaNames.province, areaNames.city, areaNames.district, address].filter(Boolean).join('')}`);
     }
 
     const initialPassword = nanoid(12);
@@ -42,9 +44,7 @@ export const storeService = {
 
     const id = await storeRepository.createStore({
       name,
-      province: province ?? '',
-      city: city ?? '',
-      district: district ?? '',
+      regionCode: regionCode ?? '',
       address: address ?? '',
       businessHours: businessHours ?? '',
       phone: phone ?? '',
@@ -61,7 +61,7 @@ export const storeService = {
   },
 
   async updateStore(id: number, input: UpdateStoreRequest) {
-    const { name, province, city, district, address, status, businessHours, phone, longitude, latitude } = input;
+    const { name, regionCode, address, status, businessHours, phone, longitude, latitude } = input;
 
     const store = await storeRepository.getStoreById(id);
     if (!store) {
@@ -70,9 +70,7 @@ export const storeService = {
 
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name;
-    if (province !== undefined) updateData.province = province;
-    if (city !== undefined) updateData.city = city;
-    if (district !== undefined) updateData.district = district;
+    if (regionCode !== undefined) updateData.regionCode = regionCode;
     if (address !== undefined) updateData.address = address;
     if (status !== undefined) updateData.status = status;
     if (businessHours !== undefined) updateData.businessHours = businessHours;
@@ -104,7 +102,7 @@ export const storeService = {
   },
 
   async updateStoreLocation(id: number, input: UpdateStoreLocationRequest) {
-    const { province, city, district, address, longitude, latitude } = input;
+    const { regionCode, address, longitude, latitude } = input;
 
     const store = await storeRepository.getStoreById(id);
     if (!store) {
@@ -112,9 +110,7 @@ export const storeService = {
     }
 
     await storeRepository.updateStoreById(id, {
-      province: province ?? '',
-      city: city ?? '',
-      district: district ?? '',
+      regionCode: regionCode ?? '',
       address: address ?? '',
       longitude,
       latitude,

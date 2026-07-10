@@ -840,9 +840,10 @@ export async function menuRoutes(app: FastifyInstance) {
                     properties: {
                       id: { type: 'integer' },
                       name: { type: 'string' },
-                      province: { type: 'string' },
-                      city: { type: 'string' },
-                      district: { type: 'string' },
+                      regionCode: { type: 'string', description: '行政区划代码' },
+                      province: { type: 'string', description: '省份（由代码反查）' },
+                      city: { type: 'string', description: '城市（由代码反查）' },
+                      district: { type: 'string', description: '区县（由代码反查）' },
                       address: { type: 'string' },
                       status: { type: 'integer', description: '0=休息中 1=营业中 2=筹备中 3=已注销' },
                       businessHours: { type: 'string' },

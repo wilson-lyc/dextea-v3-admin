@@ -1,4 +1,4 @@
-import { eq, sql, and, inArray } from 'drizzle-orm';
+import { eq, sql, and, inArray, like } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
 import {
   menusTable,
@@ -244,9 +244,7 @@ export const menuRepository = {
         .select({
           id: storesTable.id,
           name: storesTable.name,
-          province: storesTable.province,
-          city: storesTable.city,
-          district: storesTable.district,
+          regionCode: storesTable.regionCode,
           address: storesTable.address,
           status: storesTable.status,
           businessHours: storesTable.businessHours,
@@ -270,29 +268,21 @@ export const menuRepository = {
     return { items, total, page, pageSize };
   },
 
-  async countStoresByArea(province: string, city?: string, district?: string) {
-    const conditions: ReturnType<typeof eq>[] = [eq(storesTable.province, province)];
-    if (city) conditions.push(eq(storesTable.city, city));
-    if (district) conditions.push(eq(storesTable.district, district));
-
+  async countStoresByArea(regionPrefix: string) {
     const [result] = await db
       .select({ count: sql<number>`count(*)` })
       .from(storesTable)
-      .where(and(...conditions));
+      .where(like(storesTable.regionCode, `${regionPrefix}%`));
     return Number(result?.count ?? 0);
   },
 
-  async getUnboundStoreIdsByArea(menuId: number, province: string, city?: string, district?: string) {
-    const conditions: ReturnType<typeof eq>[] = [eq(storesTable.province, province)];
-    if (city) conditions.push(eq(storesTable.city, city));
-    if (district) conditions.push(eq(storesTable.district, district));
-
+  async getUnboundStoreIdsByArea(menuId: number, regionPrefix: string) {
     return db
       .select({ id: storesTable.id })
       .from(storesTable)
       .where(
         and(
-          ...conditions,
+          like(storesTable.regionCode, `${regionPrefix}%`),
           sql`not exists (select 1 from ${storeMenusTable} where ${storeMenusTable.storeId} = ${storesTable.id} and ${storeMenusTable.menuId} = ${menuId})`,
         ),
       );

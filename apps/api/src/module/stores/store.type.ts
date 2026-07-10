@@ -18,9 +18,7 @@ export const STORE_STATUS_VALUES: readonly StoreStatus[] = [0, 1, 2, 3];
 export const StoreSchema = z.object({
   id: z.number(),
   name: z.string(),
-  province: z.string(),
-  city: z.string(),
-  district: z.string(),
+  regionCode: z.string(),
   address: z.string(),
   status: z.number(),
   businessHours: z.string(),
@@ -55,9 +53,7 @@ export type StoreGetResponse = Store;
 
 export const CreateStoreRequestSchema = z.object({
   name: z.string().min(1, '门店名称不能为空'),
-  province: z.string().optional(),
-  city: z.string().optional(),
-  district: z.string().optional(),
+  regionCode: z.string().optional(),
   address: z.string().optional(),
   businessHours: z.string().optional(),
   phone: z.string().min(1, '联系电话不能为空'),
@@ -78,9 +74,7 @@ export type CreateStoreResponse = z.infer<typeof CreateStoreResponseSchema>;
 
 export const UpdateStoreRequestSchema = z.object({
   name: z.string().min(1, '门店名称不能为空'),
-  province: z.string().optional(),
-  city: z.string().optional(),
-  district: z.string().optional(),
+  regionCode: z.string().optional(),
   address: z.string().optional(),
   status: z.number().optional(),
   businessHours: z.string().optional(),
@@ -113,9 +107,7 @@ export type UpdateStoreBasicInfoResponse = z.infer<typeof UpdateStoreBasicInfoRe
 // 更新门店位置
 
 export const UpdateStoreLocationRequestSchema = z.object({
-  province: z.string().optional(),
-  city: z.string().optional(),
-  district: z.string().optional(),
+  regionCode: z.string().optional(),
   address: z.string().optional(),
   longitude: z.number(),
   latitude: z.number(),

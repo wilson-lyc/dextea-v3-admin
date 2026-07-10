@@ -38,9 +38,7 @@ export type MenuProduct = z.infer<typeof MenuProductSchema>;
 export const MenuStoreSchema = z.object({
   id: z.number(),
   name: z.string(),
-  province: z.string(),
-  city: z.string(),
-  district: z.string(),
+  regionCode: z.string(),
   address: z.string(),
   status: z.number(),
   businessHours: z.string(),

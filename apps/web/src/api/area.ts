@@ -35,3 +35,11 @@ export function getChildren(code: string) {
 export function resolveNames(data: ResolveAreaRequest) {
   return http.post<ApiResponse<Division[]>>("/areas/resolve", data).then((res) => res.data)
 }
+
+/**
+ * 获取行政区划链路（从顶级到指定代码，用于反查省/市/区）
+ * GET /areas/:code/path
+ */
+export function getDivisionPath(code: string) {
+  return http.get<ApiResponse<Division[]>>(`/areas/${code}/path`).then((res) => res.data)
+}

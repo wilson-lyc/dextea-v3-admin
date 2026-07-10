@@ -20,4 +20,5 @@ export const StoreErrorCodes = {
   RESET_PASSWORD_FAILED: { code: 10313, message: '重置密码失败' },
   MENU_BIND_FAILED: { code: 10314, message: '绑定菜单失败' },
   MENU_NOT_FOUND: { code: 10315, message: '菜单不存在' },
+  INVALID_REGION_CODE: { code: 10316, message: '无效的行政区划代码' },
 } as const satisfies Record<string, BizErrorCode>;

@@ -1,11 +1,12 @@
 import type { MySql2Database } from 'drizzle-orm/mysql2';
 
 type Db = MySql2Database<Record<string, unknown>>;
-import { eq, and, inArray, sql } from 'drizzle-orm';
+import { eq, and, inArray, like, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { storesTable, menusTable, storeMenuRelationsTable } from '../plugins/db/mysql/schema.js';
 import { geocode } from '../plugins/utils/geocode.js';
 import { hashPassword } from '../plugins/utils/password.js';
+import { resolveDivisionNames, resolveAreaPrefix, isValidRegionCode } from '../plugins/utils/division.js';
 import { BizError } from '@/common/exceptions/index.js';
 import { StoreErrorCodes } from '@/module/stores/store.errorcode.js';
 import { MenuErrorCodes } from '@/module/menus/menu.errorcode.js';
@@ -59,6 +60,29 @@ export interface SyncStoreLocationsExtra {
   redis: RedisClient;
 }
 
+// 将数据库行（仅含 regionCode）映射为对外 DTO（含反查得到的省/市/区名称）
+function toStoreDto(row: typeof storesTable.$inferSelect): Store {
+  const names = resolveDivisionNames(row.regionCode);
+  return {
+    id: row.id,
+    name: row.name,
+    regionCode: row.regionCode,
+    province: names.province,
+    city: names.city,
+    district: names.district,
+    address: row.address,
+    status: row.status,
+    businessHours: row.businessHours,
+    phone: row.phone,
+    longitude: row.longitude,
+    latitude: row.latitude,
+    account: row.account,
+    email: row.email,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
 // ─── Service Functions ──────────────────────────────────
 
 /**
@@ -89,10 +113,12 @@ export async function listStores(
       countQuery = countQuery.where(filter);
     }
 
-    const items = await query
+    const rows = await query
       .limit(pageSize)
       .offset(offset)
       .orderBy(storesTable.id);
+
+    const items = rows.map(toStoreDto);
 
     const countResult = await countQuery;
     const total = Number(countResult[0]?.count ?? 0);
@@ -122,7 +148,7 @@ export async function getStore(
       throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
 
-    return store[0];
+    return toStoreDto(store[0]);
   } catch (error) {
     if (error instanceof BizError) throw error;
     throw new BizError(StoreErrorCodes.GET_FAILED);
@@ -138,17 +164,18 @@ export async function createStore(
   extra: CreateStoreExtra,
 ): Promise<{ id: number; initialPassword: string }> {
   try {
-    const { name, province, city, district, address, businessHours, phone, account, email } = input;
+    const { name, regionCode, address, businessHours, phone, account, email } = input;
     const { requestLogWarn, redis } = extra;
 
     validateMaxLength(name, 255, '门店名称');
     validateMaxLength(account, 255, '登录账号');
-    validateMaxLength(province, 100, '省份');
-    validateMaxLength(city, 100, '城市');
-    validateMaxLength(district, 100, '区县');
     validateMaxLength(address, 500, '详细地址');
     validatePhone(phone);
     validateEmail(email, '门店邮箱');
+
+    if (!regionCode || !isValidRegionCode(regionCode)) {
+      throw new BizError(StoreErrorCodes.INVALID_REGION_CODE);
+    }
 
     const existingStore = await db
       .select()
@@ -160,13 +187,14 @@ export async function createStore(
       throw new BizError(StoreErrorCodes.ACCOUNT_EXISTS);
     }
 
-    const coords = await geocode(province, city, district, address);
+    const areaNames = resolveDivisionNames(regionCode);
+    const coords = await geocode(areaNames.province, areaNames.city, areaNames.district, address);
     const longitude = coords?.longitude ?? 0;
     const latitude = coords?.latitude ?? 0;
 
     if (!coords) {
       requestLogWarn(
-        { address: [province, city, district, address].filter(Boolean).join('') },
+        { address: [areaNames.province, areaNames.city, areaNames.district, address].filter(Boolean).join('') },
         'Geocoding failed, using default coordinates',
       );
     }
@@ -176,9 +204,7 @@ export async function createStore(
 
     const result = await db.insert(storesTable).values({
       name,
-      province: province ?? '',
-      city: city ?? '',
-      district: district ?? '',
+      regionCode,
       address: address ?? '',
       businessHours: businessHours ?? '',
       phone: phone ?? '',
@@ -215,14 +241,15 @@ export async function updateStore(
   input: UpdateStoreInput,
 ): Promise<{ id: number }> {
   try {
-    const { name, province, city, district, address, status, businessHours, phone, longitude, latitude } = input;
+    const { name, regionCode, address, status, businessHours, phone, longitude, latitude } = input;
 
     validateMaxLength(name, 255, '门店名称');
-    validateMaxLength(province, 100, '省份');
-    validateMaxLength(city, 100, '城市');
-    validateMaxLength(district, 100, '区县');
     validateMaxLength(address, 500, '详细地址');
     validatePhone(phone);
+
+    if (regionCode !== undefined && !isValidRegionCode(regionCode)) {
+      throw new BizError(StoreErrorCodes.INVALID_REGION_CODE);
+    }
 
     const store = await db
       .select()
@@ -238,9 +265,7 @@ export async function updateStore(
       .update(storesTable)
       .set({
         name,
-        province,
-        city,
-        district,
+        ...(regionCode !== undefined ? { regionCode } : {}),
         address,
         status,
         businessHours,
@@ -304,15 +329,16 @@ export async function updateStoreLocation(
   extra: UpdateStoreLocationExtra,
 ): Promise<{ id: number }> {
   try {
-    const { province, city, district, address, longitude, latitude } = input;
+    const { regionCode, address, longitude, latitude } = input;
     const { redis } = extra;
 
-    validateMaxLength(province, 100, '省份');
-    validateMaxLength(city, 100, '城市');
-    validateMaxLength(district, 100, '区县');
     validateMaxLength(address, 500, '详细地址');
     validateLongitude(longitude);
     validateLatitude(latitude);
+
+    if (!regionCode || !isValidRegionCode(regionCode)) {
+      throw new BizError(StoreErrorCodes.INVALID_REGION_CODE);
+    }
 
     const store = await db
       .select()
@@ -326,7 +352,7 @@ export async function updateStoreLocation(
 
     await db
       .update(storesTable)
-      .set({ province, city, district, address, longitude, latitude })
+      .set({ regionCode, address, longitude, latitude })
       .where(eq(storesTable.id, id));
 
     if (redis) {
@@ -514,14 +540,12 @@ export async function getMenuStores(
 
   const total = Number(countResult[0]?.count ?? 0);
 
-  const items = await withPagination(
+  const rows = await withPagination(
     db
       .select({
         id: storesTable.id,
         name: storesTable.name,
-        province: storesTable.province,
-        city: storesTable.city,
-        district: storesTable.district,
+        regionCode: storesTable.regionCode,
         address: storesTable.address,
         status: storesTable.status,
         businessHours: storesTable.businessHours,
@@ -541,6 +565,8 @@ export async function getMenuStores(
     page,
     pageSize,
   );
+
+  const items = rows.map(toStoreDto);
 
   return { items, total, page, pageSize };
 }
@@ -569,15 +595,17 @@ export async function dispatchMenuByArea(
     throw new BizError(MenuErrorCodes.PROVINCE_REQUIRED);
   }
 
-  // 构建区域匹配条件
-  const conditions = [eq(storesTable.province, input.province.trim())];
-  if (input.city && input.city.trim().length > 0) {
-    conditions.push(eq(storesTable.city, input.city.trim()));
+  // 将省/市/区名称解析为 regionCode 前缀，按代码前缀匹配门店
+  const regionPrefix = resolveAreaPrefix(
+    input.province.trim(),
+    input.city?.trim() || undefined,
+    input.district?.trim() || undefined,
+  );
+  if (!regionPrefix) {
+    throw new BizError(MenuErrorCodes.NO_MATCHED_STORES);
   }
-  if (input.district && input.district.trim().length > 0) {
-    conditions.push(eq(storesTable.district, input.district.trim()));
-  }
-  const whereClause = and(...conditions);
+
+  const whereClause = like(storesTable.regionCode, `${regionPrefix}%`);
 
   // 查询符合区域的门店总数
   const [countResult] = await db

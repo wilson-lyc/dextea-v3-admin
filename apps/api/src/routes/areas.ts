@@ -6,6 +6,7 @@ import {
 } from '@aurouscia/china-areas/dist/index.js';
 import { BizError } from '@/common/exceptions/index.js';
 import { AreaErrorCodes } from '@/module/areas/area.errorcode.js';
+import { getDivisionPath } from '@/plugins/utils/division.js';
 import type { ApiResponse, Division, ResolveAreaRequest } from '@dextea/shared-types';
 
 export async function areaRoutes(app: FastifyInstance) {
@@ -143,6 +144,53 @@ export async function areaRoutes(app: FastifyInstance) {
     } catch (error) {
       if (error instanceof BizError) throw error;
       throw new BizError(AreaErrorCodes.RESOLVE_FAILED);
+    }
+  });
+
+  /** 行政区划链路（从顶级到指定代码，用于反查省/市/区） */
+  app.get<{
+    Params: { code: string };
+    Reply: ApiResponse<Division[]>;
+  }>('/areas/:code/path', {
+    schema: {
+      description: '获取行政区划链路（从顶级到指定代码）',
+      tags: ['Areas'],
+      params: {
+        type: 'object',
+        properties: {
+          code: { type: 'string', minLength: 1, description: '地区编码' },
+        },
+        required: ['code'],
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            code: { type: 'integer', description: '业务状态码，0=成功' },
+            data: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  code: { type: 'string' },
+                  name: { type: 'string' },
+                },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
+    try {
+      const { code } = request.params;
+      const path = getDivisionPath(code);
+      return { code: 0, data: path, message: 'ok' };
+    } catch (error) {
+      if (error instanceof BizError) throw error;
+      throw new BizError(AreaErrorCodes.PATH_FAILED);
     }
   });
 }

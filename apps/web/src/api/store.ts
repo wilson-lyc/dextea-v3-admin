@@ -5,6 +5,9 @@ import type { StoreStatus } from "@/lib/status"
 export interface Store {
   id: number
   name: string
+  /** 行政区划代码（6 位，最细一级） */
+  regionCode: string
+  /** 以下为根据 regionCode 反查得到的展示用名称 */
   province: string
   city: string
   district: string
@@ -22,9 +25,8 @@ export interface Store {
 
 export interface CreateStoreRequest {
   name: string
-  province: string
-  city: string
-  district: string
+  /** 行政区划代码（6 位，最细一级） */
+  regionCode: string
   address: string
   businessHours: string
   phone: string
@@ -36,9 +38,8 @@ export interface CreateStoreRequest {
 
 export interface UpdateStoreRequest {
   name: string
-  province: string
-  city: string
-  district: string
+  /** 行政区划代码（6 位，最细一级） */
+  regionCode: string
   address: string
   status: StoreStatus
   businessHours: string
@@ -76,9 +77,8 @@ export interface UpdateStoreBasicInfoResponse {
 }
 
 export interface UpdateStoreLocationRequest {
-  province: string
-  city: string
-  district: string
+  /** 行政区划代码（6 位，最细一级） */
+  regionCode: string
   address: string
   longitude: number
   latitude: number
