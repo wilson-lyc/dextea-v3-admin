@@ -2,10 +2,10 @@ import {
   createModuleClient,
   type ApiResponse,
   type PaginatedData,
-} from "./index"
+} from "./client"
 import type {
   ProductStatus,
-  ProductCustomizationStatus,
+  CustomizationStatus,
   CustomizationOptionStatus,
 } from "@/lib/status"
 
@@ -25,8 +25,8 @@ export interface UpsertProductStoreStatusRequest {
 export interface StoreCustomizationItem {
   id: number
   name: string
-  globalStatus: ProductCustomizationStatus
-  storeStatus: ProductCustomizationStatus
+  globalStatus: CustomizationStatus
+  storeStatus: CustomizationStatus
   optionCount: number
 }
 

@@ -8,7 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_API_TAG_BASE_URL: string
   readonly VITE_API_AREA_BASE_URL: string
   readonly VITE_API_CONFIG_BASE_URL: string
-  readonly VITE_API_PRODUCT_CUSTOMIZATION_BASE_URL: string
+  readonly VITE_API_CUSTOMIZATION_BASE_URL: string
   readonly VITE_API_INGREDIENT_BASE_URL: string
   readonly VITE_API_DASHBOARD_BASE_URL: string
   readonly VITE_API_STORE_STATUS_BASE_URL: string

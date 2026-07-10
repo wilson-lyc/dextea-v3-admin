@@ -1,4 +1,4 @@
-import { createModuleClient, type ApiResponse } from "./index"
+import { createModuleClient, type ApiResponse } from "./client"
 
 // ──── DTO ────
 export interface HealthData {

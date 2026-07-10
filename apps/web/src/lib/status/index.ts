@@ -32,14 +32,14 @@ export {
 export type { ProductStatus } from "./product-status"
 
 export {
-  PRODUCT_CUSTOMIZATION_STATUS,
-  PRODUCT_CUSTOMIZATION_STATUS_VALUES,
-  PRODUCT_CUSTOMIZATION_STATUS_LABEL,
-  PRODUCT_CUSTOMIZATION_STATUS_TEXT_CLASSES,
-  PRODUCT_CUSTOMIZATION_STATUS_BADGE_CLASSES,
-} from "./product-customization-status"
+  CUSTOMIZATION_STATUS,
+  CUSTOMIZATION_STATUS_VALUES,
+  CUSTOMIZATION_STATUS_LABEL,
+  CUSTOMIZATION_STATUS_TEXT_CLASSES,
+  CUSTOMIZATION_STATUS_BADGE_CLASSES,
+} from "./customization-status"
 
-export type { ProductCustomizationStatus } from "./product-customization-status"
+export type { CustomizationStatus } from "./customization-status"
 
 export {
   CUSTOMIZATION_OPTION_STATUS,

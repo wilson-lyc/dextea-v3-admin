@@ -3,7 +3,7 @@ import {
   type ApiResponse,
   type PaginatedData,
   type ProductTag,
-} from "./index"
+} from "./client"
 import type { ProductStatus } from "@/lib/status"
 
 // ──── DTO ────

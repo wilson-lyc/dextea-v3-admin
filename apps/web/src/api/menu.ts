@@ -2,8 +2,8 @@ import {
   createModuleClient,
   type ApiResponse,
   type PaginatedData,
-  type Store,
-} from "./index"
+} from "./client"
+import { type Store } from "./store"
 
 // ──── DTO ────
 export interface Menu {

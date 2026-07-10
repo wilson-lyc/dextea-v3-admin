@@ -1,4 +1,4 @@
-import { createModuleClient, type ApiResponse, type PaginatedData } from "./index"
+import { createModuleClient, type ApiResponse, type PaginatedData } from "./client"
 import type { IngredientStatus } from "@/lib/status"
 
 // ──── DTO ────

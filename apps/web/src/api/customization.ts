@@ -2,28 +2,28 @@ import {
   createModuleClient,
   type ApiResponse,
   type PaginatedData,
-} from "./index"
-import type { ProductCustomizationStatus, CustomizationOptionStatus } from "@/lib/status"
+} from "./client"
+import type { CustomizationStatus, CustomizationOptionStatus } from "@/lib/status"
 
 // ──── DTO ────
-export interface ProductCustomization {
+export interface Customization {
   id: number
   productId: number
   name: string
-  status: ProductCustomizationStatus
+  status: CustomizationStatus
   optionCount?: number
   createdAt: string
   updatedAt: string
 }
 
-export interface CreateProductCustomizationRequest {
+export interface CreateCustomizationRequest {
   productId: number
   name: string
 }
 
-export interface UpdateProductCustomizationRequest {
+export interface UpdateCustomizationRequest {
   name: string
-  status?: ProductCustomizationStatus
+  status?: CustomizationStatus
 }
 
 export interface CustomizationOption {
@@ -57,13 +57,13 @@ export interface UpdateCustomizationOptionRequest {
   quantity?: number
 }
 
-const http = createModuleClient("product-customization")
+const http = createModuleClient("customization")
 
 /**
  * 获取客制化项目列表（分页）
- * GET /product-customizations
+ * GET /customizations
  */
-export function getProductCustomizations(params?: {
+export function getCustomizations(params?: {
   page?: number
   pageSize?: number
   keyword?: string
@@ -71,47 +71,47 @@ export function getProductCustomizations(params?: {
   productId?: number
 }) {
   return http
-    .get<ApiResponse<PaginatedData<ProductCustomization>>>("/product-customizations", { params })
+    .get<ApiResponse<PaginatedData<Customization>>>("/customizations", { params })
     .then((res) => res.data)
 }
 
 /**
  * 获取客制化项目详情
- * GET /product-customizations/:id
+ * GET /customizations/:id
  */
-export function getProductCustomization(id: number) {
+export function getCustomization(id: number) {
   return http
-    .get<ApiResponse<ProductCustomization>>(`/product-customizations/${id}`)
+    .get<ApiResponse<Customization>>(`/customizations/${id}`)
     .then((res) => res.data)
 }
 
 /**
  * 更新客制化项目
- * PATCH /product-customizations/:id
+ * PATCH /customizations/:id
  */
-export function updateProductCustomization(id: number, data: UpdateProductCustomizationRequest) {
+export function updateCustomization(id: number, data: UpdateCustomizationRequest) {
   return http
-    .patch<ApiResponse<ProductCustomization>>(`/product-customizations/${id}`, data)
+    .patch<ApiResponse<Customization>>(`/customizations/${id}`, data)
     .then((res) => res.data)
 }
 
 /**
  * 单独更新客制化项目状态
- * PATCH /product-customizations/:id/status
+ * PATCH /customizations/:id/status
  */
-export function updateProductCustomizationStatus(id: number, status: number) {
+export function updateCustomizationStatus(id: number, status: number) {
   return http
-    .patch<ApiResponse<ProductCustomization>>(`/product-customizations/${id}/status`, { status })
+    .patch<ApiResponse<Customization>>(`/customizations/${id}/status`, { status })
     .then((res) => res.data)
 }
 
 /**
  * 创建客制化项目
- * POST /product-customizations
+ * POST /customizations
  */
-export function createProductCustomization(data: CreateProductCustomizationRequest) {
+export function createCustomization(data: CreateCustomizationRequest) {
   return http
-    .post<ApiResponse<ProductCustomization>>("/product-customizations", data)
+    .post<ApiResponse<Customization>>("/customizations", data)
     .then((res) => res.data)
 }
 
@@ -119,17 +119,17 @@ export function createProductCustomization(data: CreateProductCustomizationReque
 
 /**
  * 获取客制化选项列表
- * GET /product-customizations/:id/options
+ * GET /customizations/:id/options
  */
 export function getCustomizationOptions(customizationId: number) {
   return http
-    .get<ApiResponse<CustomizationOption[]>>(`/product-customizations/${customizationId}/options`)
+    .get<ApiResponse<CustomizationOption[]>>(`/customizations/${customizationId}/options`)
     .then((res) => res.data)
 }
 
 /**
  * 创建客制化选项
- * POST /product-customizations/:id/options
+ * POST /customizations/:id/options
  */
 export function createCustomizationOption(
   customizationId: number,
@@ -137,7 +137,7 @@ export function createCustomizationOption(
 ) {
   return http
     .post<ApiResponse<CustomizationOption>>(
-      `/product-customizations/${customizationId}/options`,
+      `/customizations/${customizationId}/options`,
       data,
     )
     .then((res) => res.data)
@@ -145,7 +145,7 @@ export function createCustomizationOption(
 
 /**
  * 更新客制化选项
- * PUT /product-customizations/:id/options/:optionId
+ * PUT /customizations/:id/options/:optionId
  */
 export function updateCustomizationOption(
   customizationId: number,
@@ -154,7 +154,7 @@ export function updateCustomizationOption(
 ) {
   return http
     .put<ApiResponse<CustomizationOption>>(
-      `/product-customizations/${customizationId}/options/${optionId}`,
+      `/customizations/${customizationId}/options/${optionId}`,
       data,
     )
     .then((res) => res.data)
@@ -162,10 +162,10 @@ export function updateCustomizationOption(
 
 /**
  * 删除客制化选项
- * DELETE /product-customizations/:id/options/:optionId
+ * DELETE /customizations/:id/options/:optionId
  */
 export function deleteCustomizationOption(customizationId: number, optionId: number) {
   return http
-    .delete<ApiResponse<null>>(`/product-customizations/${customizationId}/options/${optionId}`)
+    .delete<ApiResponse<null>>(`/customizations/${customizationId}/options/${optionId}`)
     .then((res) => res.data)
 }
