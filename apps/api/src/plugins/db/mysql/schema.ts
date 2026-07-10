@@ -20,7 +20,7 @@ export const employeesTable = mysqlTable('employees', {
   email: varchar({ length: 255 }).notNull().unique(),
   password: varchar({ length: 255 }).notNull(),
   displayName: varchar('display_name', { length: 255 }).notNull(),
-  status: tinyint().notNull().default(0),
+  status: tinyint().notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -32,7 +32,7 @@ export const rolesTable = mysqlTable('roles', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull().unique(),
   note: text(),
-  status: tinyint().notNull().default(0),
+  status: tinyint().notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -87,13 +87,12 @@ export const rolePermissionsTable = mysqlTable(
 );
 
 /**
- * 系统配置表
+ * 配置表
  */
 export const configTable = mysqlTable('config', {
   id: serial().primaryKey(),
   key: varchar({ length: 255 }).notNull().unique(),
-  value: text().notNull().default(''),
-  note: varchar({ length: 255 }),
+  value: text().notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -104,18 +103,18 @@ export const configTable = mysqlTable('config', {
 export const storesTable = mysqlTable('stores', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull(),
-  province: varchar({ length: 100 }).notNull().default(''),
-  city: varchar({ length: 100 }).notNull().default(''),
-  district: varchar({ length: 100 }).notNull().default(''),
-  address: varchar({ length: 500 }).notNull().default(''),
-  status: tinyint().notNull().default(2),
-  businessHours: varchar('business_hours', { length: 255 }).notNull().default(''),
-  phone: varchar({ length: 50 }).notNull().default(''),
-  longitude: double().notNull().default(0),
-  latitude: double().notNull().default(0),
+  province: varchar({ length: 100 }).notNull(),
+  city: varchar({ length: 100 }).notNull(),
+  district: varchar({ length: 100 }).notNull(),
+  address: varchar({ length: 500 }).notNull(),
+  status: tinyint().notNull(),
+  businessHours: varchar('business_hours', { length: 255 }).notNull(),
+  phone: varchar({ length: 50 }).notNull(),
+  longitude: double().notNull(),
+  latitude: double().notNull(),
   account: varchar({ length: 255 }).notNull().unique(),
   password: varchar({ length: 255 }).notNull(),
-  email: varchar({ length: 255 }).notNull().default(''),
+  email: varchar({ length: 255 }).notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -145,10 +144,10 @@ export const storeMenusTable = mysqlTable(
 export const productsTable = mysqlTable('products', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull(),
-  brief: varchar('brief', { length: 500 }).notNull().default(''),
-  description: varchar({ length: 2000 }).notNull().default(''),
-  status: tinyint().notNull().default(0),
-  price: double().notNull().default(0),
+  brief: varchar('brief', { length: 500 }).notNull(),
+  description: varchar({ length: 2000 }).notNull(),
+  status: tinyint().notNull(),
+  price: double().notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -187,7 +186,7 @@ export const productCustomizationsTable = mysqlTable('product_customizations', {
   id: serial().primaryKey(),
   productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
   name: varchar({ length: 255 }).notNull(),
-  status: tinyint().notNull().default(0),
+  status: tinyint().notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -200,7 +199,7 @@ export const productIngredientsTable = mysqlTable(
   {
     productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
     ingredientId: bigint('ingredient_id', { mode: 'number', unsigned: true }).notNull(),
-    quantity: double().notNull().default(0),
+    quantity: double().notNull(),
     createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
@@ -219,7 +218,7 @@ export const ingredientsTable = mysqlTable('ingredients', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull(),
   unit: varchar({ length: 50 }).notNull(),
-  status: tinyint().notNull().default(0),
+  status: tinyint().notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -231,11 +230,11 @@ export const customizationOptionsTable = mysqlTable('customization_options', {
   id: serial().primaryKey(),
   customizationId: bigint('customization_id', { mode: 'number', unsigned: true }).notNull(),
   name: varchar({ length: 255 }).notNull(),
-  price: double().notNull().default(0),
-  sort: tinyint().notNull().default(0),
-  status: tinyint().notNull().default(0),
+  price: double().notNull(),
+  sort: tinyint().notNull(),
+  status: tinyint().notNull(),
   ingredientId: bigint('ingredient_id', { mode: 'number', unsigned: true }),
-  quantity: double().notNull().default(0),
+  quantity: double().notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -248,7 +247,7 @@ export const productStoreStatusTable = mysqlTable(
   {
     productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
     storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(),
-    status: tinyint().notNull().default(0),
+    status: tinyint().notNull(),
     createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
@@ -268,7 +267,7 @@ export const customizationOptionStoreStatusTable = mysqlTable(
   {
     customizationOptionId: bigint('customization_option_id', { mode: 'number', unsigned: true }).notNull(),
     storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(),
-    status: tinyint().notNull().default(0),
+    status: tinyint().notNull(),
     createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
@@ -288,7 +287,7 @@ export const storeInventoryTable = mysqlTable(
   {
     ingredientId: bigint('ingredient_id', { mode: 'number', unsigned: true }).notNull(),
     storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(),
-    quantity: double().notNull().default(0),
+    quantity: double().notNull(),
     createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
@@ -306,7 +305,7 @@ export const storeInventoryTable = mysqlTable(
 export const menusTable = mysqlTable('menus', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull(),
-  description: varchar({ length: 500 }).notNull().default(''),
+  description: varchar({ length: 500 }).notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -318,7 +317,7 @@ export const menuGroupsTable = mysqlTable('menu_groups', {
   id: serial().primaryKey(),
   menuId: bigint('menu_id', { mode: 'number', unsigned: true }).notNull(),
   name: varchar({ length: 255 }).notNull(),
-  sortOrder: int('sort_order').notNull().default(0),
+  sortOrder: int('sort_order').notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -331,7 +330,7 @@ export const menuProductsTable = mysqlTable(
   {
     groupId: bigint('group_id', { mode: 'number', unsigned: true }).notNull(),
     productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
-    sortOrder: int('sort_order').notNull().default(0),
+    sortOrder: int('sort_order').notNull(),
     createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
@@ -352,7 +351,7 @@ export const customersTable = mysqlTable(
     id: serial().primaryKey(),
     source: tinyint().notNull(),
     openId: varchar('open_id', { length: 255 }).notNull(),
-    nickname: varchar({ length: 255 }).notNull().default(''),
+    nickname: varchar({ length: 255 }).notNull(),
     createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
@@ -370,10 +369,10 @@ export const ordersTable = mysqlTable('orders', {
   orderNo: varchar('order_no', { length: 64 }).notNull().unique(),
   customerId: bigint('customer_id', { mode: 'number', unsigned: true }).notNull(),
   storeId: bigint('store_id', { mode: 'number', unsigned: true }).notNull(),
-  status: tinyint().notNull().default(0),
-  totalAmount: double('total_amount').notNull().default(0),
+  status: tinyint().notNull(),
+  totalAmount: double('total_amount').notNull(),
   payMethod: tinyint('pay_method'),
-  remark: varchar({ length: 500 }).notNull().default(''),
+  remark: varchar({ length: 500 }).notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   paidAt: timestamp('paid_at', { mode: 'string' }),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
@@ -388,9 +387,9 @@ export const orderItemsTable = mysqlTable(
     id: serial().primaryKey(),
     orderId: bigint('order_id', { mode: 'number', unsigned: true }).notNull(),
     productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
-    skuId: varchar('sku_id', { length: 255 }).notNull().default(''),
-    unitPrice: double('unit_price').notNull().default(0),
-    quantity: int().notNull().default(1),
+    skuId: varchar('sku_id', { length: 255 }).notNull(),
+    unitPrice: double('unit_price').notNull(),
+    quantity: int().notNull(),
     createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
