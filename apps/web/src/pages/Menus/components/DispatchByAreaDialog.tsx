@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { dispatchMenuByArea } from "@/services"
+import { dispatchMenuByArea } from "@/api"
 
 interface DispatchByAreaDialogProps {
   open: boolean

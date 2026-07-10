@@ -17,7 +17,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { createEmployee } from "@/services"
+import { createEmployee } from "@/api"
 
 interface CreateEmployeeModalProps {
   open: boolean

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { CircleHelpIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { Store } from "@dextea/shared-types"
+import type { Store } from "@/api"
 import { AreaSelector } from "@/components/area"
 import type { AreaValue } from "@/components/area"
 import { Button } from "@/components/ui/button"
@@ -24,7 +24,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip"
-import { updateStoreLocation } from "@/services"
+import { updateStoreLocation } from "@/api"
 import AmapMapPicker from "@/components/amap/amap-map-picker"
 
 interface EditStoreLocationDialogProps {

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { Trash2Icon, Settings, ClipboardListIcon, RotateCwIcon, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { Menu } from "@dextea/shared-types"
+import type { Menu } from "@/api"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -17,7 +17,7 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import PaginationBar from "@/components/ui/pagination-bar"
-import { getMenus, batchDeleteMenus } from "@/services"
+import { getMenus, batchDeleteMenus } from "@/api"
 import CreateMenuDialog from "./components/CreateMenuDialog"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 

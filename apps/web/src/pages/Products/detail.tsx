@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { ArrowLeftIcon } from "lucide-react"
 
-import type { Product } from "@dextea/shared-types"
+import type { Product } from "@/api"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -20,7 +20,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import { getProductBasicInfo } from "@/services"
+import { getProductBasicInfo } from "@/api"
 import BasicInfoPanel from "./components/BasicInfoPanel"
 import TagsPanel from "./components/TagsPanel"
 import CustomizationPanel from "./components/CustomizationPanel"

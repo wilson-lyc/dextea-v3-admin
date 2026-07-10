@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { ArrowLeftIcon } from "lucide-react"
 
-import type { Ingredient } from "@dextea/shared-types"
+import type { Ingredient } from "@/api"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -20,7 +20,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import { getIngredient } from "@/services"
+import { getIngredient } from "@/api"
 import BasicInfoPanel from "./components/BasicInfoPanel"
 import ProductBindingPanel from "./components/ProductBindingPanel"
 import CustomizationOptionBindingPanel from "./components/CustomizationOptionBindingPanel"

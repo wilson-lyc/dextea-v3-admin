@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom"
 import { ArrowLeftIcon, PencilIcon, KeyRoundIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { Store } from "@dextea/shared-types"
+import type { Store } from "@/api"
 import { STORE_STATUS_LABEL, STORE_STATUS_TEXT_CLASSES } from "@/lib/status"
 import {
   Breadcrumb,
@@ -32,7 +32,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import AmapMap from "@/components/amap"
-import { getStore, resetStorePassword } from "@/services"
+import { getStore, resetStorePassword } from "@/api"
 import { EditStoreStatusDialog } from "./components/EditStoreStatusDialog"
 import { EditStoreBasicInfoDialog } from "./components/EditStoreBasicInfoDialog"
 import { EditStoreLocationDialog } from "./components/EditStoreLocationDialog"

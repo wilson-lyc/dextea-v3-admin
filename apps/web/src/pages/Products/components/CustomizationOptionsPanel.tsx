@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from "react"
 import { ListIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { CustomizationOption } from "@dextea/shared-types"
-import { CUSTOMIZATION_OPTION_STATUS } from "@dextea/shared-types"
+import type { CustomizationOption } from "@/api"
+import { CUSTOMIZATION_OPTION_STATUS } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -38,7 +38,7 @@ import {
   updateCustomizationOption,
   deleteCustomizationOption,
   getIngredientOptions,
-} from "@/services"
+} from "@/api"
 
 interface CustomizationOptionsPanelProps {
   customizationId: number

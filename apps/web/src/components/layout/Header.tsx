@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { logout } from "@/services"
+import { logout } from "@/api"
 import ThemeToggle from "./ThemeToggle"
 
 export default function Header() {

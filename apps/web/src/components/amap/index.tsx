@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Spinner } from "@/components/ui/spinner"
-import { http } from "@/services/http"
-import type { AmapConfig } from "@dextea/shared-types"
+import { getAmapKey } from "@/api"
 
 interface Props {
   longitude: number
@@ -50,10 +49,10 @@ export default function AmapMap({ longitude, latitude, name, address }: Props) {
 
     ;(async () => {
       try {
-        const res = await http.get<{ code: number; data: AmapConfig }>("/config/amap-key")
+        const res = await getAmapKey()
         if (cancelled) return
 
-        const { key, securityCode } = res.data.data
+        const { key, securityCode } = res.data
         if (!key || !securityCode) {
           setStatus("error")
           return

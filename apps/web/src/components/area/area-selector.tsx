@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react"
 
-import type { Division } from "@/services"
-import { getProvinces, getChildren } from "@/services"
+import type { Division } from "@/api"
+import { getProvinces, getChildren } from "@/api"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import {

@@ -19,7 +19,7 @@ import IngredientDetailPage from "@/pages/Ingredients/detail"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/hooks/use-theme"
-import { setNavigate } from "@/services/navigation"
+import { setNavigate } from "@/api/navigation"
 
 function App() {
   const navigate = useNavigate()

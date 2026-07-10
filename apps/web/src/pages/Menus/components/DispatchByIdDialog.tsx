@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { dispatchMenuById } from "@/services"
+import { dispatchMenuById } from "@/api"
 
 interface DispatchByIdDialogProps {
   open: boolean

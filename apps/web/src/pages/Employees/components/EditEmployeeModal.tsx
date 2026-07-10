@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import type { Employee } from "@dextea/shared-types"
+import type { Employee } from "@/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { updateEmployee } from "@/services"
+import { updateEmployee } from "@/api"
 
 interface EditEmployeeModalProps {
   open: boolean

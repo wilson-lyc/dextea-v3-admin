@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from "react"
 import { PuzzleIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { StoreCustomizationItem, StoreCustomizationOptionItem } from "@dextea/shared-types"
-import { PRODUCT_CUSTOMIZATION_STATUS, CUSTOMIZATION_OPTION_STATUS } from "@dextea/shared-types"
+import type { StoreCustomizationItem, StoreCustomizationOptionItem } from "@/api"
+import { CUSTOMIZATION_OPTION_STATUS } from "@/lib/status"
 import { PRODUCT_CUSTOMIZATION_STATUS_LABEL, PRODUCT_CUSTOMIZATION_STATUS_BADGE_CLASSES, CUSTOMIZATION_OPTION_STATUS_LABEL, CUSTOMIZATION_OPTION_STATUS_BADGE_CLASSES } from "@/lib/status"
 
 import { Badge } from "@/components/ui/badge"
@@ -37,7 +37,7 @@ import {
   getStoreCustomizations,
   getStoreCustomizationOptions,
   updateCustomizationOptionStoreStatus,
-} from "@/services/store-status"
+} from "@/api/store-status"
 
 interface StoreCustomizationsPanelProps {
   storeId: number

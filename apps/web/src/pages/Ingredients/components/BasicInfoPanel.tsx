@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { PencilIcon } from "lucide-react"
 
-import type { Ingredient } from "@dextea/shared-types"
-import { INGREDIENT_STATUS } from "@dextea/shared-types"
+import type { Ingredient } from "@/api"
 import { INGREDIENT_STATUS_LABEL, INGREDIENT_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
-import { getIngredient } from "@/services"
+import { getIngredient } from "@/api"
 import { EditIngredientBasicInfoDialog } from "./EditIngredientBasicInfoDialog"
 import { EditIngredientStatusDialog } from "./EditIngredientStatusDialog"
 

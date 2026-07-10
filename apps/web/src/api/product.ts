@@ -1,11 +1,63 @@
-import type { Product, ProductTag, ProductStatus, ApiResponse, PaginatedData, CreateProductInput, CreateProductResponse } from "@dextea/shared-types"
-import { http } from "./http"
+import {
+  createModuleClient,
+  type ApiResponse,
+  type PaginatedData,
+  type ProductTag,
+} from "./index"
+import type { ProductStatus } from "@/lib/status"
+
+// ──── DTO ────
+export interface Product {
+  id: number
+  name: string
+  brief: string
+  description: string
+  status: ProductStatus
+  price: number
+  tags?: ProductTag[]
+  ingredients?: ProductIngredientRelation[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ProductIngredientRelation {
+  ingredientId: number
+  quantity: number
+  ingredient?: Ingredient
+}
+
+// 跨模块引用实体类型
+import type { Ingredient } from "./ingredient"
+
+export interface CreateProductRequest {
+  name: string
+  brief?: string
+  description?: string
+  price: number
+  tagIds?: number[]
+  ingredientIds?: Array<{ ingredientId: number; quantity: number }>
+  status?: ProductStatus
+}
+
+export interface CreateProductResponse {
+  id: number
+}
+
+const http = createModuleClient("product")
 
 /**
  * 获取商品列表（分页）
  * GET /products
  */
-export function getProducts(params?: { page?: number; pageSize?: number; keyword?: string; status?: number; priceMin?: number; priceMax?: number; tagIds?: string }) {
+export function getProducts(params?: {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  status?: number
+  priceMin?: number
+  priceMax?: number
+  tagIds?: string
+}) {
   return http
     .get<ApiResponse<PaginatedData<Product>>>("/products", { params })
     .then((res) => res.data)
@@ -23,7 +75,7 @@ export function getProductBasicInfo(id: number) {
  * 创建商品
  * POST /products
  */
-export function createProduct(data: CreateProductInput) {
+export function createProduct(data: CreateProductRequest) {
   return http.post<ApiResponse<CreateProductResponse>>("/products", data).then((res) => res.data)
 }
 
@@ -60,7 +112,9 @@ export function addProductTag(productId: number, tagId: number) {
  * GET /products/:id/tags
  */
 export function getProductTags(productId: number, params?: { page?: number; pageSize?: number }) {
-  return http.get<ApiResponse<PaginatedData<ProductTag>>>(`/products/${productId}/tags`, { params }).then((res) => res.data)
+  return http
+    .get<ApiResponse<PaginatedData<ProductTag>>>(`/products/${productId}/tags`, { params })
+    .then((res) => res.data)
 }
 
 /**
@@ -84,8 +138,15 @@ interface BoundIngredient {
  * 获取商品绑定的原料列表
  * GET /products/:id/ingredients
  */
-export function getProductBoundIngredients(productId: number, params?: { page?: number; pageSize?: number }) {
-  return http.get<ApiResponse<PaginatedData<BoundIngredient>>>(`/products/${productId}/ingredients`, { params }).then((res) => res.data)
+export function getProductBoundIngredients(
+  productId: number,
+  params?: { page?: number; pageSize?: number },
+) {
+  return http
+    .get<ApiResponse<PaginatedData<BoundIngredient>>>(`/products/${productId}/ingredients`, {
+      params,
+    })
+    .then((res) => res.data)
 }
 
 /**
@@ -93,15 +154,25 @@ export function getProductBoundIngredients(productId: number, params?: { page?: 
  * POST /products/:id/ingredients
  */
 export function bindIngredientToProduct(productId: number, ingredientId: number, quantity: number) {
-  return http.post<ApiResponse<null>>(`/products/${productId}/ingredients`, { ingredientId, quantity }).then((res) => res.data)
+  return http
+    .post<ApiResponse<null>>(`/products/${productId}/ingredients`, { ingredientId, quantity })
+    .then((res) => res.data)
 }
 
 /**
  * 更新原料绑定用量
  * PATCH /products/:id/ingredients/:ingredientId/quantity
  */
-export function updateProductIngredientQuantity(productId: number, ingredientId: number, quantity: number) {
-  return http.patch<ApiResponse<null>>(`/products/${productId}/ingredients/${ingredientId}/quantity`, { quantity }).then((res) => res.data)
+export function updateProductIngredientQuantity(
+  productId: number,
+  ingredientId: number,
+  quantity: number,
+) {
+  return http
+    .patch<ApiResponse<null>>(`/products/${productId}/ingredients/${ingredientId}/quantity`, {
+      quantity,
+    })
+    .then((res) => res.data)
 }
 
 /**
@@ -109,7 +180,9 @@ export function updateProductIngredientQuantity(productId: number, ingredientId:
  * DELETE /products/:id/ingredients/:ingredientId
  */
 export function unbindIngredientFromProduct(productId: number, ingredientId: number) {
-  return http.delete<ApiResponse<null>>(`/products/${productId}/ingredients/${ingredientId}`).then((res) => res.data)
+  return http
+    .delete<ApiResponse<null>>(`/products/${productId}/ingredients/${ingredientId}`)
+    .then((res) => res.data)
 }
 
 interface ProductOption {

@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import type { StoreStatus } from "@dextea/shared-types"
-import { STORE_STATUS } from "@dextea/shared-types"
+import { STORE_STATUS, type StoreStatus } from "@/lib/status"
 import { STORE_STATUS_LABEL } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,7 +17,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { updateStoreStatus } from "@/services"
+import { updateStoreStatus } from "@/api"
 
 interface EditStoreStatusDialogProps {
   open: boolean

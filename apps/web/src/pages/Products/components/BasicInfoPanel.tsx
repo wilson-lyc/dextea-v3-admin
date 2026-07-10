@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { PencilIcon } from "lucide-react"
 
-import type { Product } from "@dextea/shared-types"
-import { PRODUCT_STATUS } from "@dextea/shared-types"
+import type { Product } from "@/api"
 import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
-import { getProductBasicInfo } from "@/services"
+import { getProductBasicInfo } from "@/api"
 import { EditStatusDialog } from "./EditStatusDialog"
 import { EditBasicInfoDialog } from "./EditBasicInfoDialog"
 

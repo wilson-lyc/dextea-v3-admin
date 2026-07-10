@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from "react"
 import { UsersIcon, StoreIcon } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 
-import type { DashboardStats } from "@dextea/shared-types"
-import { getDashboardStats } from "@/services"
+import type { DashboardStats } from "@/api"
+import { getDashboardStats } from "@/api"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
 export default function DashboardPage() {

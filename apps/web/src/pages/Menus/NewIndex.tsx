@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { Trash2Icon, Settings, ClipboardListIcon, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { Menu } from "@dextea/shared-types"
+import type { Menu } from "@/api"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -13,7 +13,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import DataTable from "@/components/ui/data-table"
-import { getMenus, batchDeleteMenus } from "@/services"
+import { getMenus, batchDeleteMenus } from "@/api"
 import CreateMenuDialog from "./components/CreateMenuDialog"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 

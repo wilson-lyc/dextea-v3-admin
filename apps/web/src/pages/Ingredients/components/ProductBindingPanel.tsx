@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { LinkIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { PaginatedData } from "@dextea/shared-types"
+import type { PaginatedData } from "@/api"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
@@ -36,7 +36,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { getIngredientBoundProducts, bindProductToIngredient, updateIngredientProductQuantity, unbindProductFromIngredient, getProductOptions } from "@/services"
+import { getIngredientBoundProducts, bindProductToIngredient, updateIngredientProductQuantity, unbindProductFromIngredient, getProductOptions } from "@/api"
 
 interface BoundProduct {
   productId: number

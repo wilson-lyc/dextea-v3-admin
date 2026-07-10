@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { PlusIcon, Trash2Icon, LayersIcon, ListIcon, RotateCwIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { MenuGroup } from "@dextea/shared-types"
+import type { MenuGroup } from "@/api"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { getMenuGroups, createMenuGroup, deleteMenuGroup } from "@/services"
+import { getMenuGroups, createMenuGroup, deleteMenuGroup } from "@/api"
 import GroupProductsSheet from "./GroupProductsSheet"
 
 interface GroupsPanelProps {

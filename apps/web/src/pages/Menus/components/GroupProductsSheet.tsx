@@ -3,8 +3,7 @@ import { PackageIcon, GripVerticalIcon, LinkIcon, PencilIcon, ExternalLinkIcon, 
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 
-import type { MenuProduct } from "@dextea/shared-types"
-import { PRODUCT_STATUS } from "@dextea/shared-types"
+import type { MenuProduct } from "@/api"
 import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES } from "@/lib/status"
 import {
   Sheet,
@@ -42,7 +41,7 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { SelectPicker, type SelectOption } from "@/components/ui/select-picker"
-import { getMenuGroupProducts, bindMenuProduct, batchRemoveMenuProducts, updateMenuProductSort, getProductOptions } from "@/services"
+import { getMenuGroupProducts, bindMenuProduct, batchRemoveMenuProducts, updateMenuProductSort, getProductOptions } from "@/api"
 
 interface GroupProductsSheetProps {
   groupId: number

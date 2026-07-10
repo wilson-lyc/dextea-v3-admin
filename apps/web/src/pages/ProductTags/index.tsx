@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { PlusIcon, PencilIcon, Trash2Icon, TagIcon, LinkIcon, RefreshCwIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { ProductTag, CreateTagInput, UpdateTagInput } from "@dextea/shared-types"
+import type { ProductTag, CreateTagInput, UpdateTagInput } from "@/api"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
@@ -38,7 +38,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { getTags, createTag, updateTag, deleteTag } from "@/services"
+import { getTags, createTag, updateTag, deleteTag } from "@/api"
 import ProductBindingSheet from "./components/ProductBindingSheet"
 
 type DialogMode = "create" | "edit"

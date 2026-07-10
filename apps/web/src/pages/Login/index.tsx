@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { getInitStatus, login } from "@/services"
+import { getInitStatus, login } from "@/api"
 
 export default function Login() {
   const navigate = useNavigate()

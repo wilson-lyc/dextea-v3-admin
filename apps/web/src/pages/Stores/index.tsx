@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { PlusIcon, RefreshCwIcon, RotateCwIcon, SearchIcon, SettingsIcon, Building2Icon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { Store } from "@dextea/shared-types"
+import type { Store } from "@/api"
 import { STORE_STATUS_LABEL, STORE_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,7 +21,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-import { getStores, syncStoreLocations } from "@/services"
+import { getStores, syncStoreLocations } from "@/api"
 import {
   Pagination,
   PaginationContent,

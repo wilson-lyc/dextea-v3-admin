@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Navigate, Outlet, useLocation } from "react-router-dom"
-import { getMe } from "@/services"
+import { getMe } from "@/api"
 
 const WHITE_LIST = ["/login", "/initialization", "/forgot-password"]
 

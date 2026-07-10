@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { Trash2Icon, LinkIcon, TagIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { ProductTag } from "@dextea/shared-types"
+import type { ProductTag } from "@/api"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -31,7 +31,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { getProductTags, removeProductTag } from "@/services"
+import { getProductTags, removeProductTag } from "@/api"
 import { AddTagDialog } from "./AddTagDialog"
 
 interface TagsPanelProps {

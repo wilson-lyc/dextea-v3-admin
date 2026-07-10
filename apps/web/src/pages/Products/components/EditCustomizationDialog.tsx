@@ -12,7 +12,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog"
-import { updateProductCustomization } from "@/services"
+import { updateProductCustomization } from "@/api"
 
 interface EditCustomizationDialogProps {
   open: boolean

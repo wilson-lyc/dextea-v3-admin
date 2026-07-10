@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { FlaskConicalIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { StoreIngredientItem } from "@dextea/shared-types"
+import type { StoreIngredientItem } from "@/api"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
@@ -22,7 +22,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { getStoreIngredients } from "@/services/store-status"
+import { getStoreIngredients } from "@/api/store-status"
 
 interface StoreIngredientsPanelProps {
   storeId: number

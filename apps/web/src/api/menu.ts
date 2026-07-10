@@ -1,32 +1,99 @@
-import type {
-  Menu,
-  MenuGroup,
-  MenuProduct,
-  Store,
-  ApiResponse,
-  PaginatedData,
-  CreateMenuInput,
-  UpdateMenuInput,
-  CreateMenuResponse,
-  UpdateMenuResponse,
-  CreateMenuGroupInput,
-  CreateMenuGroupResponse,
-  DispatchMenuByAreaRequest,
-  DispatchMenuByAreaResponse,
-  DispatchMenuByIdRequest,
-  DispatchMenuByIdResponse,
-} from '@dextea/shared-types'
-import { http } from './http'
+import {
+  createModuleClient,
+  type ApiResponse,
+  type PaginatedData,
+  type Store,
+} from "./index"
+
+// ──── DTO ────
+export interface Menu {
+  id: number
+  name: string
+  description: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface MenuGroup {
+  id: number
+  menuId: number
+  name: string
+  sortOrder: number
+  productCount?: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface MenuProduct {
+  groupId: number
+  productId: number
+  productName?: string
+  price?: number
+  status?: number
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateMenuRequest {
+  name: string
+  description?: string
+}
+
+export interface UpdateMenuRequest {
+  name?: string
+  description?: string
+}
+
+export interface CreateMenuResponse {
+  id: number
+}
+
+export interface UpdateMenuResponse {
+  id: number
+}
+
+export interface CreateMenuGroupRequest {
+  menuId: number
+  name: string
+  sortOrder?: number
+}
+
+export interface CreateMenuGroupResponse {
+  id: number
+}
+
+export interface DispatchMenuByAreaRequest {
+  province: string
+  city?: string
+  district?: string
+}
+
+export interface DispatchMenuByAreaResponse {
+  matched: number
+  dispatched: number
+}
+
+export interface DispatchMenuByIdRequest {
+  storeIds: number[]
+}
+
+export interface DispatchMenuByIdResponse {
+  matched: number
+  dispatched: number
+}
+
+const http = createModuleClient("menu")
 
 export function getMenus(params?: { page?: number; pageSize?: number }) {
-  return http.get<ApiResponse<PaginatedData<Menu>>>('/menus', { params }).then((res) => res.data)
+  return http.get<ApiResponse<PaginatedData<Menu>>>("/menus", { params }).then((res) => res.data)
 }
 
-export function createMenu(data: CreateMenuInput) {
-  return http.post<ApiResponse<CreateMenuResponse>>('/menus', data).then((res) => res.data)
+export function createMenu(data: CreateMenuRequest) {
+  return http.post<ApiResponse<CreateMenuResponse>>("/menus", data).then((res) => res.data)
 }
 
-export function updateMenu(id: number, data: UpdateMenuInput) {
+export function updateMenu(id: number, data: UpdateMenuRequest) {
   return http.put<ApiResponse<UpdateMenuResponse>>(`/menus/${id}`, data).then((res) => res.data)
 }
 
@@ -35,7 +102,7 @@ export function deleteMenu(id: number) {
 }
 
 export function batchDeleteMenus(menuIds: number[]) {
-  return http.delete<ApiResponse<null>>('/menus', { data: { menuIds } }).then((res) => res.data)
+  return http.delete<ApiResponse<null>>("/menus", { data: { menuIds } }).then((res) => res.data)
 }
 
 export function getMenu(id: number) {
@@ -46,16 +113,22 @@ export function getMenuGroups(menuId: number) {
   return http.get<ApiResponse<MenuGroup[]>>(`/menus/${menuId}/groups`).then((res) => res.data)
 }
 
-export function createMenuGroup(menuId: number, data: Omit<CreateMenuGroupInput, 'menuId'>) {
-  return http.post<ApiResponse<CreateMenuGroupResponse>>(`/menus/${menuId}/groups`, data).then((res) => res.data)
+export function createMenuGroup(menuId: number, data: Omit<CreateMenuGroupRequest, "menuId">) {
+  return http
+    .post<ApiResponse<CreateMenuGroupResponse>>(`/menus/${menuId}/groups`, data)
+    .then((res) => res.data)
 }
 
 export function deleteMenuGroup(groupIds: number[]) {
-  return http.delete<ApiResponse<null>>('/menus/groups', { data: { groupIds } }).then((res) => res.data)
+  return http
+    .delete<ApiResponse<null>>("/menus/groups", { data: { groupIds } })
+    .then((res) => res.data)
 }
 
 export function getMenuGroupProducts(groupId: number) {
-  return http.get<ApiResponse<MenuProduct[]>>(`/menus/groups/${groupId}/products`).then((res) => res.data)
+  return http
+    .get<ApiResponse<MenuProduct[]>>(`/menus/groups/${groupId}/products`)
+    .then((res) => res.data)
 }
 
 /**

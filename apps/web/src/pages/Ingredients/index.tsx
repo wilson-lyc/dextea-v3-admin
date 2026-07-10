@@ -8,8 +8,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import type { Ingredient } from "@dextea/shared-types"
-import { INGREDIENT_STATUS } from "@dextea/shared-types"
+import type { Ingredient } from "@/api"
 import { INGREDIENT_STATUS_LABEL, INGREDIENT_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,7 +21,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-import { getIngredients } from "@/services"
+import { getIngredients } from "@/api"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { CreateIngredientDialog } from "./components/CreateIngredientDialog"

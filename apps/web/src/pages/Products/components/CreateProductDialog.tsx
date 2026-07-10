@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import type { ProductStatus } from "@dextea/shared-types"
+import type { ProductStatus } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -28,7 +28,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { createProduct, getTags } from "@/services"
+import { createProduct, getTags } from "@/api"
 
 interface CreateProductDialogProps {
   open: boolean

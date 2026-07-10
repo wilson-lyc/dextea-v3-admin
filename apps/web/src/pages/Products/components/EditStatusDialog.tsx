@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import type { ProductStatus } from "@dextea/shared-types"
-import { PRODUCT_STATUS } from "@dextea/shared-types"
+import { PRODUCT_STATUS, type ProductStatus } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -18,7 +17,7 @@ import {
 } from "@/components/ui/dialog"
 import { SelectPicker } from "@/components/ui/select-picker"
 import { StatusSelectPicker } from "@/components/ui/status-select-picker"
-import { toggleProductStatus } from "@/services"
+import { toggleProductStatus } from "@/api"
 
 interface EditStatusDialogProps {
   open: boolean

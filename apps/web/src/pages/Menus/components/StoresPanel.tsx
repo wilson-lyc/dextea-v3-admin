@@ -11,9 +11,9 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import type { Store } from "@dextea/shared-types"
+import type { Store } from "@/api"
 import { STORE_STATUS_LABEL, STORE_STATUS_TEXT_CLASSES } from "@/lib/status"
-import { getStoresByMenuId } from "@/services"
+import { getStoresByMenuId } from "@/api"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,

@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import type { Product } from "@dextea/shared-types"
+import type { Product } from "@/api"
 import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -34,7 +34,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-import { getProducts, getTagOptions, toggleProductStatus } from "@/services"
+import { getProducts, getTagOptions, toggleProductStatus } from "@/api"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { SelectPicker } from "@/components/ui/select-picker"
 import { CreateProductDialog } from "./components/CreateProductDialog"

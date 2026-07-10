@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { PencilIcon } from "lucide-react"
 
-import type { Menu } from "@dextea/shared-types"
+import type { Menu } from "@/api"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
-import { getMenu } from "@/services"
+import { getMenu } from "@/api"
 import EditBasicInfoDialog from "./EditBasicInfoDialog"
 
 function formatDate(iso: string) {

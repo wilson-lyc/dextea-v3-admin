@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import type { Menu } from "@dextea/shared-types"
+import type { Menu } from "@/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { updateMenu } from "@/services"
+import { updateMenu } from "@/api"
 
 interface EditBasicInfoDialogProps {
   open: boolean

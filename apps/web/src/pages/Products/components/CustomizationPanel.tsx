@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from "react"
 import { ListIcon, PencilIcon, PlusIcon, SettingsIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { ProductCustomization } from "@dextea/shared-types"
-import { PRODUCT_CUSTOMIZATION_STATUS } from "@dextea/shared-types"
+import type { ProductCustomization } from "@/api"
+import { PRODUCT_CUSTOMIZATION_STATUS } from "@/lib/status"
 import { PRODUCT_CUSTOMIZATION_STATUS_LABEL, PRODUCT_CUSTOMIZATION_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -41,7 +41,7 @@ import {
   getProductCustomizations,
   createProductCustomization,
   updateProductCustomizationStatus,
-} from "@/services"
+} from "@/api"
 import { EditCustomizationDialog } from "./EditCustomizationDialog"
 import ManageOptionsSheet from "./ManageOptionsSheet"
 

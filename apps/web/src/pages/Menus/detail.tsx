@@ -17,7 +17,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import { getMenu } from "@/services"
+import { getMenu } from "@/api"
 import BasicInfoPanel from "./components/BasicInfoPanel"
 import GroupsPanel from "./components/GroupsPanel"
 import StoresPanel from "./components/StoresPanel"

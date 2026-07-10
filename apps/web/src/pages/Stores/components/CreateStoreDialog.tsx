@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { createStore } from "@/services"
+import { createStore } from "@/api"
 
 interface CreateStoreDialogProps {
   open: boolean

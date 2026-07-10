@@ -38,7 +38,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { SelectPicker, type SelectOption } from "@/components/ui/select-picker"
-import { getTagBoundProducts, bindProductToTag, unbindProductFromTag, getProductOptions } from "@/services"
+import { getTagBoundProducts, bindProductToTag, unbindProductFromTag, getProductOptions } from "@/api"
 
 interface ProductBindingSheetProps {
   tagId: number

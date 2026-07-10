@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { createMenu } from "@/services"
+import { createMenu } from "@/api"
 
 interface CreateMenuDialogProps {
   open: boolean

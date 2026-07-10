@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import type { ProductTag } from "@dextea/shared-types"
+import type { ProductTag } from "@/api"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -22,7 +22,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { getTags, addProductTag } from "@/services"
+import { getTags, addProductTag } from "@/api"
 
 interface AddTagDialogProps {
   open: boolean
