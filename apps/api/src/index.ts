@@ -10,7 +10,8 @@ import {
   serializerCompiler,
 } from 'fastify-type-provider-zod';
 import { config } from './config/index.js';
-import { registerRoutes } from './routes/index.js';
+// [已弃用] 旧版 routes 路由，统一由 module 层（V2）接管，代码保留但取消注册
+// import { registerRoutes } from './routes/index.js';
 import { authHook } from './middleware/auth.js';
 import { registerEmployeeModule } from './module/employees/employees.module.js';
 import { registerStoreModule } from './module/stores/store.module.js';
@@ -161,7 +162,8 @@ async function main() {
   app.addHook('preHandler', authHook);
 
   // 注册路由模块
-  await registerRoutes(app);
+  // [已弃用] 旧版 routes 路由整体取消注册（代码保留在 src/routes 下，未删除）
+  // await registerRoutes(app);
   await app.register(registerEmployeeModule);
   await app.register(registerStoreModule);
   await app.register(registerInitModule);

@@ -1,9 +1,9 @@
 ---
 name: api-module-architecture
-description: dextea-admin 后端新模块架构规范。基于 module 层（module/service/repository）的分层模式，使用 Zod v4 做运行时校验、Drizzle ORM 做数据访问、FastifyPluginAsyncZod 做模块注册。
+description: dextea-admin 后端模块架构规范。当需要修改或创建 apps/api/src/module 下的模块代码时，根据本技能规范开发。使用 Zod v4 做运行时校验、Drizzle ORM 做数据访问、FastifyPluginAsyncZod 做模块注册。
 ---
 
-# dextea-admin 后端新模块架构规范
+# dextea-admin 后端模块架构规范
 
 本 skill 定义了 dextea-admin 项目中基于 **module** 层的新架构编码规范，参考 employees 模块实现。
 
