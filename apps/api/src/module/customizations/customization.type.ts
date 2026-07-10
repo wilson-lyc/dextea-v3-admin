@@ -3,13 +3,13 @@ import { PaginatedDataSchema } from '@/common/types/index.js';
 
 // ─── 状态枚举 ─────────────────────────────────────
 
-export const PRODUCT_CUSTOMIZATION_STATUS = {
+export const CUSTOMIZATION_STATUS = {
   OFF: { key: 'off', value: 0 },
   ON: { key: 'on', value: 1 },
 } as const;
 
-export type ProductCustomizationStatus = (typeof PRODUCT_CUSTOMIZATION_STATUS)[keyof typeof PRODUCT_CUSTOMIZATION_STATUS]['value'];
-export const PRODUCT_CUSTOMIZATION_STATUS_VALUES: readonly number[] = [0, 1];
+export type CustomizationStatus = (typeof CUSTOMIZATION_STATUS)[keyof typeof CUSTOMIZATION_STATUS]['value'];
+export const CUSTOMIZATION_STATUS_VALUES: readonly number[] = [0, 1];
 
 export const CUSTOMIZATION_OPTION_STATUS = {
   OFF: { key: 'off', value: 0 },
@@ -36,7 +36,7 @@ export const CustomizationOptionSchema = z.object({
 });
 export type CustomizationOption = z.infer<typeof CustomizationOptionSchema>;
 
-export const ProductCustomizationSchema = z.object({
+export const CustomizationSchema = z.object({
   id: z.number(),
   productId: z.number(),
   name: z.string(),
@@ -45,57 +45,57 @@ export const ProductCustomizationSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
 });
-export type ProductCustomization = z.infer<typeof ProductCustomizationSchema>;
+export type Customization = z.infer<typeof CustomizationSchema>;
 
 // ─── 客制化项目列表 ───────────────────────────────
 
-export const ProductCustomizationListRequestSchema = z.object({
+export const CustomizationListRequestSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().positive().max(100).default(20),
   keyword: z.string().optional(),
   status: z.coerce.number().int().optional(),
   productId: z.coerce.number().int().optional(),
 });
-export type ProductCustomizationListRequest = z.infer<typeof ProductCustomizationListRequestSchema>;
+export type CustomizationListRequest = z.infer<typeof CustomizationListRequestSchema>;
 
-export const ProductCustomizationListResponseSchema = PaginatedDataSchema(ProductCustomizationSchema);
-export type ProductCustomizationListResponse = z.infer<typeof ProductCustomizationListResponseSchema>;
+export const CustomizationListResponseSchema = PaginatedDataSchema(CustomizationSchema);
+export type CustomizationListResponse = z.infer<typeof CustomizationListResponseSchema>;
 
 // ─── 客制化项目详情 ───────────────────────────────
 
-export const ProductCustomizationGetResponseSchema = ProductCustomizationSchema;
-export type ProductCustomizationGetResponse = ProductCustomization;
+export const CustomizationGetResponseSchema = CustomizationSchema;
+export type CustomizationGetResponse = Customization;
 
 // ─── 创建客制化项目 ───────────────────────────────
 
-export const CreateProductCustomizationRequestSchema = z.object({
+export const CreateCustomizationRequestSchema = z.object({
   productId: z.number().int().positive('商品ID必须为正整数'),
   name: z.string().min(1, '客制化项目名称不能为空'),
 });
-export type CreateProductCustomizationRequest = z.infer<typeof CreateProductCustomizationRequestSchema>;
+export type CreateCustomizationRequest = z.infer<typeof CreateCustomizationRequestSchema>;
 
-export const CreateProductCustomizationResponseSchema = ProductCustomizationSchema;
-export type CreateProductCustomizationResponse = ProductCustomization;
+export const CreateCustomizationResponseSchema = CustomizationSchema;
+export type CreateCustomizationResponse = Customization;
 
 // ─── 更新客制化项目基础信息 ───────────────────────
 
-export const UpdateProductCustomizationRequestSchema = z.object({
+export const UpdateCustomizationRequestSchema = z.object({
   name: z.string().min(1, '客制化项目名称不能为空'),
   status: z.number().optional(),
 });
-export type UpdateProductCustomizationRequest = z.infer<typeof UpdateProductCustomizationRequestSchema>;
+export type UpdateCustomizationRequest = z.infer<typeof UpdateCustomizationRequestSchema>;
 
-export const UpdateProductCustomizationResponseSchema = ProductCustomizationSchema;
-export type UpdateProductCustomizationResponse = ProductCustomization;
+export const UpdateCustomizationResponseSchema = CustomizationSchema;
+export type UpdateCustomizationResponse = Customization;
 
 // ─── 单独更新客制化项目状态 ───────────────────────
 
-export const UpdateProductCustomizationStatusRequestSchema = z.object({
+export const UpdateCustomizationStatusRequestSchema = z.object({
   status: z.number(),
 });
-export type UpdateProductCustomizationStatusRequest = z.infer<typeof UpdateProductCustomizationStatusRequestSchema>;
+export type UpdateCustomizationStatusRequest = z.infer<typeof UpdateCustomizationStatusRequestSchema>;
 
-export const UpdateProductCustomizationStatusResponseSchema = ProductCustomizationSchema;
+export const UpdateCustomizationStatusResponseSchema = CustomizationSchema;
 
 // ─── 获取客制化选项列表（无分页） ─────────────────
 

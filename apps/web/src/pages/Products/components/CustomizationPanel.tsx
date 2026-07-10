@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from "react"
 import { ListIcon, PencilIcon, PlusIcon, SettingsIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { ProductCustomization } from "@/api"
-import { PRODUCT_CUSTOMIZATION_STATUS } from "@/lib/status"
-import { PRODUCT_CUSTOMIZATION_STATUS_LABEL, PRODUCT_CUSTOMIZATION_STATUS_TEXT_CLASSES } from "@/lib/status"
+import type { Customization } from "@/api"
+import { CUSTOMIZATION_STATUS } from "@/lib/status"
+import { CUSTOMIZATION_STATUS_LABEL, CUSTOMIZATION_STATUS_TEXT_CLASSES } from "@/lib/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -38,9 +38,9 @@ import {
 } from "@/components/ui/dialog"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import {
-  getProductCustomizations,
-  createProductCustomization,
-  updateProductCustomizationStatus,
+  getCustomizations,
+  createCustomization,
+  updateCustomizationStatus,
 } from "@/api"
 import { EditCustomizationDialog } from "./EditCustomizationDialog"
 import ManageOptionsSheet from "./ManageOptionsSheet"
@@ -52,18 +52,18 @@ interface CustomizationPanelProps {
 const pageSize = 20
 
 export default function CustomizationPanel({ productId }: CustomizationPanelProps) {
-  const [data, setData] = useState<ProductCustomization[]>([])
+  const [data, setData] = useState<Customization[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
 
   // Manage options sheet
   const [manageSheetOpen, setManageSheetOpen] = useState(false)
-  const [managingItem, setManagingItem] = useState<ProductCustomization | null>(null)
+  const [managingItem, setManagingItem] = useState<Customization | null>(null)
 
   // Edit dialog
   const [editOpen, setEditOpen] = useState(false)
-  const [editingItem, setEditingItem] = useState<ProductCustomization | null>(null)
+  const [editingItem, setEditingItem] = useState<Customization | null>(null)
 
   // Create dialog
   const [createOpen, setCreateOpen] = useState(false)
@@ -73,7 +73,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
   const fetchData = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
-      const res = await getProductCustomizations({
+      const res = await getCustomizations({
         productId,
         page: targetPage,
         pageSize,
@@ -106,7 +106,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
     }
     setCreating(true)
     try {
-      const res = await createProductCustomization({
+      const res = await createCustomization({
         productId,
         name: createName.trim(),
       })
@@ -128,10 +128,10 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
   const colCount = 4
 
   const [togglingId, setTogglingId] = useState<number | null>(null)
-  const [toggleConfirmItem, setToggleConfirmItem] = useState<ProductCustomization | null>(null)
+  const [toggleConfirmItem, setToggleConfirmItem] = useState<Customization | null>(null)
   const [toggleConfirmOpen, setToggleConfirmOpen] = useState(false)
 
-  const handleToggleStatus = async (item: ProductCustomization) => {
+  const handleToggleStatus = async (item: Customization) => {
     setToggleConfirmItem(item)
     setToggleConfirmOpen(true)
   }
@@ -143,10 +143,10 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
     setToggleConfirmOpen(false)
     setToggleConfirmItem(null)
     try {
-      const newStatus = item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value
-        ? PRODUCT_CUSTOMIZATION_STATUS.ON.value
-        : PRODUCT_CUSTOMIZATION_STATUS.OFF.value
-      const res = await updateProductCustomizationStatus(item.id, newStatus)
+      const newStatus = item.status === CUSTOMIZATION_STATUS.OFF.value
+        ? CUSTOMIZATION_STATUS.ON.value
+        : CUSTOMIZATION_STATUS.OFF.value
+      const res = await updateCustomizationStatus(item.id, newStatus)
       if (res.code === 0) {
         toast.success(res.message)
         await fetchData(page)
@@ -208,20 +208,20 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                 <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>
-                      <span className={PRODUCT_CUSTOMIZATION_STATUS_TEXT_CLASSES[item.status] ?? ""}>
-                        {PRODUCT_CUSTOMIZATION_STATUS_LABEL[item.status]}
+                      <span className={CUSTOMIZATION_STATUS_TEXT_CLASSES[item.status] ?? ""}>
+                        {CUSTOMIZATION_STATUS_LABEL[item.status]}
                       </span>
                     </TableCell>
                     <TableCell className="font-mono text-xs">{item.optionCount ?? 0}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Button
-                          variant={item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "outline-success" : "outline-destructive"}
+                          variant={item.status === CUSTOMIZATION_STATUS.OFF.value ? "outline-success" : "outline-destructive"}
                           size="sm"
                           onClick={() => handleToggleStatus(item)}
                           disabled={togglingId === item.id}
                         >
-                          {item.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "转激活" : "转禁用"}
+                          {item.status === CUSTOMIZATION_STATUS.OFF.value ? "转激活" : "转禁用"}
                         </Button>
                         <Button
                           variant="outline"
@@ -386,7 +386,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
           <DialogHeader>
             <DialogTitle>确认切换状态</DialogTitle>
             <DialogDescription>
-              确定将「{toggleConfirmItem?.name}」项目{toggleConfirmItem?.status === PRODUCT_CUSTOMIZATION_STATUS.OFF.value ? "激活" : "禁用"}吗？
+              确定将「{toggleConfirmItem?.name}」项目{toggleConfirmItem?.status === CUSTOMIZATION_STATUS.OFF.value ? "激活" : "禁用"}吗？
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

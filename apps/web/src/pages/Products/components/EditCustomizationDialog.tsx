@@ -12,7 +12,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog"
-import { updateProductCustomization } from "@/api"
+import { updateCustomization } from "@/api"
 
 interface EditCustomizationDialogProps {
   open: boolean
@@ -38,7 +38,7 @@ export function EditCustomizationDialog({ open, onOpenChange, item, onUpdated }:
     }
     setSaving(true)
     try {
-      const res = await updateProductCustomization(item.id, {
+      const res = await updateCustomization(item.id, {
         name: name.trim(),
       })
       if (res.code === 0) {

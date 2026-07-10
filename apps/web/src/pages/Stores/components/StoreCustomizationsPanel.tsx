@@ -4,7 +4,7 @@ import { toast } from "sonner"
 
 import type { StoreCustomizationItem, StoreCustomizationOptionItem } from "@/api"
 import { CUSTOMIZATION_OPTION_STATUS } from "@/lib/status"
-import { PRODUCT_CUSTOMIZATION_STATUS_LABEL, PRODUCT_CUSTOMIZATION_STATUS_BADGE_CLASSES, CUSTOMIZATION_OPTION_STATUS_LABEL, CUSTOMIZATION_OPTION_STATUS_BADGE_CLASSES } from "@/lib/status"
+import { CUSTOMIZATION_STATUS_LABEL, CUSTOMIZATION_STATUS_BADGE_CLASSES, CUSTOMIZATION_OPTION_STATUS_LABEL, CUSTOMIZATION_OPTION_STATUS_BADGE_CLASSES } from "@/lib/status"
 
 import { Badge } from "@/components/ui/badge"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -190,8 +190,8 @@ export function StoreCustomizationsPanel({ storeId }: StoreCustomizationsPanelPr
                   <TableCell>{item.name}</TableCell>
                   <TableCell>{item.displayName}</TableCell>
                   <TableCell>
-                    <Badge className={PRODUCT_CUSTOMIZATION_STATUS_BADGE_CLASSES[item.globalStatus] ?? ""}>
-                      {PRODUCT_CUSTOMIZATION_STATUS_LABEL[item.globalStatus] ?? "—"}
+                    <Badge className={CUSTOMIZATION_STATUS_BADGE_CLASSES[item.globalStatus] ?? ""}>
+                      {CUSTOMIZATION_STATUS_LABEL[item.globalStatus] ?? "—"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right font-mono text-xs">

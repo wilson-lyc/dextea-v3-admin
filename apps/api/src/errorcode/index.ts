@@ -26,7 +26,7 @@ export { InitErrorCodes } from '@/module/init/init.errorcode.js';
 export { ConfigErrorCodes } from '@/module/config/config.errorcode.js';
 export { ProductErrorCodes } from '@/module/products/product.errorcode.js';
 export { TagErrorCodes } from '@/module/tags/tag.errorcode.js';
-export { ProductCustomizationErrorCodes } from '@/module/product-customizations/product-customization.errorcode.js';
+export { CustomizationErrorCodes } from '@/module/customizations/customization.errorcode.js';
 export { IngredientErrorCodes } from '@/module/ingredients/ingredient.errorcode.js';
 export { MenuErrorCodes } from '@/module/menus/menu.errorcode.js';
 export { StoreStatusErrorCodes } from '@/module/store-status/store-status.errorcode.js';

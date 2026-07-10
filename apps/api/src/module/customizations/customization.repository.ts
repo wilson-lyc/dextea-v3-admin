@@ -8,7 +8,7 @@ import {
 } from '@/plugins/db/mysql/schema.js';
 import { withPagination } from '@/plugins/utils/pagination.js';
 
-export const productCustomizationRepository = {
+export const customizationRepository = {
   // ─── Customization CRUD ──────────────────────────
 
   async getCustomizationList(page: number, pageSize: number, keyword?: string, status?: number, productId?: number) {

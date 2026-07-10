@@ -3,7 +3,7 @@ import type { BizErrorCode } from '@/common/types';
 /**
  * 客制化项目错误码 (10900-10999)
  */
-export const ProductCustomizationErrorCodes = {
+export const CustomizationErrorCodes = {
   NAME_REQUIRED: { code: 10900, message: '请输入客制化项目名称' },
   NOT_FOUND: { code: 10901, message: '客制化项目不存在' },
   LIST_FAILED: { code: 10902, message: '获取客制化项目列表失败' },
