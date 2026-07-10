@@ -39,11 +39,11 @@ const MODULE_ENV_KEYS: Record<ModuleKey, keyof ImportMetaEnv> = {
   health: "VITE_API_HEALTH_BASE_URL",
 }
 
-// 无 /api/v1 前缀的模块使用独立默认地址
+// 无 /api/v2 前缀的模块使用独立默认地址
 const DEFAULT_BASE_URLS: Partial<Record<ModuleKey, string>> = {
   health: "http://localhost:3001",
 }
-const FALLBACK_BASE_URL = "http://localhost:3001/api/v1"
+const FALLBACK_BASE_URL = "http://localhost:3001/api/v2"
 
 const clientCache = new Map<ModuleKey, AxiosInstance>()
 

@@ -88,7 +88,7 @@ async function main() {
 
   // Swagger UI
   await app.register(swaggerUi, {
-    routePrefix: `${config.apiPrefix}/docs`,
+    routePrefix: '/api/v2/docs',
     uiConfig: {
       docExpansion: 'list',
       deepLinking: true,

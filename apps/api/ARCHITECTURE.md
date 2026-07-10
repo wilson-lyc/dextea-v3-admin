@@ -146,7 +146,6 @@ app.setErrorHandler((error, request, reply) => {
 ```ts
 export const config = {
   port: parseInt(process.env.PORT ?? '3001', 10),
-  apiPrefix: '/api/v1',
   db: { host: process.env.DB_HOST ?? 'localhost', /* ... */ },
   redis: { /* ... */ },
   mail: { /* ... */ },
@@ -159,7 +158,7 @@ export const config = {
 
 - `@fastify/cors`：跨域（读 `config.corsOrigin`）。
 - `@fastify/redis`：Redis 连接，供鉴权中间件读取会话。
-- `@fastify/swagger` + `@fastify/swagger-ui`：基于路由里的 `schema` 自动生成 OpenAPI 文档，访问 `${apiPrefix}/docs`。
+- `@fastify/swagger` + `@fastify/swagger-ui`：基于路由里的 `schema` 自动生成 OpenAPI 文档，访问 `/api/v2/docs`。
 - `mailPlugin`：SMTP 邮件能力。
 
 > 路由处理函数里可以通过 `request.server.redis` 等访问插件注入的能力。
@@ -306,7 +305,7 @@ index → app → (plugins, routes → services → db)
 | 表命名 | 变量 `xxxTable`，物理名 snake_case；主键 `serial()`；外键普通 `bigint unsigned` |
 | 时间戳 | `timestamp('created_at', { mode: 'string' })`，`defaultNow()` / `onUpdateNow()` |
 | 分页 | 入参字符串 `page`/`pageSize`，归一化：页码 ≥1，每页 1–100；返回 `PaginatedData` |
-| 路由注册 | `routes/index.ts` 统一 `app.register(xxxRoutes, { prefix: config.apiPrefix })` |
+| 路由注册 | `module/*/*.module.ts` 各自 `app.register(xxxRoutes, { prefix: '/api/v2' })`；旧版 `routes/index.ts` 固定 `/api/v1`（已弃用） |
 | 鉴权 | 全局 `preHandler` 钩子，Bearer Token → Redis 会话；白名单豁免 |
 | 代码风格 | 禁用 `as any` / `@ts-ignore` / `@ts-expect-error`（见项目 AGENTS.md） |
 
@@ -331,7 +330,7 @@ index → app → (plugins, routes → services → db)
 2. `services/order.service.ts`：实现 `createOrder(db, ...)`、`listOrders(db, ...)` 等业务函数（DB 操作 + 校验 + 编排）。
 3. `routes/orders.ts`：实现 `orderRoutes(app)`，声明 `schema`、解析参数、调 Service、包响应；未知异常转 `orderErrors`。
 4. `errorcode/orders.ts`：定义订单模块错误码（建议段位 `11200-11299`），并在 `errorcode/index.ts` 导出。
-5. `routes/index.ts`：在 `registerRoutes` 中 `app.register(orderRoutes, { prefix: config.apiPrefix })`。
+5. `routes/index.ts`：在 `registerRoutes` 中 `app.register(orderRoutes, { prefix: '/api/v1' })`（已弃用的旧版路由层）。
 6. `packages/shared-types`：补充 `Order`、`CreateOrderInput`、`PaginatedData<Order>` 等共享类型。
 7. （可选）`utils/`、`middleware/`：复用现有校验/鉴权，无需改动。
 

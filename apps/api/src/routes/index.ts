@@ -12,7 +12,6 @@ import { ingredientRoutes } from './ingredients.js';
 import { dashboardRoutes } from './dashboard.js';
 import { storeStatusRoutes } from './store-status.js';
 import { menuRoutes } from './menus.js';
-import { config } from '../config/index.js';
 import { authHook } from '../middleware/auth.js';
 
 export async function registerRoutes(app: FastifyInstance) {
@@ -22,17 +21,17 @@ export async function registerRoutes(app: FastifyInstance) {
   // Public routes (no prefix)
   await app.register(healthRoutes);
 
-  // API v1 routes
-  await app.register(initRoutes, { prefix: config.apiPrefix });
-  await app.register(authRoutes, { prefix: config.apiPrefix });
-  await app.register(storeRoutes, { prefix: config.apiPrefix });
-  await app.register(areaRoutes, { prefix: config.apiPrefix });
-  await app.register(configRoutes, { prefix: config.apiPrefix });
-  await app.register(productRoutes, { prefix: config.apiPrefix });
-  await app.register(tagRoutes, { prefix: config.apiPrefix });
-  await app.register(productCustomizationRoutes, { prefix: config.apiPrefix });
-  await app.register(ingredientRoutes, { prefix: config.apiPrefix });
-  await app.register(dashboardRoutes, { prefix: config.apiPrefix });
-  await app.register(storeStatusRoutes, { prefix: config.apiPrefix });
-  await app.register(menuRoutes, { prefix: config.apiPrefix });
+  // API v1 routes（已弃用的旧版路由层，统一前缀固定为 /api/v1，由各路由自行声明）
+  await app.register(initRoutes, { prefix: '/api/v1' });
+  await app.register(authRoutes, { prefix: '/api/v1' });
+  await app.register(storeRoutes, { prefix: '/api/v1' });
+  await app.register(areaRoutes, { prefix: '/api/v1' });
+  await app.register(configRoutes, { prefix: '/api/v1' });
+  await app.register(productRoutes, { prefix: '/api/v1' });
+  await app.register(tagRoutes, { prefix: '/api/v1' });
+  await app.register(productCustomizationRoutes, { prefix: '/api/v1' });
+  await app.register(ingredientRoutes, { prefix: '/api/v1' });
+  await app.register(dashboardRoutes, { prefix: '/api/v1' });
+  await app.register(storeStatusRoutes, { prefix: '/api/v1' });
+  await app.register(menuRoutes, { prefix: '/api/v1' });
 }

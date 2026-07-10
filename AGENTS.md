@@ -77,5 +77,5 @@ pnpm --filter dextea-admin-api db:studio  # Open Drizzle Studio
 - **No formatter** (prettier/biome) configured
 - **Nested `pnpm-workspace.yaml`** in `apps/api/` is dead config — pnpm ignores it
 - **Per-app `pnpm-lock.yaml`** files in `apps/api/` and `apps/web/` are orphaned — use root lockfile only
-- **API runs on** `http://localhost:3001` with prefix `/api/v1`
+- **API runs on** `http://localhost:3001` with prefix `/api/v2`
 - **Web dev server** defaults to `http://localhost:5173`

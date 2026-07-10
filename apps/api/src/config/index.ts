@@ -15,7 +15,6 @@ export const config = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
   isDev: (process.env.NODE_ENV ?? 'development') === 'development',
   logLevel: process.env.LOG_LEVEL ?? 'info',
-  apiPrefix: '/api/v1', // API 路由统一前缀
 
   // 数据库配置
   db: {

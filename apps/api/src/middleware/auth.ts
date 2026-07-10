@@ -8,9 +8,9 @@ const TOKEN_PREFIX = 'dextea:admin:token:';
 // 无需 token 校验的白名单路径（精确匹配或前缀匹配）
 const AUTH_WHITELIST = [
   '/health',
-  '/api/v1/auth/login',
-  '/api/v1/init',
-  '/api/v1/docs',
+  '/api/v2/auth/login',
+  '/api/v2/init',
+  '/api/v2/docs',
 ] as const;
 
 function isWhitelisted(pathname: string): boolean {
