@@ -6,8 +6,8 @@ import { redis } from '@/plugins/db/redis/index.js';
 import { geocode } from '@/plugins/utils/geocode.js';
 import { resolveDivisionNames } from '@/plugins/utils/division.js';
 import { hashPassword } from '@/plugins/utils/password.js';
-import { STORE_STATUS_VALUES } from './store.type.js';
-import type { StoreListRequest, CreateStoreRequest, UpdateStoreRequest, UpdateStoreBasicInfoRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest, BindStoreMenuRequest } from './store.type.js';
+import { STORE_STATUS_VALUES } from '@dextea-admin/contracts';
+import type { StoreListRequest, CreateStoreRequest, UpdateStoreRequest, UpdateStoreBasicInfoRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest, BindStoreMenuRequest } from '@dextea-admin/contracts';
 
 export const storeService = {
   async getStoreList(params: StoreListRequest) {

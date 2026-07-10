@@ -1,24 +1,16 @@
 import { z } from 'zod/v4';
-import { PaginatedDataSchema } from '@/common/types/index.js';
+import { PaginatedDataSchema } from '../common/pagination.js';
 
-// 状态枚举：数据库用数字表示门店状态
-
-export const STORE_STATUS = {
-  RESTING:   { key: 'resting',   value: 0 },
-  OPEN:      { key: 'open',      value: 1 },
-  PREPARING: { key: 'preparing', value: 2 },
-  CLOSED:    { key: 'closed',    value: 3 },
-} as const;
-
-export type StoreStatus = (typeof STORE_STATUS)[keyof typeof STORE_STATUS]['value'];
-export const STORE_STATUS_VALUES: readonly StoreStatus[] = [0, 1, 2, 3];
-
-// 实体：门店
-
+/** 门店实体 */
 export const StoreSchema = z.object({
   id: z.number(),
   name: z.string(),
+  /** 行政区划代码（6 位，最细一级） */
   regionCode: z.string(),
+  /** 以下为根据 regionCode 反查得到的展示用名称（可选） */
+  province: z.string().optional(),
+  city: z.string().optional(),
+  district: z.string().optional(),
   address: z.string(),
   status: z.number(),
   businessHours: z.string(),
@@ -32,8 +24,7 @@ export const StoreSchema = z.object({
 });
 export type Store = z.infer<typeof StoreSchema>;
 
-// 获取门店列表
-
+/** 获取门店列表 */
 export const StoreListRequestSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().positive().max(100).default(20),
@@ -44,13 +35,11 @@ export type StoreListRequest = z.infer<typeof StoreListRequestSchema>;
 export const StoreListResponseSchema = PaginatedDataSchema(StoreSchema);
 export type StoreListResponse = z.infer<typeof StoreListResponseSchema>;
 
-// 获取门店详情
-
+/** 获取门店详情 */
 export const StoreGetResponseSchema = StoreSchema;
 export type StoreGetResponse = Store;
 
-// 新增门店
-
+/** 新增门店 */
 export const CreateStoreRequestSchema = z.object({
   name: z.string().min(1, '门店名称不能为空'),
   regionCode: z.string().optional(),
@@ -70,8 +59,7 @@ export const CreateStoreResponseSchema = z.object({
 });
 export type CreateStoreResponse = z.infer<typeof CreateStoreResponseSchema>;
 
-// 更新门店
-
+/** 更新门店 */
 export const UpdateStoreRequestSchema = z.object({
   name: z.string().min(1, '门店名称不能为空'),
   regionCode: z.string().optional(),
@@ -89,8 +77,7 @@ export const UpdateStoreResponseSchema = z.object({
 });
 export type UpdateStoreResponse = z.infer<typeof UpdateStoreResponseSchema>;
 
-// 更新门店基础信息
-
+/** 更新门店基础信息 */
 export const UpdateStoreBasicInfoRequestSchema = z.object({
   name: z.string().min(1, '门店名称不能为空'),
   phone: z.string().optional(),
@@ -104,8 +91,7 @@ export const UpdateStoreBasicInfoResponseSchema = z.object({
 });
 export type UpdateStoreBasicInfoResponse = z.infer<typeof UpdateStoreBasicInfoResponseSchema>;
 
-// 更新门店位置
-
+/** 更新门店位置 */
 export const UpdateStoreLocationRequestSchema = z.object({
   regionCode: z.string().optional(),
   address: z.string().optional(),
@@ -119,8 +105,7 @@ export const UpdateStoreLocationResponseSchema = z.object({
 });
 export type UpdateStoreLocationResponse = z.infer<typeof UpdateStoreLocationResponseSchema>;
 
-// 更新门店状态
-
+/** 更新门店状态 */
 export const UpdateStoreStatusRequestSchema = z.object({
   status: z.number(),
 });
@@ -131,15 +116,13 @@ export const UpdateStoreStatusResponseSchema = z.object({
 });
 export type UpdateStoreStatusResponse = z.infer<typeof UpdateStoreStatusResponseSchema>;
 
-// 重置门店密码
-
+/** 重置门店密码 */
 export const ResetStorePasswordResponseSchema = z.object({
   newPassword: z.string(),
 });
 export type ResetStorePasswordResponse = z.infer<typeof ResetStorePasswordResponseSchema>;
 
-// 绑定门店菜单
-
+/** 绑定门店菜单 */
 export const BindStoreMenuRequestSchema = z.object({
   menuId: z.number().nullable(),
 });
@@ -150,8 +133,7 @@ export const BindStoreMenuResponseSchema = z.object({
 });
 export type BindStoreMenuResponse = z.infer<typeof BindStoreMenuResponseSchema>;
 
-// 同步门店定位数据
-
+/** 同步门店定位数据 */
 export const SyncLocationsResponseSchema = z.object({
   synced: z.number(),
 });

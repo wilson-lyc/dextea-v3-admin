@@ -20,7 +20,7 @@ import {
   BindStoreMenuRequestSchema,
   BindStoreMenuResponseSchema,
   SyncLocationsResponseSchema,
-} from './store.type.js';
+} from '@dextea-admin/contracts';
 
 export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
   // 门店列表

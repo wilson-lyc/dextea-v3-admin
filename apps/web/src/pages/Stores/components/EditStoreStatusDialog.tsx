@@ -23,7 +23,7 @@ interface EditStoreStatusDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   storeId: number
-  currentStatus: StoreStatus
+  currentStatus: number
   onUpdated: () => void
 }
 
