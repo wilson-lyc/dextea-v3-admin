@@ -30,7 +30,6 @@ export const initRepository = {
     await db.insert(configTable).values({
       key: 'Initialized',
       value: 'true',
-      note: '系统初始化标记',
     });
   },
 };

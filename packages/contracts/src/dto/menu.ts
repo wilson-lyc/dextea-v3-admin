@@ -1,5 +1,5 @@
 import { z } from 'zod/v4';
-import { PaginatedDataSchema } from '@/common/types/index.js';
+import { PaginatedDataSchema } from '../common/pagination.js';
 
 // ─── 实体 ──────────────────────────────────────────────
 
@@ -72,9 +72,7 @@ export const CreateMenuRequestSchema = z.object({
 });
 export type CreateMenuRequest = z.infer<typeof CreateMenuRequestSchema>;
 
-export const CreateMenuResponseSchema = z.object({
-  id: z.number(),
-});
+export const CreateMenuResponseSchema = z.object({ id: z.number() });
 export type CreateMenuResponse = z.infer<typeof CreateMenuResponseSchema>;
 
 export const UpdateMenuRequestSchema = z.object({
@@ -83,9 +81,7 @@ export const UpdateMenuRequestSchema = z.object({
 });
 export type UpdateMenuRequest = z.infer<typeof UpdateMenuRequestSchema>;
 
-export const UpdateMenuResponseSchema = z.object({
-  id: z.number(),
-});
+export const UpdateMenuResponseSchema = z.object({ id: z.number() });
 export type UpdateMenuResponse = z.infer<typeof UpdateMenuResponseSchema>;
 
 export const BatchDeleteMenusRequestSchema = z.object({
@@ -104,9 +100,7 @@ export const CreateMenuGroupRequestSchema = z.object({
 });
 export type CreateMenuGroupRequest = z.infer<typeof CreateMenuGroupRequestSchema>;
 
-export const CreateMenuGroupResponseSchema = z.object({
-  id: z.number(),
-});
+export const CreateMenuGroupResponseSchema = z.object({ id: z.number() });
 export type CreateMenuGroupResponse = z.infer<typeof CreateMenuGroupResponseSchema>;
 
 export const UpdateMenuGroupRequestSchema = z.object({
@@ -115,9 +109,7 @@ export const UpdateMenuGroupRequestSchema = z.object({
 });
 export type UpdateMenuGroupRequest = z.infer<typeof UpdateMenuGroupRequestSchema>;
 
-export const UpdateMenuGroupResponseSchema = z.object({
-  id: z.number(),
-});
+export const UpdateMenuGroupResponseSchema = z.object({ id: z.number() });
 export type UpdateMenuGroupResponse = z.infer<typeof UpdateMenuGroupResponseSchema>;
 
 export const BatchDeleteMenuGroupsRequestSchema = z.object({

@@ -21,7 +21,7 @@ import {
   BindIngredientRequestSchema,
   UpdateIngredientQuantityRequestSchema,
   ProductOptionListResponseSchema,
-} from './product.type.js';
+} from '@dextea-admin/contracts';
 
 export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
   // ── 商品列表 ──────────────────────────────────────

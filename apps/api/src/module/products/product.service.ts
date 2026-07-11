@@ -2,7 +2,7 @@ import { BizError } from '@/common/exceptions/index.js';
 import { ProductErrorCodes } from './product.errorcode.js';
 import { TagErrorCodes } from '@/module/tags/tag.errorcode.js';
 import { productRepository } from './product.repository.js';
-import { PRODUCT_STATUS_VALUES } from './product.type.js';
+import { PRODUCT_STATUS_VALUES } from '@dextea-admin/contracts';
 import { validateMaxLength, validatePrice, validateStatus } from '@/plugins/utils/validation.js';
 import type {
   ProductListRequest,
@@ -13,7 +13,7 @@ import type {
   UnbindTagsRequest,
   BindIngredientRequest,
   UpdateIngredientQuantityRequest,
-} from './product.type.js';
+} from '@dextea-admin/contracts';
 
 export const productService = {
   // ─── 商品列表 ─────────────────────────────────────

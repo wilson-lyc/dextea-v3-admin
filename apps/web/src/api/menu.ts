@@ -1,87 +1,37 @@
-import {
-  createModuleClient,
-  type ApiResponse,
-  type PaginatedData,
-} from "./client"
-import { type Store } from "./store"
+import { createModuleClient, type ApiResponse, type PaginatedData } from "./client"
+import type { Store } from "./store"
+import type {
+  Menu,
+  MenuGroup,
+  MenuProduct,
+  CreateMenuRequest,
+  UpdateMenuRequest,
+  CreateMenuResponse,
+  UpdateMenuResponse,
+  CreateMenuGroupRequest,
+  CreateMenuGroupResponse,
+  DispatchByAreaRequest,
+  DispatchByAreaResponse,
+  DispatchByIdRequest,
+  DispatchByIdResponse,
+} from "@dextea-admin/contracts"
 
-// ──── DTO ────
-export interface Menu {
-  id: number
-  name: string
-  description: string
-  createdAt: string
-  updatedAt: string
-}
-
-export interface MenuGroup {
-  id: number
-  menuId: number
-  name: string
-  sortOrder: number
-  productCount?: number
-  createdAt: string
-  updatedAt: string
-}
-
-export interface MenuProduct {
-  groupId: number
-  productId: number
-  productName?: string
-  price?: number
-  status?: number
-  sortOrder: number
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CreateMenuRequest {
-  name: string
-  description?: string
-}
-
-export interface UpdateMenuRequest {
-  name?: string
-  description?: string
-}
-
-export interface CreateMenuResponse {
-  id: number
-}
-
-export interface UpdateMenuResponse {
-  id: number
-}
-
-export interface CreateMenuGroupRequest {
-  menuId: number
-  name: string
-  sortOrder?: number
-}
-
-export interface CreateMenuGroupResponse {
-  id: number
-}
-
-export interface DispatchMenuByAreaRequest {
-  province: string
-  city?: string
-  district?: string
-}
-
-export interface DispatchMenuByAreaResponse {
-  matched: number
-  dispatched: number
-}
-
-export interface DispatchMenuByIdRequest {
-  storeIds: number[]
-}
-
-export interface DispatchMenuByIdResponse {
-  matched: number
-  dispatched: number
-}
+// ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
+export type {
+  Menu,
+  MenuGroup,
+  MenuProduct,
+  CreateMenuRequest,
+  UpdateMenuRequest,
+  CreateMenuResponse,
+  UpdateMenuResponse,
+  CreateMenuGroupRequest,
+  CreateMenuGroupResponse,
+  DispatchByAreaRequest,
+  DispatchByAreaResponse,
+  DispatchByIdRequest,
+  DispatchByIdResponse,
+} from "@dextea-admin/contracts"
 
 const http = createModuleClient("menu")
 
@@ -162,12 +112,22 @@ export function updateMenuProductSort(groupId: number, productId: number, sortOr
 }
 
 /**
+ * 获取菜单关联的门店列表
+ * GET /menus/:id/stores
+ */
+export function getStoresByMenuId(menuId: number, params?: { page?: number; pageSize?: number }) {
+  return http
+    .get<ApiResponse<PaginatedData<Store>>>(`/menus/${menuId}/stores`, { params })
+    .then((res) => res.data)
+}
+
+/**
  * 按地域分发菜单
  * POST /menus/:id/dispatch/area
  */
-export function dispatchMenuByArea(menuId: number, data: DispatchMenuByAreaRequest) {
+export function dispatchMenuByArea(menuId: number, data: DispatchByAreaRequest) {
   return http
-    .post<ApiResponse<DispatchMenuByAreaResponse>>(`/menus/${menuId}/dispatch/area`, data)
+    .post<ApiResponse<DispatchByAreaResponse>>(`/menus/${menuId}/dispatch/area`, data)
     .then((res) => res.data)
 }
 
@@ -175,18 +135,8 @@ export function dispatchMenuByArea(menuId: number, data: DispatchMenuByAreaReque
  * 按ID分发菜单
  * POST /menus/:id/dispatch/id
  */
-export function dispatchMenuById(menuId: number, data: DispatchMenuByIdRequest) {
+export function dispatchMenuById(menuId: number, data: DispatchByIdRequest) {
   return http
-    .post<ApiResponse<DispatchMenuByIdResponse>>(`/menus/${menuId}/dispatch/id`, data)
-    .then((res) => res.data)
-}
-
-/**
- * 获取菜单关联的门店列表
- * GET /menus/:id/stores
- */
-export function getStoresByMenuId(menuId: number, params?: { page?: number; pageSize?: number }) {
-  return http
-    .get<ApiResponse<PaginatedData<Store>>>(`/menus/${menuId}/stores`, { params })
+    .post<ApiResponse<DispatchByIdResponse>>(`/menus/${menuId}/dispatch/id`, data)
     .then((res) => res.data)
 }

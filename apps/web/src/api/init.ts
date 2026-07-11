@@ -1,14 +1,10 @@
 import { createModuleClient, type ApiResponse } from "./client"
+import type { InitRequest } from "@dextea-admin/contracts"
 
-// ──── DTO ────
+// ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
+
 export interface InitStatusData {
   initialized: boolean
-}
-
-export interface InitRequest {
-  email: string
-  password: string
-  displayName: string
 }
 
 const http = createModuleClient("init")

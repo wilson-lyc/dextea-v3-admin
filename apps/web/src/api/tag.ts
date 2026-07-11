@@ -1,6 +1,9 @@
 import { createModuleClient, type ApiResponse, type PaginatedData } from "./client"
+import type { CreateTagRequest, UpdateTagRequest, TagProductItem } from "@dextea-admin/contracts"
 
-// ──── DTO ────
+// ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
+
+// 标签实体（create/update 仅返回 {id, name}，故字段按需可选）
 export interface ProductTag {
   id: number
   name: string
@@ -9,15 +12,6 @@ export interface ProductTag {
   updatedAt?: string
 }
 
-export interface CreateTagRequest {
-  name: string
-}
-
-export interface UpdateTagRequest {
-  name: string
-}
-
-// 兼容页面既有类型名（迁移期内保留）
 export type CreateTagInput = CreateTagRequest
 export type UpdateTagInput = UpdateTagRequest
 
@@ -58,10 +52,6 @@ export function deleteTag(id: number) {
 }
 
 // ──── 商品绑定 ────
-interface TagBoundProduct {
-  id: number
-  name: string
-}
 
 /**
  * 获取标签绑定的商品列表
@@ -69,7 +59,7 @@ interface TagBoundProduct {
  */
 export function getTagBoundProducts(tagId: number, params?: { page?: number; pageSize?: number }) {
   return http
-    .get<ApiResponse<PaginatedData<TagBoundProduct>>>(`/tags/${tagId}/products`, { params })
+    .get<ApiResponse<PaginatedData<TagProductItem>>>(`/tags/${tagId}/products`, { params })
     .then((res) => res.data)
 }
 

@@ -1,18 +1,9 @@
 import { z } from 'zod/v4';
-import { PaginatedDataSchema } from '@/common/types/index.js';
+import { PaginatedDataSchema } from '../common/pagination.js';
 
-// 状态枚举：0=下架 1=启用
+// 原料状态枚举见 @dextea-admin/contracts/status (INGREDIENT_STATUS)
 
-export const INGREDIENT_STATUS = {
-  DISABLED: 0,
-  ENABLED: 1,
-} as const;
-
-export type IngredientStatus = (typeof INGREDIENT_STATUS)[keyof typeof INGREDIENT_STATUS];
-export const INGREDIENT_STATUS_VALUES: readonly IngredientStatus[] = [0, 1];
-
-// 实体：原料
-
+/** 原料实体 */
 export const IngredientSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -25,8 +16,7 @@ export const IngredientSchema = z.object({
 });
 export type Ingredient = z.infer<typeof IngredientSchema>;
 
-// 获取原料列表
-
+/** 原料列表查询 */
 export const IngredientListRequestSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().positive().max(100).default(20),
@@ -37,13 +27,11 @@ export type IngredientListRequest = z.infer<typeof IngredientListRequestSchema>;
 export const IngredientListResponseSchema = PaginatedDataSchema(IngredientSchema);
 export type IngredientListResponse = z.infer<typeof IngredientListResponseSchema>;
 
-// 获取原料详情
-
+/** 原料详情 */
 export const IngredientDetailResponseSchema = IngredientSchema;
 export type IngredientDetailResponse = Ingredient;
 
-// 新增原料
-
+/** 新增原料 */
 export const CreateIngredientRequestSchema = z.object({
   name: z.string().min(1, '原料名称不能为空'),
   unit: z.string().min(1, '单位不能为空'),
@@ -51,13 +39,10 @@ export const CreateIngredientRequestSchema = z.object({
 });
 export type CreateIngredientRequest = z.infer<typeof CreateIngredientRequestSchema>;
 
-export const CreateIngredientResponseSchema = z.object({
-  id: z.number(),
-});
+export const CreateIngredientResponseSchema = z.object({ id: z.number() });
 export type CreateIngredientResponse = z.infer<typeof CreateIngredientResponseSchema>;
 
-// 更新原料
-
+/** 更新原料 */
 export const UpdateIngredientRequestSchema = z.object({
   name: z.string().min(1, '原料名称不能为空').optional(),
   unit: z.string().min(1, '单位不能为空').optional(),
@@ -65,20 +50,14 @@ export const UpdateIngredientRequestSchema = z.object({
 });
 export type UpdateIngredientRequest = z.infer<typeof UpdateIngredientRequestSchema>;
 
-export const UpdateIngredientResponseSchema = z.object({
-  id: z.number(),
-});
+export const UpdateIngredientResponseSchema = z.object({ id: z.number() });
 export type UpdateIngredientResponse = z.infer<typeof UpdateIngredientResponseSchema>;
 
-// 更新原料状态
-
-export const UpdateIngredientStatusRequestSchema = z.object({
-  status: z.number(),
-});
+/** 更新原料状态 */
+export const UpdateIngredientStatusRequestSchema = z.object({ status: z.number() });
 export type UpdateIngredientStatusRequest = z.infer<typeof UpdateIngredientStatusRequestSchema>;
 
-// 绑定商品
-
+/** 原料绑定商品 */
 export const IngredientProductSchema = z.object({
   productId: z.number(),
   productName: z.string(),
@@ -95,13 +74,10 @@ export const BindProductRequestSchema = z.object({
 });
 export type BindProductRequest = z.infer<typeof BindProductRequestSchema>;
 
-export const UpdateBindQuantityRequestSchema = z.object({
-  quantity: z.number(),
-});
+export const UpdateBindQuantityRequestSchema = z.object({ quantity: z.number() });
 export type UpdateBindQuantityRequest = z.infer<typeof UpdateBindQuantityRequestSchema>;
 
-// 绑定客制化选项
-
+/** 原料绑定客制化选项 */
 export const IngredientOptionSchema = z.object({
   optionId: z.number(),
   optionName: z.string(),
@@ -119,13 +95,10 @@ export const BindOptionRequestSchema = z.object({
 });
 export type BindOptionRequest = z.infer<typeof BindOptionRequestSchema>;
 
-export const UpdateOptionQuantityRequestSchema = z.object({
-  quantity: z.number(),
-});
+export const UpdateOptionQuantityRequestSchema = z.object({ quantity: z.number() });
 export type UpdateOptionQuantityRequest = z.infer<typeof UpdateOptionQuantityRequestSchema>;
 
-// 原料选项列表（供 SelectPicker 使用）
-
+/** 原料选项列表（供 SelectPicker 使用） */
 export const IngredientOptionSelectSchema = z.object({
   label: z.string(),
   value: z.string(),

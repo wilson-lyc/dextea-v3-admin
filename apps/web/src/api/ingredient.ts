@@ -1,37 +1,24 @@
 import { createModuleClient, type ApiResponse, type PaginatedData } from "./client"
 import type { IngredientStatus } from "@dextea-admin/contracts/status"
+import type {
+  Ingredient,
+  CreateIngredientRequest,
+  CreateIngredientResponse,
+  UpdateIngredientRequest,
+  UpdateIngredientResponse,
+  IngredientProduct,
+  IngredientOption,
+  IngredientOptionSelect,
+} from "@dextea-admin/contracts"
 
-// ──── DTO ────
-export interface Ingredient {
-  id: number
-  name: string
-  unit: string
-  status: IngredientStatus
-  boundCount: number
-  optionCount: number
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CreateIngredientRequest {
-  name: string
-  unit: string
-  status?: IngredientStatus
-}
-
-export interface CreateIngredientResponse {
-  id: number
-}
-
-export interface UpdateIngredientRequest {
-  name?: string
-  unit?: string
-  status?: IngredientStatus
-}
-
-export interface UpdateIngredientResponse {
-  id: number
-}
+// ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
+export type {
+  Ingredient,
+  CreateIngredientRequest,
+  CreateIngredientResponse,
+  UpdateIngredientRequest,
+  UpdateIngredientResponse,
+} from "@dextea-admin/contracts"
 
 const http = createModuleClient("ingredient")
 
@@ -84,11 +71,6 @@ export function toggleIngredientStatus(id: number, status: IngredientStatus) {
 }
 
 // ──── 商品绑定 ────
-interface BoundProduct {
-  productId: number
-  productName: string
-  quantity: number
-}
 
 /**
  * 获取原料绑定的商品列表
@@ -99,7 +81,7 @@ export function getIngredientBoundProducts(
   params?: { page?: number; pageSize?: number },
 ) {
   return http
-    .get<ApiResponse<PaginatedData<BoundProduct>>>(`/ingredients/${ingredientId}/products`, {
+    .get<ApiResponse<PaginatedData<IngredientProduct>>>(`/ingredients/${ingredientId}/products`, {
       params,
     })
     .then((res) => res.data)
@@ -141,29 +123,17 @@ export function unbindProductFromIngredient(ingredientId: number, productId: num
     .then((res) => res.data)
 }
 
-interface IngredientOption {
-  label: string
-  value: string
-  unit: string
-}
-
 /**
  * 获取原料选项列表
  * GET /ingredients/options
  */
 export function getIngredientOptions() {
   return http
-    .get<ApiResponse<IngredientOption[]>>("/ingredients/options")
+    .get<ApiResponse<IngredientOptionSelect[]>>("/ingredients/options")
     .then((res) => res.data)
 }
 
 // ──── 客制化选项绑定 ────
-interface BoundOption {
-  optionId: number
-  optionName: string
-  customizationName: string
-  quantity: number
-}
 
 /**
  * 获取原料绑定的客制化选项
@@ -174,10 +144,9 @@ export function getIngredientBoundOptions(
   params?: { page?: number; pageSize?: number },
 ) {
   return http
-    .get<ApiResponse<PaginatedData<BoundOption>>>(
-      `/ingredients/${ingredientId}/customization-options`,
-      { params },
-    )
+    .get<ApiResponse<PaginatedData<IngredientOption>>>(`/ingredients/${ingredientId}/customization-options`, {
+      params,
+    })
     .then((res) => res.data)
 }
 
@@ -204,10 +173,9 @@ export function updateIngredientOptionQuantity(
   quantity: number,
 ) {
   return http
-    .patch<ApiResponse<null>>(
-      `/ingredients/${ingredientId}/customization-options/${optionId}/quantity`,
-      { quantity },
-    )
+    .patch<ApiResponse<null>>(`/ingredients/${ingredientId}/customization-options/${optionId}/quantity`, {
+      quantity,
+    })
     .then((res) => res.data)
 }
 

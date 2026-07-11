@@ -27,7 +27,7 @@ import {
   DispatchByAreaResponseSchema,
   DispatchByIdRequestSchema,
   DispatchByIdResponseSchema,
-} from './menu.type.js';
+} from '@dextea-admin/contracts';
 
 export const registerMenuRoutes: FastifyPluginAsyncZod = async (app) => {
   // ─── 菜单 ──────────────────────────────────────────

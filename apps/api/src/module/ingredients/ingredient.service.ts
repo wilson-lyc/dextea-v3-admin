@@ -1,7 +1,7 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { IngredientErrorCodes } from './ingredient.errorcode.js';
 import { ingredientRepository } from './ingredient.repository.js';
-import { INGREDIENT_STATUS_VALUES } from './ingredient.type.js';
+import { INGREDIENT_STATUS_VALUES } from '@dextea-admin/contracts';
 import type {
   IngredientListRequest,
   CreateIngredientRequest,
@@ -11,7 +11,7 @@ import type {
   UpdateBindQuantityRequest,
   BindOptionRequest,
   UpdateOptionQuantityRequest,
-} from './ingredient.type.js';
+} from '@dextea-admin/contracts';
 
 export const ingredientService = {
   // ──── 原料基础 CRUD ────

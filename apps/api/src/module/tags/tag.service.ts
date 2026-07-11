@@ -8,7 +8,7 @@ import type {
   BindProductsRequest,
   UnbindProductsRequest,
   TagProductsRequest,
-} from './tag.type.js';
+} from '@dextea-admin/contracts';
 
 export const tagService = {
   async getTagOptions() {

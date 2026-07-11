@@ -15,7 +15,7 @@ import {
   PaginationQuerySchema,
   UpdateProductStoreStatusBodySchema,
   UpdateOptionStoreStatusBodySchema,
-} from './store-status.type.js';
+} from '@dextea-admin/contracts';
 
 export const registerStoreStatusRoutes: FastifyPluginAsyncZod = async (app) => {
   // 门店商品列表（含门店状态）

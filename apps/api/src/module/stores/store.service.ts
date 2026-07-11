@@ -6,7 +6,7 @@ import { redis } from '@/plugins/db/redis/index.js';
 import { geocode } from '@/plugins/utils/geocode.js';
 import { resolveDivisionNames } from '@/plugins/utils/division.js';
 import { hashPassword } from '@/plugins/utils/password.js';
-import { STORE_STATUS_VALUES } from '@dextea-admin/contracts';
+import { STORE_STATUS, STORE_STATUS_VALUES } from '@dextea-admin/contracts';
 import type { StoreListRequest, CreateStoreRequest, UpdateStoreRequest, UpdateStoreBasicInfoRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest, BindStoreMenuRequest } from '@dextea-admin/contracts';
 
 export const storeService = {
@@ -46,6 +46,7 @@ export const storeService = {
       name,
       regionCode: regionCode ?? '',
       address: address ?? '',
+      status: STORE_STATUS.PREPARING.value,
       businessHours: businessHours ?? '',
       phone: phone ?? '',
       account,

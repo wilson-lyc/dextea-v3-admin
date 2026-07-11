@@ -4,50 +4,22 @@ import {
   type PaginatedData,
 } from "./client"
 import type {
-  ProductStatus,
-  CustomizationStatus,
-  CustomizationOptionStatus,
-} from "@dextea-admin/contracts/status"
+  StoreProductItem,
+  UpdateProductStoreStatusBody,
+  StoreCustomizationItem,
+  StoreCustomizationOptionItem,
+  UpdateOptionStoreStatusBody,
+  StoreIngredientItem,
+} from "@dextea-admin/contracts/dto"
 
-// ──── DTO ────
-export interface StoreProductItem {
-  id: number
-  name: string
-  price: number
-  globalStatus: ProductStatus
-  storeStatus: ProductStatus
-}
-
-export interface UpsertProductStoreStatusRequest {
-  status: ProductStatus
-}
-
-export interface StoreCustomizationItem {
-  id: number
-  name: string
-  globalStatus: CustomizationStatus
-  storeStatus: CustomizationStatus
-  optionCount: number
-}
-
-export interface StoreCustomizationOptionItem {
-  id: number
-  name: string
-  price: number
-  globalStatus: CustomizationOptionStatus
-  storeStatus: CustomizationOptionStatus
-}
-
-export interface UpsertCustomizationOptionStoreStatusRequest {
-  status: CustomizationOptionStatus
-}
-
-export interface StoreIngredientItem {
-  id: number
-  name: string
-  unit: string
-  quantity: number
-}
+export type {
+  StoreProductItem,
+  UpdateProductStoreStatusBody,
+  StoreCustomizationItem,
+  StoreCustomizationOptionItem,
+  UpdateOptionStoreStatusBody,
+  StoreIngredientItem,
+} from "@dextea-admin/contracts/dto"
 
 const http = createModuleClient("store-status")
 
@@ -71,7 +43,7 @@ export function getStoreProducts(
 export function updateProductStoreStatus(
   storeId: number,
   productId: number,
-  data: UpsertProductStoreStatusRequest,
+  data: UpdateProductStoreStatusBody,
 ) {
   return http
     .patch<ApiResponse<null>>(`/stores/${storeId}/products/${productId}/status`, data)
@@ -117,7 +89,7 @@ export function getStoreCustomizationOptions(
 export function updateCustomizationOptionStoreStatus(
   storeId: number,
   optionId: number,
-  data: UpsertCustomizationOptionStoreStatusRequest,
+  data: UpdateOptionStoreStatusBody,
 ) {
   return http
     .patch<ApiResponse<null>>(

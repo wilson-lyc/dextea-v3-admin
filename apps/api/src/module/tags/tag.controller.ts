@@ -14,7 +14,7 @@ import {
   TagProductsResponseSchema,
   BindProductsRequestSchema,
   UnbindProductsRequestSchema,
-} from './tag.type.js';
+} from '@dextea-admin/contracts';
 
 export const registerTagRoutes: FastifyPluginAsyncZod = async (app) => {
   // 标签选项列表（供 SelectPicker 使用）

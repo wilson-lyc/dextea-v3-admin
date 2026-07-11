@@ -3,7 +3,7 @@ import { InitErrorCodes } from './init.errorcode.js';
 import { initRepository } from './init.repository.js';
 import { validateEmail, validatePassword, validateMaxLength } from '@/plugins/utils/validation.js';
 import { hashPassword } from '@/plugins/utils/password.js';
-import type { InitRequest } from './init.type.js';
+import type { InitRequest } from '@dextea-admin/contracts';
 
 export const initService = {
   async getInitStatus() {

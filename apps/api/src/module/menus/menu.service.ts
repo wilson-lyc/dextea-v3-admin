@@ -16,7 +16,7 @@ import type {
   MenuStoreListRequest,
   DispatchByAreaRequest,
   DispatchByIdRequest,
-} from './menu.type.js';
+} from '@dextea-admin/contracts';
 
 export const menuService = {
   // ─── 菜单 ──────────────────────────────────────────

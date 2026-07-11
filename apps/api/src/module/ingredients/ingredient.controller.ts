@@ -18,7 +18,7 @@ import {
   BindOptionRequestSchema,
   UpdateOptionQuantityRequestSchema,
   IngredientOptionSelectListResponseSchema,
-} from './ingredient.type.js';
+} from '@dextea-admin/contracts';
 
 const ParamsWithId = z.object({
   id: z.coerce.number().int().positive('ID 必须为正整数'),

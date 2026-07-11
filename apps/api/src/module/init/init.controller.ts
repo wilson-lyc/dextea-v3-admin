@@ -5,7 +5,7 @@ import {
   InitStatusResponseSchema,
   InitRequestSchema,
   InitResponseSchema,
-} from './init.type.js';
+} from '@dextea-admin/contracts';
 
 export const registerInitRoutes: FastifyPluginAsyncZod = async (app) => {
   // 初始化状态

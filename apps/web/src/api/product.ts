@@ -1,47 +1,22 @@
-import {
-  createModuleClient,
-  type ApiResponse,
-  type PaginatedData,
-  type ProductTag,
-} from "./client"
+import { createModuleClient, type ApiResponse, type PaginatedData } from "./client"
 import type { ProductStatus } from "@dextea-admin/contracts/status"
+import type {
+  Product,
+  CreateProductRequest,
+  CreateProductResponse,
+  IngredientRelation,
+  ProductOption,
+} from "@dextea-admin/contracts"
+import type { ProductTag } from "./tag"
 
-// ──── DTO ────
-export interface Product {
-  id: number
-  name: string
-  brief: string
-  description: string
-  status: ProductStatus
-  price: number
-  tags?: ProductTag[]
-  ingredients?: ProductIngredientRelation[]
-  createdAt: string
-  updatedAt: string
-}
-
-export interface ProductIngredientRelation {
-  ingredientId: number
-  quantity: number
-  ingredient?: Ingredient
-}
-
-// 跨模块引用实体类型
-import type { Ingredient } from "./ingredient"
-
-export interface CreateProductRequest {
-  name: string
-  brief?: string
-  description?: string
-  price: number
-  tagIds?: number[]
-  ingredientIds?: Array<{ ingredientId: number; quantity: number }>
-  status?: ProductStatus
-}
-
-export interface CreateProductResponse {
-  id: number
-}
+// ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
+export type {
+  Product,
+  CreateProductRequest,
+  CreateProductResponse,
+  IngredientRelation,
+  ProductOption,
+} from "@dextea-admin/contracts"
 
 const http = createModuleClient("product")
 
@@ -89,7 +64,7 @@ export function updateProduct(id: string, data: Partial<Product>) {
 
 /**
  * 上下架商品
- * PATCH /products/:id/status
+ * PUT /products/:id/status
  */
 export function toggleProductStatus(id: string, status: ProductStatus) {
   return http
@@ -127,13 +102,6 @@ export function removeProductTag(productId: number, tagId: number) {
     .then((res) => res.data)
 }
 
-interface BoundIngredient {
-  ingredientId: number
-  ingredientName: string
-  unit: string
-  quantity: number
-}
-
 /**
  * 获取商品绑定的原料列表
  * GET /products/:id/ingredients
@@ -143,7 +111,7 @@ export function getProductBoundIngredients(
   params?: { page?: number; pageSize?: number },
 ) {
   return http
-    .get<ApiResponse<PaginatedData<BoundIngredient>>>(`/products/${productId}/ingredients`, {
+    .get<ApiResponse<PaginatedData<IngredientRelation>>>(`/products/${productId}/ingredients`, {
       params,
     })
     .then((res) => res.data)
@@ -183,11 +151,6 @@ export function unbindIngredientFromProduct(productId: number, ingredientId: num
   return http
     .delete<ApiResponse<null>>(`/products/${productId}/ingredients/${ingredientId}`)
     .then((res) => res.data)
-}
-
-interface ProductOption {
-  label: string
-  value: string
 }
 
 /**
