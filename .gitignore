@@ -31,11 +31,3 @@ pnpm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
-
-# Agent
-.sisyphus
-.trae
-.workbuddy
-.mimocode
-.claude
-.codebuddy
