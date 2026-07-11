@@ -3,7 +3,7 @@ import { PlusIcon, PencilIcon, BanIcon, CheckCircleIcon, UsersIcon, SearchIcon, 
 import { toast } from "sonner"
 
 import type { Employee } from "@/api"
-import { EMPLOYEE_STATUS, EMPLOYEE_STATUS_LABEL, EMPLOYEE_STATUS_TEXT_CLASSES } from "@/lib/status"
+import { EMPLOYEE_STATUS, EMPLOYEE_STATUS_LABEL, EMPLOYEE_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {

@@ -1,10 +1,5 @@
 import { createModuleClient, type ApiResponse } from "./client"
-
-// ──── DTO ────
-export interface AmapConfig {
-  key: string
-  securityCode: string
-}
+import type { AmapConfig } from "@dextea-admin/contracts/dto"
 
 const http = createModuleClient("config")
 

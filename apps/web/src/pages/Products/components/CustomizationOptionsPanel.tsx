@@ -3,7 +3,7 @@ import { ListIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { CustomizationOption } from "@/api"
-import { CUSTOMIZATION_OPTION_STATUS } from "@/lib/status"
+import { CUSTOMIZATION_OPTION_STATUS } from "@dextea-admin/contracts/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"

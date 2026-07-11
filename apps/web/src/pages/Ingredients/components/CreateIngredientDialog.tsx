@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import { INGREDIENT_STATUS } from "@/lib/status"
+import { INGREDIENT_STATUS } from "@dextea-admin/contracts/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {

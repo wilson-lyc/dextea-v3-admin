@@ -27,3 +27,16 @@ export const EMPLOYEE_STATUS_VALUES: readonly EmployeeStatus[] = Object.values(E
 export const EMPLOYEE_STATUS_LABEL: Record<number, string> = Object.fromEntries(
   Object.values(EMPLOYEE_STATUS).map((s) => [s.value, s.label]),
 ) as Record<number, string>;
+
+// ──── 前端展示样式（视图层，按状态值映射到 Tailwind 类） ────
+
+export const EMPLOYEE_STATUS_TEXT_CLASSES: Record<number, string> = {
+  [EMPLOYEE_STATUS.DISABLED.value]: 'text-destructive',
+  [EMPLOYEE_STATUS.ACTIVE.value]: 'text-green-600 dark:text-green-400',
+};
+
+export const EMPLOYEE_STATUS_BADGE_CLASSES: Record<number, string> = {
+  [EMPLOYEE_STATUS.DISABLED.value]: 'bg-muted text-muted-foreground ring-muted',
+  [EMPLOYEE_STATUS.ACTIVE.value]:
+    'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-green-200 dark:ring-green-800/30',
+};

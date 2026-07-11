@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { ApiResponse, ApiResponseSchema } from '@/common/types/index.js';
 import { configService } from './config.service.js';
-import { AmapConfigResponseSchema } from './config.type.js';
+import { AmapConfigResponseSchema } from '@dextea-admin/contracts';
 
 export const registerConfigRoutes: FastifyPluginAsyncZod = async (app) => {
   // 高德地图密钥

@@ -4,7 +4,7 @@ import { ArrowLeftIcon, PencilIcon, KeyRoundIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store } from "@/api"
-import { STORE_STATUS_LABEL, STORE_STATUS_TEXT_CLASSES } from "@/lib/status"
+import { STORE_STATUS_LABEL, STORE_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
 import {
   Breadcrumb,
   BreadcrumbItem,

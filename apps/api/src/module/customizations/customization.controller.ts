@@ -18,7 +18,7 @@ import {
   UpdateCustomizationOptionRequestSchema,
   UpdateCustomizationOptionResponseSchema,
   DeleteCustomizationOptionResponseSchema,
-} from './customization.type.js';
+} from '@dextea-admin/contracts';
 
 const ParamIdSchema = z.object({ id: z.coerce.number().int().positive('ID 必须为正整数') });
 const ParamIdOptionIdSchema = z.object({

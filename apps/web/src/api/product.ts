@@ -4,7 +4,7 @@ import {
   type PaginatedData,
   type ProductTag,
 } from "./client"
-import type { ProductStatus } from "@/lib/status"
+import type { ProductStatus } from "@dextea-admin/contracts/status"
 
 // ──── DTO ────
 export interface Product {

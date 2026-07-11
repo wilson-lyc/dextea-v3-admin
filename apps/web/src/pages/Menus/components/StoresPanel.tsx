@@ -12,7 +12,7 @@ import {
 import { toast } from "sonner"
 
 import type { Store } from "@/api"
-import { STORE_STATUS_LABEL, STORE_STATUS_TEXT_CLASSES } from "@/lib/status"
+import { STORE_STATUS_LABEL, STORE_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
 import { getStoresByMenuId } from "@/api"
 import { Button } from "@/components/ui/button"
 import {

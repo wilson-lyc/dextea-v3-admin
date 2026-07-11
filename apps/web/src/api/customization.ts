@@ -3,59 +3,23 @@ import {
   type ApiResponse,
   type PaginatedData,
 } from "./client"
-import type { CustomizationStatus, CustomizationOptionStatus } from "@/lib/status"
+import type {
+  Customization,
+  CreateCustomizationRequest,
+  UpdateCustomizationRequest,
+  CustomizationOption,
+  CreateCustomizationOptionRequest,
+  UpdateCustomizationOptionRequest,
+} from "@dextea-admin/contracts/dto"
 
-// ──── DTO ────
-export interface Customization {
-  id: number
-  productId: number
-  name: string
-  status: CustomizationStatus
-  optionCount?: number
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CreateCustomizationRequest {
-  productId: number
-  name: string
-}
-
-export interface UpdateCustomizationRequest {
-  name: string
-  status?: CustomizationStatus
-}
-
-export interface CustomizationOption {
-  id: number
-  customizationId: number
-  name: string
-  price: number
-  sort: number
-  status: CustomizationOptionStatus
-  ingredientId: number | null
-  ingredientName: string | null
-  quantity: number
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CreateCustomizationOptionRequest {
-  name: string
-  price?: number
-  sort?: number
-  ingredientId?: number | null
-  quantity?: number
-}
-
-export interface UpdateCustomizationOptionRequest {
-  name?: string
-  price?: number
-  sort?: number
-  status?: CustomizationOptionStatus
-  ingredientId?: number | null
-  quantity?: number
-}
+export type {
+  Customization,
+  CreateCustomizationRequest,
+  UpdateCustomizationRequest,
+  CustomizationOption,
+  CreateCustomizationOptionRequest,
+  UpdateCustomizationOptionRequest,
+} from "@dextea-admin/contracts/dto"
 
 const http = createModuleClient("customization")
 

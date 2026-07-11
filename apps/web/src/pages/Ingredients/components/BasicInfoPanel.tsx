@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { PencilIcon } from "lucide-react"
 
 import type { Ingredient } from "@/api"
-import { INGREDIENT_STATUS_LABEL, INGREDIENT_STATUS_TEXT_CLASSES } from "@/lib/status"
+import { INGREDIENT_STATUS_LABEL, INGREDIENT_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
 import { Button } from "@/components/ui/button"
 import {
   Card,

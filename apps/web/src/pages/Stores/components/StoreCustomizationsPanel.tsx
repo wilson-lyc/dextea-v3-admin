@@ -3,8 +3,8 @@ import { PuzzleIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { StoreCustomizationItem, StoreCustomizationOptionItem } from "@/api"
-import { CUSTOMIZATION_OPTION_STATUS } from "@/lib/status"
-import { CUSTOMIZATION_STATUS_LABEL, CUSTOMIZATION_STATUS_BADGE_CLASSES, CUSTOMIZATION_OPTION_STATUS_LABEL, CUSTOMIZATION_OPTION_STATUS_BADGE_CLASSES } from "@/lib/status"
+import { CUSTOMIZATION_OPTION_STATUS } from "@dextea-admin/contracts/status"
+import { CUSTOMIZATION_STATUS_LABEL, CUSTOMIZATION_STATUS_BADGE_CLASSES, CUSTOMIZATION_OPTION_STATUS_LABEL, CUSTOMIZATION_OPTION_STATUS_BADGE_CLASSES } from "@dextea-admin/contracts/status"
 
 import { Badge } from "@/components/ui/badge"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"

@@ -4,7 +4,7 @@ import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 
 import type { MenuProduct } from "@/api"
-import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES } from "@/lib/status"
+import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
 import {
   Sheet,
   SheetContent,

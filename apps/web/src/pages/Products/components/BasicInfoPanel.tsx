@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { PencilIcon } from "lucide-react"
 
 import type { Product } from "@/api"
-import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES } from "@/lib/status"
+import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
 import { Button } from "@/components/ui/button"
 import {
   Card,

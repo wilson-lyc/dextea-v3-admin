@@ -1,23 +1,5 @@
 import { z } from 'zod/v4';
-import { PaginatedDataSchema } from '@/common/types/index.js';
-
-// ─── 状态枚举 ─────────────────────────────────────
-
-export const CUSTOMIZATION_STATUS = {
-  OFF: { key: 'off', value: 0 },
-  ON: { key: 'on', value: 1 },
-} as const;
-
-export type CustomizationStatus = (typeof CUSTOMIZATION_STATUS)[keyof typeof CUSTOMIZATION_STATUS]['value'];
-export const CUSTOMIZATION_STATUS_VALUES: readonly number[] = [0, 1];
-
-export const CUSTOMIZATION_OPTION_STATUS = {
-  OFF: { key: 'off', value: 0 },
-  ON: { key: 'on', value: 1 },
-} as const;
-
-export type CustomizationOptionStatus = (typeof CUSTOMIZATION_OPTION_STATUS)[keyof typeof CUSTOMIZATION_OPTION_STATUS]['value'];
-export const CUSTOMIZATION_OPTION_STATUS_VALUES: readonly number[] = [0, 1];
+import { PaginatedDataSchema } from '../common/pagination.js';
 
 // ─── 实体 Schema ──────────────────────────────────
 
@@ -96,6 +78,7 @@ export const UpdateCustomizationStatusRequestSchema = z.object({
 export type UpdateCustomizationStatusRequest = z.infer<typeof UpdateCustomizationStatusRequestSchema>;
 
 export const UpdateCustomizationStatusResponseSchema = CustomizationSchema;
+export type UpdateCustomizationStatusResponse = Customization;
 
 // ─── 获取客制化选项列表（无分页） ─────────────────
 

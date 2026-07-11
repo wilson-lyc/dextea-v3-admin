@@ -7,7 +7,7 @@ import type {
   ProductStatus,
   CustomizationStatus,
   CustomizationOptionStatus,
-} from "@/lib/status"
+} from "@dextea-admin/contracts/status"
 
 // ──── DTO ────
 export interface StoreProductItem {

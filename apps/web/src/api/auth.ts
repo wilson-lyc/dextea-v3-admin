@@ -1,27 +1,16 @@
 import { createModuleClient, type ApiResponse } from "./client"
+import type {
+  LoginRequest,
+  LoginResponse,
+  AuthMeResponse,
+} from "@dextea-admin/contracts"
 
-// ──── DTO ────
-export interface LoginRequest {
-  account: string
-  password: string
-}
-
-export interface LoginResponse {
-  token: string
-  user: {
-    id: number
-    email: string
-    displayName: string
-  }
-}
-
-export interface AuthMeResponse {
-  user: {
-    id: number
-    email: string
-    displayName: string
-  }
-}
+// ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
+export type {
+  LoginRequest,
+  LoginResponse,
+  AuthMeResponse,
+} from "@dextea-admin/contracts"
 
 const http = createModuleClient("auth")
 

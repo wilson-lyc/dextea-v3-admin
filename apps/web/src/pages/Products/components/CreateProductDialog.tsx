@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import type { ProductStatus } from "@/lib/status"
+import type { ProductStatus } from "@dextea-admin/contracts/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"

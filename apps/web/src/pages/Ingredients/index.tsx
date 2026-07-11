@@ -9,7 +9,7 @@ import {
 import { toast } from "sonner"
 
 import type { Ingredient } from "@/api"
-import { INGREDIENT_STATUS_LABEL, INGREDIENT_STATUS_TEXT_CLASSES } from "@/lib/status"
+import { INGREDIENT_STATUS_LABEL, INGREDIENT_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"

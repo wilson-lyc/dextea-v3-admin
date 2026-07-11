@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import { STORE_STATUS, type StoreStatus } from "@/lib/status"
-import { STORE_STATUS_LABEL } from "@/lib/status"
+import { STORE_STATUS, type StoreStatus } from "@dextea-admin/contracts/status"
+import { STORE_STATUS_LABEL } from "@dextea-admin/contracts/status"
 import { Button } from "@/components/ui/button"
 import {
   Field,

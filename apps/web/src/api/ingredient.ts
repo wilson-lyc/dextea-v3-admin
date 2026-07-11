@@ -1,5 +1,5 @@
 import { createModuleClient, type ApiResponse, type PaginatedData } from "./client"
-import type { IngredientStatus } from "@/lib/status"
+import type { IngredientStatus } from "@dextea-admin/contracts/status"
 
 // ──── DTO ────
 export interface Ingredient {

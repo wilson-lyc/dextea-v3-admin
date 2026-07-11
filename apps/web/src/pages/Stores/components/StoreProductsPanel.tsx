@@ -3,7 +3,7 @@ import { PackageIcon, AlertTriangleIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { StoreProductItem } from "@/api"
-import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES, STORE_PRODUCT_STATUS_LABEL, STORE_PRODUCT_STATUS_TEXT_CLASSES, getProductFinalStatus } from "@/lib/status"
+import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES, STORE_PRODUCT_STATUS_LABEL, STORE_PRODUCT_STATUS_TEXT_CLASSES, getProductFinalStatus } from "@dextea-admin/contracts/status"
 
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"

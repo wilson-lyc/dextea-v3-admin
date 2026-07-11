@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import { INGREDIENT_STATUS, type IngredientStatus } from "@/lib/status"
+import { INGREDIENT_STATUS, type IngredientStatus } from "@dextea-admin/contracts/status"
 import { Button } from "@/components/ui/button"
 import {
   Field,

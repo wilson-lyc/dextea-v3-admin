@@ -27,6 +27,7 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+.pnpm-store
 
 # OS
 .DS_Store

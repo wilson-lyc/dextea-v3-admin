@@ -7,7 +7,7 @@ import {
   LoginResponseSchema,
   AuthMeResponseSchema,
   LogoutResponseSchema,
-} from './auth.type.js';
+} from '@dextea-admin/contracts';
 
 export const registerAuthRoutes: FastifyPluginAsyncZod = async (app) => {
   // 获取当前用户信息

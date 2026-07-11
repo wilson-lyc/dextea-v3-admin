@@ -1,8 +1,13 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { CustomizationErrorCodes } from './customization.errorcode.js';
 import { customizationRepository } from './customization.repository.js';
-import { CUSTOMIZATION_STATUS_VALUES, CUSTOMIZATION_OPTION_STATUS_VALUES } from './customization.type.js';
 import { validateMaxLength } from '@/plugins/utils/validation.js';
+import {
+  CUSTOMIZATION_STATUS,
+  CUSTOMIZATION_STATUS_VALUES,
+  CUSTOMIZATION_OPTION_STATUS,
+  CUSTOMIZATION_OPTION_STATUS_VALUES,
+} from '@dextea-admin/contracts';
 import type {
   CustomizationListRequest,
   CreateCustomizationRequest,
@@ -10,7 +15,7 @@ import type {
   UpdateCustomizationStatusRequest,
   CreateCustomizationOptionRequest,
   UpdateCustomizationOptionRequest,
-} from './customization.type.js';
+} from '@dextea-admin/contracts';
 
 export const customizationService = {
   async getCustomizationList(params: CustomizationListRequest) {
@@ -45,6 +50,7 @@ export const customizationService = {
     const insertId = await customizationRepository.createCustomization({
       productId,
       name: trimmedName,
+      status: CUSTOMIZATION_STATUS.OFF.value,
     });
 
     const created = await customizationRepository.getCustomizationById(insertId);
@@ -122,6 +128,7 @@ export const customizationService = {
       name: trimmedName,
       price: price ?? 0,
       sort: sort ?? 0,
+      status: CUSTOMIZATION_OPTION_STATUS.OFF.value,
       ingredientId: ingredientId ?? null,
       ingredientQuantity: quantity ?? 0,
     });
