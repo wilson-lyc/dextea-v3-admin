@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { PlusIcon, PencilIcon, BanIcon, CheckCircleIcon, UsersIcon, SearchIcon, RotateCwIcon } from "lucide-react"
+import { PlusIcon, PencilIcon, BanIcon, CheckCircleIcon, UsersIcon, SearchIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Employee } from "@/api"
@@ -14,16 +14,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import {
-  Table,
   TableHeader,
   TableHead,
-  TableBody,
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-import { Spinner } from "@/components/ui/spinner"
-import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import PaginationBar from "@/components/ui/pagination-bar"
+import DataTable from "@/components/ui/data-table"
 import { getEmployees, toggleEmployeeStatus } from "@/api"
 import CreateEmployeeModal from "./components/CreateEmployeeModal"
 import EditEmployeeModal from "./components/EditEmployeeModal"
@@ -73,6 +69,14 @@ export default function EmployeesPage() {
     }
   }, [searchKeyword, pageSize])
 
+  // 刷新（强制等待 1 秒）
+  const handleRefresh = useCallback(async () => {
+    setLoading(true)
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await fetchEmployees(page)
+    toast.success("刷新成功")
+  }, [fetchEmployees, page])
+
   useEffect(() => {
     fetchEmployees(1)
   }, [fetchEmployees])
@@ -120,57 +124,48 @@ export default function EmployeesPage() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-4 p-6">
-      {/* Header */}
-      <div className="flex shrink-0 items-center justify-between">
-        <div className="flex items-center gap-2">
+    <>
+      <DataTable
+        className="p-6"
+        toolbarLeft={
           <Button onClick={openCreateDialog}>
             <PlusIcon data-icon="inline-start" />
             创建用户
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => { setLoading(true); setTimeout(() => fetchEmployees(page), 1000) }}
-          >
-            <RotateCwIcon className="size-4" />
-          </Button>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative max-w-sm">
-            <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="搜索邮箱、用户名"
-              className="pl-8"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSearch()
-              }}
-            />
-          </div>
-          <Button variant="secondary" onClick={handleSearch}>
-            搜索
-          </Button>
-          {searchKeyword && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setKeyword("")
-                setSearchKeyword("")
-              }}
-            >
-              清除
+        }
+        toolbarRight={
+          <div className="flex items-center gap-2">
+            <div className="relative max-w-sm">
+              <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="搜索邮箱、用户名"
+                className="pl-8"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSearch()
+                }}
+              />
+            </div>
+            <Button variant="secondary" onClick={handleSearch}>
+              搜索
             </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="flex flex-1 flex-col overflow-auto rounded-lg border">
-        <Table className={`table-fixed ${(employees.length === 0 || loading) && 'flex-1'}`}>
-          <TableHeader>
-            <TableRow className="sticky top-0 z-50 bg-background">
+            {searchKeyword && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setKeyword("")
+                  setSearchKeyword("")
+                }}
+              >
+                清除
+              </Button>
+            )}
+          </div>
+        }
+        header={
+          <TableHeader className="sticky top-0 z-50 bg-background">
+            <TableRow>
               <TableHead className="w-20">ID</TableHead>
               <TableHead>邮箱</TableHead>
               <TableHead>用户名</TableHead>
@@ -178,85 +173,53 @@ export default function EmployeesPage() {
               <TableHead className="w-36 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
-          {loading ? (
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={5} className="h-96">
-                  <div className="flex items-center justify-center">
-                    <Spinner className="size-6 text-muted-foreground" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          ) : employees.length === 0 ? (
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={5} className="h-96">
-                  <div className="flex items-center justify-center">
-                    <Empty>
-                      <EmptyMedia variant="icon">
-                        <UsersIcon className="size-4" />
-                      </EmptyMedia>
-                      <EmptyTitle>暂无数据</EmptyTitle>
-                    </Empty>
-                  </div>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          ) : (
-            <TableBody>
-              {employees.map((employee) => (
-                <TableRow key={employee.id}>
-                  <TableCell className="font-mono text-xs">{employee.id}</TableCell>
-                  <TableCell>{employee.email}</TableCell>
-                  <TableCell>{employee.displayName}</TableCell>
-                  <TableCell>
-                    <span className={EMPLOYEE_STATUS_TEXT_CLASSES[employee.status] ?? ""}>
-                      {EMPLOYEE_STATUS_LABEL[employee.status]}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(employee)}>
-                        <PencilIcon data-icon="inline-start" />
-                        编辑
-                      </Button>
-                      <Button
-                        variant={employee.status === EMPLOYEE_STATUS.ACTIVE.value ? "outline-destructive" : "outline-success"}
-                        size="sm"
-                        onClick={() => handleToggleStatus(employee)}
-                      >
-                        {employee.status === EMPLOYEE_STATUS.ACTIVE.value ? (
-                          <>
-                            <BanIcon data-icon="inline-start" />
-                            禁用
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircleIcon data-icon="inline-start" />
-                            激活
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          )}
-        </Table>
-      </div>
-
-      {/* Pagination */}
-      {employees.length > 0 && (
-        <PaginationBar
-          page={page}
-          pageSize={pageSize}
-          total={total}
-          onPageChange={fetchEmployees}
-          className="shrink-0 justify-end"
-        />
-      )}
+        }
+        body={employees.map((employee) => (
+          <TableRow key={employee.id}>
+            <TableCell className="font-mono text-xs">{employee.id}</TableCell>
+            <TableCell>{employee.email}</TableCell>
+            <TableCell>{employee.displayName}</TableCell>
+            <TableCell>
+              <span className={EMPLOYEE_STATUS_TEXT_CLASSES[employee.status] ?? ""}>
+                {EMPLOYEE_STATUS_LABEL[employee.status]}
+              </span>
+            </TableCell>
+            <TableCell className="text-right">
+              <div className="flex items-center justify-end gap-1">
+                <Button variant="outline" size="sm" onClick={() => openEditDialog(employee)}>
+                  <PencilIcon data-icon="inline-start" />
+                  编辑
+                </Button>
+                <Button
+                  variant={employee.status === EMPLOYEE_STATUS.ACTIVE.value ? "outline-destructive" : "outline-success"}
+                  size="sm"
+                  onClick={() => handleToggleStatus(employee)}
+                >
+                  {employee.status === EMPLOYEE_STATUS.ACTIVE.value ? (
+                    <>
+                      <BanIcon data-icon="inline-start" />
+                      禁用
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircleIcon data-icon="inline-start" />
+                      激活
+                    </>
+                  )}
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+        loading={loading}
+        isEmpty={employees.length === 0}
+        colSpan={5}
+        onRefresh={handleRefresh}
+        refreshDisabled={loading}
+        emptyIcon={<UsersIcon className="size-4" />}
+        emptyText="暂无数据"
+        pagination={{ page, pageSize, total, onPageChange: fetchEmployees }}
+      />
 
       {/* Create / Edit Dialogs */}
       <CreateEmployeeModal
@@ -309,6 +272,6 @@ export default function EmployeesPage() {
         variant="default"
         onConfirm={handleConfirmToggleStatus}
       />
-    </div>
+    </>
   )
 }

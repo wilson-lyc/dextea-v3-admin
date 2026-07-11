@@ -1,22 +1,18 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Trash2Icon, Settings, ClipboardListIcon, RotateCwIcon, PlusIcon } from "lucide-react"
+import { Trash2Icon, Settings, ClipboardListIcon, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Menu } from "@/api"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
-  Table,
   TableHeader,
   TableHead,
-  TableBody,
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-import { Spinner } from "@/components/ui/spinner"
-import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import PaginationBar from "@/components/ui/pagination-bar"
+import DataTable from "@/components/ui/data-table"
 import { getMenus, batchDeleteMenus } from "@/api"
 import CreateMenuDialog from "./components/CreateMenuDialog"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
@@ -120,30 +116,24 @@ export default function MenusPage() {
   const allSelected = items.length > 0 && selectedIds.size === items.length
 
   return (
-    <div className="flex h-full flex-col gap-4 p-6">
-
-      {/* 顶栏：新建、批量删除与刷新 */}
-      <div className="flex shrink-0 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Button onClick={() => setCreateDialogOpen(true)}>
-            <PlusIcon data-icon="inline-start" />
-            新建菜单
-          </Button>
-          {selectedIds.size > 0 && (
-            <Button variant="destructive" onClick={() => { setDeleteError(null); setDeleteDialogOpen(true) }} disabled={deleting}>
-              <Trash2Icon data-icon="inline-start" />
-              删除选中 ({selectedIds.size})
+    <>
+      <DataTable
+        className="p-6"
+        toolbarLeft={
+          <>
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <PlusIcon data-icon="inline-start" />
+              新建菜单
             </Button>
-          )}
-          <Button variant="outline" size="icon" onClick={handleRefresh} disabled={loading}>
-            <RotateCwIcon className="size-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* 菜单表格 */}
-      <div className="flex flex-1 flex-col overflow-auto rounded-lg border">
-        <Table className={`base-class ${(items.length === 0 || loading) && 'flex-1'}`}>
+            {selectedIds.size > 0 && (
+              <Button variant="destructive" onClick={() => { setDeleteError(null); setDeleteDialogOpen(true) }} disabled={deleting}>
+                <Trash2Icon data-icon="inline-start" />
+                删除选中 ({selectedIds.size})
+              </Button>
+            )}
+          </>
+        }
+        header={
           <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
               <TableHead className="w-10">
@@ -156,74 +146,42 @@ export default function MenusPage() {
               <TableHead className="w-36 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
-          {loading ? (
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={6} className="h-96">
-                  <div className="flex items-center justify-center">
-                    <Spinner className="size-6 text-muted-foreground" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          ) : items.length === 0 ? (
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={6} className="h-96">
-                  <div className="flex items-center justify-center">
-                    <Empty>
-                      <EmptyMedia variant="icon">
-                        <ClipboardListIcon className="size-4" />
-                      </EmptyMedia>
-                      <EmptyTitle>暂无数据</EmptyTitle>
-                    </Empty>
-                  </div>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          ) : (
-            <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedIds.has(item.id)}
-                      onCheckedChange={() => toggleSelect(item.id)}
-                    />
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">{item.id}</TableCell>
-                  <TableCell>{item.name || "—"}</TableCell>
-                  <TableCell>{item.description || "—"}</TableCell>
-                  <TableCell>{item.createdAt}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button variant="outline" size="sm" onClick={() => navigate(`/menus/${item.id}`)}>
-                        <Settings data-icon="inline-start" />
-                        管理
-                      </Button>
-                      <Button variant="outline-destructive" size="sm" onClick={() => { setSelectedIds(new Set([item.id])); setDeleteError(null); setDeleteDialogOpen(true) }}>
-                        <Trash2Icon data-icon="inline-start" />
-                        删除
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          )}
-        </Table>
-      </div>
-
-      {/* 分页 */}
-      {items.length > 0 && (
-        <PaginationBar
-          page={page}
-          pageSize={pageSize}
-          total={total}
-          onPageChange={fetchMenus}
-          className="shrink-0 justify-end"
-        />
-      )}
+        }
+        body={items.map((item) => (
+          <TableRow key={item.id}>
+            <TableCell>
+              <Checkbox
+                checked={selectedIds.has(item.id)}
+                onCheckedChange={() => toggleSelect(item.id)}
+              />
+            </TableCell>
+            <TableCell className="font-mono text-xs">{item.id}</TableCell>
+            <TableCell>{item.name || "—"}</TableCell>
+            <TableCell>{item.description || "—"}</TableCell>
+            <TableCell>{item.createdAt}</TableCell>
+            <TableCell className="text-right">
+              <div className="flex items-center justify-end gap-1">
+                <Button variant="outline" size="sm" onClick={() => navigate(`/menus/${item.id}`)}>
+                  <Settings data-icon="inline-start" />
+                  管理
+                </Button>
+                <Button variant="outline-destructive" size="sm" onClick={() => { setSelectedIds(new Set([item.id])); setDeleteError(null); setDeleteDialogOpen(true) }}>
+                  <Trash2Icon data-icon="inline-start" />
+                  删除
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+        loading={loading}
+        isEmpty={items.length === 0}
+        colSpan={6}
+        onRefresh={handleRefresh}
+        refreshDisabled={loading}
+        emptyIcon={<ClipboardListIcon className="size-4" />}
+        emptyText="暂无数据"
+        pagination={{ page, pageSize, total, onPageChange: fetchMenus }}
+      />
 
       {/* 新建菜单对话框 */}
       <CreateMenuDialog
@@ -248,7 +206,6 @@ export default function MenusPage() {
         errorMessage={deleteError}
         onConfirm={handleDeleteConfirm}
       />
-
-    </div>
+    </>
   )
 }

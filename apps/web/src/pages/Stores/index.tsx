@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { PlusIcon, RefreshCwIcon, RotateCwIcon, SearchIcon, SettingsIcon, Building2Icon } from "lucide-react"
+import { PlusIcon, RefreshCwIcon, SearchIcon, SettingsIcon, Building2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store } from "@/api"
@@ -14,25 +14,13 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip"
 import {
-  Table,
   TableHeader,
   TableHead,
-  TableBody,
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import DataTable from "@/components/ui/data-table"
 import { getStores, syncStoreLocations } from "@/api"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
-import { Spinner } from "@/components/ui/spinner"
-import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { CreateStoreDialog } from "./components/CreateStoreDialog"
 
 export default function StoresPage() {
@@ -70,6 +58,14 @@ export default function StoresPage() {
       setLoading(false)
     }
   }, [searchKeyword, pageSize])
+
+  // 刷新（强制等待 1 秒）
+  const handleRefresh = useCallback(async () => {
+    setLoading(true)
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await fetchStores(page)
+    toast.success("刷新成功")
+  }, [fetchStores, page])
 
   useEffect(() => {
     fetchStores(1)
@@ -111,192 +107,108 @@ export default function StoresPage() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-4 p-6">
-      <div className="flex shrink-0 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Button onClick={() => setDialogOpen(true)}>
-            <PlusIcon data-icon="inline-start" />
-            创建门店
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => { setLoading(true); setTimeout(() => fetchStores(page), 1000) }}
-          >
-            <RotateCwIcon className="size-4" />
-          </Button>
-          <Button variant="outline" onClick={handleSync} disabled={syncing}>
-            <RefreshCwIcon data-icon="inline-start" className={syncing ? "animate-spin" : ""} />
-            数据同步
-          </Button>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative max-w-sm">
-            <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="搜索门店名称、电话、地址"
-              className="pl-8"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSearch()
-              }}
-            />
-          </div>
-          <Button variant="secondary" onClick={handleSearch}>
-            搜索
-          </Button>
-          {searchKeyword && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setKeyword("")
-                setSearchKeyword("")
-              }}
-            >
-              清除
+    <TooltipProvider>
+      <DataTable
+        className="p-6"
+        toolbarLeft={
+          <>
+            <Button onClick={() => setDialogOpen(true)}>
+              <PlusIcon data-icon="inline-start" />
+              创建门店
             </Button>
-          )}
-        </div>
-      </div>
-
-      <TooltipProvider>
-        <div className="flex flex-1 flex-col overflow-auto rounded-lg border">
-          <Table className={`base-class ${(stores.length === 0 || loading) && 'flex-1'}`}>
-            <TableHeader>
-              <TableRow className="sticky top-0 bg-background">
-                <TableHead className="w-24">ID</TableHead>
-                <TableHead className="w-24">门店名称</TableHead>
-                <TableHead className="w-24">地址</TableHead>
-                <TableHead className="w-24">联系电话</TableHead>
-                <TableHead className="w-24">营业时间</TableHead>
-                <TableHead className="w-24">状态</TableHead>
-                <TableHead className="w-36 text-right">操作</TableHead>
-              </TableRow>
-            </TableHeader>
-            {loading ? (
-              <TableBody>
-                <TableRow>
-                  <TableCell colSpan={7} className="flex-1">
-                    <div className="flex items-center justify-center">
-                      <Spinner className="size-6 text-muted-foreground" />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            ) : stores.length === 0 ? (
-              <TableBody>
-                <TableRow>
-                  <TableCell colSpan={7} className="justify-center">
-                    <div className="flex items-center justify-center">
-                      <Empty>
-                        <EmptyMedia variant="icon">
-                          <Building2Icon className="size-4" />
-                        </EmptyMedia>
-                        <EmptyTitle>暂无数据</EmptyTitle>
-                      </Empty>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            ) : (
-              <TableBody>
-                {stores.map((store) => (
-                  <TableRow key={store.id}>
-                    <TableCell className="font-mono text-xs">{store.id}</TableCell>
-                    <TableCell>{store.name}</TableCell>
-                    <TableCell className="max-w-60 truncate">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span>{fullAddress(store)}</span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{fullAddress(store)}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell>{store.phone || "-"}</TableCell>
-                    <TableCell>{store.businessHours || "-"}</TableCell>
-                    <TableCell>
-                      <span className={STORE_STATUS_TEXT_CLASSES[store.status]}>
-                        {STORE_STATUS_LABEL[store.status]}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="outline" size="sm" onClick={() => navigate(`/stores/${store.id}`)}>
-                        <SettingsIcon data-icon="inline-start" />
-                        管理
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
+            <Button variant="outline" onClick={handleSync} disabled={syncing}>
+              <RefreshCwIcon data-icon="inline-start" className={syncing ? "animate-spin" : ""} />
+              数据同步
+            </Button>
+          </>
+        }
+        toolbarRight={
+          <div className="flex items-center gap-2">
+            <div className="relative max-w-sm">
+              <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="搜索门店名称、电话、地址"
+                className="pl-8"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSearch()
+                }}
+              />
+            </div>
+            <Button variant="secondary" onClick={handleSearch}>
+              搜索
+            </Button>
+            {searchKeyword && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setKeyword("")
+                  setSearchKeyword("")
+                }}
+              >
+                清除
+              </Button>
             )}
-          </Table>
-        </div>
-      </TooltipProvider >
+          </div>
+        }
+        header={
+          <TableHeader className="sticky top-0 z-50 bg-background">
+            <TableRow>
+              <TableHead className="w-24">ID</TableHead>
+              <TableHead className="w-24">门店名称</TableHead>
+              <TableHead className="w-24">地址</TableHead>
+              <TableHead className="w-24">联系电话</TableHead>
+              <TableHead className="w-24">营业时间</TableHead>
+              <TableHead className="w-24">状态</TableHead>
+              <TableHead className="w-36 text-right">操作</TableHead>
+            </TableRow>
+          </TableHeader>
+        }
+        body={stores.map((store) => (
+          <TableRow key={store.id}>
+            <TableCell className="font-mono text-xs">{store.id}</TableCell>
+            <TableCell>{store.name}</TableCell>
+            <TableCell className="max-w-60 truncate">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>{fullAddress(store)}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{fullAddress(store)}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TableCell>
+            <TableCell>{store.phone || "-"}</TableCell>
+            <TableCell>{store.businessHours || "-"}</TableCell>
+            <TableCell>
+              <span className={STORE_STATUS_TEXT_CLASSES[store.status]}>
+                {STORE_STATUS_LABEL[store.status]}
+              </span>
+            </TableCell>
+            <TableCell className="text-right">
+              <Button variant="outline" size="sm" onClick={() => navigate(`/stores/${store.id}`)}>
+                <SettingsIcon data-icon="inline-start" />
+                管理
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+        loading={loading}
+        isEmpty={stores.length === 0}
+        colSpan={7}
+        onRefresh={handleRefresh}
+        refreshDisabled={loading}
+        emptyIcon={<Building2Icon className="size-4" />}
+        emptyText="暂无数据"
+        pagination={{ page, pageSize, total, onPageChange: fetchStores }}
+      />
 
-      {
-        stores.length > 0 && (() => {
-          const totalPages = Math.ceil(total / pageSize)
-          const pages: (number | "...")[] = []
-          if (totalPages <= 6) {
-            for (let i = 1; i <= totalPages; i++) pages.push(i)
-          } else {
-            pages.push(1)
-            if (page > 3) pages.push("...")
-            for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
-              pages.push(i)
-            }
-            if (page < totalPages - 2) pages.push("...")
-            pages.push(totalPages)
-          }
-          return (
-            <Pagination className="shrink-0 justify-end">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    text="上一页"
-                    onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchStores(page - 1) }}
-                  />
-                </PaginationItem>
-                {pages.map((p, idx) =>
-                  p === "..." ? (
-                    <PaginationItem key={`ellipsis-${idx}`}>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                  ) : (
-                    <PaginationItem key={p}>
-                      <PaginationLink
-                        href="#"
-                        isActive={p === page}
-                        onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchStores(p) }}
-                      >
-                        {p}
-                      </PaginationLink>
-                    </PaginationItem>
-                  )
-                )}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    text="下一页"
-                    onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < totalPages) fetchStores(page + 1) }}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          )
-        })()
-      }
-
-      < CreateStoreDialog
+      <CreateStoreDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onCreated={() => fetchStores(1)
-        }
+        onCreated={() => fetchStores(1)}
       />
-    </div >
+    </TooltipProvider>
   )
 }

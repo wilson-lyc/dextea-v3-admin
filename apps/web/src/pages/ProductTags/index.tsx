@@ -20,24 +20,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import {
-  Table,
   TableHeader,
   TableHead,
-  TableBody,
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-import { Spinner } from "@/components/ui/spinner"
-import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
+import DataTable from "@/components/ui/data-table"
 import { getTags, createTag, updateTag, deleteTag } from "@/api"
 import ProductBindingSheet from "./components/ProductBindingSheet"
 
@@ -178,144 +166,71 @@ export default function TagListPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Button onClick={openCreateDialog}>
-            <PlusIcon data-icon="inline-start" />
-            新增标签
-          </Button>
-          <Button variant="outline" size="icon" onClick={() => refreshTags(page)} disabled={loading}>
-            <RefreshCwIcon className={cn(loading && "animate-spin")} />
-          </Button>
-        </div>
-      </div>
-
-      {/* Table */}
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-20">标签ID</TableHead>
-            <TableHead>标签名称</TableHead>
-            <TableHead className="w-24">关联商品</TableHead>
-            <TableHead className="w-48 text-right">操作</TableHead>
+    <>
+      <DataTable
+        className="p-6"
+        toolbarLeft={
+          <>
+            <Button onClick={openCreateDialog}>
+              <PlusIcon data-icon="inline-start" />
+              新增标签
+            </Button>
+          </>
+        }
+        header={
+          <TableHeader className="sticky top-0 z-50 bg-background">
+            <TableRow>
+              <TableHead className="w-20">标签ID</TableHead>
+              <TableHead>标签名称</TableHead>
+              <TableHead className="w-24">关联商品</TableHead>
+              <TableHead className="w-48 text-right">操作</TableHead>
+            </TableRow>
+          </TableHeader>
+        }
+        body={tags.map((tag) => (
+          <TableRow key={tag.id}>
+            <TableCell className="font-mono text-xs">{tag.id}</TableCell>
+            <TableCell>{tag.name}</TableCell>
+            <TableCell>{tag.boundCount}</TableCell>
+            <TableCell className="text-right">
+              <div className="flex items-center justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openEditDialog(tag)}
+                >
+                  <PencilIcon data-icon="inline-start" />
+                  重命名
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openBindingSheet(tag)}
+                >
+                  <LinkIcon data-icon="inline-start" />
+                关联商品
+                </Button>
+                <Button
+                  variant="outline-destructive"
+                  size="sm"
+                  onClick={() => openDeleteDialog(tag)}
+                >
+                  <Trash2Icon data-icon="inline-start" />
+                  删除
+                </Button>
+              </div>
+            </TableCell>
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {loading ? (
-            <TableRow>
-              <TableCell colSpan={4} className="h-48 text-center">
-                <Spinner className="mx-auto size-6 text-muted-foreground" />
-              </TableCell>
-            </TableRow>
-          ) : tags.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={4} className="h-48 text-center">
-                <Empty>
-                  <EmptyMedia variant="icon">
-                    <TagIcon className="size-4" />
-                  </EmptyMedia>
-                  <EmptyTitle>暂无数据</EmptyTitle>
-                  <Button onClick={openCreateDialog}>
-                    立即添加
-                  </Button>
-                </Empty>
-              </TableCell>
-            </TableRow>
-          ) : (
-            tags.map((tag) => (
-              <TableRow key={tag.id}>
-                <TableCell className="font-mono text-xs">{tag.id}</TableCell>
-                <TableCell>{tag.name}</TableCell>
-                <TableCell>{tag.boundCount}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditDialog(tag)}
-                    >
-                      <PencilIcon data-icon="inline-start" />
-                      重命名
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openBindingSheet(tag)}
-                    >
-                      <LinkIcon data-icon="inline-start" />
-关联商品
-                    </Button>
-                    <Button
-                      variant="outline-destructive"
-                      size="sm"
-                      onClick={() => openDeleteDialog(tag)}
-                    >
-                      <Trash2Icon data-icon="inline-start" />
-                      删除
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-
-      {/* Pagination */}
-      {!loading && tags.length > 0 && (
-        <Pagination className="justify-end">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchTags(page - 1) }}
-                text="上一页"
-              />
-            </PaginationItem>
-            {(() => {
-              const totalPages = Math.ceil(total / pageSize)
-              const pages: (number | "...")[] = []
-              if (totalPages <= 7) {
-                for (let i = 1; i <= totalPages; i++) pages.push(i)
-              } else {
-                pages.push(1)
-                if (page > 3) pages.push("...")
-                for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
-                  pages.push(i)
-                }
-                if (page < totalPages - 2) pages.push("...")
-                pages.push(totalPages)
-              }
-              return pages.map((p, idx) =>
-                p === "..." ? (
-                  <PaginationItem key={`ellipsis-${idx}`}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={p}>
-                    <PaginationLink
-                      href="#"
-                      isActive={p === page}
-                      onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchTags(p) }}
-                    >
-                      {p}
-                    </PaginationLink>
-                  </PaginationItem>
-                )
-              )
-            })()}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < Math.ceil(total / pageSize)) fetchTags(page + 1) }}
-                text="下一页"
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+        ))}
+        loading={loading}
+        isEmpty={tags.length === 0}
+        colSpan={4}
+        onRefresh={() => refreshTags(page)}
+        refreshDisabled={loading}
+        emptyIcon={<TagIcon className="size-4" />}
+        emptyText="暂无数据"
+        pagination={{ page, pageSize, total, onPageChange: fetchTags }}
+      />
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -391,6 +306,6 @@ export default function TagListPage() {
           if (!open) fetchTags(page)
         }}
       />
-    </div>
+    </>
   )
 }
