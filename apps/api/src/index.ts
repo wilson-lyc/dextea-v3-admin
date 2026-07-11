@@ -29,7 +29,7 @@ import { registerRedis } from './plugins/db/redis/index.js';
 import { registerDb } from './plugins/db/mysql/index.js';
 import { BizError } from '@/common/exceptions/index.js';
 import { ApiResponse } from '@/common/types/index.js';
-import { SystemErrorCodes } from '@/module/system/system.errorcode.js';
+import { SystemErrorCodes } from '@/common/constants/error-code.constant.js';
 
 async function main() {
   const app = Fastify({

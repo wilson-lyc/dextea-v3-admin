@@ -1,1 +1,1 @@
-export { CommonErrorCode } from './error-code.constant.js';
+export { SystemErrorCodes } from './error-code.constant.js';

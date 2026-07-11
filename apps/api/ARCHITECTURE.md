@@ -245,16 +245,17 @@ export const ordersTable = mysqlTable('orders', {
 });
 ```
 
-### 3.9 错误处理层 —— `src/errorcode/`
+### 3.9 错误处理层 —— `module/*/*.errorcode.ts` + `common/constants/error-code.constant.ts`
 
 统一的错误出口，避免散落的字符串魔法值和不一致的响应：
 
-- `AppError` 类：携带 `code`（业务码）、`httpStatus`、`message`，`toResponse()` 输出 `{ code, data: null, message }`。
-- 各模块错误码文件（`products.ts`、`auth.ts` …）按段位划分（系统 10000、认证 10100、商品 10800 等），集中导出。
+- `BizError` 类：携带 `code`（业务码）、`httpStatus`、`message`，全局错误处理器输出 `{ code, data: null, message }`。
+- 各模块错误码文件（`module/{name}/{name}.errorcode.ts`）按段位划分（系统 10000、认证 10100、商品 10800 等），模块内就地定义与导入。
+- 系统级通用错误码（`SystemErrorCodes`）合并在 `common/constants/error-code.constant.ts` 中。
 - 业务码 `0` 代表成功；非 0 为各类业务/系统错误。
 
 ```ts
-throw new AppError(productErrors.PRODUCT_NOT_FOUND);
+throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
 // 全局错误处理器会输出：{ code: 108xx, data: null, message: '商品不存在' }
 ```
 

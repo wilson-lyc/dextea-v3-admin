@@ -1,5 +1,5 @@
 import { BizError } from '@/common/exceptions/index.js';
-import { SystemErrorCodes } from '@/module/system/system.errorcode.js';
+import { SystemErrorCodes } from '@/common/constants/error-code.constant.js';
 
 export function parsePositiveInt(value: string, fieldName: string = 'ID'): number {
   const num = Number(value);
