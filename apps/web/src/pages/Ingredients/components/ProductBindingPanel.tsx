@@ -204,7 +204,7 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
               </DialogHeader>
               <div className="flex flex-col gap-4 py-2">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium">商品 <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-medium">商品</label>
                   <SelectPicker
                     options={productOptions}
                     value={bindProductId}
@@ -214,7 +214,7 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium">用量 <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-medium">用量</label>
                   <div className="flex items-center gap-2">
                     <Input
                       type="number"

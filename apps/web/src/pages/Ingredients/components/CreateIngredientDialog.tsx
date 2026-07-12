@@ -94,7 +94,7 @@ export function CreateIngredientDialog({ open, onOpenChange, onCreated }: Create
         <FieldGroup className="py-2">
           <Field data-invalid={!!nameError || undefined}>
             <FieldLabel htmlFor="ingredient-name">
-              名称 <span className="text-destructive">*</span>
+              名称
             </FieldLabel>
             <Input
               id="ingredient-name"
@@ -111,7 +111,7 @@ export function CreateIngredientDialog({ open, onOpenChange, onCreated }: Create
 
           <Field data-invalid={!!unitError || undefined}>
             <FieldLabel htmlFor="ingredient-unit">
-              单位 <span className="text-destructive">*</span>
+              单位
             </FieldLabel>
             <Input
               id="ingredient-unit"

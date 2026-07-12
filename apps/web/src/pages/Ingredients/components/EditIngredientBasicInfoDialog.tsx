@@ -92,7 +92,7 @@ export function EditIngredientBasicInfoDialog({ open, onOpenChange, ingredient, 
         <FieldGroup className="py-2">
           <Field data-invalid={!!nameError || undefined}>
             <FieldLabel htmlFor="edit-name">
-              原料名称 <span className="text-destructive">*</span>
+              原料名称
             </FieldLabel>
             <Input
               id="edit-name"
@@ -109,7 +109,7 @@ export function EditIngredientBasicInfoDialog({ open, onOpenChange, ingredient, 
 
           <Field data-invalid={!!unitError || undefined}>
             <FieldLabel htmlFor="edit-unit">
-              单位 <span className="text-destructive">*</span>
+              单位
             </FieldLabel>
             <Input
               id="edit-unit"

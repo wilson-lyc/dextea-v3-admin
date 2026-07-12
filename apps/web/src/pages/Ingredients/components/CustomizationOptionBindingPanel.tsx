@@ -198,7 +198,7 @@ export default function CustomizationOptionBindingPanel({ ingredientId, unit }: 
               </DialogHeader>
               <div className="flex flex-col gap-4 py-2">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium">客制化选项ID <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-medium">客制化选项ID</label>
                   <Input
                     type="number"
                     min="1"
@@ -209,7 +209,7 @@ export default function CustomizationOptionBindingPanel({ ingredientId, unit }: 
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium">用量 <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-medium">用量</label>
                   <div className="flex items-center gap-2">
                     <Input
                       type="number"
