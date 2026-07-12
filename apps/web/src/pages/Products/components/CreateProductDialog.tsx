@@ -6,15 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
-  Combobox,
-  ComboboxChip,
-  ComboboxChips,
-  ComboboxChipsInput,
-  ComboboxContent,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox"
-import {
   Field,
   FieldError,
   FieldGroup,
@@ -28,7 +19,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { createProduct, getTags } from "@/api"
+import { createProduct } from "@/api"
 
 interface CreateProductDialogProps {
   open: boolean
@@ -41,8 +32,6 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
   const [formBrief, setFormBrief] = useState("")
   const [formDescription, setFormDescription] = useState("")
   const [formPrice, setFormPrice] = useState("")
-  const [formTagIds, setFormTagIds] = useState<string[]>([])
-  const [allTags, setAllTags] = useState<{ id: number; name: string }[]>([])
   const [submitting, setSubmitting] = useState(false)
 
   const [nameError, setNameError] = useState("")
@@ -54,17 +43,8 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
       setFormBrief("")
       setFormDescription("")
       setFormPrice("")
-      setFormTagIds([])
       setNameError("")
       setPriceError("")
-    }
-  }, [open])
-
-  useEffect(() => {
-    if (open) {
-      getTags()
-        .then((res) => setAllTags(res.data.items))
-        .catch(() => {})
     }
   }, [open])
 
@@ -95,7 +75,6 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
         brief: formBrief,
         description: formDescription,
         price: formPrice !== "" ? price : 0,
-        tagIds: formTagIds.map(Number),
         status: 0 as ProductStatus,
       })
       if (res.code === 0) {
@@ -188,34 +167,6 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
               aria-invalid={!!priceError || undefined}
             />
             {priceError && <FieldError>{priceError}</FieldError>}
-          </Field>
-
-          <Field>
-            <FieldLabel>
-               标签
-            </FieldLabel>
-            <Combobox value={formTagIds} onValueChange={setFormTagIds} multiple>
-              <ComboboxChips>
-                {formTagIds.map((id) => {
-                  const tag = allTags.find((t) => String(t.id) === id)
-                  return tag ? (
-                    <ComboboxChip key={id} value={id}>
-                      {tag.name}
-                    </ComboboxChip>
-                  ) : null
-                })}
-                <ComboboxChipsInput placeholder="搜索或选择标签" />
-              </ComboboxChips>
-              <ComboboxContent>
-                <ComboboxList>
-                  {allTags.map((tag) => (
-                    <ComboboxItem key={tag.id} value={String(tag.id)}>
-                      {tag.name}
-                    </ComboboxItem>
-                  ))}
-                </ComboboxList>
-              </ComboboxContent>
-            </Combobox>
           </Field>
         </FieldGroup>
         </ScrollArea>

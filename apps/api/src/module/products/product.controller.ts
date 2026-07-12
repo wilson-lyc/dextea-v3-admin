@@ -48,7 +48,7 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     {
       schema: {
         tags: ['Products'],
-        description: '新增商品（可选绑定标签）',
+        description: '新增商品',
         body: CreateProductRequestSchema,
         response: { 200: ApiResponseSchema(CreateProductResponseSchema).describe('创建成功') },
         security: [{ bearerAuth: [] }],

@@ -56,7 +56,7 @@ export const productService = {
   // ─── 新增商品 ─────────────────────────────────────
 
   async createProduct(input: CreateProductRequest) {
-    const { name, brief, description, price, status, tagIds } = input;
+    const { name, brief, description, price, status } = input;
 
     validateMaxLength(name, 255, '商品名称');
     validateMaxLength(brief, 500, '简介');
@@ -76,17 +76,6 @@ export const productService = {
       price: price ?? 0,
       status: status ?? 0,
     });
-
-    if (tagIds && tagIds.length > 0) {
-      const uniqueIds = [...new Set(tagIds)];
-      const existingTags = await productRepository.getTagsByIds(uniqueIds);
-      if (existingTags.length !== uniqueIds.length) {
-        throw new BizError(TagErrorCodes.TAG_NOT_FOUND);
-      }
-      await productRepository.insertProductTagRelations(
-        uniqueIds.map(tagId => ({ productId: insertId, tagId })),
-      );
-    }
 
     return { id: insertId };
   },

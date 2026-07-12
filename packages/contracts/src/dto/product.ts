@@ -77,7 +77,6 @@ export const CreateProductRequestSchema = z.object({
   description: z.string().optional(),
   price: z.number().optional(),
   status: z.number().optional(),
-  tagIds: z.array(z.number()).optional(),
 });
 export type CreateProductRequest = z.infer<typeof CreateProductRequestSchema>;
 
