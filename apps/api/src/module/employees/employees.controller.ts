@@ -87,7 +87,7 @@ export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
     },
   );
 
-  app.post(
+  app.put(
     '/employees/:id/reset-password',
     {
       schema: {

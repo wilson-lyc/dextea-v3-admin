@@ -65,10 +65,10 @@ export function toggleEmployeeStatus(id: number) {
 
 /**
  * 重置员工密码
- * POST /employees/:id/reset-password
+ * PUT /employees/:id/reset-password
  */
 export function resetEmployeePassword(id: number) {
   return http
-    .post<ApiResponse<ResetEmployeePasswordResponse>>(`/employees/${id}/reset-password`)
+    .put<ApiResponse<ResetEmployeePasswordResponse>>(`/employees/${id}/reset-password`)
     .then((res) => res.data)
 }
