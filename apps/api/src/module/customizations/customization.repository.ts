@@ -23,13 +23,14 @@ export const customizationRepository = {
         id: customizationsTable.id,
         productId: customizationsTable.productId,
         name: customizationsTable.name,
+        sort: customizationsTable.sort,
         status: customizationsTable.status,
         optionCount: optionCountSubquery,
         createdAt: customizationsTable.createdAt,
         updatedAt: customizationsTable.updatedAt,
       })
       .from(customizationsTable)
-      .orderBy(customizationsTable.id)
+      .orderBy(customizationsTable.sort, customizationsTable.id)
       .$dynamic();
 
     const countQuery = db
@@ -80,6 +81,14 @@ export const customizationRepository = {
       .where(eq(customizationsTable.productId, productId))
       .limit(1);
     return rows[0] ?? null;
+  },
+
+  async getMaxSortByProductId(productId: number) {
+    const rows = await db
+      .select({ maxSort: sql<number>`coalesce(max(${customizationsTable.sort}), 0)` })
+      .from(customizationsTable)
+      .where(eq(customizationsTable.productId, productId));
+    return Number(rows[0]?.maxSort ?? 0);
   },
 
   async getProductById(id: number) {

@@ -47,9 +47,17 @@ export const customizationService = {
     const trimmedName = name.trim();
     validateMaxLength(trimmedName, 255, '客制化项目名称');
 
+    // 排序：未指定时自动排到该商品内末尾
+    let sort = input.sort ?? 0;
+    if (input.sort === undefined) {
+      const maxSort = await customizationRepository.getMaxSortByProductId(productId);
+      sort = maxSort + 1;
+    }
+
     const insertId = await customizationRepository.createCustomization({
       productId,
       name: trimmedName,
+      sort,
       status: CUSTOMIZATION_STATUS.OFF.value,
     });
 
@@ -58,7 +66,7 @@ export const customizationService = {
   },
 
   async updateCustomization(id: number, input: UpdateCustomizationRequest) {
-    const { name, status } = input;
+    const { name, sort, status } = input;
 
     const existing = await customizationRepository.getCustomizationById(id);
     if (!existing) {
@@ -71,6 +79,7 @@ export const customizationService = {
     const updateData: Record<string, unknown> = {
       name: trimmedName,
     };
+    if (sort !== undefined) updateData.sort = sort;
     if (status !== undefined) {
       if ((CUSTOMIZATION_STATUS_VALUES as readonly number[]).includes(status)) {
         updateData.status = status;

@@ -17,17 +17,19 @@ import { updateCustomization } from "@/api"
 interface EditCustomizationDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  item: { id: number; name: string }
+  item: { id: number; name: string; sort: number }
   onUpdated: () => void
 }
 
 export function EditCustomizationDialog({ open, onOpenChange, item, onUpdated }: EditCustomizationDialogProps) {
   const [name, setName] = useState(item.name)
+  const [sort, setSort] = useState(String(item.sort))
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (open) {
       setName(item.name)
+      setSort(String(item.sort))
     }
   }, [open, item])
 
@@ -40,6 +42,7 @@ export function EditCustomizationDialog({ open, onOpenChange, item, onUpdated }:
     try {
       const res = await updateCustomization(item.id, {
         name: name.trim(),
+        sort: Number(sort),
       })
       if (res.code === 0) {
         toast.success(res.message)
@@ -59,7 +62,7 @@ export function EditCustomizationDialog({ open, onOpenChange, item, onUpdated }:
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>重命名客制化项目</DialogTitle>
+          <DialogTitle>编辑客制化项目</DialogTitle>
         </DialogHeader>
 
         <FieldGroup className="py-2">
@@ -71,6 +74,18 @@ export function EditCustomizationDialog({ open, onOpenChange, item, onUpdated }:
               id="edit-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleUpdate()
+              }}
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="edit-sort">排序序号</FieldLabel>
+            <Input
+              id="edit-sort"
+              type="number"
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleUpdate()
               }}

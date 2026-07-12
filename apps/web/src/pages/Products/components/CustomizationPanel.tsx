@@ -68,6 +68,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
   // Create dialog
   const [createOpen, setCreateOpen] = useState(false)
   const [createName, setCreateName] = useState("")
+  const [createSort, setCreateSort] = useState("")
   const [creating, setCreating] = useState(false)
 
   const fetchData = useCallback(async (targetPage: number) => {
@@ -109,11 +110,13 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
       const res = await createCustomization({
         productId,
         name: createName.trim(),
+        sort: createSort.trim() === "" ? undefined : Number(createSort),
       })
       if (res.code === 0) {
         toast.success(res.message)
         setCreateOpen(false)
         setCreateName("")
+        setCreateSort("")
         await fetchData(1)
       } else {
         toast.error(res.message)
@@ -125,7 +128,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
     }
   }
 
-  const colCount = 4
+  const colCount = 5
 
   const [togglingId, setTogglingId] = useState<number | null>(null)
   const [toggleConfirmItem, setToggleConfirmItem] = useState<Customization | null>(null)
@@ -177,6 +180,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
           <TableHeader>
             <TableRow>
               <TableHead>项目名称</TableHead>
+              <TableHead className="w-20">排序</TableHead>
               <TableHead className="w-24">状态</TableHead>
               <TableHead className="w-20">选项数</TableHead>
               <TableHead className="w-80 text-right">操作</TableHead>
@@ -205,8 +209,9 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
               </TableRow>
             ) : (
               data.map((item) => (
-                <TableRow key={item.id}>
+                  <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell className="font-mono text-xs">{item.sort}</TableCell>
                     <TableCell>
                       <span className={CUSTOMIZATION_STATUS_TEXT_CLASSES[item.status] ?? ""}>
                         {CUSTOMIZATION_STATUS_LABEL[item.status]}
@@ -232,7 +237,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                           }}
                         >
                           <PencilIcon className="size-4" data-icon="inline-start" />
-                          重命名
+                          编辑
                         </Button>
                         <Button
                           variant="outline"
@@ -338,6 +343,19 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                 placeholder="例如：温度、甜度、加料"
                 value={createName}
                 onChange={(e) => setCreateName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleCreate()
+                }}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="create-sort">排序序号</FieldLabel>
+              <Input
+                id="create-sort"
+                type="number"
+                placeholder="留空则自动排到末尾"
+                value={createSort}
+                onChange={(e) => setCreateSort(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleCreate()
                 }}

@@ -159,6 +159,7 @@ export const customizationsTable = mysqlTable('customizations', {
   id: serial().primaryKey(),
   productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
   name: varchar({ length: 255 }).notNull(),
+  sort: int('sort').notNull().default(0),
   status: tinyint().notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),

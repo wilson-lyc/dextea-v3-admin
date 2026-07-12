@@ -22,6 +22,7 @@ export const CustomizationSchema = z.object({
   id: z.number(),
   productId: z.number(),
   name: z.string(),
+  sort: z.number(),
   status: z.number(),
   optionCount: z.number().optional(),
   createdAt: z.string(),
@@ -48,6 +49,7 @@ export type CustomizationListResponse = z.infer<typeof CustomizationListResponse
 export const CreateCustomizationRequestSchema = z.object({
   productId: z.number().int().positive('商品ID必须为正整数'),
   name: z.string().min(1, '客制化项目名称不能为空'),
+  sort: z.number().int().optional(),
 });
 export type CreateCustomizationRequest = z.infer<typeof CreateCustomizationRequestSchema>;
 
@@ -58,6 +60,7 @@ export type CreateCustomizationResponse = Customization;
 
 export const UpdateCustomizationRequestSchema = z.object({
   name: z.string().min(1, '客制化项目名称不能为空'),
+  sort: z.number().int().optional(),
   status: z.number().optional(),
 });
 export type UpdateCustomizationRequest = z.infer<typeof UpdateCustomizationRequestSchema>;
