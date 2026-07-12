@@ -261,6 +261,7 @@ export function StoreProductsPanel({ storeId }: StoreProductsPanelProps) {
       colSpan={6}
       onRefresh={() => fetchData(page)}
       refreshDisabled={loading}
+      hideRefresh
       emptyIcon={<PackageIcon className="size-4" />}
       emptyText="暂无数据"
       pagination={{ page, pageSize, total, onPageChange: fetchData }}

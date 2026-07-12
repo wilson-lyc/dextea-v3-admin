@@ -38,6 +38,8 @@ interface DataTableProps {
   onRefresh?: () => void
   /** Whether the refresh button should be disabled */
   refreshDisabled?: boolean
+  /** Whether the refresh button should be hidden (default: false, i.e. visible) */
+  hideRefresh?: boolean
   /** Pagination configuration (if provided, renders PaginationBar at the bottom) */
   pagination?: PaginationConfig
   /** Icon shown in the empty state */
@@ -93,6 +95,7 @@ export default function DataTable({
   colSpan = 1,
   onRefresh,
   refreshDisabled = false,
+  hideRefresh = false,
   pagination,
   emptyIcon,
   emptyText = "暂无数据",
@@ -104,7 +107,7 @@ export default function DataTable({
       <div className="flex shrink-0 items-center justify-between">
         <div className="flex items-center gap-2">
           {toolbarLeft}
-          {onRefresh && (
+          {!hideRefresh && onRefresh && (
             <Button
               variant="outline"
               size="icon"
