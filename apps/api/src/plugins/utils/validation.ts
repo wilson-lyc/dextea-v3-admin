@@ -66,6 +66,13 @@ export function validateLatitude(lat: number, fieldName: string = '纬度'): voi
   }
 }
 
+export function validateSort(value: number, fieldName: string = '排序'): void {
+  // 数据库列类型为 tinyint()，取值范围 0 ~ 127
+  if (!Number.isInteger(value) || value < 0 || value > 127) {
+    throw new BizError(SystemErrorCodes.VALIDATION_ERROR, `${fieldName} 必须在 0 ~ 127 之间`);
+  }
+}
+
 export function validateStatus<T extends number>(
   status: number,
   validValues: readonly T[],

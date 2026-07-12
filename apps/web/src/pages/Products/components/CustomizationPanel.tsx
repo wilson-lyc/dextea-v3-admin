@@ -336,7 +336,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
           <FieldGroup className="py-2">
             <Field>
               <FieldLabel htmlFor="create-name">
-                项目名称 <span className="text-destructive">*</span>
+                项目名称
               </FieldLabel>
               <Input
                 id="create-name"

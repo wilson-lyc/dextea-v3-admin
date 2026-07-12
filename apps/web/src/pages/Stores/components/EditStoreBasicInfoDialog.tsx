@@ -79,7 +79,7 @@ export function EditStoreBasicInfoDialog({ open, onOpenChange, store, onUpdated 
         <FieldGroup className="py-2">
           <Field data-invalid={!!nameError || undefined}>
             <FieldLabel htmlFor="edit-store-name">
-              门店名称 <span className="text-destructive">*</span>
+              门店名称
             </FieldLabel>
             <Input
               id="edit-store-name"
@@ -108,7 +108,7 @@ export function EditStoreBasicInfoDialog({ open, onOpenChange, store, onUpdated 
           <div className="grid grid-cols-2 gap-3">
             <Field>
               <FieldLabel htmlFor="edit-store-phone">
-                联系电话 <span className="text-destructive">*</span>
+                联系电话
               </FieldLabel>
               <Input
                 id="edit-store-phone"
@@ -119,7 +119,7 @@ export function EditStoreBasicInfoDialog({ open, onOpenChange, store, onUpdated 
             </Field>
             <Field>
               <FieldLabel htmlFor="edit-store-hours">
-                营业时间 <span className="text-destructive">*</span>
+                营业时间
               </FieldLabel>
               <Input
                 id="edit-store-hours"

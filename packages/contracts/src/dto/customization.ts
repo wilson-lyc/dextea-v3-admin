@@ -11,7 +11,7 @@ export const CustomizationOptionSchema = z.object({
   sort: z.number(),
   status: z.number(),
   ingredientId: z.number().nullable(),
-  ingredientName: z.string().nullable(),
+  ingredientName: z.string(),
   quantity: z.number(),
   createdAt: z.string(),
   updatedAt: z.string(),

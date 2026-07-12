@@ -299,9 +299,9 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
 
           <FieldGroup className="py-2">
             <Field>
-              <FieldLabel htmlFor="option-name">
-                名称 <span className="text-destructive">*</span>
-              </FieldLabel>
+            <FieldLabel htmlFor="option-name">
+              名称
+            </FieldLabel>
               <Input
                 id="option-name"
                 placeholder="例如：少冰、七分糖"
@@ -400,9 +400,9 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
 
           <FieldGroup className="py-2">
             <Field>
-              <FieldLabel htmlFor="edit-option-name">
-                名称 <span className="text-destructive">*</span>
-              </FieldLabel>
+            <FieldLabel htmlFor="edit-option-name">
+              名称
+            </FieldLabel>
               <Input
                 id="edit-option-name"
                 value={editForm.name}

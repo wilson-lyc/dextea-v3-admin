@@ -1,7 +1,8 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { CustomizationErrorCodes } from './customization.errorcode.js';
 import { customizationRepository } from './customization.repository.js';
-import { validateMaxLength } from '@/plugins/utils/validation.js';
+import { validateMaxLength, validateSort } from '@/plugins/utils/validation.js';
+import { withDistributedLock } from '@/plugins/utils/distributed-lock.js';
 import {
   CUSTOMIZATION_STATUS,
   CUSTOMIZATION_STATUS_VALUES,
@@ -49,6 +50,9 @@ export const customizationService = {
 
     // 排序：未指定时自动排到该商品内末尾
     let sort = input.sort ?? 0;
+    if (input.sort !== undefined) {
+      validateSort(input.sort, '客制化项目排序');
+    }
     if (input.sort === undefined) {
       const maxSort = await customizationRepository.getMaxSortByProductId(productId);
       sort = maxSort + 1;
@@ -79,7 +83,10 @@ export const customizationService = {
     const updateData: Record<string, unknown> = {
       name: trimmedName,
     };
-    if (sort !== undefined) updateData.sort = sort;
+    if (sort !== undefined) {
+      validateSort(sort, '客制化项目排序');
+      updateData.sort = sort;
+    }
     if (status !== undefined) {
       if ((CUSTOMIZATION_STATUS_VALUES as readonly number[]).includes(status)) {
         updateData.status = status;
@@ -125,6 +132,10 @@ export const customizationService = {
     const trimmedName = name.trim();
     validateMaxLength(trimmedName, 255, '客制化选项名称');
 
+    if (sort !== undefined) {
+      validateSort(sort, '客制化选项排序');
+    }
+
     if (ingredientId != null) {
       const ingredient = await customizationRepository.getIngredientById(ingredientId);
       if (!ingredient) {
@@ -154,36 +165,58 @@ export const customizationService = {
       throw new BizError(CustomizationErrorCodes.OPTION_NOT_FOUND);
     }
 
-    const updateData: Record<string, unknown> = {};
-    if (name !== undefined) {
-      const trimmedName = name.trim();
-      validateMaxLength(trimmedName, 255, '客制化选项名称');
-      updateData.name = trimmedName;
-    }
-    if (price !== undefined) updateData.price = price;
-    if (sort !== undefined) updateData.sort = sort;
-    if (status !== undefined) {
-      if ((CUSTOMIZATION_OPTION_STATUS_VALUES as readonly number[]).includes(status)) {
-        updateData.status = status;
+    // 构建更新数据（含必要的存在性 / 范围校验）
+    const buildUpdate = (): Record<string, unknown> => {
+      const updateData: Record<string, unknown> = {};
+      if (name !== undefined) {
+        const trimmedName = name.trim();
+        validateMaxLength(trimmedName, 255, '客制化选项名称');
+        updateData.name = trimmedName;
       }
-    }
-    if (ingredientId !== undefined) {
-      if (ingredientId != null) {
+      if (price !== undefined) updateData.price = price;
+      if (sort !== undefined) {
+        validateSort(sort, '客制化选项排序');
+        updateData.sort = sort;
+      }
+      if (status !== undefined) {
+        if ((CUSTOMIZATION_OPTION_STATUS_VALUES as readonly number[]).includes(status)) {
+          updateData.status = status;
+        }
+      }
+      if (ingredientId !== undefined) {
+        updateData.ingredientId = ingredientId;
+      }
+      if (quantity !== undefined) updateData.ingredientQuantity = quantity;
+      return updateData;
+    };
+
+    // 在锁内重新读取最新状态，避免锁外 TOCTOU 导致并发写覆盖
+    const persist = async () => {
+      const fresh = await customizationRepository.getOptionById(optionId);
+      if (!fresh || fresh.customizationId !== customizationId) {
+        throw new BizError(CustomizationErrorCodes.OPTION_NOT_FOUND);
+      }
+      // 原料存在性校验需置于锁内，确保读取与写入期间一致
+      if (ingredientId !== undefined && ingredientId != null) {
         const ingredient = await customizationRepository.getIngredientById(ingredientId);
         if (!ingredient) {
           throw new BizError(CustomizationErrorCodes.INGREDIENT_NOT_FOUND);
         }
       }
-      updateData.ingredientId = ingredientId;
-    }
-    if (quantity !== undefined) updateData.ingredientQuantity = quantity;
+      const updateData = buildUpdate();
+      if (Object.keys(updateData).length > 0) {
+        await customizationRepository.updateOptionById(optionId, updateData);
+      }
+      return customizationRepository.getOptionByIdWithIngredient(optionId);
+    };
 
-    if (Object.keys(updateData).length > 0) {
-      await customizationRepository.updateOptionById(optionId, updateData);
+    // 仅当本次请求修改「绑定原料 / 用量」时加分布式锁，
+    // 与原料侧绑定接口共用同一把锁，保证双向绑定写入互斥、可安全改派。
+    const touchesBinding = ingredientId !== undefined || quantity !== undefined;
+    if (touchesBinding) {
+      return withDistributedLock(`customization-option:bind:${optionId}`, persist);
     }
-
-    const updated = await customizationRepository.getOptionByIdWithIngredient(optionId);
-    return updated!;
+    return persist();
   },
 
   async deleteOption(customizationId: number, optionId: number) {

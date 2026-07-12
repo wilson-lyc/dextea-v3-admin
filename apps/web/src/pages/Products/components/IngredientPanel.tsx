@@ -233,7 +233,7 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
               </DialogHeader>
               <div className="flex flex-col gap-4 py-2">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium">原料 <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-medium">原料</label>
                   <SelectPicker
                     options={ingredientOptions}
                     value={bindIngredientId}
@@ -247,7 +247,7 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium">用量 <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-medium">用量</label>
                   <div className="flex items-center gap-2">
                     <Input
                       type="number"
@@ -427,7 +427,7 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
           </DialogHeader>
           <div className="flex flex-col gap-4 py-2">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium">用量 <span className="text-red-500">*</span></label>
+              <label className="text-sm font-medium">用量</label>
               <div className="flex items-center gap-2">
                 <Input
                   type="number"

@@ -2,6 +2,7 @@ import { BizError } from '@/common/exceptions/index.js';
 import { IngredientErrorCodes } from './ingredient.errorcode.js';
 import { ingredientRepository } from './ingredient.repository.js';
 import { INGREDIENT_STATUS_VALUES } from '@dextea-admin/contracts';
+import { withDistributedLock } from '@/plugins/utils/distributed-lock.js';
 import type {
   IngredientListRequest,
   CreateIngredientRequest,
@@ -156,12 +157,17 @@ export const ingredientService = {
       throw new BizError(IngredientErrorCodes.OPTION_NOT_FOUND);
     }
 
-    // 6.1 修复：选项仅能绑定到一个原料，禁止静默改派到其他原料
-    if (option.ingredientId != null && option.ingredientId !== ingredientId) {
-      throw new BizError(IngredientErrorCodes.OPTION_BOUND_TO_OTHER_INGREDIENT);
-    }
+    // 与客制化选项侧共用同一把锁，保证双向绑定写入互斥。
+    // 锁内重新读取最新状态，支持将选项改派到本原料（含用量修改），并避免并发写竞争。
+    const persist = async () => {
+      const fresh = await ingredientRepository.getOptionById(optionId);
+      if (!fresh) {
+        throw new BizError(IngredientErrorCodes.OPTION_NOT_FOUND);
+      }
+      await ingredientRepository.bindOption(optionId, ingredientId, quantity ?? 0);
+    };
 
-    await ingredientRepository.bindOption(optionId, ingredientId, quantity ?? 0);
+    return withDistributedLock(`customization-option:bind:${optionId}`, persist);
   },
 
   async updateOptionQuantity(ingredientId: number, optionId: number, input: UpdateOptionQuantityRequest) {
@@ -172,7 +178,15 @@ export const ingredientService = {
       throw new BizError(IngredientErrorCodes.OPTION_BIND_NOT_FOUND);
     }
 
-    await ingredientRepository.updateOptionQuantity(optionId, quantity);
+    const persist = async () => {
+      const fresh = await ingredientRepository.getOptionById(optionId);
+      if (!fresh || fresh.ingredientId !== ingredientId) {
+        throw new BizError(IngredientErrorCodes.OPTION_BIND_NOT_FOUND);
+      }
+      await ingredientRepository.updateOptionQuantity(optionId, quantity);
+    };
+
+    return withDistributedLock(`customization-option:bind:${optionId}`, persist);
   },
 
   async unbindOption(ingredientId: number, optionId: number) {
@@ -181,7 +195,15 @@ export const ingredientService = {
       throw new BizError(IngredientErrorCodes.OPTION_BIND_NOT_FOUND);
     }
 
-    await ingredientRepository.unbindOption(optionId);
+    const persist = async () => {
+      const fresh = await ingredientRepository.getOptionById(optionId);
+      if (!fresh || fresh.ingredientId !== ingredientId) {
+        throw new BizError(IngredientErrorCodes.OPTION_BIND_NOT_FOUND);
+      }
+      await ingredientRepository.unbindOption(optionId);
+    };
+
+    return withDistributedLock(`customization-option:bind:${optionId}`, persist);
   },
 
   // ──── 选项列表（供 SelectPicker） ────

@@ -118,7 +118,7 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
           <FieldGroup className="py-2">
             <Field data-invalid={!!nameError || undefined}>
               <FieldLabel htmlFor="store-name">
-                门店名称 <span className="text-destructive">*</span>
+                门店名称
               </FieldLabel>
               <Input
                 id="store-name"
@@ -135,7 +135,7 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
 
             <Field data-invalid={!!accountError || undefined}>
               <FieldLabel htmlFor="store-account">
-                登录账号 <span className="text-destructive">*</span>
+                登录账号
               </FieldLabel>
               <Input
                 id="store-account"
@@ -163,14 +163,14 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
 
             <Field>
               <FieldLabel>
-                省市区 <span className="text-destructive">*</span>
+                省市区
               </FieldLabel>
               <AreaSelector key={open ? "open" : "closed"} onChange={handleAreaChange} />
             </Field>
 
             <Field>
               <FieldLabel htmlFor="store-address">
-                地址 <span className="text-destructive">*</span>
+                地址
               </FieldLabel>
               <Input
                 id="store-address"
@@ -183,7 +183,7 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
             <div className="grid grid-cols-2 gap-3">
               <Field>
                 <FieldLabel htmlFor="store-phone">
-                  联系电话 <span className="text-destructive">*</span>
+                  联系电话
                 </FieldLabel>
                 <Input
                   id="store-phone"
@@ -194,7 +194,7 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
               </Field>
               <Field>
                 <FieldLabel htmlFor="store-hours">
-                  营业时间 <span className="text-destructive">*</span>
+                  营业时间
                 </FieldLabel>
                 <Input
                   id="store-hours"

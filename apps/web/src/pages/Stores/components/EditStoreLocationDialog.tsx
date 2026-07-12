@@ -104,7 +104,7 @@ export function EditStoreLocationDialog({ open, onOpenChange, store, onUpdated }
         <FieldGroup className="py-2">
           <Field>
             <FieldLabel>
-              省市区 <span className="text-destructive">*</span>
+              省市区
             </FieldLabel>
             <AreaSelector
               key={`edit-location-${store.id}-${open}`}
@@ -115,7 +115,7 @@ export function EditStoreLocationDialog({ open, onOpenChange, store, onUpdated }
 
           <Field>
             <FieldLabel htmlFor="edit-store-address">
-              具体地址 <span className="text-destructive">*</span>
+              具体地址
             </FieldLabel>
             <Input
               id="edit-store-address"
@@ -127,7 +127,7 @@ export function EditStoreLocationDialog({ open, onOpenChange, store, onUpdated }
 
           <Field>
             <FieldLabel className="flex items-center gap-1">
-              定位坐标 <span className="text-destructive">*</span>
+              定位坐标
               <Tooltip>
                 <TooltipTrigger render={<CircleHelpIcon className="size-4 text-muted-foreground" />}>
                 </TooltipTrigger>
