@@ -159,7 +159,7 @@ export default function StoresPage() {
           <>
             <Button onClick={() => setDialogOpen(true)}>
               <PlusIcon data-icon="inline-start" />
-              创建门店
+              新增门店
             </Button>
             <Button variant="outline" onClick={handleSync} disabled={syncing}>
               <RefreshCwIcon data-icon="inline-start" className={syncing ? "animate-spin" : ""} />

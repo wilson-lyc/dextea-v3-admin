@@ -73,7 +73,7 @@ export function getStore(id: number) {
 }
 
 /**
- * 创建门店
+ * 新增门店
  * POST /stores
  */
 export function createStore(data: CreateStoreRequest) {

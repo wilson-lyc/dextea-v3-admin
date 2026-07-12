@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type { Store } from "@/api"
+import { getDivisionPath } from "@/api"
 import { KeyRoundIcon, PencilIcon } from "lucide-react"
 import { STORE_STATUS_LABEL, STORE_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
 
@@ -46,7 +47,44 @@ export function BasicInfoPanel({
   const [basicInfoDialogOpen, setBasicInfoDialogOpen] = useState(false)
   const [locationDialogOpen, setLocationDialogOpen] = useState(false)
 
-  const fullAddress = [store.province, store.city, store.district, store.address]
+  // 通过区域代码反查省/市/区名称（数据中 province/city/district 可能为空）
+  const [regionNames, setRegionNames] = useState<{
+    province: string
+    city: string
+    district: string
+  } | null>(null)
+
+  useEffect(() => {
+    if (!store.regionCode) {
+      setRegionNames(null)
+      return
+    }
+    let cancelled = false
+    getDivisionPath(store.regionCode).then((res) => {
+      if (cancelled) return
+      if (res.code === 0 && res.data.length) {
+        const [province, city, district] = res.data
+        setRegionNames({
+          province: province?.name ?? "",
+          city: city?.name ?? "",
+          district: district?.name ?? "",
+        })
+      } else {
+        setRegionNames(null)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [store.regionCode])
+
+  // 优先使用反查得到的名称，其次回退到数据自带字段
+  const province = regionNames?.province || store.province || ""
+  const city = regionNames?.city || store.city || ""
+  const district = regionNames?.district || store.district || ""
+
+  const regionText = [province, city, district].filter(Boolean).join(" / ") || "暂无数据"
+  const fullAddress = [province, city, district, store.address]
     .filter(Boolean)
     .join(" ")
 
@@ -111,7 +149,8 @@ export function BasicInfoPanel({
         <CardContent>
           <div className="flex flex-col gap-3">
             <DetailInfoGrid>
-              <InfoField label="地址" value={fullAddress} />
+              <InfoField label="省市区" value={regionText} />
+              <InfoField label="详细地址" value={store.address || "暂无数据"} />
             </DetailInfoGrid>
             {store.longitude && store.latitude ? (
               <AmapMap
