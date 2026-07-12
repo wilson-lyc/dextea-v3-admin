@@ -27,7 +27,7 @@ function formatDate(iso: string) {
 }
 
 interface BasicInfoPanelProps {
-  menuId: string
+  menuId: number
 }
 
 export default function BasicInfoPanel({ menuId }: BasicInfoPanelProps) {
@@ -40,7 +40,7 @@ export default function BasicInfoPanel({ menuId }: BasicInfoPanelProps) {
     setLoading(true)
     setError(false)
     try {
-      const res = await getMenu(Number(menuId))
+      const res = await getMenu(menuId)
       if (res.code === 0) {
         setMenu(res.data)
       } else {
@@ -121,7 +121,7 @@ export default function BasicInfoPanel({ menuId }: BasicInfoPanelProps) {
       <EditBasicInfoDialog
         open={infoDialogOpen}
         onOpenChange={setInfoDialogOpen}
-        menuId={Number(menuId)}
+        menuId={menuId}
         menu={menu}
         onUpdated={fetchMenu}
       />

@@ -24,13 +24,14 @@ import CustomizationOptionBindingPanel from "./components/CustomizationOptionBin
 export default function IngredientDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
+  const ingredientId = id ? Number(id) : undefined
   const [ingredient, setIngredient] = useState<Ingredient | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!id) return
+    if (!ingredientId) return
     setLoading(true)
-    getIngredient(Number(id))
+    getIngredient(ingredientId)
       .then((res) => {
         if (res.code === 0) {
           setIngredient(res.data)
@@ -40,7 +41,7 @@ export default function IngredientDetailPage() {
       })
       .catch(() => setIngredient(null))
       .finally(() => setLoading(false))
-  }, [id])
+  }, [ingredientId])
 
   if (loading) {
     return (
@@ -96,15 +97,15 @@ export default function IngredientDetailPage() {
             ]}
           >
             <TabsContent value="basic" className="mt-6 flex flex-col gap-6">
-              {id && <BasicInfoPanel ingredientId={id} />}
+              {ingredientId && <BasicInfoPanel ingredientId={ingredientId} />}
             </TabsContent>
 
             <TabsContent value="products" className="mt-6">
-              {id && <ProductBindingPanel ingredientId={Number(id)} unit={ingredient.unit} />}
+              {ingredientId && <ProductBindingPanel ingredientId={ingredientId} unit={ingredient.unit} />}
             </TabsContent>
 
             <TabsContent value="customization" className="mt-6">
-              {id && <CustomizationOptionBindingPanel ingredientId={Number(id)} unit={ingredient.unit} />}
+              {ingredientId && <CustomizationOptionBindingPanel ingredientId={ingredientId} unit={ingredient.unit} />}
             </TabsContent>
           </DetailTabs>
         </div>

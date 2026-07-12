@@ -24,7 +24,7 @@ import { updateProduct } from "@/api"
 interface EditBasicInfoDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  productId: string
+  productId: number
   product: Product
   onUpdated: () => void
 }

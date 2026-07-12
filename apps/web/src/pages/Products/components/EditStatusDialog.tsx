@@ -21,7 +21,7 @@ import { toggleProductStatus } from "@/api"
 interface EditStatusDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  productId: string
+  productId: number
   currentStatus: ProductStatus
   onUpdated: () => void
 }

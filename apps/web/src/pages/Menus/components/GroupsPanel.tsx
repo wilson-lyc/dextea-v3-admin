@@ -33,7 +33,7 @@ import { getMenuGroups, createMenuGroup, deleteMenuGroup } from "@/api"
 import GroupProductsSheet from "./GroupProductsSheet"
 
 interface GroupsPanelProps {
-  menuId: string
+  menuId: number
 }
 
 export default function GroupsPanel({ menuId }: GroupsPanelProps) {
@@ -58,7 +58,7 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
   const fetchGroups = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await getMenuGroups(Number(menuId))
+      const res = await getMenuGroups(menuId)
       setGroups(res.data)
       setSelectedIds(new Set())
     } catch (err) {
@@ -95,7 +95,7 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
 
     setSubmitting(true)
     try {
-      const res = await createMenuGroup(Number(menuId), { name: formName.trim() })
+      const res = await createMenuGroup(menuId, { name: formName.trim() })
       if (res.code === 0) {
         toast.success(res.message)
         setCreateDialogOpen(false)

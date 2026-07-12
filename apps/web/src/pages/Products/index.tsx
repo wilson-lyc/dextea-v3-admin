@@ -147,7 +147,7 @@ export default function ProductsPage() {
     if (!statusConfirmTarget) return
     setStatusToggling(true)
     try {
-      const res = await toggleProductStatus(String(statusConfirmTarget.id), statusConfirmAction)
+      const res = await toggleProductStatus(statusConfirmTarget.id, statusConfirmAction)
       if (res.code === 0) {
         toast.success(res.message)
         setStatusConfirmOpen(false)

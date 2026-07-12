@@ -61,7 +61,7 @@ export function createProduct(data: CreateProductRequest) {
  * 更新商品信息
  * PUT /products/:id/info
  */
-export function updateProduct(id: string, data: UpdateProductRequest) {
+export function updateProduct(id: number, data: UpdateProductRequest) {
   return http.put<ApiResponse<Product>>(`/products/${id}/info`, data).then((res) => res.data)
 }
 
@@ -69,7 +69,7 @@ export function updateProduct(id: string, data: UpdateProductRequest) {
  * 上下架商品
  * PATCH /products/:id/status
  */
-export function toggleProductStatus(id: string, status: ProductStatus) {
+export function toggleProductStatus(id: number, status: ProductStatus) {
   return http
     .patch<ApiResponse<Product>>(`/products/${id}/status`, { status })
     .then((res) => res.data)

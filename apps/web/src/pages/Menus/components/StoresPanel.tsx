@@ -37,7 +37,7 @@ import DispatchByAreaDialog from "./DispatchByAreaDialog"
 import DispatchByIdDialog from "./DispatchByIdDialog"
 
 interface StoresPanelProps {
-  menuId: string
+  menuId: number
   menuName: string
 }
 
@@ -70,7 +70,7 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
     async (targetPage: number) => {
       setLoading(true)
       try {
-        const res = await getStoresByMenuId(Number(menuId), { page: targetPage, pageSize })
+        const res = await getStoresByMenuId(menuId, { page: targetPage, pageSize })
         if (res.code === 0) {
           setStores(res.data.items)
           setTotal(res.data.total)
@@ -274,7 +274,7 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
       <DispatchByAreaDialog
         open={dispatchAreaOpen}
         onOpenChange={setDispatchAreaOpen}
-        menuId={Number(menuId)}
+        menuId={menuId}
         menuName={menuName}
         onDispatched={() => fetchData(1)}
       />
@@ -283,7 +283,7 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
       <DispatchByIdDialog
         open={dispatchByIdOpen}
         onOpenChange={setDispatchByIdOpen}
-        menuId={Number(menuId)}
+        menuId={menuId}
         menuName={menuName}
         onDispatched={() => fetchData(1)}
       />

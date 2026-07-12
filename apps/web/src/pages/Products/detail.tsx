@@ -19,14 +19,15 @@ import IngredientPanel from "./components/IngredientPanel"
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const productId = id ? Number(id) : undefined
   const [productName, setProductName] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
-    if (!id) return
+    if (!productId) return
     setLoading(true)
-    getProductBasicInfo(Number(id))
+    getProductBasicInfo(productId)
       .then((res) => {
         if (res.code === 0) {
           setProductName(res.data.name)
@@ -36,7 +37,7 @@ export default function ProductDetailPage() {
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
-  }, [id])
+  }, [productId])
 
   if (loading) {
     return <DetailLayout loading />
@@ -75,19 +76,19 @@ export default function ProductDetailPage() {
       ]}
     >
       <TabsContent value="basic" className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-6 p-1">
-        {id && <BasicInfoPanel productId={id} />}
+        {productId && <BasicInfoPanel productId={productId} />}
       </TabsContent>
 
       <TabsContent value="tags" className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-6 p-1">
-        {id && <TagsPanel productId={Number(id)} />}
+        {productId && <TagsPanel productId={productId} />}
       </TabsContent>
 
       <TabsContent value="customization" className="flex-1 min-h-0 overflow-y-auto p-1">
-        {id && <CustomizationPanel productId={Number(id)} />}
+        {productId && <CustomizationPanel productId={productId} />}
       </TabsContent>
 
       <TabsContent value="ingredients" className="flex-1 min-h-0 overflow-y-auto p-1">
-        {id && <IngredientPanel productId={Number(id)} />}
+        {productId && <IngredientPanel productId={productId} />}
       </TabsContent>
     </DetailLayout>
   )

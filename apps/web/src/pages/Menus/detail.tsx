@@ -21,15 +21,16 @@ import StoresPanel from "./components/StoresPanel"
 export default function MenuDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
+  const menuId = id ? Number(id) : undefined
   const [menuName, setMenuName] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
   // 加载菜单数据
   useEffect(() => {
-    if (!id) return
+    if (!menuId) return
     setLoading(true)
-    getMenu(Number(id))
+    getMenu(menuId)
       .then((res) => {
         if (res.code === 0) {
           setMenuName(res.data.name)
@@ -39,7 +40,7 @@ export default function MenuDetailPage() {
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
-  }, [id])
+  }, [menuId])
 
   // 加载中
   if (loading) {
@@ -92,15 +93,15 @@ export default function MenuDetailPage() {
         ]}
       >
         <TabsContent value="basic" className="flex-1 min-h-0 overflow-y-auto p-1">
-          {id && <BasicInfoPanel menuId={id} />}
+          {menuId && <BasicInfoPanel menuId={menuId} />}
         </TabsContent>
 
         <TabsContent value="groups" className="flex-1 min-h-0 overflow-y-auto p-1">
-          {id && <GroupsPanel menuId={id} />}
+          {menuId && <GroupsPanel menuId={menuId} />}
         </TabsContent>
 
         <TabsContent value="stores">
-          {id && <StoresPanel menuId={id} menuName={menuName} />}
+          {menuId && <StoresPanel menuId={menuId} menuName={menuName} />}
         </TabsContent>
       </DetailTabs>
     </div>

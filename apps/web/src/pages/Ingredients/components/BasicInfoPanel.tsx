@@ -29,7 +29,7 @@ function formatDate(iso: string) {
 }
 
 interface BasicInfoPanelProps {
-  ingredientId: string
+  ingredientId: number
 }
 
 export default function BasicInfoPanel({ ingredientId }: BasicInfoPanelProps) {
@@ -43,7 +43,7 @@ export default function BasicInfoPanel({ ingredientId }: BasicInfoPanelProps) {
     setLoading(true)
     setError(false)
     try {
-      const res = await getIngredient(Number(ingredientId))
+      const res = await getIngredient(ingredientId)
       if (res.code === 0) {
         setIngredient(res.data)
       } else {
