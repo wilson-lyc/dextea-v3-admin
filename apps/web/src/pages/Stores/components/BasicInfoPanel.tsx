@@ -51,7 +51,7 @@ export function BasicInfoPanel({
     .join(" ")
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <Card>
         <CardHeader>
           <CardTitle>门店状态</CardTitle>

@@ -69,25 +69,25 @@ export default function ProductDetailPage() {
         </Breadcrumb>
       }
       tabs={[
-        { value: "basic", label: "基础信息" },
-        { value: "tags", label: "标签" },
-        { value: "customization", label: "客制化" },
-        { value: "ingredients", label: "原料" },
+        { value: "basic", label: "基础信息", scrollable: true },
+        { value: "tags", label: "标签", scrollable: true },
+        { value: "customization", label: "客制化", scrollable: true },
+        { value: "ingredients", label: "原料", scrollable: true },
       ]}
     >
-      <TabsContent value="basic" className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-6 p-1">
+      <TabsContent value="basic">
         {productId && <BasicInfoPanel productId={productId} />}
       </TabsContent>
 
-      <TabsContent value="tags" className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-6 p-1">
+      <TabsContent value="tags">
         {productId && <TagsPanel productId={productId} />}
       </TabsContent>
 
-      <TabsContent value="customization" className="flex-1 min-h-0 overflow-y-auto p-1">
+      <TabsContent value="customization">
         {productId && <CustomizationPanel productId={productId} />}
       </TabsContent>
 
-      <TabsContent value="ingredients" className="flex-1 min-h-0 overflow-y-auto p-1">
+      <TabsContent value="ingredients">
         {productId && <IngredientPanel productId={productId} />}
       </TabsContent>
     </DetailLayout>

@@ -86,17 +86,17 @@ export default function MenuDetailPage() {
 
       {/* Tab 面板 */}
       <DetailTabs
-        tabs={[
-          { value: "basic", label: "基础信息" },
-          { value: "groups", label: "菜单分组" },
-          { value: "stores", label: "关联门店" },
-        ]}
+      tabs={[
+        { value: "basic", label: "基础信息", scrollable: true },
+        { value: "groups", label: "菜单分组", scrollable: true },
+        { value: "stores", label: "关联门店" },
+      ]}
       >
-        <TabsContent value="basic" className="flex-1 min-h-0 overflow-y-auto p-1">
+        <TabsContent value="basic">
           {menuId && <BasicInfoPanel menuId={menuId} />}
         </TabsContent>
 
-        <TabsContent value="groups" className="flex-1 min-h-0 overflow-y-auto p-1">
+        <TabsContent value="groups">
           {menuId && <GroupsPanel menuId={menuId} />}
         </TabsContent>
 

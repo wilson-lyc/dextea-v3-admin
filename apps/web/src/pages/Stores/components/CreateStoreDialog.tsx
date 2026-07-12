@@ -112,7 +112,7 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>创建门店</DialogTitle>
+            <DialogTitle>新增门店</DialogTitle>
           </DialogHeader>
 
           <FieldGroup className="py-2">
@@ -221,7 +221,7 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>门店创建成功</DialogTitle>
+            <DialogTitle>门店新增成功</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col items-center gap-3 py-4">

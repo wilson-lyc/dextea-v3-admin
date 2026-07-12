@@ -76,7 +76,7 @@ export default function StoreDetailPage() {
       notFound={!store}
       notFoundText="门店不存在"
       tabs={[
-        { value: "basic", label: "基础信息" },
+        { value: "basic", label: "基础信息", scrollable: true },
         { value: "products", label: "商品状态" },
         { value: "ingredients", label: "原料库存" },
       ]}
@@ -98,7 +98,7 @@ export default function StoreDetailPage() {
         )
       }
     >
-      <TabsContent value="basic" className="flex-1 min-h-0 overflow-y-auto p-1">
+      <TabsContent value="basic">
         {store && (
           <BasicInfoPanel
             store={store}
@@ -108,11 +108,11 @@ export default function StoreDetailPage() {
         )}
       </TabsContent>
 
-      <TabsContent value="products" className="flex-1 min-h-0 min-w-0 overflow-y-auto p-1">
+      <TabsContent value="products">
         {store && <StoreProductStatusPanel storeId={store.id} />}
       </TabsContent>
 
-      <TabsContent value="ingredients" className="flex-1 min-h-0 min-w-0 overflow-y-auto p-1">
+      <TabsContent value="ingredients">
         {store && <StoreIngredientStockPanel storeId={store.id} />}
       </TabsContent>
 

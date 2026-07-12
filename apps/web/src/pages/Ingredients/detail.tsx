@@ -96,7 +96,7 @@ export default function IngredientDetailPage() {
               { value: "customization", label: "客制化选项绑定" },
             ]}
           >
-            <TabsContent value="basic" className="mt-6 flex flex-col gap-6">
+            <TabsContent value="basic" className="mt-6 gap-6">
               {ingredientId && <BasicInfoPanel ingredientId={ingredientId} />}
             </TabsContent>
 
