@@ -10,24 +10,11 @@ import {
   serializerCompiler,
 } from 'fastify-type-provider-zod';
 import { config } from './config/index.js';
-// [已弃用] 旧版 routes 路由，统一由 module 层（V2）接管，代码保留但取消注册
-// import { registerRoutes } from './routes/index.js';
 import { authHook } from './middleware/auth.js';
-import { registerEmployeeModule } from './module/employees/employees.module.js';
-import { registerStoreModule } from './module/stores/store.module.js';
-import { registerInitModule } from './module/init/init.module.js';
-import { registerConfigModule } from './module/config/config.module.js';
-import { registerAreaModule } from './module/areas/area.module.js';
-import { registerAuthModule } from './module/auth/auth.module.js';
-import { registerTagModule } from './module/tags/tag.module.js';
-import { registerProductModule } from './module/products/product.module.js';
-import { registerIngredientModule } from './module/ingredients/ingredient.module.js';
-import { registerMenuModule } from './module/menus/menu.module.js';
-import { registerCustomizationModule } from './module/customizations/customization.module.js';
-import { registerStoreStatusModule } from './module/store-status/store-status.module.js';
 import { registerRedis } from './plugins/db/redis/index.js';
 import { registerDb } from './plugins/db/mysql/index.js';
 import { globalErrorHandler, schemaErrorFormatter } from '@/common/exceptions/index.js';
+import { registerModules } from './register-modules.js';
 
 async function main() {
   const app = Fastify({
@@ -104,18 +91,7 @@ async function main() {
   app.addHook('preValidation', authHook);
 
   // 注册路由模块
-  await app.register(registerEmployeeModule);
-  await app.register(registerStoreModule);
-  await app.register(registerInitModule);
-  await app.register(registerConfigModule);
-  await app.register(registerAreaModule);
-  await app.register(registerAuthModule);
-  await app.register(registerTagModule);
-  await app.register(registerProductModule);
-  await app.register(registerIngredientModule);
-  await app.register(registerMenuModule);
-  await app.register(registerCustomizationModule);
-  await app.register(registerStoreStatusModule);
+  await registerModules(app);
 
   // 启动服务
   await app.listen({ port: config.port, host: config.host });
