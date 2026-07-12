@@ -210,7 +210,7 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <DataTable
         toolbarLeft={
           <Dialog open={bindOpen} onOpenChange={setBindOpen}>
@@ -375,6 +375,6 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
           setDeleteTarget(null)
         }}
       />
-    </div>
+    </>
   )
 }

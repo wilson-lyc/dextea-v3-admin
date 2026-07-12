@@ -149,7 +149,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <DataTable
         toolbarLeft={
           <Button onClick={() => setCreateOpen(true)}>
@@ -310,6 +310,6 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         loading={togglingId !== null}
         onConfirm={confirmToggleStatus}
       />
-    </div>
+    </>
   )
 }

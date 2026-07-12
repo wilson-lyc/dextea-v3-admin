@@ -84,7 +84,7 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
   const existingTagIds = tags.map((t) => t.id)
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <DataTable
         toolbarLeft={
           <Button onClick={() => setAddTagDialogOpen(true)}>
@@ -142,6 +142,6 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
         variant="destructive"
         onConfirm={handleConfirmRemove}
       />
-    </div>
+    </>
   )
 }

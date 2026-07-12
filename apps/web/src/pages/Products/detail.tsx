@@ -70,9 +70,9 @@ export default function ProductDetailPage() {
       }
       tabs={[
         { value: "basic", label: "基础信息", scrollable: true },
-        { value: "tags", label: "标签", scrollable: true },
-        { value: "customization", label: "客制化", scrollable: true },
-        { value: "ingredients", label: "原料", scrollable: true },
+        { value: "tags", label: "标签" },
+        { value: "customization", label: "客制化" },
+        { value: "ingredients", label: "原料" },
       ]}
     >
       <TabsContent value="basic">
