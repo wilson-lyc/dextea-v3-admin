@@ -41,7 +41,7 @@ export const registerStoreStatusRoutes: FastifyPluginAsyncZod = async (app) => {
   );
 
   // 设置商品门店状态
-  app.patch(
+  app.put(
     '/stores/:storeId/products/:productId/status',
     {
       schema: {

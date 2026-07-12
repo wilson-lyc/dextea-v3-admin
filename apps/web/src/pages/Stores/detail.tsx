@@ -37,7 +37,6 @@ import { EditStoreStatusDialog } from "./components/EditStoreStatusDialog"
 import { EditStoreBasicInfoDialog } from "./components/EditStoreBasicInfoDialog"
 import { EditStoreLocationDialog } from "./components/EditStoreLocationDialog"
 import { StoreProductsPanel } from "./components/StoreProductsPanel"
-import { StoreCustomizationsPanel } from "./components/StoreCustomizationsPanel"
 import { StoreIngredientsPanel } from "./components/StoreIngredientsPanel"
 
 function formatDate(iso: string) {
@@ -63,7 +62,7 @@ export default function StoreDetailPage() {
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
   const [newPassword, setNewPassword] = useState("")
 
-  const tabValues = useMemo(() => ["basic", "products", "customizations", "ingredients"], [])
+  const tabValues = useMemo(() => ["basic", "products", "ingredients"], [])
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace("#", "")
     return tabValues.includes(hash) ? hash : "basic"
@@ -184,7 +183,6 @@ export default function StoreDetailPage() {
           <TabsList variant="line">
             <TabsTrigger value="basic">基础信息</TabsTrigger>
             <TabsTrigger value="products">商品</TabsTrigger>
-            <TabsTrigger value="customizations">客制化</TabsTrigger>
             <TabsTrigger value="ingredients">原料</TabsTrigger>
           </TabsList>
         </div>
@@ -298,10 +296,6 @@ export default function StoreDetailPage() {
 
         <TabsContent value="products" className="flex-1 min-h-0 min-w-0 m-0 p-6">
           {store && <StoreProductsPanel storeId={store.id} />}
-        </TabsContent>
-
-        <TabsContent value="customizations" className="flex-1 min-h-0 min-w-0 m-0 p-6">
-          {store && <StoreCustomizationsPanel storeId={store.id} />}
         </TabsContent>
 
         <TabsContent value="ingredients" className="flex-1 min-h-0 min-w-0 m-0 p-6">

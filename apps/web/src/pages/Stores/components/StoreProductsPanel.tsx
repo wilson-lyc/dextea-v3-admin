@@ -6,7 +6,6 @@ import type { StoreProductItem } from "@/api"
 import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES, STORE_PRODUCT_STATUS_LABEL, STORE_PRODUCT_STATUS_TEXT_CLASSES, getProductFinalStatus } from "@dextea-admin/contracts/status"
 
 import { Button } from "@/components/ui/button"
-import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   Select,
   SelectContent,
@@ -14,25 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ScrollArea } from "@/components/ui/scroll-area"
-
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
   TableHeader,
+  TableHead,
   TableRow,
+  TableCell,
 } from "@/components/ui/table"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
+import DataTable from "@/components/ui/data-table"
 import {
   Dialog,
   DialogContent,
@@ -167,8 +154,8 @@ export function StoreProductsPanel({ storeId }: StoreProductsPanelProps) {
   }, [data])
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+    <DataTable
+      toolbarLeft={
         <div className="flex items-center gap-4 text-sm">
           <span>
             可售 <strong className="text-green-700 dark:text-green-400">{stats.available}</strong>
@@ -182,6 +169,8 @@ export function StoreProductsPanel({ storeId }: StoreProductsPanelProps) {
             下架 <strong className="text-red-700 dark:text-red-400">{stats.offShelf}</strong>
           </span>
         </div>
+      }
+      toolbarRight={
         <div className="flex items-center gap-2">
           <Select value={globalFilter} onValueChange={setGlobalFilter}>
             <SelectTrigger className="w-28" size="sm">
@@ -215,178 +204,95 @@ export function StoreProductsPanel({ storeId }: StoreProductsPanelProps) {
             </SelectContent>
           </Select>
         </div>
-      </div>
-      <ScrollArea className="max-h-[calc(100vh-480px)]">
-        <Table className="table-fixed">
-          <TableHeader>
-            <TableRow>
-              <TableHead>商品名称</TableHead>
-              <TableHead>价格</TableHead>
-              <TableHead>全局状态</TableHead>
-              <TableHead>门店状态</TableHead>
-              <TableHead>最终状态</TableHead>
-              <TableHead className="text-right">操作</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="h-32 text-center text-sm text-muted-foreground"
-                >
-                  加载中...
-                </TableCell>
-              </TableRow>
-            ) : data.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-48 text-center">
-                  <Empty>
-                    <EmptyMedia variant="icon">
-                      <PackageIcon className="size-4" />
-                    </EmptyMedia>
-                    <EmptyTitle>暂无数据</EmptyTitle>
-                  </Empty>
-                </TableCell>
-              </TableRow>
-            ) : (
-              data.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.name}</TableCell>
-                  <TableCell>¥ {item.price.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <span className={PRODUCT_STATUS_TEXT_CLASSES[item.globalStatus] ?? ""}>
-                      {PRODUCT_STATUS_LABEL[item.globalStatus] ?? String(item.globalStatus)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className={STORE_PRODUCT_STATUS_TEXT_CLASSES[item.storeStatus] ?? ""}>
-                      {STORE_PRODUCT_STATUS_LABEL[item.storeStatus] ?? String(item.storeStatus)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className={getProductFinalStatus(item.globalStatus, item.storeStatus).className}>
-                      {getProductFinalStatus(item.globalStatus, item.storeStatus).label}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant={item.storeStatus === 1 ? "outline-destructive" : "outline-success"}
-                      size="sm"
-                      onClick={() =>
-                        setToggleTarget({
-                          id: item.id,
-                          name: item.name,
-                          currentStatus: item.storeStatus,
-                        })
-                      }
-                    >
-                      {item.storeStatus === 1 ? "转门店售罄" : "转门店可售"}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </ScrollArea>
-
-      {!loading && data.length > 0 && (
-        <Pagination className="justify-end">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e: React.MouseEvent) => {
-                  e.preventDefault()
-                  if (page > 1) fetchData(page - 1)
-                }}
-                text="上一页"
-              />
-            </PaginationItem>
-            {(() => {
-              const totalPages = Math.ceil(total / pageSize)
-              const pages: (number | "...")[] = []
-              if (totalPages <= 7) {
-                for (let i = 1; i <= totalPages; i++) pages.push(i)
-              } else {
-                pages.push(1)
-                if (page > 3) pages.push("...")
-                for (
-                  let i = Math.max(2, page - 1);
-                  i <= Math.min(totalPages - 1, page + 1);
-                  i++
-                ) {
-                  pages.push(i)
+      }
+      header={
+        <TableHeader className="sticky top-0 z-50 bg-background">
+          <TableRow>
+            <TableHead>商品名称</TableHead>
+            <TableHead>价格</TableHead>
+            <TableHead>全局状态</TableHead>
+            <TableHead>门店状态</TableHead>
+            <TableHead>最终状态</TableHead>
+            <TableHead className="text-right">操作</TableHead>
+          </TableRow>
+        </TableHeader>
+      }
+      body={data.map((item) => (
+        <TableRow key={item.id}>
+          <TableCell>{item.name}</TableCell>
+          <TableCell>¥ {item.price.toFixed(2)}</TableCell>
+          <TableCell>
+            <span className={PRODUCT_STATUS_TEXT_CLASSES[item.globalStatus] ?? ""}>
+              {PRODUCT_STATUS_LABEL[item.globalStatus] ?? String(item.globalStatus)}
+            </span>
+          </TableCell>
+          <TableCell>
+            <span className={STORE_PRODUCT_STATUS_TEXT_CLASSES[item.storeStatus] ?? ""}>
+              {STORE_PRODUCT_STATUS_LABEL[item.storeStatus] ?? String(item.storeStatus)}
+            </span>
+          </TableCell>
+          <TableCell>
+            <span className={getProductFinalStatus(item.globalStatus, item.storeStatus).className}>
+              {getProductFinalStatus(item.globalStatus, item.storeStatus).label}
+            </span>
+          </TableCell>
+          <TableCell className="text-right">
+            <div className="flex items-center justify-end gap-1">
+              <Button
+                variant={item.storeStatus === 1 ? "outline-destructive" : "outline-success"}
+                size="sm"
+                onClick={() =>
+                  setToggleTarget({
+                    id: item.id,
+                    name: item.name,
+                    currentStatus: item.storeStatus,
+                  })
                 }
-                if (page < totalPages - 2) pages.push("...")
-                pages.push(totalPages)
-              }
-              return pages.map((p, idx) =>
-                p === "..." ? (
-                  <PaginationItem key={`e-${idx}`}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={p}>
-                    <PaginationLink
-                      href="#"
-                      isActive={p === page}
-                      onClick={(e: React.MouseEvent) => {
-                        e.preventDefault()
-                        fetchData(p)
-                      }}
-                    >
-                      {p}
-                    </PaginationLink>
-                  </PaginationItem>
-                ),
-              )
-            })()}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e: React.MouseEvent) => {
-                  e.preventDefault()
-                  if (page < Math.ceil(total / pageSize))
-                    fetchData(page + 1)
-                }}
-                text="下一页"
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+              >
+                {item.storeStatus === 1 ? "转门店售罄" : "转门店可售"}
+              </Button>
+            </div>
+          </TableCell>
+        </TableRow>
+      ))}
+      loading={loading}
+      isEmpty={data.length === 0}
+      colSpan={6}
+      onRefresh={() => fetchData(page)}
+      refreshDisabled={loading}
+      emptyIcon={<PackageIcon className="size-4" />}
+      emptyText="暂无数据"
+      pagination={{ page, pageSize, total, onPageChange: fetchData }}
+    />
 
-      <Dialog
-        open={toggleTarget !== null}
-        onOpenChange={(open) => {
-          if (!open) setToggleTarget(null)
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              <AlertTriangleIcon className="mr-1.5 inline size-4 text-destructive" />
-              确认操作
-            </DialogTitle>
-          </DialogHeader>
-          <DialogDescription>
-            确认修改「{toggleTarget?.name}」的门店状态为{toggleTarget?.currentStatus === 1 ? "售罄" : "可售"}？
-          </DialogDescription>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setToggleTarget(null)}
-            >
-              取消
-            </Button>
-            <Button variant="destructive" onClick={handleToggleConfirm}>
-              确认
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+    <Dialog
+      open={toggleTarget !== null}
+      onOpenChange={(open) => {
+        if (!open) setToggleTarget(null)
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            <AlertTriangleIcon className="mr-1.5 inline size-4 text-destructive" />
+            确认操作
+          </DialogTitle>
+        </DialogHeader>
+        <DialogDescription>
+          确认修改「{toggleTarget?.name}」的门店状态为{toggleTarget?.currentStatus === 1 ? "售罄" : "可售"}？
+        </DialogDescription>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setToggleTarget(null)}
+          >
+            取消
+          </Button>
+          <Button variant="destructive" onClick={handleToggleConfirm}>
+            确认
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -38,7 +38,7 @@ export function getStoreProducts(
 
 /**
  * 设置商品门店状态
- * PATCH /stores/:storeId/products/:productId/status
+ * PUT /stores/:storeId/products/:productId/status
  */
 export function updateProductStoreStatus(
   storeId: number,
@@ -46,7 +46,7 @@ export function updateProductStoreStatus(
   data: UpdateProductStoreStatusBody,
 ) {
   return http
-    .patch<ApiResponse<null>>(`/stores/${storeId}/products/${productId}/status`, data)
+    .put<ApiResponse<null>>(`/stores/${storeId}/products/${productId}/status`, data)
     .then((r) => r.data)
 }
 
