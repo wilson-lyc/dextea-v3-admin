@@ -12,11 +12,11 @@ export const StoreProductItemSchema = z.object({
 });
 export type StoreProductItem = z.infer<typeof StoreProductItemSchema>;
 
+// 客制化项目不设置门店状态，仅含全局状态与选项数量
 export const StoreCustomizationItemSchema = z.object({
   id: z.number(),
   name: z.string(),
   globalStatus: z.number(),
-  storeStatus: z.number(),
   optionCount: z.number(),
 });
 export type StoreCustomizationItem = z.infer<typeof StoreCustomizationItemSchema>;

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { registerEmployeeModule } from './module/employees/employees.module.js';
 import { registerStoreModule } from './module/stores/store.module.js';
+import { registerStoreCatalogModule } from './module/store-catalog/store-catalog.module.js';
 import { registerInitModule } from './module/init/init.module.js';
 import { registerConfigModule } from './module/config/config.module.js';
 import { registerAreaModule } from './module/areas/area.module.js';
@@ -19,6 +20,7 @@ import { registerDashboardModule } from './module/dashboard/dashboard.module.js'
 export async function registerModules(app: FastifyInstance) {
   await app.register(registerEmployeeModule);
   await app.register(registerStoreModule);
+  await app.register(registerStoreCatalogModule);
   await app.register(registerInitModule);
   await app.register(registerConfigModule);
   await app.register(registerAreaModule);
