@@ -1,0 +1,48 @@
+import { BizError } from '@/common/exceptions/index.js';
+import { StoreCatalogErrorCodes } from './store-catalog.errorcode.js';
+import { storeCatalogRepository } from './store-catalog.repository.js';
+
+// 校验门店是否存在（门店目录子资源接口共用）
+async function ensureStoreExists(storeId: number): Promise<void> {
+  const store = await storeCatalogRepository.getStoreById(storeId);
+  if (!store) throw new BizError(StoreCatalogErrorCodes.STORE_NOT_FOUND);
+}
+
+export const storeCatalogService = {
+  async listStoreProducts(
+    storeId: number,
+    params: { page: number; pageSize: number; globalStatus?: number; storeStatus?: number },
+  ) {
+    await ensureStoreExists(storeId);
+    return storeCatalogRepository.listStoreProducts(storeId, params);
+  },
+
+  async upsertProductStoreStatus(storeId: number, productId: number, status: number) {
+    await ensureStoreExists(storeId);
+    await storeCatalogRepository.upsertProductStoreStatus(storeId, productId, status);
+  },
+
+  async listStoreCustomizations(storeId: number, params: { page: number; pageSize: number }) {
+    await ensureStoreExists(storeId);
+    return storeCatalogRepository.listStoreCustomizations(storeId, params);
+  },
+
+  async listStoreCustomizationOptions(
+    storeId: number,
+    customizationId: number,
+    params: { page: number; pageSize: number },
+  ) {
+    await ensureStoreExists(storeId);
+    return storeCatalogRepository.listStoreCustomizationOptions(storeId, customizationId, params);
+  },
+
+  async upsertCustomizationOptionStoreStatus(storeId: number, optionId: number, status: number) {
+    await ensureStoreExists(storeId);
+    await storeCatalogRepository.upsertCustomizationOptionStoreStatus(storeId, optionId, status);
+  },
+
+  async listStoreIngredients(storeId: number, params: { page: number; pageSize: number }) {
+    await ensureStoreExists(storeId);
+    return storeCatalogRepository.listStoreIngredients(storeId, params);
+  },
+};

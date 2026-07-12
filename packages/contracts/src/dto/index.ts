@@ -8,6 +8,6 @@ export * from './ingredient.js';
 export * from './init.js';
 export * from './menu.js';
 export * from './product.js';
-export * from './store-status.js';
+export * from './store-catalog.js';
 export * from './store.js';
 export * from './tag.js';
