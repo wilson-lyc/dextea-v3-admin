@@ -37,18 +37,18 @@ export function createTag(data: CreateTagRequest) {
 
 /**
  * 更新标签信息
- * PUT /tags/:id
+ * PUT /tags/:id/info
  */
 export function updateTag(id: number, data: UpdateTagRequest) {
-  return http.put<ApiResponse<ProductTag>>(`/tags/${id}`, data).then((res) => res.data)
+  return http.put<ApiResponse<ProductTag>>(`/tags/${id}/info`, data).then((res) => res.data)
 }
 
 /**
  * 删除标签
- * DELETE /tags/:id
+ * DELETE /tags/:id/info
  */
 export function deleteTag(id: number) {
-  return http.delete<ApiResponse<null>>(`/tags/${id}`).then((res) => res.data)
+  return http.delete<ApiResponse<null>>(`/tags/${id}/info`).then((res) => res.data)
 }
 
 // ──── 商品绑定 ────

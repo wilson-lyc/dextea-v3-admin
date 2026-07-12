@@ -88,7 +88,7 @@ export const registerMenuRoutes: FastifyPluginAsyncZod = async (app) => {
 
   // 更新菜单
   app.put(
-    '/menus/:id',
+    '/menus/:id/info',
     {
       schema: {
         tags: ['Menus'],

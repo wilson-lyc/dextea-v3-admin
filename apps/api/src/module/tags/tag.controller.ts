@@ -72,7 +72,7 @@ export const registerTagRoutes: FastifyPluginAsyncZod = async (app) => {
 
   // 更新标签
   app.put(
-    '/tags/:id',
+    '/tags/:id/info',
     {
       schema: {
         tags: ['Tags'],
@@ -148,7 +148,7 @@ export const registerTagRoutes: FastifyPluginAsyncZod = async (app) => {
 
   // 删除标签
   app.delete(
-    '/tags/:id',
+    '/tags/:id/info',
     {
       schema: {
         tags: ['Tags'],

@@ -51,11 +51,11 @@ export function getCustomization(id: number) {
 
 /**
  * 更新客制化项目（全量替换）
- * PUT /customizations/:id
+ * PUT /customizations/:id/info
  */
 export function updateCustomization(id: number, data: UpdateCustomizationRequest) {
   return http
-    .put<ApiResponse<Customization>>(`/customizations/${id}`, data)
+    .put<ApiResponse<Customization>>(`/customizations/${id}/info`, data)
     .then((res) => res.data)
 }
 

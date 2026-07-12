@@ -96,7 +96,7 @@ export const registerIngredientRoutes: FastifyPluginAsyncZod = async (app) => {
 
   // 更新原料
   app.put(
-    '/ingredients/:id',
+    '/ingredients/:id/info',
     {
       schema: {
         tags: ['Ingredients'],

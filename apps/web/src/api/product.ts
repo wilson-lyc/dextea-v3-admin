@@ -59,10 +59,10 @@ export function createProduct(data: CreateProductRequest) {
 
 /**
  * 更新商品信息
- * PUT /products/:id
+ * PUT /products/:id/info
  */
 export function updateProduct(id: string, data: UpdateProductRequest) {
-  return http.put<ApiResponse<Product>>(`/products/${id}`, data).then((res) => res.data)
+  return http.put<ApiResponse<Product>>(`/products/${id}/info`, data).then((res) => res.data)
 }
 
 /**

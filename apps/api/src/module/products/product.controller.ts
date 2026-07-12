@@ -120,7 +120,7 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
 
   // ── 更新商品 ──────────────────────────────────────
   app.put(
-    '/products/:id',
+    '/products/:id/info',
     {
       schema: {
         tags: ['Products'],

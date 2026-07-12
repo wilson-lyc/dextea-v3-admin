@@ -45,11 +45,11 @@ export function createEmployee(data: CreateEmployeeRequest) {
 
 /**
  * 更新员工信息
- * PUT /employees/:id
+ * PUT /employees/:id/info
  */
 export function updateEmployee(id: number, data: UpdateEmployeeRequest) {
   return http
-    .put<ApiResponse<UpdateEmployeeResponse>>(`/employees/${id}`, data)
+    .put<ApiResponse<UpdateEmployeeResponse>>(`/employees/${id}/info`, data)
     .then((res) => res.data)
 }
 

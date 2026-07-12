@@ -91,7 +91,7 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
 
   // 更新门店
   app.put(
-    '/stores/:id',
+    '/stores/:id/info',
     {
       schema: {
         tags: ['Stores'],

@@ -84,11 +84,11 @@ export function createStore(data: CreateStoreRequest) {
 
 /**
  * 更新门店信息
- * PUT /stores/:id
+ * PUT /stores/:id/info
  */
 export function updateStore(id: number, data: UpdateStoreRequest) {
   return http
-    .put<ApiResponse<UpdateStoreResponse>>(`/stores/${id}`, data)
+    .put<ApiResponse<UpdateStoreResponse>>(`/stores/${id}/info`, data)
     .then((res) => res.data)
 }
 

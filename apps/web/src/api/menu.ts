@@ -44,7 +44,7 @@ export function createMenu(data: CreateMenuRequest) {
 }
 
 export function updateMenu(id: number, data: UpdateMenuRequest) {
-  return http.put<ApiResponse<UpdateMenuResponse>>(`/menus/${id}`, data).then((res) => res.data)
+  return http.put<ApiResponse<UpdateMenuResponse>>(`/menus/${id}/info`, data).then((res) => res.data)
 }
 
 export function deleteMenu(id: number) {

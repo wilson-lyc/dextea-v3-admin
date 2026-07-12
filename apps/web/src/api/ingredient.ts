@@ -52,11 +52,11 @@ export function createIngredient(data: CreateIngredientRequest) {
 
 /**
  * 更新原料信息
- * PUT /ingredients/:id
+ * PUT /ingredients/:id/info
  */
 export function updateIngredient(id: number, data: UpdateIngredientRequest) {
   return http
-    .put<ApiResponse<UpdateIngredientResponse>>(`/ingredients/${id}`, data)
+    .put<ApiResponse<UpdateIngredientResponse>>(`/ingredients/${id}/info`, data)
     .then((res) => res.data)
 }
 

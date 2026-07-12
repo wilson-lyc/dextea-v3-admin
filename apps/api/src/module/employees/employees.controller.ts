@@ -51,7 +51,7 @@ export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
   );
 
   app.put(
-    '/employees/:id',
+    '/employees/:id/info',
     {
       schema: {
         tags: ['Employees'],
