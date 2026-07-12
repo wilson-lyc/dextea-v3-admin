@@ -307,7 +307,7 @@ export default function EmployeesPage() {
       <ConfirmDialog
         open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}
-        title="确认操作"
+        title={`${confirmEmployee?.status === EMPLOYEE_STATUS.ACTIVE.value ? "禁用" : "激活"}用户`}
         description={`确定${confirmEmployee?.status === EMPLOYEE_STATUS.ACTIVE.value ? "禁用" : "激活"} ${confirmEmployee?.displayName} 吗？`}
         confirmText="确定"
         variant="default"
@@ -319,8 +319,7 @@ export default function EmployeesPage() {
         open={resetConfirmOpen}
         onOpenChange={setResetConfirmOpen}
         title="重置密码"
-        description={`确定重置 ${resetEmployee?.displayName} 的密码吗？重置后将生成新的初始密码。`}
-        confirmText="确定重置"
+        description={`确定重置 ${resetEmployee?.displayName} 的密码吗？重置后将生成新的登录密码。`}
         variant="default"
         onConfirm={handleConfirmReset}
       />

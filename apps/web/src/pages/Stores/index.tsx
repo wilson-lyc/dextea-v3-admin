@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { PlusIcon, RefreshCwIcon, SearchIcon, SettingsIcon, Building2Icon } from "lucide-react"
+import { PlusIcon, RefreshCwIcon, SearchIcon, SettingsIcon, Building2Icon, KeyRoundIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store } from "@/api"
@@ -19,8 +19,16 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import DataTable from "@/components/ui/data-table"
-import { getStores, syncStoreLocations } from "@/api"
+import ConfirmDialog from "@/components/ui/confirm-dialog"
+import { getStores, syncStoreLocations, resetStorePassword } from "@/api"
 import { CreateStoreDialog } from "./components/CreateStoreDialog"
 
 export default function StoresPage() {
@@ -35,6 +43,15 @@ export default function StoresPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [syncing, setSyncing] = useState(false)
+
+  // 新密码弹窗状态
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
+  const [newPassword, setNewPassword] = useState("")
+
+  // 重置密码二次确认弹窗
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
+  const [resetStore, setResetStore] = useState<Store | null>(null)
+  const [resetting, setResetting] = useState(false)
 
   const fetchStores = useCallback(async (targetPage: number) => {
     setLoading(true)
@@ -100,6 +117,34 @@ export default function StoresPage() {
     }
   }
 
+  // 打开重置密码二次确认弹窗
+  const handleResetPassword = (store: Store) => {
+    setResetStore(store)
+    setResetConfirmOpen(true)
+  }
+
+  // 二次确认后真正重置门店密码
+  const handleConfirmReset = async () => {
+    if (!resetStore) return
+    const store = resetStore
+    setResetting(true)
+    try {
+      const res = await resetStorePassword(store.id)
+      if (res.code === 0) {
+        setResetConfirmOpen(false)
+        setResetStore(null)
+        setNewPassword(res.data.newPassword)
+        setPasswordDialogOpen(true)
+      } else {
+        toast.error(res.message)
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "系统异常，稍后重试")
+    } finally {
+      setResetting(false)
+    }
+  }
+
   const fullAddress = (store: Store) => {
     return [store.province, store.city, store.district, store.address]
       .filter(Boolean)
@@ -161,7 +206,7 @@ export default function StoresPage() {
               <TableHead className="w-24">联系电话</TableHead>
               <TableHead className="w-24">营业时间</TableHead>
               <TableHead className="w-24">状态</TableHead>
-              <TableHead className="w-36 text-right">操作</TableHead>
+              <TableHead className="w-44 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
         }
@@ -187,10 +232,16 @@ export default function StoresPage() {
               </span>
             </TableCell>
             <TableCell className="text-right">
-              <Button variant="outline" size="sm" onClick={() => navigate(`/stores/${store.id}`)}>
-                <SettingsIcon data-icon="inline-start" />
-                管理
-              </Button>
+              <div className="flex items-center justify-end gap-1">
+                <Button variant="outline" size="sm" onClick={() => navigate(`/stores/${store.id}`)}>
+                  <SettingsIcon data-icon="inline-start" />
+                  管理
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleResetPassword(store)}>
+                  <KeyRoundIcon data-icon="inline-start" />
+                  重置密码
+                </Button>
+              </div>
             </TableCell>
           </TableRow>
         ))}
@@ -208,6 +259,41 @@ export default function StoresPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onCreated={() => fetchStores(1)}
+      />
+
+      {/* 重置后的新密码弹窗 */}
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>密码重置成功</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col items-center gap-3 py-4">
+            <div className="rounded-lg border bg-muted px-6 py-3 font-mono text-lg tracking-widest">
+              {newPassword}
+            </div>
+            <p className="text-xs text-destructive font-medium">
+              已生成新的登录密码，此密码仅显示一次，关闭后将不再显示
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button onClick={() => setPasswordDialogOpen(false)}>
+              确定
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 重置密码二次确认弹窗 */}
+      <ConfirmDialog
+        open={resetConfirmOpen}
+        onOpenChange={setResetConfirmOpen}
+        title="重置密码"
+        description={`确定重置门店「${resetStore?.name}」的登录密码吗？重置后将生成新的登录密码。`}
+        variant="default"
+        loading={resetting}
+        onConfirm={handleConfirmReset}
       />
     </TooltipProvider>
   )
