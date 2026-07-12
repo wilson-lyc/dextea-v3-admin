@@ -7,6 +7,8 @@ import {
   LoginResponseSchema,
   AuthMeResponseSchema,
   LogoutResponseSchema,
+  ChangePasswordRequestSchema,
+  ChangePasswordResponseSchema,
 } from '@dextea-admin/contracts';
 
 export const registerAuthRoutes: FastifyPluginAsyncZod = async (app) => {
@@ -68,6 +70,27 @@ export const registerAuthRoutes: FastifyPluginAsyncZod = async (app) => {
       const authHeader = request.headers.authorization;
       await authService.logout(authHeader, request.server.redis);
       return ApiResponse.success(null);
+    },
+  );
+
+  // 修改当前登录用户密码
+  app.put(
+    '/auth/me/password',
+    {
+      schema: {
+        tags: ['Auth'],
+        description: '修改当前登录用户密码',
+        security: [{ bearerAuth: [] }],
+        body: ChangePasswordRequestSchema,
+        response: {
+          200: ApiResponseSchema(ChangePasswordResponseSchema).describe('修改成功'),
+        },
+      },
+    },
+    async (request, _reply) => {
+      const { userId } = request.authEmployee!;
+      await authService.changePassword(userId, request.body.oldPassword, request.body.newPassword);
+      return ApiResponse.success({ success: true });
     },
   );
 };

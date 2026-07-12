@@ -49,7 +49,7 @@ export default function Header() {
           </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
-            <DropdownMenuItem>
+            <DropdownMenuItem onMouseDown={() => navigate("/me")}>
               <SettingsIcon />
               账户设置
             </DropdownMenuItem>

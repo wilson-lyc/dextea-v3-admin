@@ -3,6 +3,8 @@ import type {
   LoginRequest,
   LoginResponse,
   AuthMeResponse,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
 } from "@dextea-admin/contracts"
 
 // ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
@@ -10,6 +12,8 @@ export type {
   LoginRequest,
   LoginResponse,
   AuthMeResponse,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
 } from "@dextea-admin/contracts"
 
 const http = createModuleClient("auth")
@@ -38,4 +42,14 @@ export function getMe() {
  */
 export function logout() {
   return http.post<ApiResponse<null>>("/auth/logout", {}).then((res) => res.data)
+}
+
+/**
+ * 修改当前登录用户密码
+ * PUT /auth/me/password
+ */
+export function changePassword(data: ChangePasswordRequest) {
+  return http
+    .put<ApiResponse<ChangePasswordResponse>>("/auth/me/password", data)
+    .then((res) => res.data)
 }

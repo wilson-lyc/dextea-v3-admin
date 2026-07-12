@@ -11,4 +11,5 @@ export const AuthErrorCodes = {
   LOGIN_FAILED: { code: 10104, message: '登录失败，请稍后重试' },
   LOGOUT_FAILED: { code: 10105, message: '退出登录失败' },
   TOKEN_EXPIRED: { code: 10106, message: '认证令牌已过期，请重新登录' },
+  OLD_PASSWORD_WRONG: { code: 10107, message: '原密码错误' },
 } as const satisfies Record<string, BizErrorCode>;

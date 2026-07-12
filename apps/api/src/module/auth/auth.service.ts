@@ -3,7 +3,7 @@ import { BizError } from '@/common/exceptions/index.js';
 import { AuthErrorCodes } from './auth.errorcode.js';
 import { authRepository } from './auth.repository.js';
 import { validateEmail, validatePassword } from '@/plugins/utils/validation.js';
-import { verifyPassword } from '@/plugins/utils/password.js';
+import { verifyPassword, hashPassword } from '@/plugins/utils/password.js';
 import { EMPLOYEE_STATUS } from '@dextea-admin/contracts';
 import type Redis from 'ioredis';
 
@@ -55,5 +55,21 @@ export const authService = {
 
     const token = authHeader.slice(7);
     await redisClient.del(`${TOKEN_PREFIX}${token}`);
+  },
+
+  async changePassword(userId: number, oldPassword: string, newPassword: string) {
+    const employee = await authRepository.getEmployeeById(userId);
+    if (!employee) {
+      throw new BizError(AuthErrorCodes.INVALID_CREDENTIALS, undefined, 401);
+    }
+
+    const valid = await verifyPassword(oldPassword, employee.password);
+    if (!valid) {
+      throw new BizError(AuthErrorCodes.OLD_PASSWORD_WRONG);
+    }
+
+    validatePassword(newPassword, '新密码');
+    const hashed = await hashPassword(newPassword);
+    await authRepository.updatePassword(userId, hashed);
   },
 };

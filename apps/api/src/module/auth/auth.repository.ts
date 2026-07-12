@@ -20,4 +20,11 @@ export const authRepository = {
       .limit(1);
     return rows[0] ?? null;
   },
+
+  async updatePassword(id: number, hashedPassword: string) {
+    await db
+      .update(employeesTable)
+      .set({ password: hashedPassword })
+      .where(eq(employeesTable.id, id));
+  },
 };
