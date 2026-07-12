@@ -314,4 +314,18 @@ export const storeRepository = {
 
     return { items, total, page, pageSize };
   },
+
+  /**
+   * 更新门店原料库存数量（Upsert）。
+   *
+   * 以 (storeId, ingredientId) 为主键，库存不存在时插入、存在时更新。
+   */
+  async updateStoreIngredientQuantity(storeId: number, ingredientId: number, quantity: number) {
+    await db
+      .insert(storeIngredientsTable)
+      .values({ storeId, ingredientId, quantity })
+      .onDuplicateKeyUpdate({
+        set: { quantity },
+      });
+  },
 };

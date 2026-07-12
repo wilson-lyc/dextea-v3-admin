@@ -9,8 +9,10 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import DataTable from "@/components/ui/data-table"
-import { getStoreIngredients } from "@/api/store"
+import { getStoreIngredients, updateStoreIngredientStock } from "@/api/store"
 
 interface StoreIngredientStockPanelProps {
   storeId: number
@@ -22,6 +24,11 @@ export function StoreIngredientStockPanel({ storeId }: StoreIngredientStockPanel
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const pageSize = 20
+
+  // 行内编辑状态：正在编辑的原料 ID 与草稿值
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [draft, setDraft] = useState<string>("")
+  const [savingId, setSavingId] = useState<number | null>(null)
 
   const fetchData = useCallback(async (targetPage: number) => {
     setLoading(true)
@@ -45,6 +52,46 @@ export function StoreIngredientStockPanel({ storeId }: StoreIngredientStockPanel
     fetchData(1)
   }, [fetchData])
 
+  const startEdit = (item: StoreIngredientItem) => {
+    setEditingId(item.id)
+    setDraft(String(item.quantity))
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setDraft("")
+  }
+
+  const saveEdit = async (item: StoreIngredientItem) => {
+    const quantity = Number(draft)
+    if (!Number.isFinite(quantity) || quantity < 0) {
+      toast.error("库存必须为不小于 0 的数字")
+      return
+    }
+
+    setSavingId(item.id)
+    try {
+      const res = await updateStoreIngredientStock(storeId, item.id, { quantity })
+      if (res.code === 0) {
+        setData((prev) =>
+          prev.map((it) =>
+            it.id === item.id ? { ...it, quantity: res.data.quantity } : it,
+          ),
+        )
+        toast.success("库存已更新")
+        setEditingId(null)
+        setDraft("")
+      } else {
+        // 并发冲突时后端返回「请稍后重试」，这里原样提示
+        toast.error(res.message)
+      }
+    } catch {
+      toast.error("更新库存失败，请稍后重试")
+    } finally {
+      setSavingId(null)
+    }
+  }
+
   return (
     <DataTable
       header={
@@ -52,7 +99,7 @@ export function StoreIngredientStockPanel({ storeId }: StoreIngredientStockPanel
           <TableRow>
             <TableHead>原料名称</TableHead>
             <TableHead className="w-28">单位</TableHead>
-            <TableHead className="w-28 text-right">门店库存</TableHead>
+            <TableHead className="w-40 text-right">门店库存</TableHead>
           </TableRow>
         </TableHeader>
       }
@@ -60,7 +107,44 @@ export function StoreIngredientStockPanel({ storeId }: StoreIngredientStockPanel
         <TableRow key={item.id}>
           <TableCell>{item.name}</TableCell>
           <TableCell className="font-mono text-xs">{item.unit}</TableCell>
-          <TableCell className="text-right font-mono text-xs">{item.quantity}</TableCell>
+          <TableCell className="text-right font-mono text-xs">
+            {editingId === item.id ? (
+              <div className="flex items-center justify-end gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  step="any"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  className="h-8 w-24 text-right"
+                />
+                <Button
+                  size="sm"
+                  disabled={savingId === item.id}
+                  onClick={() => saveEdit(item)}
+                >
+                  保存
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={savingId === item.id}
+                  onClick={cancelEdit}
+                >
+                  取消
+                </Button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="rounded px-1 hover:bg-muted"
+                onClick={() => startEdit(item)}
+                title="点击修改库存"
+              >
+                {item.quantity}
+              </button>
+            )}
+          </TableCell>
         </TableRow>
       ))}
       loading={loading}

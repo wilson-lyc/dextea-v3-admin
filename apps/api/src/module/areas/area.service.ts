@@ -18,4 +18,11 @@ export const areaService = {
   async resolveAreas(names: ResolveAreaRequest['names']) {
     return areaRepository.resolveAreas(names);
   },
+
+  async getDivisionPath(code: string) {
+    if (!code.trim()) {
+      throw new BizError(AreaErrorCodes.INVALID_AREA_CODE);
+    }
+    return areaRepository.getDivisionPath(code);
+  },
 };

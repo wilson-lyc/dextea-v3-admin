@@ -40,6 +40,8 @@ import type {
   StoreCustomizationOptionItem,
   UpdateOptionStoreStatusBody,
   StoreIngredientItem,
+  UpdateStoreIngredientStockBody,
+  UpdateStoreIngredientStockResponse,
 } from "@dextea-admin/contracts/dto"
 
 // 门店目录子资源类型（商品/客制化/原料的门店级覆盖）
@@ -241,5 +243,22 @@ export function getStoreIngredients(
     .get<ApiResponse<PaginatedData<StoreIngredientItem>>>(`/stores/${storeId}/ingredients`, {
       params,
     })
+    .then((r) => r.data)
+}
+
+/**
+ * 更新门店原料库存
+ * PATCH /stores/:storeId/ingredients/:ingredientId/stock
+ */
+export function updateStoreIngredientStock(
+  storeId: number,
+  ingredientId: number,
+  data: UpdateStoreIngredientStockBody,
+) {
+  return http
+    .patch<ApiResponse<UpdateStoreIngredientStockResponse>>(
+      `/stores/${storeId}/ingredients/${ingredientId}/stock`,
+      data,
+    )
     .then((r) => r.data)
 }

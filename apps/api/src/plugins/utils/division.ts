@@ -10,16 +10,20 @@ import {
  * 根据行政区划代码获取从顶级到自身的完整链路（如 110101 → [北京市, 市辖区, 东城区]）
  */
 export function getDivisionPath(code: string): Division[] {
-  const node = matchDivisionByCode(code, true)[0];
-  if (!node) return [];
+  try {
+    const node = matchDivisionByCode(code, true)[0];
+    if (!node) return [];
 
-  const chain: Division[] = [node];
-  let parent = getDivisionParent(code, true);
-  while (parent) {
-    chain.unshift(parent);
-    parent = getDivisionParent(parent.code, true);
+    const chain: Division[] = [node];
+    let parent = getDivisionParent(code, true);
+    while (parent) {
+      chain.unshift(parent);
+      parent = getDivisionParent(parent.code, true);
+    }
+    return chain;
+  } catch {
+    return [];
   }
-  return chain;
 }
 
 /**

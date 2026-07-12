@@ -28,10 +28,13 @@ import {
   ProductIdParamsSchema,
   CustomizationIdParamsSchema,
   CustomizationOptionIdParamsSchema,
+  StoreIngredientParamsSchema,
   ProductListQuerySchema,
   PaginationQuerySchema,
   UpdateProductStoreStatusBodySchema,
   UpdateOptionStoreStatusBodySchema,
+  UpdateStoreIngredientStockBodySchema,
+  UpdateStoreIngredientStockResponseSchema,
 } from '@dextea-admin/contracts';
 
 export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
@@ -349,6 +352,29 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
       const data = await storeService.listStoreIngredients(
         request.params.storeId,
         request.query,
+      );
+      return ApiResponse.success(data);
+    },
+  );
+
+  // 更新门店原料库存
+  app.patch(
+    '/stores/:storeId/ingredients/:ingredientId/stock',
+    {
+      schema: {
+        tags: ['Stores'],
+        description: '更新门店原料库存（分布式锁保护，并发修改需重试）',
+        params: StoreIngredientParamsSchema,
+        body: UpdateStoreIngredientStockBodySchema,
+        response: { 200: ApiResponseSchema(UpdateStoreIngredientStockResponseSchema).describe('库存更新成功') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await storeService.updateStoreIngredientStock(
+        request.params.storeId,
+        request.params.ingredientId,
+        request.body.quantity,
       );
       return ApiResponse.success(data);
     },
