@@ -15,7 +15,6 @@ export type ModuleKey =
   | "customization"
   | "ingredient"
   | "dashboard"
-  | "store-status"
   | "menu"
   | "init"
   | "health"
@@ -32,7 +31,6 @@ const MODULE_ENV_KEYS: Record<ModuleKey, keyof ImportMetaEnv> = {
   customization: "VITE_API_CUSTOMIZATION_BASE_URL",
   ingredient: "VITE_API_INGREDIENT_BASE_URL",
   dashboard: "VITE_API_DASHBOARD_BASE_URL",
-  "store-status": "VITE_API_STORE_STATUS_BASE_URL",
   menu: "VITE_API_MENU_BASE_URL",
   init: "VITE_API_INIT_BASE_URL",
   health: "VITE_API_HEALTH_BASE_URL",

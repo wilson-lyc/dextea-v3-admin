@@ -10,7 +10,6 @@ import { registerProductModule } from './module/products/product.module.js';
 import { registerIngredientModule } from './module/ingredients/ingredient.module.js';
 import { registerMenuModule } from './module/menus/menu.module.js';
 import { registerCustomizationModule } from './module/customizations/customization.module.js';
-import { registerStoreStatusModule } from './module/store-status/store-status.module.js';
 import { registerDashboardModule } from './module/dashboard/dashboard.module.js';
 
 /**
@@ -29,6 +28,5 @@ export async function registerModules(app: FastifyInstance) {
   await app.register(registerIngredientModule);
   await app.register(registerMenuModule);
   await app.register(registerCustomizationModule);
-  await app.register(registerStoreStatusModule);
   await app.register(registerDashboardModule);
 }

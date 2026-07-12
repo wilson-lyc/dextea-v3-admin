@@ -22,7 +22,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { getStoreIngredients } from "@/api/store-status"
+import { getStoreIngredients } from "@/api/store"
 
 interface StoreIngredientsPanelProps {
   storeId: number

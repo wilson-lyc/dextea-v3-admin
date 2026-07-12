@@ -9,6 +9,12 @@ import { hashPassword } from '@/plugins/utils/password.js';
 import { STORE_STATUS, STORE_STATUS_VALUES } from '@dextea-admin/contracts';
 import type { StoreListRequest, CreateStoreRequest, UpdateStoreRequest, UpdateStoreBasicInfoRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest, BindStoreMenuRequest } from '@dextea-admin/contracts';
 
+// 校验门店是否存在（门店目录子资源接口共用）
+async function ensureStoreExists(storeId: number): Promise<void> {
+  const store = await storeRepository.getStoreById(storeId);
+  if (!store) throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
+}
+
 export const storeService = {
   async getStoreList(params: StoreListRequest) {
     return storeRepository.getStoreList(params.page, params.pageSize, params.keyword);
@@ -194,5 +200,44 @@ export const storeService = {
     }
 
     return { id: storeId };
+  },
+
+  // ─── 门店目录子资源（商品/客制化/原料的门店级覆盖） ───
+
+  async listStoreProducts(
+    storeId: number,
+    params: { page: number; pageSize: number; globalStatus?: number; storeStatus?: number },
+  ) {
+    await ensureStoreExists(storeId);
+    return storeRepository.listStoreProducts(storeId, params);
+  },
+
+  async upsertProductStoreStatus(storeId: number, productId: number, status: number) {
+    await ensureStoreExists(storeId);
+    await storeRepository.upsertProductStoreStatus(storeId, productId, status);
+  },
+
+  async listStoreCustomizations(storeId: number, params: { page: number; pageSize: number }) {
+    await ensureStoreExists(storeId);
+    return storeRepository.listStoreCustomizations(storeId, params);
+  },
+
+  async listStoreCustomizationOptions(
+    storeId: number,
+    customizationId: number,
+    params: { page: number; pageSize: number },
+  ) {
+    await ensureStoreExists(storeId);
+    return storeRepository.listStoreCustomizationOptions(storeId, customizationId, params);
+  },
+
+  async upsertCustomizationOptionStoreStatus(storeId: number, optionId: number, status: number) {
+    await ensureStoreExists(storeId);
+    await storeRepository.upsertCustomizationOptionStoreStatus(storeId, optionId, status);
+  },
+
+  async listStoreIngredients(storeId: number, params: { page: number; pageSize: number }) {
+    await ensureStoreExists(storeId);
+    return storeRepository.listStoreIngredients(storeId, params);
   },
 };

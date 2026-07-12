@@ -28,7 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { getStoreProducts, updateProductStoreStatus } from "@/api/store-status"
+import { getStoreProducts, updateProductStoreStatus } from "@/api/store"
 
 interface StoreProductsPanelProps {
   storeId: number
@@ -154,7 +154,8 @@ export function StoreProductsPanel({ storeId }: StoreProductsPanelProps) {
   }, [data])
 
   return (
-    <DataTable
+    <>
+      <DataTable
       toolbarLeft={
         <div className="flex items-center gap-4 text-sm">
           <span>
@@ -294,5 +295,6 @@ export function StoreProductsPanel({ storeId }: StoreProductsPanelProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </>
   )
 }
