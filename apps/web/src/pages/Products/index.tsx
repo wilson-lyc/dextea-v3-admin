@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom"
 import {
   PackageIcon,
   PlusIcon,
-  RefreshCwIcon,
   SearchIcon,
   SettingsIcon,
 } from "lucide-react"

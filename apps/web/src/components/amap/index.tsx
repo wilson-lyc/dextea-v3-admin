@@ -40,7 +40,6 @@ function loadAmapScript(key: string, securityCode: string): Promise<void> {
 
 export default function AmapMap({ longitude, latitude, name, address }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<AMap.Map | null>(null)
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading")
 
   useEffect(() => {

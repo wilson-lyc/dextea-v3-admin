@@ -173,7 +173,7 @@ export function StoreProductsPanel({ storeId }: StoreProductsPanelProps) {
       }
       toolbarRight={
         <div className="flex items-center gap-2">
-          <Select value={globalFilter} onValueChange={setGlobalFilter}>
+          <Select value={globalFilter} onValueChange={(v) => setGlobalFilter(v ?? "")}>
             <SelectTrigger className="w-28" size="sm">
               <SelectValue placeholder="全局状态" />
             </SelectTrigger>
@@ -183,7 +183,7 @@ export function StoreProductsPanel({ storeId }: StoreProductsPanelProps) {
               <SelectItem value="1">可售</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={storeFilter} onValueChange={setStoreFilter}>
+          <Select value={storeFilter} onValueChange={(v) => setStoreFilter(v ?? "")}>
             <SelectTrigger className="w-28" size="sm">
               <SelectValue placeholder="门店状态" />
             </SelectTrigger>
@@ -193,7 +193,7 @@ export function StoreProductsPanel({ storeId }: StoreProductsPanelProps) {
               <SelectItem value="1">可售</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={finalFilter} onValueChange={setFinalFilter}>
+          <Select value={finalFilter} onValueChange={(v) => setFinalFilter(v ?? "")}>
             <SelectTrigger className="w-28" size="sm">
               <SelectValue placeholder="最终状态" />
             </SelectTrigger>

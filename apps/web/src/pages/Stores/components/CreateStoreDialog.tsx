@@ -58,7 +58,7 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
   }, [open])
 
   const handleAreaChange = useCallback((value: AreaValue) => {
-    setFormRegionCode(value.code)
+    setFormRegionCode(value.code ?? "")
   }, [])
 
   const handleSubmit = async () => {
@@ -165,7 +165,7 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
               <FieldLabel>
                 省市区 <span className="text-destructive">*</span>
               </FieldLabel>
-              <AreaSelector key={open} onChange={handleAreaChange} />
+              <AreaSelector key={open ? "open" : "closed"} onChange={handleAreaChange} />
             </Field>
 
             <Field>

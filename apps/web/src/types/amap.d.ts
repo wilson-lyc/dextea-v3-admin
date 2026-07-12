@@ -9,6 +9,10 @@ declare namespace AMap {
     constructor(container: HTMLElement, opts?: MapOptions)
     destroy(): void
     add(obj: Marker): void
+    on(
+      eventName: string,
+      handler: (event: { lnglat: { getLng(): number; getLat(): number } }) => void,
+    ): void
   }
 
   interface MapOptions {
@@ -25,6 +29,7 @@ declare namespace AMap {
 
   class Marker {
     constructor(opts: MarkerOptions)
+    setPosition(position: [number, number]): void
   }
 
   interface MarkerOptions {

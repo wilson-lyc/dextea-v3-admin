@@ -5,7 +5,6 @@ import { useLocation, useNavigate } from "react-router-dom"
 import {
   BookOpenIcon,
   ChevronDownIcon,
-  FlaskConicalIcon,
   LayoutDashboardIcon,
   PackageIcon,
   PanelLeftCloseIcon,

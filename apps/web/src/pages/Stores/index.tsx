@@ -216,9 +216,7 @@ export default function StoresPage() {
             <TableCell>{store.name}</TableCell>
             <TableCell className="max-w-60 truncate">
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>{fullAddress(store)}</span>
-                </TooltipTrigger>
+                <TooltipTrigger render={<span>{fullAddress(store)}</span>} />
                 <TooltipContent>
                   <p>{fullAddress(store)}</p>
                 </TooltipContent>

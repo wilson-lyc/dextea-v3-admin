@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { EyeIcon, EyeOffIcon, LogInIcon } from "lucide-react"
+import { EyeIcon, EyeOffIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"

@@ -39,7 +39,7 @@ function loadAmapScript(key: string, securityCode: string): Promise<void> {
   return scriptLoading
 }
 
-export default function AmapMapPicker({ longitude, latitude, name, address, onPick }: Props) {
+export default function AmapMapPicker({ longitude, latitude, name, onPick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<AMap.Map | null>(null)
   const markerRef = useRef<AMap.Marker | null>(null)

@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from "react"
-import { PlusIcon, PencilIcon, Trash2Icon, TagIcon, LinkIcon, RefreshCwIcon } from "lucide-react"
+import { PlusIcon, PencilIcon, Trash2Icon, TagIcon, LinkIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { ProductTag, CreateTagInput, UpdateTagInput } from "@/api"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import {
   Field,
@@ -54,7 +53,7 @@ export default function TagListPage() {
   const [bindingSheetOpen, setBindingSheetOpen] = useState(false)
   const [bindingTag, setBindingTag] = useState<ProductTag | null>(null)
 
-  const fetchTags = useCallback(async (targetPage: number) => {
+  const fetchTags = useCallback(async (targetPage: number = 1) => {
     setLoading(true)
     try {
       const res = await getTags({ page: targetPage, pageSize })

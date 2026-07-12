@@ -30,7 +30,6 @@ export default function DispatchByIdDialog({
   open,
   onOpenChange,
   menuId,
-  menuName,
   onDispatched,
 }: DispatchByIdDialogProps) {
   const [input, setInput] = useState("")

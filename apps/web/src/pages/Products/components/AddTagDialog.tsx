@@ -88,7 +88,7 @@ export function AddTagDialog({ open, onOpenChange, productId, existingTagIds, on
         <FieldGroup className="py-2">
           <Field>
             <FieldLabel htmlFor="add-tag">选择标签</FieldLabel>
-            <Select value={selectedTagId} onValueChange={setSelectedTagId}>
+            <Select value={selectedTagId} onValueChange={(v) => setSelectedTagId(v ?? "")}>
               <SelectTrigger className="w-full" id="add-tag">
                 <SelectValue placeholder="请选择标签">{selectedLabel}</SelectValue>
               </SelectTrigger>

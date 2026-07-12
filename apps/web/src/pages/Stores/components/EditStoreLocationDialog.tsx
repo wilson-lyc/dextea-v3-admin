@@ -58,7 +58,7 @@ export function EditStoreLocationDialog({ open, onOpenChange, store, onUpdated }
   }, [open, store.regionCode, store.province, store.city, store.district, store.address, store.longitude, store.latitude])
 
   const handleAreaChange = useCallback((value: AreaValue) => {
-    setRegionCode(value.code)
+    setRegionCode(value.code ?? "")
     setProvince(value.province)
     setCity(value.city)
     setDistrict(value.district)

@@ -15,7 +15,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { SelectPicker } from "@/components/ui/select-picker"
 import { StatusSelectPicker } from "@/components/ui/status-select-picker"
 import { toggleIngredientStatus } from "@/api"
 
