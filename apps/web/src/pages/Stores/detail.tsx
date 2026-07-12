@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { ArrowLeftIcon, PencilIcon, KeyRoundIcon } from "lucide-react"
+import { ArrowLeftIcon, PencilIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store } from "@/api"
@@ -37,6 +37,7 @@ import { getStore, resetStorePassword } from "@/api"
 import { EditStoreStatusDialog } from "./components/EditStoreStatusDialog"
 import { EditStoreBasicInfoDialog } from "./components/EditStoreBasicInfoDialog"
 import { EditStoreLocationDialog } from "./components/EditStoreLocationDialog"
+import { BasicInfoPanel } from "./components/BasicInfoPanel"
 import { StoreProductsPanel } from "./components/StoreProductsPanel"
 import { StoreIngredientsPanel } from "./components/StoreIngredientsPanel"
 
@@ -212,30 +213,11 @@ export default function StoreDetailPage() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>基础信息</CardTitle>
-                  <CardAction>
-                    <Button variant="ghost" size="sm" onClick={() => setBasicInfoDialogOpen(true)}>
-                      <PencilIcon data-icon="inline-start" />
-                      编辑
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={handleResetPassword}>
-                      <KeyRoundIcon data-icon="inline-start" />
-                      重置密码
-                    </Button>
-                  </CardAction>
-                </CardHeader>
-                <CardContent>
-                  <DetailInfoGrid>
-                    <InfoField label="门店名称" value={store.name} />
-                    <InfoField label="登录账号" value={store.account} valueClassName="font-mono" />
-                    <InfoField label="邮箱" value={store.email || "-"} />
-                    <InfoField label="联系电话" value={store.phone || "-"} />
-                    <InfoField label="营业时间" value={store.businessHours || "-"} />
-                  </DetailInfoGrid>
-                </CardContent>
-              </Card>
+              <BasicInfoPanel
+                store={store}
+                onEdit={() => setBasicInfoDialogOpen(true)}
+                onResetPassword={handleResetPassword}
+              />
 
               <Card>
                 <CardHeader>
@@ -283,7 +265,7 @@ export default function StoreDetailPage() {
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="products" className="flex-1 min-h-0 min-w-0 m-0 p-6">
+        <TabsContent value="products" className="flex-1 min-h-0 overflow-y-auto p-1">
           {store && <StoreProductsPanel storeId={store.id} />}
         </TabsContent>
 
