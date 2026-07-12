@@ -17,7 +17,12 @@ async function ensureStoreExists(storeId: number): Promise<void> {
 
 export const storeService = {
   async getStoreList(params: StoreListRequest) {
-    return storeRepository.getStoreList(params.page, params.pageSize, params.keyword);
+    const result = await storeRepository.getStoreList(params.page, params.pageSize, params.keyword);
+    const items = result.items.map((store) => {
+      const names = resolveDivisionNames(store.regionCode ?? '');
+      return { ...store, province: names.province, city: names.city, district: names.district };
+    });
+    return { ...result, items };
   },
 
   async getStoreById(id: number) {
