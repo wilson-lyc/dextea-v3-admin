@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import { toast } from "sonner"
 
@@ -12,7 +12,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TabsContent } from "@/components/ui/tabs"
 import DetailLayout from "@/components/layout/DetailLayout"
 import {
   Dialog,
@@ -32,38 +32,6 @@ export default function StoreDetailPage() {
   const [loading, setLoading] = useState(true)
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
   const [newPassword, setNewPassword] = useState("")
-
-  const tabValues = useMemo(() => ["basic", "products", "ingredients"], [])
-  const [activeTab, setActiveTab] = useState(() => {
-    const hash = window.location.hash.replace("#", "")
-    return tabValues.includes(hash) ? hash : "basic"
-  })
-
-  // Sync tab ← hash changes (browser back/forward)
-  useEffect(() => {
-    const onHashChange = () => {
-      const hash = window.location.hash.replace("#", "")
-      if (tabValues.includes(hash)) {
-        setActiveTab(hash)
-      }
-    }
-    window.addEventListener("hashchange", onHashChange)
-    return () => window.removeEventListener("hashchange", onHashChange)
-  }, [tabValues])
-
-  // Sync hash ← tab changes
-  const handleTabChange = useCallback(
-    (value: string) => {
-      setActiveTab(value)
-      const newHash = value === "basic" ? "" : value
-      window.history.replaceState(
-        null,
-        "",
-        newHash ? `#${newHash}` : window.location.pathname,
-      )
-    },
-    [],
-  )
 
   const fetchStore = async () => {
     if (!id) return
@@ -107,6 +75,11 @@ export default function StoreDetailPage() {
       loading={loading}
       notFound={!store}
       notFoundText="门店不存在"
+      tabs={[
+        { value: "basic", label: "基础信息" },
+        { value: "products", label: "商品" },
+        { value: "ingredients", label: "原料" },
+      ]}
       breadcrumb={
         store && (
           <Breadcrumb>
@@ -125,31 +98,23 @@ export default function StoreDetailPage() {
         )
       }
     >
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-1 min-h-0 flex-col">
-        <TabsList variant="line">
-          <TabsTrigger value="basic">基础信息</TabsTrigger>
-          <TabsTrigger value="products">商品</TabsTrigger>
-          <TabsTrigger value="ingredients">原料</TabsTrigger>
-        </TabsList>
+      <TabsContent value="basic" className="flex-1 min-h-0 overflow-y-auto p-1">
+        {store && (
+          <BasicInfoPanel
+            store={store}
+            onUpdated={fetchStore}
+            onResetPassword={handleResetPassword}
+          />
+        )}
+      </TabsContent>
 
-        <TabsContent value="basic" className="flex-1 min-h-0 overflow-y-auto p-1">
-          {store && (
-            <BasicInfoPanel
-              store={store}
-              onUpdated={fetchStore}
-              onResetPassword={handleResetPassword}
-            />
-          )}
-        </TabsContent>
+      <TabsContent value="products" className="flex-1 min-h-0 min-w-0 overflow-y-auto p-1">
+        {store && <StoreProductsPanel storeId={store.id} />}
+      </TabsContent>
 
-        <TabsContent value="products" className="flex-1 min-h-0 min-w-0 overflow-y-auto p-1">
-          {store && <StoreProductsPanel storeId={store.id} />}
-        </TabsContent>
-
-        <TabsContent value="ingredients" className="flex-1 min-h-0 min-w-0 overflow-y-auto p-1">
-          {store && <StoreIngredientsPanel storeId={store.id} />}
-        </TabsContent>
-      </Tabs>
+      <TabsContent value="ingredients" className="flex-1 min-h-0 min-w-0 overflow-y-auto p-1">
+        {store && <StoreIngredientsPanel storeId={store.id} />}
+      </TabsContent>
 
       {/* Reset Password Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>

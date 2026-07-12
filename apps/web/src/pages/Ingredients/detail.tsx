@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { ArrowLeftIcon } from "lucide-react"
 
@@ -14,12 +14,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
+import { TabsContent } from "@/components/ui/tabs"
+import { DetailTabs } from "@/components/layout/DetailLayout"
 import { getIngredient } from "@/api"
 import BasicInfoPanel from "./components/BasicInfoPanel"
 import ProductBindingPanel from "./components/ProductBindingPanel"
@@ -30,38 +26,6 @@ export default function IngredientDetailPage() {
   const { id } = useParams<{ id: string }>()
   const [ingredient, setIngredient] = useState<Ingredient | null>(null)
   const [loading, setLoading] = useState(true)
-
-  const tabValues = useMemo(() => ["basic", "products", "customization"], [])
-  const [activeTab, setActiveTab] = useState(() => {
-    const hash = window.location.hash.replace("#", "")
-    return tabValues.includes(hash) ? hash : "basic"
-  })
-
-  // Sync tab ← hash changes (browser back/forward)
-  useEffect(() => {
-    const onHashChange = () => {
-      const hash = window.location.hash.replace("#", "")
-      if (tabValues.includes(hash)) {
-        setActiveTab(hash)
-      }
-    }
-    window.addEventListener("hashchange", onHashChange)
-    return () => window.removeEventListener("hashchange", onHashChange)
-  }, [tabValues])
-
-  // Sync hash ← tab changes
-  const handleTabChange = useCallback(
-    (value: string) => {
-      setActiveTab(value)
-      const newHash = value === "basic" ? "" : value
-      window.history.replaceState(
-        null,
-        "",
-        newHash ? `#${newHash}` : window.location.pathname,
-      )
-    },
-    [],
-  )
 
   useEffect(() => {
     if (!id) return
@@ -123,13 +87,14 @@ export default function IngredientDetailPage() {
 
       <ScrollArea className="flex-1 min-h-0">
         <div className="flex flex-col px-6 pb-6 pt-3">
-          <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList variant="line">
-              <TabsTrigger value="basic">基础信息</TabsTrigger>
-              <TabsTrigger value="products">商品绑定</TabsTrigger>
-              <TabsTrigger value="customization">客制化选项绑定</TabsTrigger>
-            </TabsList>
-
+          <DetailTabs
+            className="flex flex-col"
+            tabs={[
+              { value: "basic", label: "基础信息" },
+              { value: "products", label: "商品绑定" },
+              { value: "customization", label: "客制化选项绑定" },
+            ]}
+          >
             <TabsContent value="basic" className="mt-6 flex flex-col gap-6">
               {id && <BasicInfoPanel ingredientId={id} />}
             </TabsContent>
@@ -141,7 +106,7 @@ export default function IngredientDetailPage() {
             <TabsContent value="customization" className="mt-6">
               {id && <CustomizationOptionBindingPanel ingredientId={Number(id)} unit={ingredient.unit} />}
             </TabsContent>
-          </Tabs>
+          </DetailTabs>
         </div>
       </ScrollArea>
     </div>
