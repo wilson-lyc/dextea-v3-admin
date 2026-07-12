@@ -1,10 +1,8 @@
 import { createModuleClient, type ApiResponse } from "./client"
+import type { DashboardStats } from "@dextea-admin/contracts"
 
-// ──── DTO ────
-export interface DashboardStats {
-  employeeCount: number
-  storeCount: number
-}
+// ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
+export type { DashboardStats } from "@dextea-admin/contracts"
 
 const http = createModuleClient("dashboard")
 

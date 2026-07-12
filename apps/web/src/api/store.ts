@@ -12,6 +12,8 @@ import type {
   UpdateStoreLocationRequest,
   UpdateStoreLocationResponse,
   ResetStorePasswordResponse,
+  BindStoreMenuRequest,
+  BindStoreMenuResponse,
 } from "@dextea-admin/contracts"
 
 // ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
@@ -119,5 +121,16 @@ export function resetStorePassword(id: number) {
 export function syncStoreLocations() {
   return http
     .post<ApiResponse<{ synced: number }>>("/stores/sync-locations")
+    .then((res) => res.data)
+}
+
+/**
+ * 绑定/解绑门店菜单
+ * PATCH /stores/:id/menu
+ * menuId 传入具体菜单 ID 为绑定，传入 null 为解绑
+ */
+export function bindStoreMenu(id: number, data: BindStoreMenuRequest) {
+  return http
+    .patch<ApiResponse<BindStoreMenuResponse>>(`/stores/${id}/menu`, data)
     .then((res) => res.data)
 }

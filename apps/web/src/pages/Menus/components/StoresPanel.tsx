@@ -13,7 +13,7 @@ import { toast } from "sonner"
 
 import type { Store } from "@/api"
 import { STORE_STATUS_LABEL, STORE_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
-import { getStoresByMenuId } from "@/api"
+import { getStoresByMenuId, bindStoreMenu } from "@/api"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -103,18 +103,14 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
     if (!unbindTarget) return
     setUnbinding(true)
     try {
-      // TODO: 调用解绑门店菜单的 API
-      void unbindTarget
-      // const res = await unbindStoreMenu(unbindTarget.id)
-      // if (res.code === 0) {
-      //   toast.success("解绑成功")
-      //   setUnbindDialogOpen(false)
-      //   fetchData(page)
-      // } else {
-      //   setUnbindError(res.message)
-      // }
-      toast.success("解绑成功（TODO）")
-      setUnbindDialogOpen(false)
+      const res = await bindStoreMenu(unbindTarget.id, { menuId: null })
+      if (res.code === 0) {
+        toast.success("解绑成功")
+        setUnbindDialogOpen(false)
+        fetchData(page)
+      } else {
+        setUnbindError(res.message)
+      }
     } catch (err) {
       console.error(err)
       setUnbindError("解绑失败，请重试")
