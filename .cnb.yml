@@ -8,7 +8,7 @@ $:
         - vscode
         - docker
       stages:
-        - name: Install Dependencies
+        - name: 安装依赖
           script: 
             - npm install -g pnpm
             - pnpm i
