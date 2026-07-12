@@ -196,13 +196,24 @@ export const customizationService = {
       if (!fresh || fresh.customizationId !== customizationId) {
         throw new BizError(CustomizationErrorCodes.OPTION_NOT_FOUND);
       }
-      // 原料存在性校验需置于锁内，确保读取与写入期间一致
+
+      // 绑定关系不可重复创建：选项已绑定原料时，禁止改派到其它原料。
+      // - 目标原料与当前已绑定原料相同：视为无变更，放行（不重复绑定）。
+      // - 目标为 null：解绑，放行。
+      // - 目标非空且与当前不同：已绑定则拒绝（改派）。
       if (ingredientId !== undefined && ingredientId != null) {
-        const ingredient = await customizationRepository.getIngredientById(ingredientId);
-        if (!ingredient) {
-          throw new BizError(CustomizationErrorCodes.INGREDIENT_NOT_FOUND);
+        if (fresh.ingredientId != null && ingredientId !== fresh.ingredientId) {
+          throw new BizError(CustomizationErrorCodes.OPTION_ALREADY_BOUND);
+        }
+        // 仅新绑定（当前未绑定）时需要校验原料存在性；已绑定同值无需重复校验
+        if (fresh.ingredientId == null) {
+          const ingredient = await customizationRepository.getIngredientById(ingredientId);
+          if (!ingredient) {
+            throw new BizError(CustomizationErrorCodes.INGREDIENT_NOT_FOUND);
+          }
         }
       }
+
       const updateData = buildUpdate();
       if (Object.keys(updateData).length > 0) {
         await customizationRepository.updateOptionById(optionId, updateData);
@@ -211,7 +222,7 @@ export const customizationService = {
     };
 
     // 仅当本次请求修改「绑定原料 / 用量」时加分布式锁，
-    // 与原料侧绑定接口共用同一把锁，保证双向绑定写入互斥、可安全改派。
+    // 与原料侧绑定接口共用同一把锁，保证双向绑定写入互斥。
     const touchesBinding = ingredientId !== undefined || quantity !== undefined;
     if (touchesBinding) {
       return withDistributedLock(`customization-option:bind:${optionId}`, persist);
