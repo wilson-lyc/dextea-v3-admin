@@ -2,8 +2,8 @@ import {
   getTopDivisions,
   getDivisionChildren,
   matchDivisionByNames,
-} from '@aurouscia/china-areas/dist/index.js';
-import { getDivisionPath as getDivisionPathUtil } from '@/plugins/utils/division.js';
+  getDivisionPath,
+} from '@/plugins/utils/area-code.js';
 
 export const areaRepository = {
   async getProvinceList() {
@@ -19,6 +19,6 @@ export const areaRepository = {
   },
 
   async getDivisionPath(code: string) {
-    return getDivisionPathUtil(code);
+    return getDivisionPath(code);
   },
 };

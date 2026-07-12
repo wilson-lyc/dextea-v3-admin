@@ -5,7 +5,7 @@ import { storeRepository } from './store.repository.js';
 import { redis } from '@/plugins/db/redis/index.js';
 import { withDistributedLock } from '@/plugins/utils/distributed-lock.js';
 import { geocode } from '@/plugins/utils/geocode.js';
-import { resolveDivisionNames } from '@/plugins/utils/division.js';
+import { codeToNames } from '@/plugins/utils/area-code.js';
 import { hashPassword } from '@/plugins/utils/password.js';
 import { STORE_STATUS, STORE_STATUS_VALUES } from '@dextea-admin/contracts';
 import type { StoreListRequest, CreateStoreRequest, UpdateStoreRequest, UpdateStoreBasicInfoRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest, BindStoreMenuRequest } from '@dextea-admin/contracts';
@@ -14,7 +14,7 @@ export const storeService = {
   async getStoreList(params: StoreListRequest) {
     const result = await storeRepository.getStoreList(params.page, params.pageSize, params.keyword);
     const items = result.items.map((store) => {
-      const names = resolveDivisionNames(store.regionCode ?? '');
+      const names = codeToNames(store.regionCode ?? '');
       return { ...store, province: names.province, city: names.city, district: names.district };
     });
     return { ...result, items };
@@ -36,7 +36,7 @@ export const storeService = {
       throw new BizError(StoreErrorCodes.ACCOUNT_EXISTS);
     }
 
-    const areaNames = resolveDivisionNames(regionCode ?? '');
+    const areaNames = codeToNames(regionCode ?? '');
     const coords = await geocode(areaNames.province, areaNames.city, areaNames.district, address ?? '');
     const longitude = coords?.longitude ?? 0;
     const latitude = coords?.latitude ?? 0;

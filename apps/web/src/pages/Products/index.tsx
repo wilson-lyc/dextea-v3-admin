@@ -13,15 +13,7 @@ import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES } from "@dextea-admin
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog"
+import ConfirmDialog from "@/components/ui/confirm-dialog"
 import {
   TableHeader,
   TableHead,
@@ -317,26 +309,21 @@ export default function ProductsPage() {
         onCreated={() => fetchProducts(page)}
       />
 
-      <Dialog open={statusConfirmOpen} onOpenChange={setStatusConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>确认{statusConfirmAction === 1 ? "上架" : "下架"}</DialogTitle>
-            <DialogDescription>
-              确定将「{statusConfirmTarget?.name}」更新为全局{statusConfirmAction === 1 ? "可售" : "下架"}吗？
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose render={<Button variant="outline">取消</Button>} />
-            <Button
-              variant={statusConfirmAction === 1 ? "default" : "destructive"}
-              onClick={handleStatusToggle}
-              disabled={statusToggling}
-            >
-              {statusToggling ? "处理中..." : "确认"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={statusConfirmOpen}
+        onOpenChange={setStatusConfirmOpen}
+        title={`确认${statusConfirmAction === 1 ? "上架" : "下架"}`}
+        description={
+          <>
+            确定将「{statusConfirmTarget?.name}」更新为全局
+            {statusConfirmAction === 1 ? "可售" : "下架"}吗？
+          </>
+        }
+        confirmText="确认"
+        variant={statusConfirmAction === 1 ? "default" : "destructive"}
+        loading={statusToggling}
+        onConfirm={handleStatusToggle}
+      />
     </>
   )
 }

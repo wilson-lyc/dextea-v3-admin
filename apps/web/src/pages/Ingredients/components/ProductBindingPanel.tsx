@@ -16,6 +16,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog"
+import ConfirmDialog from "@/components/ui/confirm-dialog"
 import { SelectPicker } from "@/components/ui/select-picker"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -403,30 +404,20 @@ export default function ProductBindingPanel({ ingredientId, unit }: ProductBindi
       </Dialog>
 
       {/* 删除确认 */}
-      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>确认解绑</DialogTitle>
-            <DialogDescription>
-              确定要将原料与商品「{deleteTarget?.productName}」解除绑定吗？
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose render={<Button variant="outline">取消</Button>} />
-            <Button
-              variant="destructive"
-              onClick={async () => {
-                if (deleteTarget) await handleUnbind(deleteTarget.productId)
-                setDeleteConfirmOpen(false)
-                setDeleteTarget(null)
-              }}
-              disabled={binding}
-            >
-              {binding ? "解绑中..." : "确认解绑"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="确认解绑"
+        description={`确定要将原料与商品「${deleteTarget?.productName}」解除绑定吗？`}
+        confirmText="确认解绑"
+        variant="destructive"
+        loading={binding}
+        onConfirm={async () => {
+          if (deleteTarget) await handleUnbind(deleteTarget.productId)
+          setDeleteConfirmOpen(false)
+          setDeleteTarget(null)
+        }}
+      />
     </div>
   )
 }

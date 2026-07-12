@@ -18,6 +18,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import ConfirmDialog from "@/components/ui/confirm-dialog"
 import {
   TableHeader,
   TableHead,
@@ -268,33 +269,16 @@ export default function TagListPage() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>确认删除</DialogTitle>
-            <DialogDescription>
-              确定要删除标签「{deletingTag?.name}」吗？删除后，关联该标签的商品不会被删除。此操作不可撤销！
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-              disabled={deleting}
-            >
-              取消
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              {deleting ? "删除中..." : "确认删除"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="确认删除"
+        description={`确定要删除标签「${deletingTag?.name}」吗？删除后，关联该标签的商品不会被删除。此操作不可撤销！`}
+        confirmText="确认删除"
+        variant="destructive"
+        loading={deleting}
+        onConfirm={handleDelete}
+      />
 
       <ProductBindingSheet
         tagId={bindingTag?.id ?? 0}

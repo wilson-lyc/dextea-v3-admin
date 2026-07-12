@@ -38,6 +38,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import ConfirmDialog from "@/components/ui/confirm-dialog"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { SelectPicker, type SelectOption } from "@/components/ui/select-picker"
@@ -446,46 +447,28 @@ export default function GroupProductsSheet({
         </Dialog>
 
         {/* 解绑确认对话框 */}
-        <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>确认解绑</DialogTitle>
-              <DialogDescription>
-                确定要解除商品「{deletingProduct?.productName ?? "-"}」与分组「{groupName}」的绑定关系吗？
-              </DialogDescription>
-            </DialogHeader>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)} disabled={deleting}>
-                取消
-              </Button>
-              <Button variant="destructive" onClick={handleUnbind} disabled={deleting}>
-                {deleting ? "解绑中..." : "确认解绑"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ConfirmDialog
+          open={deleteConfirmOpen}
+          onOpenChange={setDeleteConfirmOpen}
+          title="确认解绑"
+          description={`确定要解除商品「${deletingProduct?.productName ?? "-"}」与分组「${groupName}」的绑定关系吗？`}
+          confirmText="确认解绑"
+          variant="destructive"
+          loading={deleting}
+          onConfirm={handleUnbind}
+        />
 
         {/* 批量解绑确认对话框 */}
-        <Dialog open={batchDeleteOpen} onOpenChange={setBatchDeleteOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>确认批量解绑</DialogTitle>
-              <DialogDescription>
-                确定要解除已选中的 {selectedIds.size} 个商品与分组「{groupName}」的绑定关系吗？
-              </DialogDescription>
-            </DialogHeader>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setBatchDeleteOpen(false)} disabled={batchDeleting}>
-                取消
-              </Button>
-              <Button variant="destructive" onClick={handleBatchUnbind} disabled={batchDeleting}>
-                {batchDeleting ? "解绑中..." : "确认解绑"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ConfirmDialog
+          open={batchDeleteOpen}
+          onOpenChange={setBatchDeleteOpen}
+          title="确认批量解绑"
+          description={`确定要解除已选中的 ${selectedIds.size} 个商品与分组「${groupName}」的绑定关系吗？`}
+          confirmText="确认解绑"
+          variant="destructive"
+          loading={batchDeleting}
+          onConfirm={handleBatchUnbind}
+        />
 
         {/* 编辑排序对话框 */}
         <Dialog open={!!editingProduct} onOpenChange={(open) => { if (!open) setEditingProduct(null) }}>

@@ -1,7 +1,7 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { MenuErrorCodes } from './menu.errorcode.js';
 import { menuRepository } from './menu.repository.js';
-import { resolveAreaPrefix } from '@/plugins/utils/division.js';
+import { namesToCode } from '@/plugins/utils/area-code.js';
 import type {
   MenuListRequest,
   CreateMenuRequest,
@@ -202,7 +202,7 @@ export const menuService = {
       throw new BizError(MenuErrorCodes.PROVINCE_REQUIRED);
     }
 
-    const regionPrefix = resolveAreaPrefix(
+    const regionPrefix = namesToCode(
       province.trim(),
       city?.trim() || undefined,
       district?.trim() || undefined,

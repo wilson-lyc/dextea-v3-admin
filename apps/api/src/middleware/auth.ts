@@ -1,9 +1,7 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { BizError } from '@/common/exceptions/index.js';
 import { AuthErrorCodes } from '@/module/auth/auth.errorcode.js';
-
-// Redis key 前缀
-const TOKEN_PREFIX = 'dextea:admin:token:';
+import { TOKEN_PREFIX, TOKEN_TTL } from '@/module/auth/auth.service.js';
 
 // 无需 token 校验的白名单路径（精确匹配或前缀匹配）
 const AUTH_WHITELIST = [
@@ -46,11 +44,12 @@ export async function authHook(request: FastifyRequest, reply: FastifyReply) {
   }
 
   const token = authHeader.slice(7);
+  const tokenKey = `${TOKEN_PREFIX}${token}`;
 
   // 从 Redis 中查找会话数据
   let sessionData: string | null;
   try {
-    sessionData = await request.server.redis.get(`${TOKEN_PREFIX}${token}`);
+    sessionData = await request.server.redis.get(tokenKey);
   } catch (error) {
     request.log.error({ err: error }, 'Redis lookup failed during auth');
     const err = new BizError(AuthErrorCodes.INVALID_TOKEN, undefined, 401);
@@ -60,6 +59,14 @@ export async function authHook(request: FastifyRequest, reply: FastifyReply) {
   if (!sessionData) {
     const err = new BizError(AuthErrorCodes.INVALID_TOKEN, undefined, 401);
     return reply.status(err.httpStatus).send(err.toResponse());
+  }
+
+  // 每次成功访问（读/写）都刷新有效期，实现滑动过期（TTL 从当前时刻重新计时）
+  try {
+    await request.server.redis.expire(tokenKey, TOKEN_TTL);
+  } catch (error) {
+    // 刷新失败不阻断本次请求，仅记录日志
+    request.log.warn({ err: error }, 'Failed to refresh token TTL');
   }
 
   // 将用户信息附加到请求上，供下游处理

@@ -19,6 +19,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import ConfirmDialog from "@/components/ui/confirm-dialog"
 import {
   Table,
   TableHeader,
@@ -316,61 +317,27 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>确认删除</DialogTitle>
-            <DialogDescription>
-              确定要删除分组「{deletingGroup?.name}」吗？该分组下的所有商品关联将被一并移除。此操作不可撤销！
-            </DialogDescription>
-          </DialogHeader>
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="确认删除"
+        description={`确定要删除分组「${deletingGroup?.name}」吗？该分组下的所有商品关联将被一并移除。此操作不可撤销！`}
+        confirmText="确认删除"
+        variant="destructive"
+        loading={deleting}
+        onConfirm={handleDelete}
+      />
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-              disabled={deleting}
-            >
-              取消
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              {deleting ? "删除中..." : "确认删除"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={batchDeleteOpen} onOpenChange={setBatchDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>确认批量删除</DialogTitle>
-            <DialogDescription>
-              确定要删除已选中的 {selectedIds.size} 个分组吗？这些分组下的所有商品关联将被一并移除。此操作不可撤销！
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setBatchDeleteOpen(false)}
-              disabled={batchDeleting}
-            >
-              取消
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleBatchDelete}
-              disabled={batchDeleting}
-            >
-              {batchDeleting ? "删除中..." : "确认删除"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={batchDeleteOpen}
+        onOpenChange={setBatchDeleteOpen}
+        title="确认批量删除"
+        description={`确定要删除已选中的 ${selectedIds.size} 个分组吗？这些分组下的所有商品关联将被一并移除。此操作不可撤销！`}
+        confirmText="确认删除"
+        variant="destructive"
+        loading={batchDeleting}
+        onConfirm={handleBatchDelete}
+      />
 
       <GroupProductsSheet
         groupId={activeGroup?.id ?? 0}

@@ -18,6 +18,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import ConfirmDialog from "@/components/ui/confirm-dialog"
 import {
   Table,
   TableHeader,
@@ -381,33 +382,16 @@ export default function ProductBindingSheet({
         </Dialog>
 
         {/* Delete confirmation dialog */}
-        <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>确认解绑</DialogTitle>
-              <DialogDescription>
-                确定要解除商品「{deletingProduct?.name}」与标签「{tagName}」的绑定关系吗？
-              </DialogDescription>
-            </DialogHeader>
-
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setDeleteConfirmOpen(false)}
-                disabled={deleting}
-              >
-                取消
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleUnbind}
-                disabled={deleting}
-              >
-                {deleting ? "解绑中..." : "确认解绑"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ConfirmDialog
+          open={deleteConfirmOpen}
+          onOpenChange={setDeleteConfirmOpen}
+          title="确认解绑"
+          description={`确定要解除商品「${deletingProduct?.name}」与标签「${tagName}」的绑定关系吗？`}
+          confirmText="确认解绑"
+          variant="destructive"
+          loading={deleting}
+          onConfirm={handleUnbind}
+        />
       </SheetContent>
     </Sheet>
   )

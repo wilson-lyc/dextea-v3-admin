@@ -36,6 +36,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog"
+import ConfirmDialog from "@/components/ui/confirm-dialog"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import {
   getCustomizations,
@@ -399,22 +400,20 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
       )}
 
       {/* ── Toggle Status Confirm Dialog ── */}
-      <Dialog open={toggleConfirmOpen} onOpenChange={setToggleConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>确认切换状态</DialogTitle>
-            <DialogDescription>
-              确定将「{toggleConfirmItem?.name}」项目{toggleConfirmItem?.status === CUSTOMIZATION_STATUS.OFF.value ? "激活" : "禁用"}吗？
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose render={<Button variant="outline">取消</Button>} />
-            <Button onClick={confirmToggleStatus} disabled={togglingId !== null}>
-              确定
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={toggleConfirmOpen}
+        onOpenChange={setToggleConfirmOpen}
+        title="确认切换状态"
+        description={
+          <>
+            确定将「{toggleConfirmItem?.name}」项目
+            {toggleConfirmItem?.status === CUSTOMIZATION_STATUS.OFF.value ? "激活" : "禁用"}吗？
+          </>
+        }
+        confirmText="确定"
+        loading={togglingId !== null}
+        onConfirm={confirmToggleStatus}
+      />
     </div>
   )
 }

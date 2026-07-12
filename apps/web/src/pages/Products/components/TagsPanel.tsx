@@ -4,14 +4,7 @@ import { toast } from "sonner"
 
 import type { ProductTag } from "@/api"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
+import ConfirmDialog from "@/components/ui/confirm-dialog"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
@@ -243,31 +236,15 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
       />
 
       {/* 确认解绑弹窗 */}
-      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>确认解绑</DialogTitle>
-            <DialogDescription>
-              确定要解除标签「{deletingTag?.name}」与当前商品的绑定关系吗？
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteConfirmOpen(false)}
-            >
-              取消
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmRemove}
-            >
-              确认解绑
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="确认解绑"
+        description={`确定要解除标签「${deletingTag?.name}」与当前商品的绑定关系吗？`}
+        confirmText="确认解绑"
+        variant="destructive"
+        onConfirm={handleConfirmRemove}
+      />
     </div>
   )
 }
