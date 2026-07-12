@@ -7,32 +7,18 @@ import { CUSTOMIZATION_STATUS } from "@dextea-admin/contracts/status"
 import { CUSTOMIZATION_STATUS_LABEL, CUSTOMIZATION_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Spinner } from "@/components/ui/spinner"
-import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
   TableHeader,
+  TableHead,
   TableRow,
+  TableCell,
 } from "@/components/ui/table"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
+import DataTable from "@/components/ui/data-table"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog"
@@ -129,8 +115,6 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
     }
   }
 
-  const colCount = 5
-
   const [togglingId, setTogglingId] = useState<number | null>(null)
   const [toggleConfirmItem, setToggleConfirmItem] = useState<Customization | null>(null)
   const [toggleConfirmOpen, setToggleConfirmOpen] = useState(false)
@@ -166,19 +150,15 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between">
-        <Button onClick={() => setCreateOpen(true)}>
-          <PlusIcon data-icon="inline-start" />
-          新建项目
-        </Button>
-        {!loading && <span className="text-sm text-muted-foreground">共 {total} 个项目</span>}
-      </div>
-
-      {/* Table (always rendered) */}
-      <ScrollArea className="max-h-[calc(100vh-480px)]">
-        <Table>
-          <TableHeader>
+      <DataTable
+        toolbarLeft={
+          <Button onClick={() => setCreateOpen(true)}>
+            <PlusIcon data-icon="inline-start" />
+            新建项目
+          </Button>
+        }
+        header={
+          <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
               <TableHead>项目名称</TableHead>
               <TableHead className="w-20">排序</TableHead>
@@ -187,145 +167,61 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
               <TableHead className="w-80 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={colCount} className="h-48 text-center">
-                  <Spinner className="mx-auto size-6 text-muted-foreground" />
-                </TableCell>
-              </TableRow>
-            ) : data.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={colCount} className="h-48 text-center">
-                  <Empty>
-                    <EmptyMedia variant="icon">
-                      <ListIcon className="size-4" />
-                    </EmptyMedia>
-                    <EmptyTitle>暂无数据</EmptyTitle>
-                    <Button onClick={() => setCreateOpen(true)}>
-                      立即添加
-                    </Button>
-                  </Empty>
-                </TableCell>
-              </TableRow>
-            ) : (
-              data.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell className="font-mono text-xs">{item.sort}</TableCell>
-                    <TableCell>
-                      <span className={CUSTOMIZATION_STATUS_TEXT_CLASSES[item.status] ?? ""}>
-                        {CUSTOMIZATION_STATUS_LABEL[item.status]}
-                      </span>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">{item.optionCount ?? 0}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant={item.status === CUSTOMIZATION_STATUS.OFF.value ? "outline-success" : "outline-destructive"}
-                          size="sm"
-                          onClick={() => handleToggleStatus(item)}
-                          disabled={togglingId === item.id}
-                        >
-                          {item.status === CUSTOMIZATION_STATUS.OFF.value ? "转激活" : "转禁用"}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setEditingItem(item)
-                            setEditOpen(true)
-                          }}
-                        >
-                          <PencilIcon className="size-4" data-icon="inline-start" />
-                          编辑
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setManagingItem(item)
-                            setManageSheetOpen(true)
-                          }}
-                        >
-                          <SettingsIcon className="size-4" data-icon="inline-start" />
-                          管理选项
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-            )}
-          </TableBody>
-        </Table>
-      </ScrollArea>
-
-      {/* Pagination (only when data exists) */}
-      {!loading && data.length > 0 && (
-        <Pagination className="justify-end">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e: React.MouseEvent) => {
-                  e.preventDefault()
-                  if (page > 1) fetchData(page - 1)
-                }}
-                text="上一页"
-              />
-            </PaginationItem>
-            {(() => {
-              const totalPages = Math.ceil(total / pageSize)
-              const pages: (number | "...")[] = []
-              if (totalPages <= 7) {
-                for (let i = 1; i <= totalPages; i++) pages.push(i)
-              } else {
-                pages.push(1)
-                if (page > 3) pages.push("...")
-                for (
-                  let i = Math.max(2, page - 1);
-                  i <= Math.min(totalPages - 1, page + 1);
-                  i++
-                ) {
-                  pages.push(i)
-                }
-                if (page < totalPages - 2) pages.push("...")
-                pages.push(totalPages)
-              }
-              return pages.map((p, idx) =>
-                p === "..." ? (
-                  <PaginationItem key={`e-${idx}`}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={p}>
-                    <PaginationLink
-                      href="#"
-                      isActive={p === page}
-                      onClick={(e: React.MouseEvent) => {
-                        e.preventDefault()
-                        fetchData(p)
-                      }}
-                    >
-                      {p}
-                    </PaginationLink>
-                  </PaginationItem>
-                ),
-              )
-            })()}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e: React.MouseEvent) => {
-                  e.preventDefault()
-                  if (page < Math.ceil(total / pageSize)) fetchData(page + 1)
-                }}
-                text="下一页"
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+        }
+        body={data.map((item) => (
+          <TableRow key={item.id}>
+            <TableCell className="font-medium">{item.name}</TableCell>
+            <TableCell className="font-mono text-xs">{item.sort}</TableCell>
+            <TableCell>
+              <span className={CUSTOMIZATION_STATUS_TEXT_CLASSES[item.status] ?? ""}>
+                {CUSTOMIZATION_STATUS_LABEL[item.status]}
+              </span>
+            </TableCell>
+            <TableCell className="font-mono text-xs">{item.optionCount ?? 0}</TableCell>
+            <TableCell className="text-right">
+              <div className="flex items-center justify-end gap-1">
+                <Button
+                  variant={item.status === CUSTOMIZATION_STATUS.OFF.value ? "outline-success" : "outline-destructive"}
+                  size="sm"
+                  onClick={() => handleToggleStatus(item)}
+                  disabled={togglingId === item.id}
+                >
+                  {item.status === CUSTOMIZATION_STATUS.OFF.value ? "转激活" : "转禁用"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setEditingItem(item)
+                    setEditOpen(true)
+                  }}
+                >
+                  <PencilIcon className="size-4" data-icon="inline-start" />
+                  编辑
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setManagingItem(item)
+                    setManageSheetOpen(true)
+                  }}
+                >
+                  <SettingsIcon className="size-4" data-icon="inline-start" />
+                  管理选项
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+        loading={loading}
+        isEmpty={data.length === 0}
+        colSpan={5}
+        hideRefresh
+        emptyIcon={<ListIcon className="size-4" />}
+        emptyText="暂无数据"
+        pagination={{ page, pageSize, total, onPageChange: fetchData }}
+      />
 
       {/* ── Create Dialog ── */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>

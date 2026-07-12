@@ -5,7 +5,6 @@ import { toast } from "sonner"
 
 import type { PaginatedData } from "@/api"
 import { Button } from "@/components/ui/button"
-import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   Dialog,
   DialogTrigger,
@@ -19,24 +18,13 @@ import {
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 import { SelectPicker } from "@/components/ui/select-picker"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
   TableHeader,
+  TableHead,
   TableRow,
+  TableCell,
 } from "@/components/ui/table"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
+import DataTable from "@/components/ui/data-table"
 import { getProductBoundIngredients, bindIngredientToProduct, updateProductIngredientQuantity, updateProductIngredientSort, unbindIngredientFromProduct, getIngredientOptions } from "@/api"
 
 interface BoundIngredient {
@@ -223,8 +211,8 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
+      <DataTable
+        toolbarLeft={
           <Dialog open={bindOpen} onOpenChange={setBindOpen}>
             <DialogTrigger render={<Button><LinkIcon data-icon="inline-start" />绑定原料</Button>} />
             <DialogContent>
@@ -279,13 +267,9 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </div>
-        {!loading && <span className="text-sm text-muted-foreground">共 {total} 个原料</span>}
-      </div>
-
-      <ScrollArea className="max-h-[calc(100vh-480px)]">
-        <Table>
-          <TableHeader>
+        }
+        header={
+          <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
               <TableHead className="w-24">原料ID</TableHead>
               <TableHead>原料名称</TableHead>
@@ -295,128 +279,44 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
               <TableHead className="w-56 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-sm text-muted-foreground">
-                  加载中...
-                </TableCell>
-              </TableRow>
-            ) : ingredients.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-48 text-center">
-                  <Empty>
-                    <EmptyMedia variant="icon">
-                      <LinkIcon className="size-4" />
-                    </EmptyMedia>
-                    <EmptyTitle>暂无数据</EmptyTitle>
-                    <Button onClick={() => setBindOpen(true)}>
-                      立即添加
-                    </Button>
-                  </Empty>
-                </TableCell>
-              </TableRow>
-            ) : (
-              ingredients.map((item) => (
-                <TableRow key={item.ingredientId}>
-                  <TableCell className="font-mono text-xs">{item.ingredientId}</TableCell>
-                  <TableCell>{item.ingredientName}</TableCell>
-                  <TableCell className="font-mono text-xs">{item.quantity}</TableCell>
-                  <TableCell className="font-mono text-xs">{item.unit}</TableCell>
-                  <TableCell className="font-mono text-xs">{item.sort}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button variant="outline" size="sm" onClick={() => navigate(`/products/ingredients/${item.ingredientId}`)}>
-                        <ExternalLinkIcon data-icon="inline-start" />
-                         查看原料
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
-                        <PencilIcon data-icon="inline-start" />
+        }
+        body={ingredients.map((item) => (
+          <TableRow key={item.ingredientId}>
+            <TableCell className="font-mono text-xs">{item.ingredientId}</TableCell>
+            <TableCell>{item.ingredientName}</TableCell>
+            <TableCell className="font-mono text-xs">{item.quantity}</TableCell>
+            <TableCell className="font-mono text-xs">{item.unit}</TableCell>
+            <TableCell className="font-mono text-xs">{item.sort}</TableCell>
+            <TableCell className="text-right">
+              <div className="flex items-center justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => navigate(`/products/ingredients/${item.ingredientId}`)}>
+                  <ExternalLinkIcon data-icon="inline-start" />
+                   查看原料
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
+                  <PencilIcon data-icon="inline-start" />
 编辑
-                      </Button>
-                      <Button
-                        variant="outline-destructive"
-                        size="sm"
-                        onClick={() => openUnbindConfirm(item)}
-                      >
-                        <Trash2Icon className="size-4" data-icon="inline-start" />
-                         解绑
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </ScrollArea>
-
-      {/* Pagination */}
-      {!loading && ingredients.length > 0 && (
-        <Pagination className="justify-end">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e: React.MouseEvent) => {
-                  e.preventDefault()
-                  if (page > 1) fetchIngredients(page - 1)
-                }}
-                text="上一页"
-              />
-            </PaginationItem>
-            {(() => {
-              const totalPages = Math.ceil(total / pageSize)
-              const pages: (number | "...")[] = []
-              if (totalPages <= 7) {
-                for (let i = 1; i <= totalPages; i++) pages.push(i)
-              } else {
-                pages.push(1)
-                if (page > 3) pages.push("...")
-                for (
-                  let i = Math.max(2, page - 1);
-                  i <= Math.min(totalPages - 1, page + 1);
-                  i++
-                ) {
-                  pages.push(i)
-                }
-                if (page < totalPages - 2) pages.push("...")
-                pages.push(totalPages)
-              }
-              return pages.map((p, idx) =>
-                p === "..." ? (
-                  <PaginationItem key={`e-${idx}`}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={p}>
-                    <PaginationLink
-                      href="#"
-                      isActive={p === page}
-                      onClick={(e: React.MouseEvent) => {
-                        e.preventDefault()
-                        fetchIngredients(p)
-                      }}
-                    >
-                      {p}
-                    </PaginationLink>
-                  </PaginationItem>
-                ),
-              )
-            })()}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e: React.MouseEvent) => {
-                  e.preventDefault()
-                  if (page < Math.ceil(total / pageSize)) fetchIngredients(page + 1)
-                }}
-                text="下一页"
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+                </Button>
+                <Button
+                  variant="outline-destructive"
+                  size="sm"
+                  onClick={() => openUnbindConfirm(item)}
+                >
+                  <Trash2Icon className="size-4" data-icon="inline-start" />
+                   解绑
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+        loading={loading}
+        isEmpty={ingredients.length === 0}
+        colSpan={6}
+        hideRefresh
+        emptyIcon={<LinkIcon className="size-4" />}
+        emptyText="暂无数据"
+        pagination={{ page, pageSize, total, onPageChange: fetchIngredients }}
+      />
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>

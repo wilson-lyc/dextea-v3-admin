@@ -6,17 +6,13 @@ import type { CustomizationOption } from "@/api"
 import { CUSTOMIZATION_OPTION_STATUS } from "@dextea-admin/contracts/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Spinner } from "@/components/ui/spinner"
-import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
   TableHeader,
+  TableHead,
   TableRow,
+  TableCell,
 } from "@/components/ui/table"
+import DataTable from "@/components/ui/data-table"
 import {
   Dialog,
   DialogContent,
@@ -194,22 +190,17 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
     }
   }
 
-  const colCount = 8
-
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <Button onClick={() => setCreateOpen(true)}>
-          <PlusIcon data-icon="inline-start" />
-          新建选项
-        </Button>
-        {!loading && <span className="text-sm text-muted-foreground">共 {options.length} 个选项</span>}
-      </div>
-
-      {/* Table (always rendered) */}
-      <ScrollArea className="max-h-[calc(100vh-480px)]">
-        <Table>
-          <TableHeader>
+      <DataTable
+        toolbarLeft={
+          <Button onClick={() => setCreateOpen(true)}>
+            <PlusIcon data-icon="inline-start" />
+            新建选项
+          </Button>
+        }
+        header={
+          <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
               <TableHead className="w-20">ID</TableHead>
               <TableHead>名称</TableHead>
@@ -221,74 +212,56 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               <TableHead className="w-28 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={colCount} className="h-48 text-center">
-                  <Spinner className="mx-auto size-6 text-muted-foreground" />
-                </TableCell>
-              </TableRow>
-            ) : options.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={colCount} className="h-48 text-center">
-                  <Empty>
-                    <EmptyMedia variant="icon">
-                      <ListIcon className="size-4" />
-                    </EmptyMedia>
-                    <EmptyTitle>暂无数据</EmptyTitle>
-                    <Button onClick={() => setCreateOpen(true)}>
-                      立即添加
-                    </Button>
-                  </Empty>
-                </TableCell>
-              </TableRow>
-            ) : (
-              options.map((o) => (
-                <TableRow key={o.id}>
-                  <TableCell className="font-mono text-xs">{o.id}</TableCell>
-                  <TableCell>{o.name}</TableCell>
-                  <TableCell className="font-mono text-xs">¥ {Number(o.price).toFixed(2)}</TableCell>
-                  <TableCell className="font-mono text-xs">{o.sort}</TableCell>
-                  <TableCell>
-                    <span
-                      className={
-                        o.status === CUSTOMIZATION_OPTION_STATUS.OFF.value
-                          ? "text-red-600 dark:text-red-400"
-                          : "text-green-600 dark:text-green-400"
-                      }
-                    >
-                      {o.status === CUSTOMIZATION_OPTION_STATUS.OFF.value ? "下架" : "启用"}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {o.ingredientId != null ? (
-                      <span>{o.ingredientName || `原料 #${o.ingredientId}`}</span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">{o.ingredientId != null ? o.quantity : "—"}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button variant="outline" size="sm" onClick={() => openEdit(o)}>
-                        <PencilIcon className="size-4" />
-                      </Button>
-                      <Button
-                        variant="outline-destructive"
-                        size="sm"
-                        onClick={() => handleDelete(o.id)}
-                      >
-                        <Trash2Icon className="size-4" data-icon="inline-start" />
-                        删除
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </ScrollArea>
+        }
+        body={options.map((o) => (
+          <TableRow key={o.id}>
+            <TableCell className="font-mono text-xs">{o.id}</TableCell>
+            <TableCell>{o.name}</TableCell>
+            <TableCell className="font-mono text-xs">¥ {Number(o.price).toFixed(2)}</TableCell>
+            <TableCell className="font-mono text-xs">{o.sort}</TableCell>
+            <TableCell>
+              <span
+                className={
+                  o.status === CUSTOMIZATION_OPTION_STATUS.OFF.value
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-green-600 dark:text-green-400"
+                }
+              >
+                {o.status === CUSTOMIZATION_OPTION_STATUS.OFF.value ? "下架" : "启用"}
+              </span>
+            </TableCell>
+            <TableCell className="text-sm">
+              {o.ingredientId != null ? (
+                <span>{o.ingredientName || `原料 #${o.ingredientId}`}</span>
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
+            </TableCell>
+            <TableCell className="font-mono text-xs">{o.ingredientId != null ? o.quantity : "—"}</TableCell>
+            <TableCell className="text-right">
+              <div className="flex items-center justify-end gap-1">
+                <Button variant="outline" size="sm" onClick={() => openEdit(o)}>
+                  <PencilIcon className="size-4" />
+                </Button>
+                <Button
+                  variant="outline-destructive"
+                  size="sm"
+                  onClick={() => handleDelete(o.id)}
+                >
+                  <Trash2Icon className="size-4" data-icon="inline-start" />
+                  删除
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+        loading={loading}
+        isEmpty={options.length === 0}
+        colSpan={8}
+        hideRefresh
+        emptyIcon={<ListIcon className="size-4" />}
+        emptyText="暂无数据"
+      />
 
       {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
