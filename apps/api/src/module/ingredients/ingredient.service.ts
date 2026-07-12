@@ -156,6 +156,11 @@ export const ingredientService = {
       throw new BizError(IngredientErrorCodes.OPTION_NOT_FOUND);
     }
 
+    // 6.1 修复：选项仅能绑定到一个原料，禁止静默改派到其他原料
+    if (option.ingredientId != null && option.ingredientId !== ingredientId) {
+      throw new BizError(IngredientErrorCodes.OPTION_BOUND_TO_OTHER_INGREDIENT);
+    }
+
     await ingredientRepository.bindOption(optionId, ingredientId, quantity ?? 0);
   },
 

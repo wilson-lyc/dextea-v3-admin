@@ -5,7 +5,6 @@ import { customizationService } from './customization.service.js';
 import {
   CustomizationListRequestSchema,
   CustomizationListResponseSchema,
-  CustomizationGetResponseSchema,
   CreateCustomizationRequestSchema,
   CreateCustomizationResponseSchema,
   UpdateCustomizationRequestSchema,
@@ -45,24 +44,6 @@ export const registerCustomizationRoutes: FastifyPluginAsyncZod = async (app) =>
     },
   );
 
-  // 客制化项目详情
-  app.get(
-    '/customizations/:id/info',
-    {
-      schema: {
-        tags: ['Customizations'],
-        description: '客制化项目详情',
-        params: ParamIdSchema,
-        response: { 200: ApiResponseSchema(CustomizationGetResponseSchema).describe('客制化项目详情') },
-        security: [{ bearerAuth: [] }],
-      },
-    },
-    async (request, _reply) => {
-      const data = await customizationService.getCustomizationById(request.params.id);
-      return ApiResponse.success(data);
-    },
-  );
-
   // 创建客制化项目
   app.post(
     '/customizations',
@@ -81,7 +62,7 @@ export const registerCustomizationRoutes: FastifyPluginAsyncZod = async (app) =>
     },
   );
 
-  // 更新客制化项目（全量替换）
+  // 更新客制化项目
   app.put(
     '/customizations/:id/info',
     {

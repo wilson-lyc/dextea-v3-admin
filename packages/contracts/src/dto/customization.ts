@@ -43,11 +43,6 @@ export type CustomizationListRequest = z.infer<typeof CustomizationListRequestSc
 export const CustomizationListResponseSchema = PaginatedDataSchema(CustomizationSchema);
 export type CustomizationListResponse = z.infer<typeof CustomizationListResponseSchema>;
 
-// ─── 客制化项目详情 ───────────────────────────────
-
-export const CustomizationGetResponseSchema = CustomizationSchema;
-export type CustomizationGetResponse = Customization;
-
 // ─── 创建客制化项目 ───────────────────────────────
 
 export const CreateCustomizationRequestSchema = z.object({
