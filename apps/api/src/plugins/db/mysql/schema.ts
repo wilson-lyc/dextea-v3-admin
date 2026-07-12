@@ -196,6 +196,7 @@ export const productIngredientsTable = mysqlTable(
     productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
     ingredientId: bigint('ingredient_id', { mode: 'number', unsigned: true }).notNull(),
     quantity: double().notNull(),
+    sort: int('sort').notNull().default(0),
     createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },

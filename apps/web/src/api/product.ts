@@ -124,9 +124,14 @@ export function getProductBoundIngredients(
  * 绑定原料到商品
  * POST /products/:id/ingredients
  */
-export function bindIngredientToProduct(productId: number, ingredientId: number, quantity: number) {
+export function bindIngredientToProduct(
+  productId: number,
+  ingredientId: number,
+  quantity: number,
+  sort?: number,
+) {
   return http
-    .post<ApiResponse<null>>(`/products/${productId}/ingredients`, { ingredientId, quantity })
+    .post<ApiResponse<null>>(`/products/${productId}/ingredients`, { ingredientId, quantity, sort })
     .then((res) => res.data)
 }
 
@@ -142,6 +147,22 @@ export function updateProductIngredientQuantity(
   return http
     .patch<ApiResponse<null>>(`/products/${productId}/ingredients/${ingredientId}/quantity`, {
       quantity,
+    })
+    .then((res) => res.data)
+}
+
+/**
+ * 更新原料在商品中的排序
+ * PATCH /products/:id/ingredients/:ingredientId/sort
+ */
+export function updateProductIngredientSort(
+  productId: number,
+  ingredientId: number,
+  sort: number,
+) {
+  return http
+    .patch<ApiResponse<null>>(`/products/${productId}/ingredients/${ingredientId}/sort`, {
+      sort,
     })
     .then((res) => res.data)
 }

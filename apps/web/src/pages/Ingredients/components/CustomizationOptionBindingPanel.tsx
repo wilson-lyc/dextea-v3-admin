@@ -103,9 +103,15 @@ export default function CustomizationOptionBindingPanel({ ingredientId, unit }: 
       return
     }
 
+    const quantity = Number(bindQuantity) || 0
+    if (quantity < 0) {
+      toast.error("用量不能为负数")
+      return
+    }
+
     setBinding(true)
     try {
-      const res = await bindOptionToIngredient(ingredientId, optionId, Number(bindQuantity) || 0)
+      const res = await bindOptionToIngredient(ingredientId, optionId, quantity)
       if (res.code === 0) {
         toast.success(res.message)
         setBindOpen(false)
@@ -155,9 +161,15 @@ export default function CustomizationOptionBindingPanel({ ingredientId, unit }: 
   const handleEditQuantity = async () => {
     if (!editOption) return
 
+    const quantity = Number(editQuantity) || 0
+    if (quantity < 0) {
+      toast.error("用量不能为负数")
+      return
+    }
+
     setEditing(true)
     try {
-      const res = await updateIngredientOptionQuantity(ingredientId, editOption.optionId, Number(editQuantity) || 0)
+      const res = await updateIngredientOptionQuantity(ingredientId, editOption.optionId, quantity)
       if (res.code === 0) {
         toast.success(res.message)
         setEditOpen(false)
@@ -200,6 +212,8 @@ export default function CustomizationOptionBindingPanel({ ingredientId, unit }: 
                   <label className="text-sm font-medium">用量 <span className="text-red-500">*</span></label>
                   <div className="flex items-center gap-2">
                     <Input
+                      type="number"
+                      min={0}
                       placeholder="默认 0"
                       value={bindQuantity}
                       onChange={(e) => setBindQuantity(e.target.value)}
@@ -362,6 +376,8 @@ export default function CustomizationOptionBindingPanel({ ingredientId, unit }: 
               <label className="text-sm font-medium">用量</label>
               <div className="flex items-center gap-2">
                 <Input
+                  type="number"
+                  min={0}
                   placeholder="用量"
                   value={editQuantity}
                   onChange={(e) => setEditQuantity(e.target.value)}

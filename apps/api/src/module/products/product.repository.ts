@@ -236,11 +236,12 @@ export const productRepository = {
         ingredientName: ingredientsTable.name,
         unit: ingredientsTable.unit,
         quantity: productIngredientsTable.quantity,
+        sort: productIngredientsTable.sort,
       })
       .from(productIngredientsTable)
       .innerJoin(ingredientsTable, eq(productIngredientsTable.ingredientId, ingredientsTable.id))
       .where(eq(productIngredientsTable.productId, productId))
-      .orderBy(productIngredientsTable.ingredientId)
+      .orderBy(productIngredientsTable.sort, productIngredientsTable.ingredientId)
       .limit(pageSize)
       .offset(offset);
 
@@ -267,6 +268,7 @@ export const productRepository = {
     productId: number;
     ingredientId: number;
     quantity: number;
+    sort: number;
   }) {
     await db.insert(productIngredientsTable).values(data);
   },
@@ -279,6 +281,22 @@ export const productRepository = {
     await db
       .update(productIngredientsTable)
       .set({ quantity })
+      .where(
+        and(
+          eq(productIngredientsTable.productId, productId),
+          eq(productIngredientsTable.ingredientId, ingredientId),
+        ),
+      );
+  },
+
+  async updateProductIngredientSort(
+    productId: number,
+    ingredientId: number,
+    sort: number,
+  ) {
+    await db
+      .update(productIngredientsTable)
+      .set({ sort })
       .where(
         and(
           eq(productIngredientsTable.productId, productId),

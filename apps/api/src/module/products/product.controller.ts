@@ -20,6 +20,7 @@ import {
   ProductIngredientListResponseSchema,
   BindIngredientRequestSchema,
   UpdateIngredientQuantityRequestSchema,
+  UpdateIngredientSortRequestSchema,
   ProductOptionListResponseSchema,
 } from '@dextea-admin/contracts';
 
@@ -254,6 +255,32 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       await productService.updateIngredientQuantity(
+        request.params.id,
+        request.params.ingredientId,
+        request.body,
+      );
+      return ApiResponse.success(null);
+    },
+  );
+
+  // ── 更新原料排序 ──────────────────────────────────
+  app.patch(
+    '/products/:id/ingredients/:ingredientId/sort',
+    {
+      schema: {
+        tags: ['Products'],
+        description: '更新绑定原料在商品中的排序',
+        params: z.object({
+          id: z.coerce.number().int().positive('商品ID 必须为正整数'),
+          ingredientId: z.coerce.number().int().positive('原料ID 必须为正整数'),
+        }),
+        body: UpdateIngredientSortRequestSchema,
+        response: { 200: ApiResponseSchema(z.null()).describe('更新排序成功') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      await productService.updateIngredientSort(
         request.params.id,
         request.params.ingredientId,
         request.body,

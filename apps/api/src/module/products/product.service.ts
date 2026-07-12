@@ -13,6 +13,7 @@ import type {
   UnbindTagsRequest,
   BindIngredientRequest,
   UpdateIngredientQuantityRequest,
+  UpdateIngredientSortRequest,
 } from '@dextea-admin/contracts';
 
 export const productService = {
@@ -206,7 +207,7 @@ export const productService = {
   // ─── 绑定原料 ─────────────────────────────────────
 
   async bindIngredient(productId: number, input: BindIngredientRequest) {
-    const { ingredientId, quantity } = input;
+    const { ingredientId, quantity, sort } = input;
 
     const ingredient = await productRepository.getIngredientById(ingredientId);
     if (!ingredient) {
@@ -222,6 +223,7 @@ export const productService = {
       productId,
       ingredientId,
       quantity: quantity ?? 0,
+      sort: sort ?? 0,
     });
   },
 
@@ -240,6 +242,23 @@ export const productService = {
     }
 
     await productRepository.updateProductIngredientQuantity(productId, ingredientId, quantity);
+  },
+
+  // ─── 更新原料排序 ─────────────────────────────────
+
+  async updateIngredientSort(
+    productId: number,
+    ingredientId: number,
+    input: UpdateIngredientSortRequest,
+  ) {
+    const { sort } = input;
+
+    const existing = await productRepository.getProductIngredientRelation(productId, ingredientId);
+    if (!existing) {
+      throw new BizError(ProductErrorCodes.INGREDIENT_BIND_NOT_FOUND);
+    }
+
+    await productRepository.updateProductIngredientSort(productId, ingredientId, sort);
   },
 
   // ─── 解绑原料 ─────────────────────────────────────

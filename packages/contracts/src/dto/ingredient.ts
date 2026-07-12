@@ -62,6 +62,7 @@ export const IngredientProductSchema = z.object({
   productId: z.number(),
   productName: z.string(),
   quantity: z.number(),
+  sort: z.number(),
 });
 export type IngredientProduct = z.infer<typeof IngredientProductSchema>;
 
@@ -70,11 +71,13 @@ export type IngredientProductListResponse = z.infer<typeof IngredientProductList
 
 export const BindProductRequestSchema = z.object({
   productId: z.number(),
-  quantity: z.number().optional(),
+  quantity: z.number().min(0, '用量不能为负数').optional(),
 });
 export type BindProductRequest = z.infer<typeof BindProductRequestSchema>;
 
-export const UpdateBindQuantityRequestSchema = z.object({ quantity: z.number() });
+export const UpdateBindQuantityRequestSchema = z.object({
+  quantity: z.number().min(0, '用量不能为负数'),
+});
 export type UpdateBindQuantityRequest = z.infer<typeof UpdateBindQuantityRequestSchema>;
 
 /** 原料绑定客制化选项 */
@@ -91,11 +94,13 @@ export type IngredientOptionListResponse = z.infer<typeof IngredientOptionListRe
 
 export const BindOptionRequestSchema = z.object({
   optionId: z.number(),
-  quantity: z.number().optional(),
+  quantity: z.number().min(0, '用量不能为负数').optional(),
 });
 export type BindOptionRequest = z.infer<typeof BindOptionRequestSchema>;
 
-export const UpdateOptionQuantityRequestSchema = z.object({ quantity: z.number() });
+export const UpdateOptionQuantityRequestSchema = z.object({
+  quantity: z.number().min(0, '用量不能为负数'),
+});
 export type UpdateOptionQuantityRequest = z.infer<typeof UpdateOptionQuantityRequestSchema>;
 
 /** 原料选项列表（供 SelectPicker 使用） */

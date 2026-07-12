@@ -106,6 +106,7 @@ export const ingredientRepository = {
         productId: productIngredientsTable.productId,
         productName: productsTable.name,
         quantity: productIngredientsTable.quantity,
+        sort: productIngredientsTable.sort,
       })
       .from(productIngredientsTable)
       .innerJoin(productsTable, eq(productIngredientsTable.productId, productsTable.id))

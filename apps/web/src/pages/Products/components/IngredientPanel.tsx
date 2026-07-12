@@ -36,13 +36,14 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { getProductBoundIngredients, bindIngredientToProduct, updateProductIngredientQuantity, unbindIngredientFromProduct, getIngredientOptions } from "@/api"
+import { getProductBoundIngredients, bindIngredientToProduct, updateProductIngredientQuantity, updateProductIngredientSort, unbindIngredientFromProduct, getIngredientOptions } from "@/api"
 
 interface BoundIngredient {
   ingredientId: number
   ingredientName: string
   unit: string
   quantity: number
+  sort: number
 }
 
 interface IngredientPanelProps {
@@ -60,12 +61,14 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
   const [bindOpen, setBindOpen] = useState(false)
   const [bindIngredientId, setBindIngredientId] = useState("")
   const [bindQuantity, setBindQuantity] = useState("0")
+  const [bindSort, setBindSort] = useState("0")
   const [bindUnit, setBindUnit] = useState("")
   const [binding, setBinding] = useState(false)
 
   const [editOpen, setEditOpen] = useState(false)
   const [editIngredient, setEditIngredient] = useState<BoundIngredient | null>(null)
   const [editQuantity, setEditQuantity] = useState("0")
+  const [editSort, setEditSort] = useState("0")
   const [editing, setEditing] = useState(false)
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
@@ -110,14 +113,27 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
       return
     }
 
+    const quantity = Number(bindQuantity) || 0
+    if (quantity < 0) {
+      toast.error("用量不能为负数")
+      return
+    }
+
+    const sort = Number(bindSort) || 0
+    if (sort < 0) {
+      toast.error("排序不能为负数")
+      return
+    }
+
     setBinding(true)
     try {
-      const res = await bindIngredientToProduct(productId, ingredientId, Number(bindQuantity) || 0)
+      const res = await bindIngredientToProduct(productId, ingredientId, quantity, sort)
       if (res.code === 0) {
         toast.success(res.message)
         setBindOpen(false)
         setBindIngredientId("")
         setBindQuantity("0")
+        setBindSort("0")
         setBindUnit("")
         await fetchIngredients(1)
       } else {
@@ -157,26 +173,48 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
   const openEditDialog = (item: BoundIngredient) => {
     setEditIngredient(item)
     setEditQuantity(String(item.quantity))
+    setEditSort(String(item.sort))
     setEditOpen(true)
   }
 
   const handleEditQuantity = async () => {
     if (!editIngredient) return
 
+    const quantity = Number(editQuantity) || 0
+    if (quantity < 0) {
+      toast.error("用量不能为负数")
+      return
+    }
+
+    const sort = Number(editSort) || 0
+    if (sort < 0) {
+      toast.error("排序不能为负数")
+      return
+    }
+
     setEditing(true)
     try {
-      const res = await updateProductIngredientQuantity(productId, editIngredient.ingredientId, Number(editQuantity) || 0)
-      if (res.code === 0) {
-        toast.success(res.message)
-        setEditOpen(false)
-        setEditIngredient(null)
-        await fetchIngredients(page)
-      } else {
-        toast.error(res.message)
+      if (quantity !== editIngredient.quantity) {
+        const res = await updateProductIngredientQuantity(productId, editIngredient.ingredientId, quantity)
+        if (res.code !== 0) {
+          toast.error(res.message)
+          return
+        }
       }
+      if (sort !== editIngredient.sort) {
+        const res = await updateProductIngredientSort(productId, editIngredient.ingredientId, sort)
+        if (res.code !== 0) {
+          toast.error(res.message)
+          return
+        }
+      }
+      toast.success("保存成功")
+      setEditOpen(false)
+      setEditIngredient(null)
+      await fetchIngredients(page)
     } catch (err) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg ?? (err instanceof Error ? err.message : "修改用量失败"))
+      toast.error(msg ?? (err instanceof Error ? err.message : "保存失败"))
     } finally {
       setEditing(false)
     }
@@ -212,12 +250,24 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
                   <label className="text-sm font-medium">用量 <span className="text-red-500">*</span></label>
                   <div className="flex items-center gap-2">
                     <Input
+                      type="number"
+                      min={0}
                       placeholder="默认 0"
                       value={bindQuantity}
                       onChange={(e) => setBindQuantity(e.target.value)}
                     />
                     <span className="text-sm text-muted-foreground shrink-0">{bindUnit}</span>
                   </div>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium">排序</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="数值越小越靠前，默认 0"
+                    value={bindSort}
+                    onChange={(e) => setBindSort(e.target.value)}
+                  />
                 </div>
               </div>
               <DialogFooter>
@@ -240,19 +290,20 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
               <TableHead>原料名称</TableHead>
               <TableHead className="w-28">用量</TableHead>
               <TableHead className="w-24">单位</TableHead>
+              <TableHead className="w-20">排序</TableHead>
               <TableHead className="w-56 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-32 text-center text-sm text-muted-foreground">
+                <TableCell colSpan={6} className="h-32 text-center text-sm text-muted-foreground">
                   加载中...
                 </TableCell>
               </TableRow>
             ) : ingredients.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-48 text-center">
+                <TableCell colSpan={6} className="h-48 text-center">
                   <Empty>
                     <EmptyMedia variant="icon">
                       <LinkIcon className="size-4" />
@@ -271,6 +322,7 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
                   <TableCell>{item.ingredientName}</TableCell>
                   <TableCell className="font-mono text-xs">{item.quantity}</TableCell>
                   <TableCell className="font-mono text-xs">{item.unit}</TableCell>
+                  <TableCell className="font-mono text-xs">{item.sort}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Button variant="outline" size="sm" onClick={() => navigate(`/products/ingredients/${item.ingredientId}`)}>
@@ -279,7 +331,7 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
                         <PencilIcon data-icon="inline-start" />
-修改用量
+编辑
                       </Button>
                       <Button
                         variant="outline-destructive"
@@ -368,9 +420,9 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>修改用量</DialogTitle>
+            <DialogTitle>编辑原料</DialogTitle>
             <DialogDescription>
-              修改原料「{editIngredient?.ingredientName}」在当前商品中的用量
+              修改原料「{editIngredient?.ingredientName}」在当前商品中的用量与排序
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-2">
@@ -378,12 +430,24 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
               <label className="text-sm font-medium">用量 <span className="text-red-500">*</span></label>
               <div className="flex items-center gap-2">
                 <Input
+                  type="number"
+                  min={0}
                   placeholder="用量"
                   value={editQuantity}
                   onChange={(e) => setEditQuantity(e.target.value)}
                 />
                 <span className="text-sm text-muted-foreground shrink-0">{editIngredient?.unit}</span>
               </div>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">排序</label>
+              <Input
+                type="number"
+                min={0}
+                placeholder="数值越小越靠前，默认 0"
+                value={editSort}
+                onChange={(e) => setEditSort(e.target.value)}
+              />
             </div>
           </div>
           <DialogFooter>

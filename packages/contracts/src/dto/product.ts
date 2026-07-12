@@ -36,6 +36,7 @@ export const IngredientRelationSchema = z.object({
   ingredientName: z.string(),
   unit: z.string(),
   quantity: z.number(),
+  sort: z.number(),
 });
 export type IngredientRelation = z.infer<typeof IngredientRelationSchema>;
 
@@ -138,13 +139,22 @@ export type ProductIngredientListResponse = z.infer<typeof ProductIngredientList
 /** 绑定原料 */
 export const BindIngredientRequestSchema = z.object({
   ingredientId: z.number(),
-  quantity: z.number().optional(),
+  quantity: z.number().min(0, '用量不能为负数').optional(),
+  sort: z.number().int().min(0, '排序不能为负数').optional(),
 });
 export type BindIngredientRequest = z.infer<typeof BindIngredientRequestSchema>;
 
 /** 更新原料用量 */
-export const UpdateIngredientQuantityRequestSchema = z.object({ quantity: z.number() });
+export const UpdateIngredientQuantityRequestSchema = z.object({
+  quantity: z.number().min(0, '用量不能为负数'),
+});
 export type UpdateIngredientQuantityRequest = z.infer<typeof UpdateIngredientQuantityRequestSchema>;
+
+/** 更新原料在商品中的排序 */
+export const UpdateIngredientSortRequestSchema = z.object({
+  sort: z.number().int().min(0, '排序不能为负数'),
+});
+export type UpdateIngredientSortRequest = z.infer<typeof UpdateIngredientSortRequestSchema>;
 
 /** 商品选项列表 */
 export const ProductOptionListResponseSchema = z.array(ProductOptionSchema);
