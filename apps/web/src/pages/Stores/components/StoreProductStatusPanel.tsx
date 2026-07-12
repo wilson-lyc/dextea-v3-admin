@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { PackageIcon, AlertTriangleIcon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -30,11 +31,12 @@ import {
 } from "@/components/ui/dialog"
 import { getStoreProducts, updateProductStoreStatus } from "@/api/store"
 
-interface StoreProductsPanelProps {
+interface StoreProductStatusPanelProps {
   storeId: number
 }
 
-export function StoreProductsPanel({ storeId }: StoreProductsPanelProps) {
+export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProps) {
+  const navigate = useNavigate()
   const [data, setData] = useState<StoreProductItem[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -209,36 +211,43 @@ export function StoreProductsPanel({ storeId }: StoreProductsPanelProps) {
       header={
         <TableHeader className="sticky top-0 z-50 bg-background">
           <TableRow>
-            <TableHead>商品名称</TableHead>
-            <TableHead>价格</TableHead>
-            <TableHead>全局状态</TableHead>
-            <TableHead>门店状态</TableHead>
-            <TableHead>最终状态</TableHead>
-            <TableHead className="text-right">操作</TableHead>
+            <TableHead className="w-[18%]">商品名称</TableHead>
+            <TableHead className="w-[18%]">价格</TableHead>
+            <TableHead className="w-[18%]">全局状态</TableHead>
+            <TableHead className="w-[18%]">门店状态</TableHead>
+            <TableHead className="w-[18%]">最终状态</TableHead>
+            <TableHead className="w-[10%] text-right">操作</TableHead>
           </TableRow>
         </TableHeader>
       }
       body={data.map((item) => (
         <TableRow key={item.id}>
-          <TableCell>{item.name}</TableCell>
-          <TableCell>¥ {item.price.toFixed(2)}</TableCell>
-          <TableCell>
+          <TableCell className="w-[18%] truncate">{item.name}</TableCell>
+          <TableCell className="w-[18%]">¥ {item.price.toFixed(2)}</TableCell>
+          <TableCell className="w-[18%]">
             <span className={PRODUCT_STATUS_TEXT_CLASSES[item.globalStatus] ?? ""}>
               {PRODUCT_STATUS_LABEL[item.globalStatus] ?? String(item.globalStatus)}
             </span>
           </TableCell>
-          <TableCell>
+          <TableCell className="w-[18%]">
             <span className={STORE_PRODUCT_STATUS_TEXT_CLASSES[item.storeStatus] ?? ""}>
               {STORE_PRODUCT_STATUS_LABEL[item.storeStatus] ?? String(item.storeStatus)}
             </span>
           </TableCell>
-          <TableCell>
+          <TableCell className="w-[18%]">
             <span className={getProductFinalStatus(item.globalStatus, item.storeStatus).className}>
               {getProductFinalStatus(item.globalStatus, item.storeStatus).label}
             </span>
           </TableCell>
-          <TableCell className="text-right">
+          <TableCell className="w-[10%] text-right">
             <div className="flex items-center justify-end gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/products/${item.id}`)}
+              >
+                查看商品
+              </Button>
               <Button
                 variant={item.storeStatus === 1 ? "outline-destructive" : "outline-success"}
                 size="sm"
@@ -259,6 +268,7 @@ export function StoreProductsPanel({ storeId }: StoreProductsPanelProps) {
       loading={loading}
       isEmpty={data.length === 0}
       colSpan={6}
+      fixedLayout
       onRefresh={() => fetchData(page)}
       refreshDisabled={loading}
       hideRefresh

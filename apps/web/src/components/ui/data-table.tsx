@@ -48,6 +48,8 @@ interface DataTableProps {
   emptyText?: string
   /** Additional class name for the outer container */
   className?: string
+  /** Use fixed table layout so column widths are strictly honored (set via <TableHead> widths) */
+  fixedLayout?: boolean
 }
 
 /**
@@ -100,6 +102,7 @@ export default function DataTable({
   emptyIcon,
   emptyText = "暂无数据",
   className,
+  fixedLayout = false,
 }: DataTableProps) {
   return (
     <div className={cn("flex h-full flex-col gap-4", className)}>
@@ -130,6 +133,7 @@ export default function DataTable({
         <Table
           className={cn(
             (isEmpty || loading) && "flex-1",
+            fixedLayout && "table-fixed",
           )}
         >
           {header}

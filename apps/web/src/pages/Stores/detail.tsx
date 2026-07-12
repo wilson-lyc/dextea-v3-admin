@@ -23,8 +23,8 @@ import {
 } from "@/components/ui/dialog"
 import { getStore, resetStorePassword } from "@/api"
 import { BasicInfoPanel } from "./components/BasicInfoPanel"
-import { StoreProductsPanel } from "./components/StoreProductsPanel"
-import { StoreIngredientsPanel } from "./components/StoreIngredientsPanel"
+import { StoreProductStatusPanel } from "./components/StoreProductStatusPanel"
+import { StoreIngredientStockPanel } from "./components/StoreIngredientStockPanel"
 
 export default function StoreDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -77,8 +77,8 @@ export default function StoreDetailPage() {
       notFoundText="门店不存在"
       tabs={[
         { value: "basic", label: "基础信息" },
-        { value: "products", label: "商品" },
-        { value: "ingredients", label: "原料" },
+        { value: "products", label: "商品状态" },
+        { value: "ingredients", label: "原料库存" },
       ]}
       breadcrumb={
         store && (
@@ -109,11 +109,11 @@ export default function StoreDetailPage() {
       </TabsContent>
 
       <TabsContent value="products" className="flex-1 min-h-0 min-w-0 overflow-y-auto p-1">
-        {store && <StoreProductsPanel storeId={store.id} />}
+        {store && <StoreProductStatusPanel storeId={store.id} />}
       </TabsContent>
 
       <TabsContent value="ingredients" className="flex-1 min-h-0 min-w-0 overflow-y-auto p-1">
-        {store && <StoreIngredientsPanel storeId={store.id} />}
+        {store && <StoreIngredientStockPanel storeId={store.id} />}
       </TabsContent>
 
       {/* Reset Password Dialog */}
