@@ -66,10 +66,10 @@ export function getStores(params?: { page?: number; pageSize?: number; keyword?:
 
 /**
  * 获取门店详情
- * GET /stores/:id
+ * GET /stores/:id/info
  */
 export function getStore(id: number) {
-  return http.get<ApiResponse<Store>>(`/stores/${id}`).then((res) => res.data)
+  return http.get<ApiResponse<Store>>(`/stores/${id}/info`).then((res) => res.data)
 }
 
 /**
@@ -168,7 +168,7 @@ export function getStoreProducts(
 
 /**
  * 设置商品门店状态
- * PUT /stores/:storeId/products/:productId/status
+ * PATCH /stores/:storeId/products/:productId/status
  */
 export function updateProductStoreStatus(
   storeId: number,
@@ -176,7 +176,7 @@ export function updateProductStoreStatus(
   data: UpdateProductStoreStatusBody,
 ) {
   return http
-    .put<ApiResponse<null>>(`/stores/${storeId}/products/${productId}/status`, data)
+    .patch<ApiResponse<null>>(`/stores/${storeId}/products/${productId}/status`, data)
     .then((r) => r.data)
 }
 

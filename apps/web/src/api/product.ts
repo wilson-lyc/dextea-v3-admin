@@ -43,10 +43,10 @@ export function getProducts(params?: {
 
 /**
  * 获取商品基本信息
- * GET /products/:id/basic-info
+ * GET /products/:id/info
  */
 export function getProductBasicInfo(id: number) {
-  return http.get<ApiResponse<Product>>(`/products/${id}/basic-info`).then((res) => res.data)
+  return http.get<ApiResponse<Product>>(`/products/${id}/info`).then((res) => res.data)
 }
 
 /**
@@ -67,11 +67,11 @@ export function updateProduct(id: string, data: UpdateProductRequest) {
 
 /**
  * 上下架商品
- * PUT /products/:id/status
+ * PATCH /products/:id/status
  */
 export function toggleProductStatus(id: string, status: ProductStatus) {
   return http
-    .put<ApiResponse<Product>>(`/products/${id}/status`, { status })
+    .patch<ApiResponse<Product>>(`/products/${id}/status`, { status })
     .then((res) => res.data)
 }
 

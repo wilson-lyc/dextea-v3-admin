@@ -55,20 +55,20 @@ export function updateEmployee(id: number, data: UpdateEmployeeRequest) {
 
 /**
  * 启用/禁用员工
- * PUT /employees/:id/status
+ * PATCH /employees/:id/status
  */
 export function toggleEmployeeStatus(id: number) {
   return http
-    .put<ApiResponse<ToggleEmployeeStatusResponse>>(`/employees/${id}/status`)
+    .patch<ApiResponse<ToggleEmployeeStatusResponse>>(`/employees/${id}/status`)
     .then((res) => res.data)
 }
 
 /**
  * 重置员工密码
- * PUT /employees/:id/reset-password
+ * POST /employees/:id/reset-password
  */
 export function resetEmployeePassword(id: number) {
   return http
-    .put<ApiResponse<ResetEmployeePasswordResponse>>(`/employees/${id}/reset-password`)
+    .post<ApiResponse<ResetEmployeePasswordResponse>>(`/employees/${id}/reset-password`)
     .then((res) => res.data)
 }

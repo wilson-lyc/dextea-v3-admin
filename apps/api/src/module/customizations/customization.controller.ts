@@ -47,7 +47,7 @@ export const registerCustomizationRoutes: FastifyPluginAsyncZod = async (app) =>
 
   // 客制化项目详情
   app.get(
-    '/customizations/:id',
+    '/customizations/:id/info',
     {
       schema: {
         tags: ['Customizations'],
@@ -81,8 +81,8 @@ export const registerCustomizationRoutes: FastifyPluginAsyncZod = async (app) =>
     },
   );
 
-  // 更新客制化项目基础信息
-  app.patch(
+  // 更新客制化项目（全量替换）
+  app.put(
     '/customizations/:id',
     {
       schema: {

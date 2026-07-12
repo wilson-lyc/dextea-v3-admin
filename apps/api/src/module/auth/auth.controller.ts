@@ -74,7 +74,7 @@ export const registerAuthRoutes: FastifyPluginAsyncZod = async (app) => {
   );
 
   // 修改当前登录用户密码
-  app.put(
+  app.post(
     '/auth/me/password',
     {
       schema: {

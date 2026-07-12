@@ -55,8 +55,12 @@ export function batchDeleteMenus(menuIds: number[]) {
   return http.delete<ApiResponse<null>>("/menus", { data: { menuIds } }).then((res) => res.data)
 }
 
+/**
+ * 获取菜单详情
+ * GET /menus/:id/info
+ */
 export function getMenu(id: number) {
-  return http.get<ApiResponse<Menu>>(`/menus/${id}`).then((res) => res.data)
+  return http.get<ApiResponse<Menu>>(`/menus/${id}/info`).then((res) => res.data)
 }
 
 export function getMenuGroups(menuId: number) {
@@ -103,11 +107,11 @@ export function batchRemoveMenuProducts(groupId: number, productIds: number[]) {
 
 /**
  * 更新分组商品排序
- * PUT /menus/groups/:groupId/products/sort
+ * PATCH /menus/groups/:groupId/products/sort
  */
 export function updateMenuProductSort(groupId: number, productId: number, sortOrder: number) {
   return http
-    .put<ApiResponse<null>>(`/menus/groups/${groupId}/products/sort`, { productId, sortOrder })
+    .patch<ApiResponse<null>>(`/menus/groups/${groupId}/products/sort`, { productId, sortOrder })
     .then((res) => res.data)
 }
 

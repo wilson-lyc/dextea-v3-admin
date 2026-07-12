@@ -79,7 +79,7 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
 
   // ── 商品基础信息 ──────────────────────────────────
   app.get(
-    '/products/:id/basic-info',
+    '/products/:id/info',
     {
       schema: {
         tags: ['Products'],
@@ -138,7 +138,7 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
   );
 
   // ── 上下架商品 ────────────────────────────────────
-  app.put(
+  app.patch(
     '/products/:id/status',
     {
       schema: {

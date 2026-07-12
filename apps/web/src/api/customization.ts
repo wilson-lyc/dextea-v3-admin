@@ -41,21 +41,21 @@ export function getCustomizations(params?: {
 
 /**
  * 获取客制化项目详情
- * GET /customizations/:id
+ * GET /customizations/:id/info
  */
 export function getCustomization(id: number) {
   return http
-    .get<ApiResponse<Customization>>(`/customizations/${id}`)
+    .get<ApiResponse<Customization>>(`/customizations/${id}/info`)
     .then((res) => res.data)
 }
 
 /**
- * 更新客制化项目
- * PATCH /customizations/:id
+ * 更新客制化项目（全量替换）
+ * PUT /customizations/:id
  */
 export function updateCustomization(id: number, data: UpdateCustomizationRequest) {
   return http
-    .patch<ApiResponse<Customization>>(`/customizations/${id}`, data)
+    .put<ApiResponse<Customization>>(`/customizations/${id}`, data)
     .then((res) => res.data)
 }
 

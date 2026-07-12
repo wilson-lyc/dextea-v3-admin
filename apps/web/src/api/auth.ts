@@ -46,10 +46,10 @@ export function logout() {
 
 /**
  * 修改当前登录用户密码
- * PUT /auth/me/password
+ * POST /auth/me/password
  */
 export function changePassword(data: ChangePasswordRequest) {
   return http
-    .put<ApiResponse<ChangePasswordResponse>>("/auth/me/password", data)
+    .post<ApiResponse<ChangePasswordResponse>>("/auth/me/password", data)
     .then((res) => res.data)
 }

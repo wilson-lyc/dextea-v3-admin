@@ -55,7 +55,7 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
 
   // 门店详情
   app.get(
-    '/stores/:id',
+    '/stores/:id/info',
     {
       schema: {
         tags: ['Stores'],
@@ -242,7 +242,7 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
   );
 
   // 设置商品门店状态
-  app.put(
+  app.patch(
     '/stores/:storeId/products/:productId/status',
     {
       schema: {

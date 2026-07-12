@@ -70,7 +70,7 @@ export const registerMenuRoutes: FastifyPluginAsyncZod = async (app) => {
 
   // 菜单详情
   app.get(
-    '/menus/:id',
+    '/menus/:id/info',
     {
       schema: {
         tags: ['Menus'],
@@ -258,7 +258,7 @@ export const registerMenuRoutes: FastifyPluginAsyncZod = async (app) => {
   );
 
   // 更新分组商品排序
-  app.put(
+  app.patch(
     '/menus/groups/:id/products/sort',
     {
       schema: {

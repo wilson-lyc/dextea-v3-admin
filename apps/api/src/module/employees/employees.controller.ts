@@ -69,7 +69,7 @@ export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
     },
   );
 
-  app.put(
+  app.patch(
     '/employees/:id/status',
     {
       schema: {
@@ -87,7 +87,7 @@ export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
     },
   );
 
-  app.put(
+  app.post(
     '/employees/:id/reset-password',
     {
       schema: {

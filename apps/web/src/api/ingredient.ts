@@ -34,10 +34,10 @@ export function getIngredients(params?: { page?: number; pageSize?: number; keyw
 
 /**
  * 获取原料详情
- * GET /ingredients/:id
+ * GET /ingredients/:id/info
  */
 export function getIngredient(id: number) {
-  return http.get<ApiResponse<Ingredient>>(`/ingredients/${id}`).then((res) => res.data)
+  return http.get<ApiResponse<Ingredient>>(`/ingredients/${id}/info`).then((res) => res.data)
 }
 
 /**
