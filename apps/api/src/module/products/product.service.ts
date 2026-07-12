@@ -22,9 +22,9 @@ export const productService = {
     const page = Math.max(1, params.page);
     const pageSize = Math.min(100, Math.max(1, params.pageSize));
     const keyword = params.keyword;
-    const status = params.status ? parseInt(params.status, 10) : undefined;
-    const priceMin = params.priceMin ? parseFloat(params.priceMin) : undefined;
-    const priceMax = params.priceMax ? parseFloat(params.priceMax) : undefined;
+    const status = params.status;
+    const priceMin = params.priceMin;
+    const priceMax = params.priceMax;
     const tagIds = params.tagIds
       ? params.tagIds.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n > 0)
       : undefined;

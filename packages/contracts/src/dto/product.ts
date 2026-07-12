@@ -45,14 +45,20 @@ export const ProductOptionSchema = z.object({
 });
 export type ProductOption = z.infer<typeof ProductOptionSchema>;
 
+// 可选数值：空串/ null 视为未传（避免空串被 z.coerce.number() 转成 0）
+const optionalCoerceNumber = z.preprocess(
+  (v) => (v === '' || v === null ? undefined : v),
+  z.coerce.number().optional(),
+);
+
 /** 商品列表 */
 export const ProductListRequestSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().positive().max(100).default(20),
   keyword: z.string().optional(),
-  status: z.string().optional(),
-  priceMin: z.string().optional(),
-  priceMax: z.string().optional(),
+  status: optionalCoerceNumber,
+  priceMin: optionalCoerceNumber,
+  priceMax: optionalCoerceNumber,
   tagIds: z.string().optional(),
 });
 export type ProductListRequest = z.infer<typeof ProductListRequestSchema>;

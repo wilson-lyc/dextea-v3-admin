@@ -6,8 +6,9 @@ import type {
   CreateProductResponse,
   IngredientRelation,
   ProductOption,
+  UpdateProductRequest,
+  TagSimple,
 } from "@dextea-admin/contracts"
-import type { ProductTag } from "./tag"
 
 // ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
 export type {
@@ -16,6 +17,8 @@ export type {
   CreateProductResponse,
   IngredientRelation,
   ProductOption,
+  UpdateProductRequest,
+  TagSimple,
 } from "@dextea-admin/contracts"
 
 const http = createModuleClient("product")
@@ -58,7 +61,7 @@ export function createProduct(data: CreateProductRequest) {
  * 更新商品信息
  * PUT /products/:id
  */
-export function updateProduct(id: string, data: Partial<Product>) {
+export function updateProduct(id: string, data: UpdateProductRequest) {
   return http.put<ApiResponse<Product>>(`/products/${id}`, data).then((res) => res.data)
 }
 
@@ -88,7 +91,7 @@ export function addProductTag(productId: number, tagId: number) {
  */
 export function getProductTags(productId: number, params?: { page?: number; pageSize?: number }) {
   return http
-    .get<ApiResponse<PaginatedData<ProductTag>>>(`/products/${productId}/tags`, { params })
+    .get<ApiResponse<PaginatedData<TagSimple>>>(`/products/${productId}/tags`, { params })
     .then((res) => res.data)
 }
 
