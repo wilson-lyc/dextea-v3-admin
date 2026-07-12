@@ -19,7 +19,7 @@ export const IngredientErrorCodes = {
   BIND_FAILED: { code: 11012, message: '绑定商品失败' },
   BIND_QUANTITY_UPDATE_FAILED: { code: 11013, message: '更新用量失败' },
   UNBIND_FAILED: { code: 11014, message: '解绑失败' },
-  OPTION_ALREADY_BOUND: { code: 11015, message: '该客制化选项已绑定此原料' },
+  OPTION_ALREADY_BOUND: { code: 11015, message: '该客制化选项已绑定，请勿重复绑定' },
   OPTION_BIND_NOT_FOUND: { code: 11016, message: '客制化选项绑定关系不存在' },
   OPTION_NOT_FOUND: { code: 11017, message: '客制化选项不存在' },
   OPTION_BIND_LIST_FAILED: { code: 11018, message: '获取绑定的客制化选项列表失败' },

@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
+import DetailInfoGrid, { InfoField } from "@/components/layout/DetailInfoGrid"
 import { getProductBasicInfo } from "@/api"
 import { EditStatusDialog } from "./EditStatusDialog"
 import { EditBasicInfoDialog } from "./EditBasicInfoDialog"
@@ -77,7 +78,7 @@ export default function BasicInfoPanel({ productId }: BasicInfoPanelProps) {
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       {/* 商品全局状态 */}
       <Card>
         <CardHeader>
@@ -94,12 +95,13 @@ export default function BasicInfoPanel({ productId }: BasicInfoPanelProps) {
           </CardAction>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
-            <span className="text-sm text-muted-foreground">当前状态</span>
-            <span className={`text-sm ${PRODUCT_STATUS_TEXT_CLASSES[product.status] ?? ""}`}>
-              {PRODUCT_STATUS_LABEL[product.status]}
-            </span>
-          </div>
+          <DetailInfoGrid>
+            <InfoField
+              label="当前状态"
+              value={PRODUCT_STATUS_LABEL[product.status]}
+              valueClassName={PRODUCT_STATUS_TEXT_CLASSES[product.status]}
+            />
+          </DetailInfoGrid>
         </CardContent>
       </Card>
 
@@ -119,19 +121,16 @@ export default function BasicInfoPanel({ productId }: BasicInfoPanelProps) {
           </CardAction>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
-            <span className="text-sm text-muted-foreground">商品名称</span>
-            <span className="text-sm">{product.name}</span>
-
-            <span className="text-sm text-muted-foreground">简介</span>
-            <span className="text-sm">{product.brief || "-"}</span>
-
-            <span className="text-sm text-muted-foreground">描述</span>
-            <span className="text-sm">{product.description || "-"}</span>
-
-            <span className="text-sm text-muted-foreground">价格</span>
-            <span className="text-sm tabular-nums">¥ {product.price.toFixed(2)}</span>
-          </div>
+          <DetailInfoGrid>
+            <InfoField label="商品名称" value={product.name} />
+            <InfoField label="简介" value={product.brief || "-"} />
+            <InfoField label="描述" value={product.description || "-"} />
+            <InfoField
+              label="价格"
+              value={`¥ ${product.price.toFixed(2)}`}
+              valueClassName="tabular-nums"
+            />
+          </DetailInfoGrid>
         </CardContent>
       </Card>
 
@@ -141,13 +140,10 @@ export default function BasicInfoPanel({ productId }: BasicInfoPanelProps) {
           <CardTitle>维护记录</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
-            <span className="text-sm text-muted-foreground">创建时间</span>
-            <span className="text-sm">{formatDate(product.createdAt)}</span>
-
-            <span className="text-sm text-muted-foreground">更新时间</span>
-            <span className="text-sm">{formatDate(product.updatedAt)}</span>
-          </div>
+          <DetailInfoGrid>
+            <InfoField label="创建时间" value={formatDate(product.createdAt)} />
+            <InfoField label="更新时间" value={formatDate(product.updatedAt)} />
+          </DetailInfoGrid>
         </CardContent>
       </Card>
 
@@ -165,6 +161,6 @@ export default function BasicInfoPanel({ productId }: BasicInfoPanelProps) {
         product={product}
         onUpdated={fetchProduct}
       />
-    </>
+    </div>
   )
 }

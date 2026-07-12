@@ -53,10 +53,6 @@ export default function ProductDetailPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbPage>商品管理</BreadcrumbPage>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
               <BreadcrumbLink render={<Link to="/products" />}>
                 商品
               </BreadcrumbLink>

@@ -157,12 +157,16 @@ export const ingredientService = {
       throw new BizError(IngredientErrorCodes.OPTION_NOT_FOUND);
     }
 
-    // 与客制化选项侧共用同一把锁，保证双向绑定写入互斥。
-    // 锁内重新读取最新状态，支持将选项改派到本原料（含用量修改），并避免并发写竞争。
+    // 与客制化选项侧共用同一把锁，保证双向绑定写入互斥、避免并发写竞争。
+    // 客制化选项只能绑定到一个原料：已绑定的（无论绑定到哪个原料）均拒绝重复绑定，
+    // 提示「已绑定」；如需调整用量请走更新用量接口。
     const persist = async () => {
       const fresh = await ingredientRepository.getOptionById(optionId);
       if (!fresh) {
         throw new BizError(IngredientErrorCodes.OPTION_NOT_FOUND);
+      }
+      if (fresh.ingredientId != null) {
+        throw new BizError(IngredientErrorCodes.OPTION_ALREADY_BOUND);
       }
       await ingredientRepository.bindOption(optionId, ingredientId, quantity ?? 0);
     };

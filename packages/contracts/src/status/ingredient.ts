@@ -1,6 +1,6 @@
 /**
  * 原料状态
- * 0=下架  1=启用
+ * 0=禁用  1=启用
  *
  * 状态项统一包含三个字段：
  * - key:   稳定的字符串键（用于序列化/枚举标识）
@@ -8,8 +8,8 @@
  * - value: 数字值（数据库存储 / 接口传输）
  */
 export const INGREDIENT_STATUS = {
-  OFF: { key: 'off', label: '下架', value: 0 },
-  ON: { key: 'on', label: '启用', value: 1 },
+  DISABLED: { key: 'disabled', label: '禁用', value: 0 },
+  ENABLED: { key: 'enabled', label: '启用', value: 1 },
 } as const;
 
 /** 状态数字值联合类型 */
@@ -26,13 +26,13 @@ export const INGREDIENT_STATUS_LABEL: Record<number, string> = Object.fromEntrie
 // ──── 前端展示样式（视图层，按状态值映射到 Tailwind 类） ────
 
 export const INGREDIENT_STATUS_TEXT_CLASSES: Record<number, string> = {
-  [INGREDIENT_STATUS.OFF.value]: 'text-red-600 dark:text-red-400',
-  [INGREDIENT_STATUS.ON.value]: 'text-green-600 dark:text-green-400',
+  [INGREDIENT_STATUS.DISABLED.value]: 'text-red-600 dark:text-red-400',
+  [INGREDIENT_STATUS.ENABLED.value]: 'text-green-600 dark:text-green-400',
 };
 
 export const INGREDIENT_STATUS_BADGE_CLASSES: Record<number, string> = {
-  [INGREDIENT_STATUS.OFF.value]:
+  [INGREDIENT_STATUS.DISABLED.value]:
     'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-red-200 dark:ring-red-800/30',
-  [INGREDIENT_STATUS.ON.value]:
+  [INGREDIENT_STATUS.ENABLED.value]:
     'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-green-200 dark:ring-green-800/30',
 };
