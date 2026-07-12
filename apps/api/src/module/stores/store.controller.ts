@@ -20,6 +20,21 @@ import {
   BindStoreMenuRequestSchema,
   BindStoreMenuResponseSchema,
   SyncLocationsResponseSchema,
+  StoreProductListResponseSchema,
+  StoreCustomizationListResponseSchema,
+  StoreCustomizationOptionListResponseSchema,
+  StoreIngredientListResponseSchema,
+  StoreIdParamsSchema,
+  ProductIdParamsSchema,
+  CustomizationIdParamsSchema,
+  CustomizationOptionIdParamsSchema,
+  StoreIngredientParamsSchema,
+  ProductListQuerySchema,
+  PaginationQuerySchema,
+  UpdateProductStoreStatusBodySchema,
+  UpdateOptionStoreStatusBodySchema,
+  UpdateStoreIngredientStockBodySchema,
+  UpdateStoreIngredientStockResponseSchema,
 } from '@dextea-admin/contracts';
 
 export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
@@ -207,5 +222,161 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
     },
   );
 
-  // 门店目录（商品/客制化/原料的门店级覆盖）已迁移至 store-catalog 模块
+  // 门店商品列表（含门店状态）
+  app.get(
+    '/stores/:storeId/products',
+    {
+      schema: {
+        tags: ['Stores'],
+        description: '门店商品列表（含门店状态）',
+        params: StoreIdParamsSchema,
+        querystring: ProductListQuerySchema,
+        response: { 200: ApiResponseSchema(StoreProductListResponseSchema).describe('门店商品列表') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await storeService.listStoreProducts(
+        request.params.storeId,
+        request.query,
+      );
+      return ApiResponse.success(data);
+    },
+  );
+
+  // 设置商品门店状态
+  app.patch(
+    '/stores/:storeId/products/:productId/status',
+    {
+      schema: {
+        tags: ['Stores'],
+        description: '设置商品门店状态',
+        params: ProductIdParamsSchema,
+        body: UpdateProductStoreStatusBodySchema,
+        response: { 200: ApiResponseSchema(z.null()).describe('状态更新成功') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      await storeService.upsertProductStoreStatus(
+        request.params.storeId,
+        request.params.productId,
+        request.body.status,
+      );
+      return ApiResponse.success(null, request.body.status === 1 ? '已启用' : '已禁用');
+    },
+  );
+
+  // 门店客制化项目列表（含门店状态）
+  app.get(
+    '/stores/:storeId/customizations',
+    {
+      schema: {
+        tags: ['Stores'],
+        description: '门店客制化项目列表（含门店状态）',
+        params: StoreIdParamsSchema,
+        querystring: PaginationQuerySchema,
+        response: { 200: ApiResponseSchema(StoreCustomizationListResponseSchema).describe('门店客制化项目列表') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await storeService.listStoreCustomizations(
+        request.params.storeId,
+        request.query,
+      );
+      return ApiResponse.success(data);
+    },
+  );
+
+  // 门店客制化选项列表（含门店状态）
+  app.get(
+    '/stores/:storeId/customizations/:customizationId/options',
+    {
+      schema: {
+        tags: ['Stores'],
+        description: '门店客制化选项列表（含门店状态）',
+        params: CustomizationIdParamsSchema,
+        querystring: PaginationQuerySchema,
+        response: { 200: ApiResponseSchema(StoreCustomizationOptionListResponseSchema).describe('门店客制化选项列表') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await storeService.listStoreCustomizationOptions(
+        request.params.storeId,
+        request.params.customizationId,
+        request.query,
+      );
+      return ApiResponse.success(data);
+    },
+  );
+
+  // 设置客制化选项门店状态
+  app.patch(
+    '/stores/:storeId/customization-options/:optionId/status',
+    {
+      schema: {
+        tags: ['Stores'],
+        description: '设置客制化选项门店状态',
+        params: CustomizationOptionIdParamsSchema,
+        body: UpdateOptionStoreStatusBodySchema,
+        response: { 200: ApiResponseSchema(z.null()).describe('状态更新成功') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      await storeService.upsertCustomizationOptionStoreStatus(
+        request.params.storeId,
+        request.params.optionId,
+        request.body.status,
+      );
+      return ApiResponse.success(null, request.body.status === 1 ? '已启用' : '已禁用');
+    },
+  );
+
+  // 门店原料库存列表
+  app.get(
+    '/stores/:storeId/ingredients',
+    {
+      schema: {
+        tags: ['Stores'],
+        description: '门店原料库存列表',
+        params: StoreIdParamsSchema,
+        querystring: PaginationQuerySchema,
+        response: { 200: ApiResponseSchema(StoreIngredientListResponseSchema).describe('门店原料库存列表') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await storeService.listStoreIngredients(
+        request.params.storeId,
+        request.query,
+      );
+      return ApiResponse.success(data);
+    },
+  );
+
+  // 更新门店原料库存
+  app.patch(
+    '/stores/:storeId/ingredients/:ingredientId/stock',
+    {
+      schema: {
+        tags: ['Stores'],
+        description: '更新门店原料库存（分布式锁保护，并发修改需重试）',
+        params: StoreIngredientParamsSchema,
+        body: UpdateStoreIngredientStockBodySchema,
+        response: { 200: ApiResponseSchema(UpdateStoreIngredientStockResponseSchema).describe('库存更新成功') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await storeService.updateStoreIngredientStock(
+        request.params.storeId,
+        request.params.ingredientId,
+        request.body.quantity,
+      );
+      return ApiResponse.success(data);
+    },
+  );
 };

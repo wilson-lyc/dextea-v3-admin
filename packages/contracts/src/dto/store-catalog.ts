@@ -95,6 +95,19 @@ export const UpdateOptionStoreStatusBodySchema = z.object({
 });
 export type UpdateOptionStoreStatusBody = z.infer<typeof UpdateOptionStoreStatusBodySchema>;
 
+/** 原料ID参数（门店库存） */
+export const StoreIngredientParamsSchema = z.object({
+  storeId: z.coerce.number().int().positive('门店ID必须为正整数'),
+  ingredientId: z.coerce.number().int().positive('原料ID必须为正整数'),
+});
+export type StoreIngredientParams = z.infer<typeof StoreIngredientParamsSchema>;
+
+/** 更新门店原料库存请求体 */
+export const UpdateStoreIngredientStockBodySchema = z.object({
+  quantity: z.number().min(0, '库存不能为负数'),
+});
+export type UpdateStoreIngredientStockBody = z.infer<typeof UpdateStoreIngredientStockBodySchema>;
+
 // ──── 响应 DTO ────
 
 export const StoreProductListResponseSchema = PaginatedDataSchema(StoreProductItemSchema);
@@ -108,3 +121,10 @@ export type StoreCustomizationOptionListResponse = z.infer<typeof StoreCustomiza
 
 export const StoreIngredientListResponseSchema = PaginatedDataSchema(StoreIngredientItemSchema);
 export type StoreIngredientListResponse = z.infer<typeof StoreIngredientListResponseSchema>;
+
+/** 更新门店原料库存响应 */
+export const UpdateStoreIngredientStockResponseSchema = z.object({
+  id: z.number(),
+  quantity: z.number(),
+});
+export type UpdateStoreIngredientStockResponse = z.infer<typeof UpdateStoreIngredientStockResponseSchema>;

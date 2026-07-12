@@ -67,4 +67,24 @@ export const registerAreaRoutes: FastifyPluginAsyncZod = async (app) => {
       return ApiResponse.success(data);
     },
   );
+
+  // 行政区划链路（从顶级到指定代码，用于反查省/市/区）
+  app.get(
+    '/areas/:code/path',
+    {
+      schema: {
+        tags: ['Areas'],
+        description: '行政区划链路（从顶级到指定代码）',
+        params: AreaChildrenParamsSchema,
+        response: {
+          200: ApiResponseSchema(AreaListResponseSchema).describe('行政区划链路'),
+        },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await areaService.getDivisionPath(request.params.code);
+      return ApiResponse.success(data);
+    },
+  );
 };
