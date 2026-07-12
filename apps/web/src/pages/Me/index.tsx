@@ -6,7 +6,6 @@ import { getMe, changePassword, type AuthMeResponse } from "@/api"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -114,7 +113,6 @@ export default function MePage() {
             <UserIcon data-icon="inline-start" />
             账户信息
           </CardTitle>
-          <CardDescription>当前登录账户的基本资料</CardDescription>
         </CardHeader>
         <CardContent>
           {loadingUser ? (
@@ -147,7 +145,6 @@ export default function MePage() {
             <KeyRoundIcon data-icon="inline-start" />
             修改密码
           </CardTitle>
-          <CardDescription>请输入原密码并设置新的登录密码</CardDescription>
         </CardHeader>
         <CardContent>
           <FieldGroup className="py-2">
