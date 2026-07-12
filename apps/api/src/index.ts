@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import Fastify, { type FastifyError } from 'fastify';
+import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
@@ -27,9 +27,7 @@ import { registerCustomizationModule } from './module/customizations/customizati
 import { registerStoreStatusModule } from './module/store-status/store-status.module.js';
 import { registerRedis } from './plugins/db/redis/index.js';
 import { registerDb } from './plugins/db/mysql/index.js';
-import { BizError } from '@/common/exceptions/index.js';
-import { ApiResponse } from '@/common/types/index.js';
-import { SystemErrorCodes } from '@/common/constants/error-code.constant.js';
+import { globalErrorHandler, schemaErrorFormatter } from '@/common/exceptions/index.js';
 
 async function main() {
   const app = Fastify({
@@ -97,73 +95,15 @@ async function main() {
   });
 
   // 参数校验错误格式化
-  app.setSchemaErrorFormatter((errors, _dataVar) => {
-    const err = errors[0];
-    if (!err) return new Error('请求参数校验失败');
-
-    let message: string;
-    switch (err.keyword) {
-      case 'required': {
-        const field = (err.params as { missingProperty?: string }).missingProperty ?? '';
-        message = `缺少必填字段「${field}」`;
-        break;
-      }
-      case 'type': {
-        const field = err.instancePath.replace(/^\//, '');
-        message = field ? `「${field}」格式不正确` : '请求参数格式不正确';
-        break;
-      }
-      case 'minLength': {
-        const field = err.instancePath.replace(/^\//, '');
-        message = `「${field}」不能为空`;
-        break;
-      }
-      case 'minimum':
-      case 'maximum': {
-        const field = err.instancePath.replace(/^\//, '');
-        message = `「${field}」超出范围`;
-        break;
-      }
-      case 'enum': {
-        const field = err.instancePath.replace(/^\//, '');
-        message = `「${field}」的值无效`;
-        break;
-      }
-      default:
-        message = err.message ?? '请求参数校验失败';
-    }
-
-    return new Error(message);
-  });
+  app.setSchemaErrorFormatter(schemaErrorFormatter);
 
   // 全局异常处理
-  app.setErrorHandler((error: FastifyError, _request, reply) => {
-    if (error instanceof BizError) {
-      return reply.status(error.httpStatus).send(
-        ApiResponse.error(error.code, error.message),
-      );
-    }
-
-    // Fastify 验证错误
-    if (error.validation) {
-      return reply.status(400).send(
-        ApiResponse.error(400, error.message),
-      );
-    }
-
-    // 未知错误
-    reply.log.error(error);
-    return reply.status(500).send(
-      ApiResponse.error(SystemErrorCodes.INTERNAL_ERROR.code, SystemErrorCodes.INTERNAL_ERROR.message),
-    );
-  });
+  app.setErrorHandler(globalErrorHandler);
 
   // 全局认证钩子
-  app.addHook('preHandler', authHook);
+  app.addHook('preValidation', authHook);
 
   // 注册路由模块
-  // [已弃用] 旧版 routes 路由整体取消注册（代码保留在 src/routes 下，未删除）
-  // await registerRoutes(app);
   await app.register(registerEmployeeModule);
   await app.register(registerStoreModule);
   await app.register(registerInitModule);
