@@ -1,7 +1,7 @@
 import {
   getTopDivisions,
   getDivisionChildren,
-  matchDivisionByNames,
+  namesToCode,
   getDivisionPath,
 } from '@/plugins/utils/area-code.js';
 
@@ -15,7 +15,8 @@ export const areaRepository = {
   },
 
   async resolveAreas(names: string[]) {
-    return matchDivisionByNames(names);
+    const code = namesToCode(names[0], names[1], names[2]);
+    return code ? getDivisionPath(code) : [];
   },
 
   async getDivisionPath(code: string) {

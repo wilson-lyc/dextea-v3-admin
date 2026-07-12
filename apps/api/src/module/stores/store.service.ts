@@ -3,7 +3,6 @@ import { BizError } from '@/common/exceptions/index.js';
 import { StoreErrorCodes } from './store.errorcode.js';
 import { storeRepository } from './store.repository.js';
 import { redis } from '@/plugins/db/redis/index.js';
-import { withDistributedLock } from '@/plugins/utils/distributed-lock.js';
 import { geocode } from '@/plugins/utils/geocode.js';
 import { codeToNames } from '@/plugins/utils/area-code.js';
 import { hashPassword } from '@/plugins/utils/password.js';
@@ -202,55 +201,4 @@ export const storeService = {
     return { id: storeId };
   },
 
-  // ─── 门店目录子资源（商品/客制化/原料的门店级覆盖） ───
-
-  async listStoreProducts(
-    storeId: number,
-    params: { page: number; pageSize: number; globalStatus?: number; storeStatus?: number },
-  ) {
-    await ensureStoreExists(storeId);
-    return storeRepository.listStoreProducts(storeId, params);
-  },
-
-  async upsertProductStoreStatus(storeId: number, productId: number, status: number) {
-    await ensureStoreExists(storeId);
-    await storeRepository.upsertProductStoreStatus(storeId, productId, status);
-  },
-
-  async listStoreCustomizations(storeId: number, params: { page: number; pageSize: number }) {
-    await ensureStoreExists(storeId);
-    return storeRepository.listStoreCustomizations(storeId, params);
-  },
-
-  async listStoreCustomizationOptions(
-    storeId: number,
-    customizationId: number,
-    params: { page: number; pageSize: number },
-  ) {
-    await ensureStoreExists(storeId);
-    return storeRepository.listStoreCustomizationOptions(storeId, customizationId, params);
-  },
-
-  async upsertCustomizationOptionStoreStatus(storeId: number, optionId: number, status: number) {
-    await ensureStoreExists(storeId);
-    // 锁按 (门店, 客制化选项) 维度，避免并发修改同一门店内的客制化选项状态造成覆盖。
-    return withDistributedLock(`store:customization-option:${storeId}:${optionId}`, async () => {
-      await storeRepository.upsertCustomizationOptionStoreStatus(storeId, optionId, status);
-    });
-  },
-
-  async listStoreIngredients(storeId: number, params: { page: number; pageSize: number }) {
-    await ensureStoreExists(storeId);
-    return storeRepository.listStoreIngredients(storeId, params);
-  },
-
-  async updateStoreIngredientStock(storeId: number, ingredientId: number, quantity: number) {
-    await ensureStoreExists(storeId);
-    // 锁按 (门店, 原料) 维度，仅持有锁者可更新该门店的原料库存，
-    // 未取得锁直接抛出 LOCK_CONFLICT（请稍后重试）。
-    return withDistributedLock(`store:ingredient:stock:${storeId}:${ingredientId}`, async () => {
-      await storeRepository.updateStoreIngredientQuantity(storeId, ingredientId, quantity);
-      return { id: ingredientId, quantity };
-    });
-  },
 };
