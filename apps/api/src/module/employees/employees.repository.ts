@@ -77,4 +77,11 @@ export const employeeRepository = {
       .set({ status })
       .where(eq(employeesTable.id, id));
   },
+
+  async updateEmployeePasswordById(id: number, password: string) {
+    await db
+      .update(employeesTable)
+      .set({ password })
+      .where(eq(employeesTable.id, id));
+  },
 };

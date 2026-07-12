@@ -75,4 +75,26 @@ export const employeeService = {
 
     return { email: employee.email, status: newStatus };
   },
+
+  async resetEmployeePassword(id: number) {
+    const employee = await employeeRepository.getEmployeeById(id);
+    if (!employee) {
+      throw new BizError(EmployeeErrorCodes.EMPLOYEE_NOT_FOUND);
+    }
+
+    const initialPassword = nanoid(12);
+    const hashedPassword = await hashPassword(initialPassword);
+
+    await employeeRepository.updateEmployeePasswordById(id, hashedPassword);
+
+    return {
+      user: {
+        id: employee.id,
+        email: employee.email,
+        displayName: employee.displayName,
+        status: employee.status,
+      },
+      initialPassword,
+    };
+  },
 };

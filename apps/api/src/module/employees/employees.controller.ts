@@ -10,6 +10,7 @@ import {
   UpdateEmployeeRequestSchema,
   UpdateEmployeeResponseSchema,
   ToggleEmployeeStatusResponseSchema,
+  ResetEmployeePasswordResponseSchema,
 } from '@dextea-admin/contracts';
 
 export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
@@ -82,6 +83,24 @@ export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await employeeService.updateEmployeeStatus(request.params.id);
+      return ApiResponse.success(data);
+    },
+  );
+
+  app.post(
+    '/employees/:id/reset-password',
+    {
+      schema: {
+        tags: ['Employees'],
+        description: '重置员工密码',
+        params: z.object({ id: z.coerce.number().int().positive('ID 必须为正整数') }),
+        response: {
+          200: ApiResponseSchema(ResetEmployeePasswordResponseSchema).describe('重置成功'),
+        },
+      },
+    },
+    async (request, _reply) => {
+      const data = await employeeService.resetEmployeePassword(request.params.id);
       return ApiResponse.success(data);
     },
   );

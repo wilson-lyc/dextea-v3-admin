@@ -61,3 +61,15 @@ export const ToggleEmployeeStatusResponseSchema = z.object({
   status: z.number(),
 });
 export type ToggleEmployeeStatusResponse = z.infer<typeof ToggleEmployeeStatusResponseSchema>;
+
+/** 重置密码 */
+export const ResetEmployeePasswordResponseSchema = z.object({
+  user: z.object({
+    id: z.number(),
+    email: z.string(),
+    displayName: z.string(),
+    status: z.number(),
+  }),
+  initialPassword: z.string(),
+});
+export type ResetEmployeePasswordResponse = z.infer<typeof ResetEmployeePasswordResponseSchema>;

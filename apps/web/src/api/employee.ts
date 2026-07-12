@@ -6,6 +6,7 @@ import type {
   CreateEmployeeResponse,
   UpdateEmployeeResponse,
   ToggleEmployeeStatusResponse,
+  ResetEmployeePasswordResponse,
   GetEmployeeListRequest,
 } from "@dextea-admin/contracts"
 
@@ -17,6 +18,7 @@ export type {
   CreateEmployeeResponse,
   UpdateEmployeeResponse,
   ToggleEmployeeStatusResponse,
+  ResetEmployeePasswordResponse,
 } from "@dextea-admin/contracts"
 
 const http = createModuleClient("employee")
@@ -53,10 +55,20 @@ export function updateEmployee(id: number, data: UpdateEmployeeRequest) {
 
 /**
  * 启用/禁用员工
- * PATCH /employees/:id/status
+ * PUT /employees/:id/status
  */
 export function toggleEmployeeStatus(id: number) {
   return http
     .put<ApiResponse<ToggleEmployeeStatusResponse>>(`/employees/${id}/status`)
+    .then((res) => res.data)
+}
+
+/**
+ * 重置员工密码
+ * POST /employees/:id/reset-password
+ */
+export function resetEmployeePassword(id: number) {
+  return http
+    .post<ApiResponse<ResetEmployeePasswordResponse>>(`/employees/${id}/reset-password`)
     .then((res) => res.data)
 }

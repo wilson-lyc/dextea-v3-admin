@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { PlusIcon, PencilIcon, BanIcon, CheckCircleIcon, UsersIcon, SearchIcon } from "lucide-react"
+import { PlusIcon, PencilIcon, BanIcon, CheckCircleIcon, UsersIcon, SearchIcon, KeyRoundIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Employee } from "@/api"
@@ -20,7 +20,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import DataTable from "@/components/ui/data-table"
-import { getEmployees, toggleEmployeeStatus } from "@/api"
+import { getEmployees, toggleEmployeeStatus, resetEmployeePassword } from "@/api"
 import CreateEmployeeModal from "./components/CreateEmployeeModal"
 import EditEmployeeModal from "./components/EditEmployeeModal"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
@@ -42,10 +42,16 @@ export default function EmployeesPage() {
   // Password dialog state
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
   const [initialPassword, setInitialPassword] = useState("")
+  const [passwordDialogTitle, setPasswordDialogTitle] = useState("创建成功")
+  const [passwordDialogDesc, setPasswordDialogDesc] = useState("此密码仅显示一次，关闭后将不再显示")
 
   // Confirm toggle status dialog
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const [confirmEmployee, setConfirmEmployee] = useState<Employee | null>(null)
+
+  // Confirm reset password dialog
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
+  const [resetEmployee, setResetEmployee] = useState<Employee | null>(null)
 
   const fetchEmployees = useCallback(async (targetPage: number) => {
     setLoading(true)
@@ -100,6 +106,33 @@ export default function EmployeesPage() {
   const handleToggleStatus = (employee: Employee) => {
     setConfirmEmployee(employee)
     setConfirmDialogOpen(true)
+  }
+
+  // Open confirm dialog for resetting password
+  const handleResetPassword = (employee: Employee) => {
+    setResetEmployee(employee)
+    setResetConfirmOpen(true)
+  }
+
+  // Actually reset employee password after confirmation
+  const handleConfirmReset = async () => {
+    if (!resetEmployee) return
+    const employee = resetEmployee
+    setResetConfirmOpen(false)
+    setResetEmployee(null)
+    try {
+      const res = await resetEmployeePassword(employee.id)
+      if (res.code === 0) {
+        setInitialPassword(res.data.initialPassword)
+        setPasswordDialogTitle("密码重置成功")
+        setPasswordDialogDesc("已生成新的初始密码，此密码仅显示一次，关闭后将不再显示")
+        setPasswordDialogOpen(true)
+      } else {
+        toast.error(res.message)
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "系统异常，稍后重试")
+    }
   }
 
   // Actually toggle employee status after confirmation
@@ -191,6 +224,14 @@ export default function EmployeesPage() {
                   编辑
                 </Button>
                 <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleResetPassword(employee)}
+                >
+                  <KeyRoundIcon data-icon="inline-start" />
+                  重置密码
+                </Button>
+                <Button
                   variant={employee.status === EMPLOYEE_STATUS.ACTIVE.value ? "outline-destructive" : "outline-success"}
                   size="sm"
                   onClick={() => handleToggleStatus(employee)}
@@ -238,11 +279,11 @@ export default function EmployeesPage() {
         onUpdated={() => fetchEmployees(page)}
       />
 
-      {/* Initial Password Dialog */}
+      {/* Initial / Reset Password Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>创建成功</DialogTitle>
+            <DialogTitle>{passwordDialogTitle}</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col items-center gap-3 py-4">
@@ -250,7 +291,7 @@ export default function EmployeesPage() {
               {initialPassword}
             </div>
             <p className="text-xs text-destructive font-medium">
-              此密码仅显示一次，关闭后将不再显示
+              {passwordDialogDesc}
             </p>
           </div>
 
@@ -271,6 +312,17 @@ export default function EmployeesPage() {
         confirmText="确定"
         variant="default"
         onConfirm={handleConfirmToggleStatus}
+      />
+
+      {/* Confirm reset password dialog */}
+      <ConfirmDialog
+        open={resetConfirmOpen}
+        onOpenChange={setResetConfirmOpen}
+        title="重置密码"
+        description={`确定重置 ${resetEmployee?.displayName} 的密码吗？重置后将生成新的初始密码。`}
+        confirmText="确定重置"
+        variant="default"
+        onConfirm={handleConfirmReset}
       />
     </>
   )
