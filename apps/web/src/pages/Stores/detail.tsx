@@ -32,6 +32,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import AmapMap from "@/components/amap"
+import DetailInfoGrid, { InfoField } from "@/components/layout/DetailInfoGrid"
 import { getStore, resetStorePassword } from "@/api"
 import { EditStoreStatusDialog } from "./components/EditStoreStatusDialog"
 import { EditStoreBasicInfoDialog } from "./components/EditStoreBasicInfoDialog"
@@ -201,12 +202,13 @@ export default function StoreDetailPage() {
                   </CardAction>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
-                    <span className="text-sm text-muted-foreground">当前状态</span>
-                    <span className={`text-sm ${STORE_STATUS_TEXT_CLASSES[store.status]}`}>
-                      {STORE_STATUS_LABEL[store.status]}
-                    </span>
-                  </div>
+                  <DetailInfoGrid>
+                    <InfoField
+                      label="当前状态"
+                      value={STORE_STATUS_LABEL[store.status]}
+                      valueClassName={STORE_STATUS_TEXT_CLASSES[store.status]}
+                    />
+                  </DetailInfoGrid>
                 </CardContent>
               </Card>
 
@@ -225,22 +227,13 @@ export default function StoreDetailPage() {
                   </CardAction>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
-                    <span className="text-sm text-muted-foreground">门店名称</span>
-                    <span className="text-sm">{store.name}</span>
-
-                    <span className="text-sm text-muted-foreground">登录账号</span>
-                    <span className="text-sm font-mono">{store.account}</span>
-
-                    <span className="text-sm text-muted-foreground">邮箱</span>
-                    <span className="text-sm">{store.email || "-"}</span>
-
-                    <span className="text-sm text-muted-foreground">联系电话</span>
-                    <span className="text-sm">{store.phone || "-"}</span>
-
-                    <span className="text-sm text-muted-foreground">营业时间</span>
-                    <span className="text-sm">{store.businessHours || "-"}</span>
-                  </div>
+                  <DetailInfoGrid>
+                    <InfoField label="门店名称" value={store.name} />
+                    <InfoField label="登录账号" value={store.account} valueClassName="font-mono" />
+                    <InfoField label="邮箱" value={store.email || "-"} />
+                    <InfoField label="联系电话" value={store.phone || "-"} />
+                    <InfoField label="营业时间" value={store.businessHours || "-"} />
+                  </DetailInfoGrid>
                 </CardContent>
               </Card>
 
@@ -256,10 +249,9 @@ export default function StoreDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col gap-3">
-                    <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
-                      <span className="text-sm text-muted-foreground">地址</span>
-                      <span className="text-sm">{fullAddress}</span>
-                    </div>
+                    <DetailInfoGrid>
+                      <InfoField label="地址" value={fullAddress} />
+                    </DetailInfoGrid>
                     {store.longitude && store.latitude ? (
                       <AmapMap
                         longitude={store.longitude}
@@ -281,13 +273,10 @@ export default function StoreDetailPage() {
                   <CardTitle>维护记录</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-[160px_1fr] gap-x-4 gap-y-3">
-                    <span className="text-sm text-muted-foreground">创建时间</span>
-                    <span className="text-sm">{formatDate(store.createdAt)}</span>
-
-                    <span className="text-sm text-muted-foreground">更新时间</span>
-                    <span className="text-sm">{formatDate(store.updatedAt)}</span>
-                  </div>
+                  <DetailInfoGrid>
+                    <InfoField label="创建时间" value={formatDate(store.createdAt)} />
+                    <InfoField label="更新时间" value={formatDate(store.updatedAt)} />
+                  </DetailInfoGrid>
                 </CardContent>
               </Card>
             </div>

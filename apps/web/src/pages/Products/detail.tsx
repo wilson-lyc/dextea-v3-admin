@@ -16,7 +16,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import { getProductBasicInfo } from "@/api"
-import DetailLayout from "@/components/DetailLayout"
+import DetailLayout from "@/components/layout/DetailLayout"
 import BasicInfoPanel from "./components/BasicInfoPanel"
 import TagsPanel from "./components/TagsPanel"
 import CustomizationPanel from "./components/CustomizationPanel"
