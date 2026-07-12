@@ -1,11 +1,19 @@
 import type { ReactNode } from "react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 import { useNavigate } from "react-router-dom"
 import { ArrowLeftIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 /** 详情页 Tab 配置项 */
 export interface DetailTabItem {
@@ -91,6 +99,22 @@ export function DetailTabs({
     [defaultTab, tabValues],
   )
 
+  // 在每个 TabsContent 底部追加一个与 p-6 等高（1.5rem）的占位块，
+  // 让滚动内容底部留白，避免贴底。
+  const tabChildren = useMemo(
+    () =>
+      Children.map(children, (child) => {
+        if (!isValidElement(child) || child.type !== TabsContent) {
+          return child
+        }
+        const content = (child.props as { children?: ReactNode }).children
+        return cloneElement(child, undefined, content, (
+          <div key="tab-content-bottom-spacer" className="h-6 shrink-0" />
+        ))
+      }),
+    [children],
+  )
+
   return (
     <Tabs
       value={activeTab}
@@ -104,7 +128,7 @@ export function DetailTabs({
           </TabsTrigger>
         ))}
       </TabsList>
-      {children}
+      {tabChildren}
     </Tabs>
   )
 }
@@ -147,7 +171,7 @@ export default function DetailLayout({
   }
 
   return (
-    <div className="h-full p-6 flex flex-col gap-3">
+    <div className="h-full p-6 pt-6 pb-0 flex flex-col gap-1">
       {breadcrumb && (
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>

@@ -151,12 +151,6 @@ export default function StoresPage() {
       .join(" ")
   }
 
-  const regionText = (store: Store) => {
-    return [store.province, store.city, store.district]
-      .filter(Boolean)
-      .join(" ") || "-"
-  }
-
   return (
     <TooltipProvider>
       <DataTable
@@ -169,7 +163,7 @@ export default function StoresPage() {
             </Button>
             <Button variant="outline" onClick={handleSync} disabled={syncing}>
               <RefreshCwIcon data-icon="inline-start" className={syncing ? "animate-spin" : ""} />
-              数据同步
+              定位同步
             </Button>
           </>
         }
@@ -208,7 +202,6 @@ export default function StoresPage() {
             <TableRow>
               <TableHead className="w-24">ID</TableHead>
               <TableHead className="w-24">门店名称</TableHead>
-              <TableHead className="w-24">区域</TableHead>
               <TableHead className="w-24">地址</TableHead>
               <TableHead className="w-24">联系电话</TableHead>
               <TableHead className="w-24">营业时间</TableHead>
@@ -221,7 +214,6 @@ export default function StoresPage() {
           <TableRow key={store.id}>
             <TableCell className="font-mono text-xs">{store.id}</TableCell>
             <TableCell>{store.name}</TableCell>
-            <TableCell className="max-w-40 truncate">{regionText(store)}</TableCell>
             <TableCell className="max-w-60 truncate">
               <Tooltip>
                 <TooltipTrigger render={<span>{fullAddress(store)}</span>} />
@@ -253,7 +245,7 @@ export default function StoresPage() {
         ))}
         loading={loading}
         isEmpty={stores.length === 0}
-        colSpan={8}
+        colSpan={7}
         onRefresh={handleRefresh}
         refreshDisabled={loading}
         emptyIcon={<Building2Icon className="size-4" />}
