@@ -1,12 +1,14 @@
 $:
   vscode:
-    - docker:
+    - runner:
+        cpus: 4
+      docker:
         image: cnbcool/default-dev-env:latest
       services:
         - vscode
         - docker
       stages:
-        - name: ls
-          script: ls -al
-    - runner:
-        cpus: 4
+        - name: Install Dependencies
+          script: 
+            - npm install -g pnpm
+            - pnpm i
