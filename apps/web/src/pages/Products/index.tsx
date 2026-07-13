@@ -4,7 +4,6 @@ import {
   PackageIcon,
   PlusIcon,
   SearchIcon,
-  SettingsIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -270,7 +269,6 @@ export default function ProductsPage() {
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => navigate(`/products/${product.id}`)}>
-                  <SettingsIcon data-icon="inline-start" />
                   管理
                 </Button>
                 {product.status === 0 && (

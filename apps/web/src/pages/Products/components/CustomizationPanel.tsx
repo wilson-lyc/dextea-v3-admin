@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { ListIcon, PencilIcon, PlusIcon, SettingsIcon } from "lucide-react"
+import { ListIcon, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Customization } from "@/api"
@@ -196,7 +196,6 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                     setEditOpen(true)
                   }}
                 >
-                  <PencilIcon className="size-4" data-icon="inline-start" />
                   编辑
                 </Button>
                 <Button
@@ -207,7 +206,6 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                     setManageSheetOpen(true)
                   }}
                 >
-                  <SettingsIcon className="size-4" data-icon="inline-start" />
                   管理选项
                 </Button>
               </div>

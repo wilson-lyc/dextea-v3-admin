@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ExternalLinkIcon, LinkIcon, PencilIcon, Trash2Icon } from "lucide-react"
+import { LinkIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { PaginatedData } from "@/api"
@@ -290,20 +290,17 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => navigate(`/products/ingredients/${item.ingredientId}`)}>
-                  <ExternalLinkIcon data-icon="inline-start" />
-                   查看原料
+                  查看原料
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
-                  <PencilIcon data-icon="inline-start" />
-编辑
+                  编辑
                 </Button>
                 <Button
                   variant="outline-destructive"
                   size="sm"
                   onClick={() => openUnbindConfirm(item)}
                 >
-                  <Trash2Icon className="size-4" data-icon="inline-start" />
-                   解绑
+                  解绑
                 </Button>
               </div>
             </TableCell>

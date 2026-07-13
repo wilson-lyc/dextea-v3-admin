@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { Trash2Icon, LinkIcon, TagIcon } from "lucide-react"
+import { LinkIcon, TagIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { ProductTag } from "@/api"
@@ -109,7 +109,6 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
                 size="sm"
                 onClick={() => handleRemoveTag(tag)}
               >
-                <Trash2Icon className="size-4" data-icon="inline-start" />
                 解绑
               </Button>
             </TableCell>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { ListIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { ListIcon, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { CustomizationOption } from "@/api"
@@ -241,14 +241,13 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1">
                 <Button variant="outline" size="sm" onClick={() => openEdit(o)}>
-                  <PencilIcon className="size-4" />
+                  编辑
                 </Button>
                 <Button
                   variant="outline-destructive"
                   size="sm"
                   onClick={() => handleDelete(o.id)}
                 >
-                  <Trash2Icon className="size-4" data-icon="inline-start" />
                   删除
                 </Button>
               </div>
