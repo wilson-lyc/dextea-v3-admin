@@ -9,7 +9,7 @@ import {
 import { toast } from "sonner"
 
 import type { Product } from "@/api"
-import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
+import { PRODUCT_STATUS, PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -184,8 +184,10 @@ export default function ProductsPage() {
             <SelectPicker
               options={[
                 { label: "全部状态", value: "" },
-                { label: "下架", value: "0" },
-                { label: "可售", value: "1" },
+                ...Object.values(PRODUCT_STATUS).map((s) => ({
+                  label: s.label,
+                  value: String(s.value),
+                })),
               ]}
               value={filterStatus}
               onValueChange={setFilterStatus}
@@ -277,7 +279,7 @@ export default function ProductsPage() {
                     size="sm"
                     onClick={() => openStatusConfirm(product, 1)}
                   >
-                    转全局可售
+                    转全局上架
                   </Button>
                 )}
                 {product.status === 1 && (
@@ -316,7 +318,7 @@ export default function ProductsPage() {
         description={
           <>
             确定将「{statusConfirmTarget?.name}」更新为全局
-            {statusConfirmAction === 1 ? "可售" : "下架"}吗？
+            {statusConfirmAction === 1 ? "上架" : "下架"}吗？
           </>
         }
         confirmText="确认"

@@ -1,6 +1,7 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { StoreCatalogErrorCodes } from './store-catalog.errorcode.js';
 import { storeCatalogRepository } from './store-catalog.repository.js';
+import { STORE_PRODUCT_STATUS_VALUES } from '@dextea-admin/contracts';
 
 // 校验门店是否存在（门店目录子资源接口共用）
 async function ensureStoreExists(storeId: number): Promise<void> {
@@ -18,6 +19,9 @@ export const storeCatalogService = {
   },
 
   async upsertProductStoreStatus(storeId: number, productId: number, status: number) {
+    if (!STORE_PRODUCT_STATUS_VALUES.includes(status as 0 | 1)) {
+      throw new BizError(StoreCatalogErrorCodes.INVALID_STATUS);
+    }
     await ensureStoreExists(storeId);
     await storeCatalogRepository.upsertProductStoreStatus(storeId, productId, status);
   },
@@ -37,6 +41,9 @@ export const storeCatalogService = {
   },
 
   async upsertCustomizationOptionStoreStatus(storeId: number, optionId: number, status: number) {
+    if (!STORE_PRODUCT_STATUS_VALUES.includes(status as 0 | 1)) {
+      throw new BizError(StoreCatalogErrorCodes.INVALID_STATUS);
+    }
     await ensureStoreExists(storeId);
     await storeCatalogRepository.upsertCustomizationOptionStoreStatus(storeId, optionId, status);
   },

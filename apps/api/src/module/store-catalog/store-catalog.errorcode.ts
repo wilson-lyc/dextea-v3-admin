@@ -7,4 +7,5 @@ import type { BizErrorCode } from '@/common/types';
  */
 export const StoreCatalogErrorCodes = {
   STORE_NOT_FOUND: { code: 10400, message: '门店不存在' },
+  INVALID_STATUS: { code: 10401, message: '门店商品状态值无效' },
 } as const satisfies Record<string, BizErrorCode>;

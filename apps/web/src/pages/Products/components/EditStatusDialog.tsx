@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import { PRODUCT_STATUS, type ProductStatus } from "@dextea-admin/contracts/status"
+import { PRODUCT_STATUS, PRODUCT_STATUS_LABEL, type ProductStatus } from "@dextea-admin/contracts/status"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -66,7 +66,7 @@ export function EditStatusDialog({ open, onOpenChange, productId, currentStatus,
             <FieldLabel>状态</FieldLabel>
             <StatusSelectPicker
               statusEnum={PRODUCT_STATUS}
-              labels={{ [PRODUCT_STATUS.OFF.value]: "下架", [PRODUCT_STATUS.ON.value]: "可售" }}
+              labels={PRODUCT_STATUS_LABEL}
               value={selected}
               onValueChange={setSelected}
               placeholder="请选择状态"

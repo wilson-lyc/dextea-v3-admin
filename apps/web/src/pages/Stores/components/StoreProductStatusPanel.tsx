@@ -4,7 +4,7 @@ import { PackageIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { StoreProductItem } from "@/api"
-import { PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES, STORE_PRODUCT_STATUS_LABEL, STORE_PRODUCT_STATUS_TEXT_CLASSES, getProductFinalStatus } from "@dextea-admin/contracts/status"
+import { PRODUCT_STATUS, STORE_PRODUCT_STATUS, PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES, STORE_PRODUCT_STATUS_LABEL, STORE_PRODUCT_STATUS_TEXT_CLASSES, getProductFinalStatus } from "@dextea-admin/contracts/status"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -174,8 +174,11 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">全部</SelectItem>
-                <SelectItem value="0">下架</SelectItem>
-                <SelectItem value="1">可售</SelectItem>
+                {Object.values(PRODUCT_STATUS).map((s) => (
+                  <SelectItem key={s.value} value={String(s.value)}>
+                    {s.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={storeFilter} onValueChange={(v) => setStoreFilter(v ?? "")}>
@@ -184,8 +187,11 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">全部</SelectItem>
-                <SelectItem value="0">售罄</SelectItem>
-                <SelectItem value="1">可售</SelectItem>
+                {Object.values(STORE_PRODUCT_STATUS).map((s) => (
+                  <SelectItem key={s.value} value={String(s.value)}>
+                    {s.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={finalFilter} onValueChange={(v) => setFinalFilter(v ?? "")}>
