@@ -40,6 +40,8 @@ interface DataTableProps {
   refreshDisabled?: boolean
   /** Whether the refresh button should be hidden (default: false, i.e. visible) */
   hideRefresh?: boolean
+  /** Whether the toolbar (the bar above the table holding toolbarLeft/toolbarRight/refresh) should be hidden. When true the whole bar is removed, leaving no placeholder height (default: false, i.e. visible) */
+  hideToolbar?: boolean
   /** Pagination configuration (if provided, renders PaginationBar at the bottom) */
   pagination?: PaginationConfig
   /** Icon shown in the empty state */
@@ -98,6 +100,7 @@ export default function DataTable({
   onRefresh,
   refreshDisabled = false,
   hideRefresh = false,
+  hideToolbar = false,
   pagination,
   emptyIcon,
   emptyText = "暂无数据",
@@ -107,6 +110,7 @@ export default function DataTable({
   return (
     <div className={cn("flex h-full flex-col gap-4", className)}>
       {/* Toolbar */}
+      {!hideToolbar && (
       <div className="flex shrink-0 items-center justify-between">
         <div className="flex items-center gap-2">
           {toolbarLeft}
@@ -127,6 +131,7 @@ export default function DataTable({
           </div>
         )}
       </div>
+      )}
 
       {/* Table */}
       <div className="flex flex-1 flex-col overflow-auto rounded-lg border">

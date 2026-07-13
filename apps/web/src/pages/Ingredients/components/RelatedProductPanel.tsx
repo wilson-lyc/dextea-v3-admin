@@ -76,6 +76,8 @@ export default function RelatedProductPanel({ ingredientId, unit }: RelatedProdu
       loading={loading}
       isEmpty={products.length === 0}
       colSpan={4}
+      hideToolbar
+      hideRefresh
       emptyIcon={<PackageIcon className="size-4" />}
       emptyText="暂无商品绑定该原料"
       pagination={{ page, pageSize, total, onPageChange: fetchProducts }}

@@ -79,6 +79,8 @@ export default function RelatedCustomizationOptionPanel({
       loading={loading}
       isEmpty={options.length === 0}
       colSpan={4}
+      hideToolbar
+      hideRefresh
       emptyIcon={<LinkIcon className="size-4" />}
       emptyText="暂无客制化选项引用该原料"
       pagination={{ page, pageSize, total, onPageChange: fetchOptions }}

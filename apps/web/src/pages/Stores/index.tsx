@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { PlusIcon, RefreshCwIcon, SearchIcon, SettingsIcon, Building2Icon, KeyRoundIcon } from "lucide-react"
+import { PlusIcon, RefreshCwIcon, SearchIcon, Building2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Store } from "@/api"
@@ -232,11 +232,9 @@ export default function StoresPage() {
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1">
                 <Button variant="outline" size="sm" onClick={() => navigate(`/stores/${store.id}`)}>
-                  <SettingsIcon data-icon="inline-start" />
                   管理
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => handleResetPassword(store)}>
-                  <KeyRoundIcon data-icon="inline-start" />
                   重置密码
                 </Button>
               </div>

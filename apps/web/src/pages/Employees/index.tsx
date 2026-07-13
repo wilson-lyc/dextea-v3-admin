@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { PlusIcon, PencilIcon, BanIcon, CheckCircleIcon, UsersIcon, SearchIcon, KeyRoundIcon } from "lucide-react"
+import { PlusIcon, UsersIcon, SearchIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Employee } from "@/api"
@@ -224,7 +224,6 @@ export default function EmployeesPage() {
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1">
                 <Button variant="outline" size="sm" onClick={() => openEditDialog(employee)}>
-                  <PencilIcon data-icon="inline-start" />
                   编辑
                 </Button>
                 <Button
@@ -232,7 +231,6 @@ export default function EmployeesPage() {
                   size="sm"
                   onClick={() => handleResetPassword(employee)}
                 >
-                  <KeyRoundIcon data-icon="inline-start" />
                   重置密码
                 </Button>
                 <Button
@@ -240,17 +238,7 @@ export default function EmployeesPage() {
                   size="sm"
                   onClick={() => handleToggleStatus(employee)}
                 >
-                  {employee.status === EMPLOYEE_STATUS.ACTIVE.value ? (
-                    <>
-                      <BanIcon data-icon="inline-start" />
-                      禁用
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircleIcon data-icon="inline-start" />
-                      激活
-                    </>
-                  )}
+                  {employee.status === EMPLOYEE_STATUS.ACTIVE.value ? "禁用" : "激活"}
                 </Button>
               </div>
             </TableCell>
