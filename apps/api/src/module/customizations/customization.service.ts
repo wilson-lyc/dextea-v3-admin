@@ -62,7 +62,7 @@ export const customizationService = {
       productId,
       name: trimmedName,
       sort,
-      status: CUSTOMIZATION_STATUS.OFF.value,
+      status: CUSTOMIZATION_STATUS.DISABLED.value,
     });
 
     const created = await customizationRepository.getCustomizationById(insertId);
@@ -148,7 +148,7 @@ export const customizationService = {
       name: trimmedName,
       price: price ?? 0,
       sort: sort ?? 0,
-      status: CUSTOMIZATION_OPTION_STATUS.OFF.value,
+      status: CUSTOMIZATION_OPTION_STATUS.DISABLED.value,
       ingredientId: ingredientId ?? null,
       ingredientQuantity: quantity ?? 0,
     });

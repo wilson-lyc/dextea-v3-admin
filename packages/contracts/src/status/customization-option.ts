@@ -1,6 +1,6 @@
 /**
  * 客制化选项状态
- * 0=下架  1=启用
+ * 0=禁用  1=激活
  *
  * 状态项统一包含三个字段：
  * - key:   稳定的字符串键（用于序列化/枚举标识）
@@ -8,15 +8,21 @@
  * - value: 数字值（数据库存储 / 接口传输）
  */
 export const CUSTOMIZATION_OPTION_STATUS = {
-  OFF: { key: 'off', label: '下架', value: 0 },
-  ON: { key: 'on', label: '启用', value: 1 },
+  DISABLED: { key: 'disabled', label: '禁用', value: 0 },
+  ACTIVE: { key: 'active', label: '激活', value: 1 },
 } as const;
 
+/** 单个状态项类型 */
+export type CustomizationOptionStatusItem =
+  (typeof CUSTOMIZATION_OPTION_STATUS)[keyof typeof CUSTOMIZATION_OPTION_STATUS];
+
 /** 状态数字值联合类型 */
-export type CustomizationOptionStatus = number;
+export type CustomizationOptionStatus = CustomizationOptionStatusItem['value'];
 
 /** 所有状态值 */
-export const CUSTOMIZATION_OPTION_STATUS_VALUES: readonly CustomizationOptionStatus[] = [0, 1];
+export const CUSTOMIZATION_OPTION_STATUS_VALUES: readonly CustomizationOptionStatus[] = Object.values(
+  CUSTOMIZATION_OPTION_STATUS,
+).map((s) => s.value);
 
 /** value -> 中文 label 映射 */
 export const CUSTOMIZATION_OPTION_STATUS_LABEL: Record<number, string> = Object.fromEntries(
@@ -26,13 +32,12 @@ export const CUSTOMIZATION_OPTION_STATUS_LABEL: Record<number, string> = Object.
 // ──── 前端展示样式（视图层，按状态值映射到 Tailwind 类） ────
 
 export const CUSTOMIZATION_OPTION_STATUS_TEXT_CLASSES: Record<number, string> = {
-  [CUSTOMIZATION_OPTION_STATUS.OFF.value]: 'text-red-600 dark:text-red-400',
-  [CUSTOMIZATION_OPTION_STATUS.ON.value]: 'text-green-600 dark:text-green-400',
+  [CUSTOMIZATION_OPTION_STATUS.DISABLED.value]: 'text-destructive',
+  [CUSTOMIZATION_OPTION_STATUS.ACTIVE.value]: 'text-green-600 dark:text-green-400',
 };
 
 export const CUSTOMIZATION_OPTION_STATUS_BADGE_CLASSES: Record<number, string> = {
-  [CUSTOMIZATION_OPTION_STATUS.OFF.value]:
-    'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-red-200 dark:ring-red-800/30',
-  [CUSTOMIZATION_OPTION_STATUS.ON.value]:
+  [CUSTOMIZATION_OPTION_STATUS.DISABLED.value]: 'bg-muted text-muted-foreground ring-muted',
+  [CUSTOMIZATION_OPTION_STATUS.ACTIVE.value]:
     'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-green-200 dark:ring-green-800/30',
 };

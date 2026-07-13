@@ -131,9 +131,9 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
     setToggleConfirmOpen(false)
     setToggleConfirmItem(null)
     try {
-      const newStatus = item.status === CUSTOMIZATION_STATUS.OFF.value
-        ? CUSTOMIZATION_STATUS.ON.value
-        : CUSTOMIZATION_STATUS.OFF.value
+      const newStatus = item.status === CUSTOMIZATION_STATUS.DISABLED.value
+        ? CUSTOMIZATION_STATUS.ACTIVE.value
+        : CUSTOMIZATION_STATUS.DISABLED.value
       const res = await updateCustomizationStatus(item.id, newStatus)
       if (res.code === 0) {
         toast.success(res.message)
@@ -181,14 +181,6 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1">
                 <Button
-                  variant={item.status === CUSTOMIZATION_STATUS.OFF.value ? "outline-success" : "outline-destructive"}
-                  size="sm"
-                  onClick={() => handleToggleStatus(item)}
-                  disabled={togglingId === item.id}
-                >
-                  {item.status === CUSTOMIZATION_STATUS.OFF.value ? "转激活" : "转禁用"}
-                </Button>
-                <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
@@ -207,6 +199,14 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                   }}
                 >
                   管理选项
+                </Button>
+                <Button
+                  variant={item.status === CUSTOMIZATION_STATUS.DISABLED.value ? "outline-success" : "outline-destructive"}
+                  size="sm"
+                  onClick={() => handleToggleStatus(item)}
+                  disabled={togglingId === item.id}
+                >
+                  {item.status === CUSTOMIZATION_STATUS.DISABLED.value ? "转激活" : "转禁用"}
                 </Button>
               </div>
             </TableCell>
@@ -301,7 +301,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         description={
           <>
             确定将「{toggleConfirmItem?.name}」项目
-            {toggleConfirmItem?.status === CUSTOMIZATION_STATUS.OFF.value ? "激活" : "禁用"}吗？
+            {toggleConfirmItem?.status === CUSTOMIZATION_STATUS.DISABLED.value ? "激活" : "禁用"}吗？
           </>
         }
         confirmText="确定"

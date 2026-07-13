@@ -3,7 +3,11 @@ import { ListIcon, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { CustomizationOption } from "@/api"
-import { CUSTOMIZATION_OPTION_STATUS } from "@dextea-admin/contracts/status"
+import {
+  CUSTOMIZATION_OPTION_STATUS,
+  CUSTOMIZATION_OPTION_STATUS_LABEL,
+  CUSTOMIZATION_OPTION_STATUS_TEXT_CLASSES,
+} from "@dextea-admin/contracts/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -220,14 +224,8 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
             <TableCell className="font-mono text-xs">¥ {Number(o.price).toFixed(2)}</TableCell>
             <TableCell className="font-mono text-xs">{o.sort}</TableCell>
             <TableCell>
-              <span
-                className={
-                  o.status === CUSTOMIZATION_OPTION_STATUS.OFF.value
-                    ? "text-red-600 dark:text-red-400"
-                    : "text-green-600 dark:text-green-400"
-                }
-              >
-                {o.status === CUSTOMIZATION_OPTION_STATUS.OFF.value ? "下架" : "启用"}
+              <span className={CUSTOMIZATION_OPTION_STATUS_TEXT_CLASSES[o.status] ?? ""}>
+                {CUSTOMIZATION_OPTION_STATUS_LABEL[o.status]}
               </span>
             </TableCell>
             <TableCell className="text-sm">
@@ -410,7 +408,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               <FieldLabel htmlFor="edit-option-status">状态</FieldLabel>
               <StatusSelectPicker
               statusEnum={CUSTOMIZATION_OPTION_STATUS}
-              labels={{ [CUSTOMIZATION_OPTION_STATUS.OFF.value]: "下架", [CUSTOMIZATION_OPTION_STATUS.ON.value]: "启用" }}
+              labels={CUSTOMIZATION_OPTION_STATUS_LABEL}
               value={editForm.status}
               onValueChange={(v) => setEditForm((f) => ({ ...f, status: v }))}
               placeholder="请选择状态"
