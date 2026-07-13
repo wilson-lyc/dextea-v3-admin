@@ -4,6 +4,7 @@ import { TagErrorCodes } from '@/module/tags/tag.errorcode.js';
 import { productRepository } from './product.repository.js';
 import { PRODUCT_STATUS_VALUES } from '@dextea-admin/contracts';
 import { validateMaxLength, validatePrice, validateStatus } from '@/plugins/utils/validation.js';
+import { isDuplicateKeyError } from '@/plugins/utils/mysql-error.js';
 import type {
   ProductListRequest,
   CreateProductRequest,
@@ -165,24 +166,26 @@ export const productService = {
       throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
     }
 
+    // 校验标签本身是否存在（标签不存在时给出明确反馈）
     const existingTags = await productRepository.getTagsByIds(uniqueIds);
     if (existingTags.length !== uniqueIds.length) {
       throw new BizError(TagErrorCodes.TAG_NOT_FOUND);
     }
 
-    const existingBindings = await productRepository.getProductTagRelations(productId, uniqueIds);
-    const boundTagIds = new Set(existingBindings.map(r => r.tagId));
-    const toInsert = uniqueIds.filter(tid => !boundTagIds.has(tid));
-
-    if (toInsert.length === 0) {
-      throw new BizError(ProductErrorCodes.TAG_ALREADY_EXISTS);
+    // 唯一性由数据库复合主键 (product_id, tag_id) 保证：
+    // 写入失败即代表该标签已关联此商品，捕获唯一键冲突并给出明确反馈。
+    try {
+      await productRepository.insertProductTagRelations(
+        uniqueIds.map(tagId => ({ productId, tagId })),
+      );
+    } catch (err) {
+      if (isDuplicateKeyError(err)) {
+        throw new BizError(ProductErrorCodes.TAG_ALREADY_EXISTS);
+      }
+      throw err;
     }
 
-    await productRepository.insertProductTagRelations(
-      toInsert.map(tagId => ({ productId, tagId })),
-    );
-
-    return { boundCount: toInsert.length };
+    return { boundCount: uniqueIds.length };
   },
 
   // ─── 批量解绑标签 ─────────────────────────────────

@@ -186,18 +186,6 @@ export const productRepository = {
 
   // ─── 商品-标签关联 ────────────────────────────────
 
-  async getProductTagRelations(productId: number, tagIds: number[]) {
-    return db
-      .select({ tagId: productTagMapTable.tagId })
-      .from(productTagMapTable)
-      .where(
-        and(
-          eq(productTagMapTable.productId, productId),
-          inArray(productTagMapTable.tagId, tagIds),
-        ),
-      );
-  },
-
   async insertProductTagRelations(
     relations: { productId: number; tagId: number }[],
   ) {

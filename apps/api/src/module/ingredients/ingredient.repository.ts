@@ -161,36 +161,6 @@ export const ingredientRepository = {
     return { items, total, page, pageSize };
   },
 
-  async getOptionById(optionId: number) {
-    const rows = await db
-      .select()
-      .from(customizationOptionsTable)
-      .where(eq(customizationOptionsTable.id, optionId))
-      .limit(1);
-    return rows[0] ?? null;
-  },
-
-  async bindOption(optionId: number, ingredientId: number, quantity: number) {
-    await db
-      .update(customizationOptionsTable)
-      .set({ ingredientId, ingredientQuantity: quantity })
-      .where(eq(customizationOptionsTable.id, optionId));
-  },
-
-  async updateOptionQuantity(optionId: number, quantity: number) {
-    await db
-      .update(customizationOptionsTable)
-      .set({ ingredientQuantity: quantity })
-      .where(eq(customizationOptionsTable.id, optionId));
-  },
-
-  async unbindOption(optionId: number) {
-    await db
-      .update(customizationOptionsTable)
-      .set({ ingredientId: null, ingredientQuantity: 0 })
-      .where(eq(customizationOptionsTable.id, optionId));
-  },
-
   // ──── 选项列表（供 SelectPicker） ────
 
   async getIngredientOptionSelectList() {

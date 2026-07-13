@@ -80,9 +80,6 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
     }
   }
 
-  // 已绑标签 ID 集合（供 AddTagDialog 排除已选项）
-  const existingTagIds = tags.map((t) => t.id)
-
   return (
     <>
       <DataTable
@@ -127,7 +124,6 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
         open={addTagDialogOpen}
         onOpenChange={setAddTagDialogOpen}
         productId={productId}
-        existingTagIds={existingTagIds}
         onAdded={() => fetchTags(page)}
       />
 

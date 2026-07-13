@@ -18,7 +18,8 @@ import { TabsContent } from "@/components/ui/tabs"
 import { DetailTabs } from "@/components/layout/DetailLayout"
 import { getIngredient } from "@/api"
 import BasicInfoPanel from "./components/BasicInfoPanel"
-import CustomizationOptionBindingPanel from "./components/CustomizationOptionBindingPanel"
+import RelatedProductPanel from "./components/RelatedProductPanel"
+import RelatedCustomizationOptionPanel from "./components/RelatedCustomizationOptionPanel"
 
 export default function IngredientDetailPage() {
   const navigate = useNavigate()
@@ -91,15 +92,20 @@ export default function IngredientDetailPage() {
             className="flex flex-col"
             tabs={[
               { value: "basic", label: "基础信息" },
-              { value: "customization", label: "客制化选项绑定" },
+              { value: "products", label: "关联商品" },
+              { value: "customization", label: "关联客制化选项" },
             ]}
           >
             <TabsContent value="basic" className="mt-6 gap-6">
               {ingredientId && <BasicInfoPanel ingredientId={ingredientId} />}
             </TabsContent>
 
+            <TabsContent value="products" className="mt-6">
+              {ingredientId && <RelatedProductPanel ingredientId={ingredientId} unit={ingredient.unit} />}
+            </TabsContent>
+
             <TabsContent value="customization" className="mt-6">
-              {ingredientId && <CustomizationOptionBindingPanel ingredientId={ingredientId} unit={ingredient.unit} />}
+              {ingredientId && <RelatedCustomizationOptionPanel ingredientId={ingredientId} unit={ingredient.unit} />}
             </TabsContent>
           </DetailTabs>
         </div>

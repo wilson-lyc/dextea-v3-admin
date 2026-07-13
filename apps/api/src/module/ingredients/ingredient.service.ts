@@ -2,14 +2,11 @@ import { BizError } from '@/common/exceptions/index.js';
 import { IngredientErrorCodes } from './ingredient.errorcode.js';
 import { ingredientRepository } from './ingredient.repository.js';
 import { INGREDIENT_STATUS_VALUES } from '@dextea-admin/contracts';
-import { withDistributedLock } from '@/plugins/utils/distributed-lock.js';
 import type {
   IngredientListRequest,
   CreateIngredientRequest,
   UpdateIngredientRequest,
   UpdateIngredientStatusRequest,
-  BindOptionRequest,
-  UpdateOptionQuantityRequest,
 } from '@dextea-admin/contracts';
 
 export const ingredientService = {
@@ -106,71 +103,8 @@ export const ingredientService = {
     return ingredientRepository.getIngredientOptionList(ingredientId, page, pageSize);
   },
 
-  async bindOption(ingredientId: number, input: BindOptionRequest) {
-    const { optionId, quantity } = input;
-
-    const ingredient = await ingredientRepository.getIngredientById(ingredientId);
-    if (!ingredient) {
-      throw new BizError(IngredientErrorCodes.INGREDIENT_NOT_FOUND);
-    }
-
-    const option = await ingredientRepository.getOptionById(optionId);
-    if (!option) {
-      throw new BizError(IngredientErrorCodes.OPTION_NOT_FOUND);
-    }
-
-    // 与客制化选项侧共用同一把锁，保证双向绑定写入互斥、避免并发写竞争。
-    // 客制化选项只能绑定到一个原料：已绑定的（无论绑定到哪个原料）均拒绝重复绑定，
-    // 提示「已绑定」；如需调整用量请走更新用量接口。
-    const persist = async () => {
-      const fresh = await ingredientRepository.getOptionById(optionId);
-      if (!fresh) {
-        throw new BizError(IngredientErrorCodes.OPTION_NOT_FOUND);
-      }
-      if (fresh.ingredientId != null) {
-        throw new BizError(IngredientErrorCodes.OPTION_ALREADY_BOUND);
-      }
-      await ingredientRepository.bindOption(optionId, ingredientId, quantity ?? 0);
-    };
-
-    return withDistributedLock(`customization-option:bind:${optionId}`, persist);
-  },
-
-  async updateOptionQuantity(ingredientId: number, optionId: number, input: UpdateOptionQuantityRequest) {
-    const { quantity } = input;
-
-    const option = await ingredientRepository.getOptionById(optionId);
-    if (!option || option.ingredientId !== ingredientId) {
-      throw new BizError(IngredientErrorCodes.OPTION_BIND_NOT_FOUND);
-    }
-
-    const persist = async () => {
-      const fresh = await ingredientRepository.getOptionById(optionId);
-      if (!fresh || fresh.ingredientId !== ingredientId) {
-        throw new BizError(IngredientErrorCodes.OPTION_BIND_NOT_FOUND);
-      }
-      await ingredientRepository.updateOptionQuantity(optionId, quantity);
-    };
-
-    return withDistributedLock(`customization-option:bind:${optionId}`, persist);
-  },
-
-  async unbindOption(ingredientId: number, optionId: number) {
-    const option = await ingredientRepository.getOptionById(optionId);
-    if (!option || option.ingredientId !== ingredientId) {
-      throw new BizError(IngredientErrorCodes.OPTION_BIND_NOT_FOUND);
-    }
-
-    const persist = async () => {
-      const fresh = await ingredientRepository.getOptionById(optionId);
-      if (!fresh || fresh.ingredientId !== ingredientId) {
-        throw new BizError(IngredientErrorCodes.OPTION_BIND_NOT_FOUND);
-      }
-      await ingredientRepository.unbindOption(optionId);
-    };
-
-    return withDistributedLock(`customization-option:bind:${optionId}`, persist);
-  },
+  // 原料侧仅保留客制化选项绑定的只读查询；绑定 / 更新用量 / 解绑能力
+  // 已统一收敛到客制化选项侧（updateOption），避免双向写入竞争。
 
   // ──── 选项列表（供 SelectPicker） ────
 

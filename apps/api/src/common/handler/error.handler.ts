@@ -14,7 +14,10 @@ export function globalErrorHandler(
 ) {
   // 业务异常（含鉴权 401）
   if (error instanceof BizError) {
-    return reply.status(error.httpStatus).send(
+    // 业务错误统一以 HTTP 200 返回，错误语义由响应体 code 承载，
+    // 前端据此在成功回调中区分成败。仅鉴权类（401）保留原状态码以触发登录跳转。
+    const status = error.httpStatus === 401 ? 401 : 200;
+    return reply.status(status).send(
       ApiResponse.error(error.code, error.message),
     );
   }

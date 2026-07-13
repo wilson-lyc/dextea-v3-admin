@@ -12,19 +12,12 @@ import {
   UpdateIngredientResponseSchema,
   UpdateIngredientStatusRequestSchema,
   IngredientOptionListResponseSchema,
-  BindOptionRequestSchema,
-  UpdateOptionQuantityRequestSchema,
   IngredientOptionSelectListResponseSchema,
   IngredientProductListResponseSchema,
 } from '@dextea-admin/contracts';
 
 const ParamsWithId = z.object({
   id: z.coerce.number().int().positive('ID 必须为正整数'),
-});
-
-const ParamsWithIdAndOptionId = z.object({
-  id: z.coerce.number().int().positive('原料ID 必须为正整数'),
-  optionId: z.coerce.number().int().positive('客制化选项ID 必须为正整数'),
 });
 
 const PaginatedQuerySchema = z.object({
@@ -188,59 +181,6 @@ export const registerIngredientRoutes: FastifyPluginAsyncZod = async (app) => {
     },
   );
 
-  // 将客制化选项绑定到原料
-  app.post(
-    '/ingredients/:id/customization-options',
-    {
-      schema: {
-        tags: ['Ingredients'],
-        description: '将客制化选项绑定到原料',
-        params: ParamsWithId,
-        body: BindOptionRequestSchema,
-        response: { 200: ApiResponseSchema(z.null()).describe('绑定成功') },
-        security: [{ bearerAuth: [] }],
-      },
-    },
-    async (request, _reply) => {
-      await ingredientService.bindOption(request.params.id, request.body);
-      return ApiResponse.success(null, '绑定成功');
-    },
-  );
-
-  // 更新客制化选项用量
-  app.patch(
-    '/ingredients/:id/customization-options/:optionId/quantity',
-    {
-      schema: {
-        tags: ['Ingredients'],
-        description: '更新客制化选项用量',
-        params: ParamsWithIdAndOptionId,
-        body: UpdateOptionQuantityRequestSchema,
-        response: { 200: ApiResponseSchema(z.null()).describe('更新用量成功') },
-        security: [{ bearerAuth: [] }],
-      },
-    },
-    async (request, _reply) => {
-      await ingredientService.updateOptionQuantity(request.params.id, request.params.optionId, request.body);
-      return ApiResponse.success(null, '更新用量成功');
-    },
-  );
-
-  // 解绑客制化选项
-  app.delete(
-    '/ingredients/:id/customization-options/:optionId',
-    {
-      schema: {
-        tags: ['Ingredients'],
-        description: '解绑客制化选项',
-        params: ParamsWithIdAndOptionId,
-        response: { 200: ApiResponseSchema(z.null()).describe('解绑成功') },
-        security: [{ bearerAuth: [] }],
-      },
-    },
-    async (request, _reply) => {
-      await ingredientService.unbindOption(request.params.id, request.params.optionId);
-      return ApiResponse.success(null, '解绑成功');
-    },
-  );
+  // 将客制化选项绑定到原料的能力已移至客制化选项侧（updateOption），
+  // 原料侧仅保留只读查询，不允许写入 / 更新用量 / 解绑。
 };

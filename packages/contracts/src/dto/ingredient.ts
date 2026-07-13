@@ -69,17 +69,6 @@ export type IngredientOption = z.infer<typeof IngredientOptionSchema>;
 export const IngredientOptionListResponseSchema = PaginatedDataSchema(IngredientOptionSchema);
 export type IngredientOptionListResponse = z.infer<typeof IngredientOptionListResponseSchema>;
 
-export const BindOptionRequestSchema = z.object({
-  optionId: z.number(),
-  quantity: z.number().min(0, '用量不能为负数').optional(),
-});
-export type BindOptionRequest = z.infer<typeof BindOptionRequestSchema>;
-
-export const UpdateOptionQuantityRequestSchema = z.object({
-  quantity: z.number().min(0, '用量不能为负数'),
-});
-export type UpdateOptionQuantityRequest = z.infer<typeof UpdateOptionQuantityRequestSchema>;
-
 /** 原料选项列表（供 SelectPicker 使用） */
 export const IngredientOptionSelectSchema = z.object({
   label: z.string(),

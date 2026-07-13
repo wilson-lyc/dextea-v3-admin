@@ -28,11 +28,10 @@ interface AddTagDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   productId: number
-  existingTagIds: number[]
   onAdded: () => void
 }
 
-export function AddTagDialog({ open, onOpenChange, productId, existingTagIds, onAdded }: AddTagDialogProps) {
+export function AddTagDialog({ open, onOpenChange, productId, onAdded }: AddTagDialogProps) {
   const [allTags, setAllTags] = useState<ProductTag[]>([])
   const [selectedTagId, setSelectedTagId] = useState<string>("")
   const [submitting, setSubmitting] = useState(false)
@@ -52,8 +51,6 @@ export function AddTagDialog({ open, onOpenChange, productId, existingTagIds, on
       toast.error(err instanceof Error ? err.message : "获取标签列表失败")
     }
   }
-
-  const availableTags = allTags.filter((t) => !existingTagIds.includes(t.id))
 
   const selectedLabel = selectedTagId
     ? allTags.find((t) => String(t.id) === selectedTagId)?.name
@@ -93,12 +90,12 @@ export function AddTagDialog({ open, onOpenChange, productId, existingTagIds, on
                 <SelectValue placeholder="请选择标签">{selectedLabel}</SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {availableTags.length === 0 ? (
+                {allTags.length === 0 ? (
                   <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                    暂无可绑定的标签
+                    暂无标签
                   </div>
                 ) : (
-                  availableTags.map((t) => (
+                  allTags.map((t) => (
                     <SelectItem key={t.id} value={String(t.id)}>
                       {t.name}
                     </SelectItem>

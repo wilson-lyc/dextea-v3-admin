@@ -18,6 +18,9 @@ export type {
   CreateIngredientResponse,
   UpdateIngredientRequest,
   UpdateIngredientResponse,
+  IngredientOption,
+  IngredientOptionSelect,
+  IngredientProduct,
 } from "@dextea-admin/contracts"
 
 const http = createModuleClient("ingredient")
@@ -98,7 +101,7 @@ export function getIngredientBoundProducts(
 }
 
 /**
- * 获取原料绑定的客制化选项
+ * 获取原料绑定的客制化选项（只读）
  * GET /ingredients/:id/customization-options
  */
 export function getIngredientBoundOptions(
@@ -109,44 +112,5 @@ export function getIngredientBoundOptions(
     .get<ApiResponse<PaginatedData<IngredientOption>>>(`/ingredients/${ingredientId}/customization-options`, {
       params,
     })
-    .then((res) => res.data)
-}
-
-/**
- * 绑定客制化选项到原料
- * POST /ingredients/:id/customization-options
- */
-export function bindOptionToIngredient(ingredientId: number, optionId: number, quantity: number) {
-  return http
-    .post<ApiResponse<null>>(`/ingredients/${ingredientId}/customization-options`, {
-      optionId,
-      quantity,
-    })
-    .then((res) => res.data)
-}
-
-/**
- * 更新原料绑定选项用量
- * PATCH /ingredients/:id/customization-options/:optionId/quantity
- */
-export function updateIngredientOptionQuantity(
-  ingredientId: number,
-  optionId: number,
-  quantity: number,
-) {
-  return http
-    .patch<ApiResponse<null>>(`/ingredients/${ingredientId}/customization-options/${optionId}/quantity`, {
-      quantity,
-    })
-    .then((res) => res.data)
-}
-
-/**
- * 解绑客制化选项与原料
- * DELETE /ingredients/:id/customization-options/:optionId
- */
-export function unbindOptionFromIngredient(ingredientId: number, optionId: number) {
-  return http
-    .delete<ApiResponse<null>>(`/ingredients/${ingredientId}/customization-options/${optionId}`)
     .then((res) => res.data)
 }

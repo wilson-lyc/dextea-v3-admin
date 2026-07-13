@@ -12,11 +12,4 @@ export const IngredientErrorCodes = {
   CREATE_FAILED: { code: 11005, message: '创建原料失败' },
   UPDATE_FAILED: { code: 11006, message: '更新原料失败' },
   STATUS_UPDATE_FAILED: { code: 11007, message: '更新原料状态失败' },
-  OPTION_ALREADY_BOUND: { code: 11015, message: '该客制化选项已绑定，请勿重复绑定' },
-  OPTION_BIND_NOT_FOUND: { code: 11016, message: '客制化选项绑定关系不存在' },
-  OPTION_NOT_FOUND: { code: 11017, message: '客制化选项不存在' },
-  OPTION_BIND_LIST_FAILED: { code: 11018, message: '获取绑定的客制化选项列表失败' },
-  OPTION_BIND_FAILED: { code: 11019, message: '绑定客制化选项失败' },
-  OPTION_QUANTITY_UPDATE_FAILED: { code: 11020, message: '更新客制化选项用量失败' },
-  OPTION_UNBIND_FAILED: { code: 11021, message: '解绑客制化选项失败' },
 } as const satisfies Record<string, BizErrorCode>;
