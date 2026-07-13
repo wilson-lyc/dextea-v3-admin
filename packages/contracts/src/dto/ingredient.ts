@@ -57,29 +57,6 @@ export type UpdateIngredientResponse = z.infer<typeof UpdateIngredientResponseSc
 export const UpdateIngredientStatusRequestSchema = z.object({ status: z.number() });
 export type UpdateIngredientStatusRequest = z.infer<typeof UpdateIngredientStatusRequestSchema>;
 
-/** 原料绑定商品 */
-export const IngredientProductSchema = z.object({
-  productId: z.number(),
-  productName: z.string(),
-  quantity: z.number(),
-  sort: z.number(),
-});
-export type IngredientProduct = z.infer<typeof IngredientProductSchema>;
-
-export const IngredientProductListResponseSchema = PaginatedDataSchema(IngredientProductSchema);
-export type IngredientProductListResponse = z.infer<typeof IngredientProductListResponseSchema>;
-
-export const BindProductRequestSchema = z.object({
-  productId: z.number(),
-  quantity: z.number().min(0, '用量不能为负数').optional(),
-});
-export type BindProductRequest = z.infer<typeof BindProductRequestSchema>;
-
-export const UpdateBindQuantityRequestSchema = z.object({
-  quantity: z.number().min(0, '用量不能为负数'),
-});
-export type UpdateBindQuantityRequest = z.infer<typeof UpdateBindQuantityRequestSchema>;
-
 /** 原料绑定客制化选项 */
 export const IngredientOptionSchema = z.object({
   optionId: z.number(),
@@ -113,3 +90,15 @@ export type IngredientOptionSelect = z.infer<typeof IngredientOptionSelectSchema
 
 export const IngredientOptionSelectListResponseSchema = z.array(IngredientOptionSelectSchema);
 export type IngredientOptionSelectListResponse = IngredientOptionSelect[];
+
+/** 原料绑定的商品（只读查询，不允许原料侧写入） */
+export const IngredientProductSchema = z.object({
+  productId: z.number(),
+  productName: z.string(),
+  quantity: z.number(),
+  sort: z.number(),
+});
+export type IngredientProduct = z.infer<typeof IngredientProductSchema>;
+
+export const IngredientProductListResponseSchema = PaginatedDataSchema(IngredientProductSchema);
+export type IngredientProductListResponse = z.infer<typeof IngredientProductListResponseSchema>;

@@ -6,9 +6,9 @@ import type {
   CreateIngredientResponse,
   UpdateIngredientRequest,
   UpdateIngredientResponse,
-  IngredientProduct,
   IngredientOption,
   IngredientOptionSelect,
+  IngredientProduct,
 } from "@dextea-admin/contracts"
 
 // ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
@@ -70,10 +70,20 @@ export function toggleIngredientStatus(id: number, status: IngredientStatus) {
     .then((res) => res.data)
 }
 
-// ──── 商品绑定 ────
+/**
+ * 获取原料选项列表
+ * GET /ingredients/options
+ */
+export function getIngredientOptions() {
+  return http
+    .get<ApiResponse<IngredientOptionSelect[]>>("/ingredients/options")
+    .then((res) => res.data)
+}
+
+// ──── 客制化选项绑定 ────
 
 /**
- * 获取原料绑定的商品列表
+ * 获取绑定到该原料的商品列表（只读）
  * GET /ingredients/:id/products
  */
 export function getIngredientBoundProducts(
@@ -86,54 +96,6 @@ export function getIngredientBoundProducts(
     })
     .then((res) => res.data)
 }
-
-/**
- * 绑定商品到原料
- * POST /ingredients/:id/products
- */
-export function bindProductToIngredient(ingredientId: number, productId: number, quantity: number) {
-  return http
-    .post<ApiResponse<null>>(`/ingredients/${ingredientId}/products`, { productId, quantity })
-    .then((res) => res.data)
-}
-
-/**
- * 更新原料绑定商品用量
- * PATCH /ingredients/:id/products/:productId/quantity
- */
-export function updateIngredientProductQuantity(
-  ingredientId: number,
-  productId: number,
-  quantity: number,
-) {
-  return http
-    .patch<ApiResponse<null>>(`/ingredients/${ingredientId}/products/${productId}/quantity`, {
-      quantity,
-    })
-    .then((res) => res.data)
-}
-
-/**
- * 解绑商品与原料
- * DELETE /ingredients/:id/products/:productId
- */
-export function unbindProductFromIngredient(ingredientId: number, productId: number) {
-  return http
-    .delete<ApiResponse<null>>(`/ingredients/${ingredientId}/products/${productId}`)
-    .then((res) => res.data)
-}
-
-/**
- * 获取原料选项列表
- * GET /ingredients/options
- */
-export function getIngredientOptions() {
-  return http
-    .get<ApiResponse<IngredientOptionSelect[]>>("/ingredients/options")
-    .then((res) => res.data)
-}
-
-// ──── 客制化选项绑定 ────
 
 /**
  * 获取原料绑定的客制化选项

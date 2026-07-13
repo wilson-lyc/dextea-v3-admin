@@ -8,8 +8,6 @@ import type {
   CreateIngredientRequest,
   UpdateIngredientRequest,
   UpdateIngredientStatusRequest,
-  BindProductRequest,
-  UpdateBindQuantityRequest,
   BindOptionRequest,
   UpdateOptionQuantityRequest,
 } from '@dextea-admin/contracts';
@@ -86,7 +84,7 @@ export const ingredientService = {
     return (await ingredientRepository.getIngredientById(id))!;
   },
 
-  // ──── 商品绑定 ────
+  // ──── 绑定商品（只读查询） ────
 
   async getIngredientProductList(ingredientId: number, page: number, pageSize: number) {
     const ingredient = await ingredientRepository.getIngredientById(ingredientId);
@@ -95,42 +93,6 @@ export const ingredientService = {
     }
 
     return ingredientRepository.getIngredientProductList(ingredientId, page, pageSize);
-  },
-
-  async bindProduct(ingredientId: number, input: BindProductRequest) {
-    const { productId, quantity } = input;
-
-    const ingredient = await ingredientRepository.getIngredientById(ingredientId);
-    if (!ingredient) {
-      throw new BizError(IngredientErrorCodes.INGREDIENT_NOT_FOUND);
-    }
-
-    const product = await ingredientRepository.getProductById(productId);
-    if (!product) {
-      throw new BizError(IngredientErrorCodes.PRODUCT_NOT_FOUND);
-    }
-
-    const existingBind = await ingredientRepository.getBindRecord(ingredientId, productId);
-    if (existingBind) {
-      throw new BizError(IngredientErrorCodes.PRODUCT_ALREADY_BOUND);
-    }
-
-    await ingredientRepository.bindProduct(ingredientId, productId, quantity ?? 0);
-  },
-
-  async updateBindQuantity(ingredientId: number, productId: number, input: UpdateBindQuantityRequest) {
-    const { quantity } = input;
-
-    const existingBind = await ingredientRepository.getBindRecord(ingredientId, productId);
-    if (!existingBind) {
-      throw new BizError(IngredientErrorCodes.BIND_NOT_FOUND);
-    }
-
-    await ingredientRepository.updateBindQuantity(ingredientId, productId, quantity);
-  },
-
-  async unbindProduct(ingredientId: number, productId: number) {
-    await ingredientRepository.unbindProduct(ingredientId, productId);
   },
 
   // ──── 客制化选项绑定 ────

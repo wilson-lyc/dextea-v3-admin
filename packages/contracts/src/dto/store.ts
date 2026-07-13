@@ -1,5 +1,6 @@
 import { z } from 'zod/v4';
 import { PaginatedDataSchema } from '../common/pagination.js';
+import { STORE_STATUS_VALUES, type StoreStatus } from '../status/store.js';
 
 /** 门店实体 */
 export const StoreSchema = z.object({
@@ -23,6 +24,18 @@ export const StoreSchema = z.object({
   updatedAt: z.string(),
 });
 export type Store = z.infer<typeof StoreSchema>;
+
+/**
+ * 门店状态校验 Schema
+ * 合法性完全由契约包中的 STORE_STATUS_VALUES 决定，保证「单一真源」：
+ * 新增/调整状态时只需改动 status/store.ts，无需同步此处。
+ */
+export const StoreStatusSchema = z
+  .number()
+  .refine((v) => STORE_STATUS_VALUES.includes(v as StoreStatus), {
+    message: '门店状态值不合法',
+  });
+export type StoreStatusValue = z.infer<typeof StoreStatusSchema>;
 
 /** 获取门店列表 */
 export const StoreListRequestSchema = z.object({
@@ -64,7 +77,7 @@ export const UpdateStoreRequestSchema = z.object({
   name: z.string().min(1, '门店名称不能为空'),
   regionCode: z.string().optional(),
   address: z.string().optional(),
-  status: z.number().optional(),
+  status: StoreStatusSchema.optional(),
   businessHours: z.string().optional(),
   phone: z.string().optional(),
   longitude: z.number().optional(),
@@ -107,7 +120,7 @@ export type UpdateStoreLocationResponse = z.infer<typeof UpdateStoreLocationResp
 
 /** 更新门店状态 */
 export const UpdateStoreStatusRequestSchema = z.object({
-  status: z.number(),
+  status: StoreStatusSchema,
 });
 export type UpdateStoreStatusRequest = z.infer<typeof UpdateStoreStatusRequestSchema>;
 

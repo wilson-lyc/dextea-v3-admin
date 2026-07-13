@@ -16,10 +16,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 const MIN_SHEET_WIDTH = 600
 const MAX_SHEET_WIDTH_RATIO = 0.9
 import {
-  Table,
   TableHeader,
   TableHead,
-  TableBody,
   TableRow,
   TableCell,
 } from "@/components/ui/table"
@@ -39,8 +37,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
-import { Spinner } from "@/components/ui/spinner"
-import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import DataTable from "@/components/ui/data-table"
 import { SelectPicker, type SelectOption } from "@/components/ui/select-picker"
 import { getMenuGroupProducts, bindMenuProduct, batchRemoveMenuProducts, updateMenuProductSort, getProductOptions } from "@/api"
 
@@ -293,30 +290,28 @@ export default function GroupProductsSheet({
         </div>
 
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="flex items-center gap-2">
-            <Button size="sm" onClick={openBindDialog}>
-              <LinkIcon data-icon="inline-start" />
-              绑定商品
-            </Button>
-            {selectedIds.size > 0 && (
-              <Button
-                variant="outline-destructive"
-                size="sm"
-                onClick={() => setBatchDeleteOpen(true)}
-              >
-                <Trash2Icon data-icon="inline-start" />
-                批量解绑（{selectedIds.size}）
-              </Button>
-            )}
-          </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Spinner className="size-6 text-muted-foreground" />
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
+          <DataTable
+            className="flex-1 min-h-0"
+            toolbarLeft={
+              <>
+                <Button size="sm" onClick={openBindDialog}>
+                  <LinkIcon data-icon="inline-start" />
+                  绑定商品
+                </Button>
+                {selectedIds.size > 0 && (
+                  <Button
+                    variant="outline-destructive"
+                    size="sm"
+                    onClick={() => setBatchDeleteOpen(true)}
+                  >
+                    <Trash2Icon data-icon="inline-start" />
+                    批量解绑（{selectedIds.size}）
+                  </Button>
+                )}
+              </>
+            }
+            header={
+              <TableHeader className="sticky top-0 z-50 bg-background">
                 <TableRow>
                   <TableHead className="w-10">
                     <Checkbox
@@ -334,71 +329,62 @@ export default function GroupProductsSheet({
                   <TableHead className="w-48 text-right">操作</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {products.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="h-48 text-center">
-                      <Empty>
-                        <EmptyMedia variant="icon">
-                          <PackageIcon className="size-4" />
-                        </EmptyMedia>
-                        <EmptyTitle>暂无商品</EmptyTitle>
-                      </Empty>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  products.map((p) => (
-                    <TableRow key={p.productId} data-state={selectedIds.has(p.productId) ? "selected" : undefined}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedIds.has(p.productId)}
-                          onCheckedChange={() => toggleSelect(p.productId)}
-                          aria-label={`选择商品 ${p.productName ?? p.productId}`}
-                        />
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">{p.productId}</TableCell>
-                      <TableCell>{p.productName ?? "-"}</TableCell>
-                      <TableCell className="font-mono text-xs">{p.price != null ? `¥ ${p.price.toFixed(2)}` : "-"}</TableCell>
-                      <TableCell>
-                        <span className={PRODUCT_STATUS_TEXT_CLASSES[p.status ?? -1] ?? ""}>
-                          {PRODUCT_STATUS_LABEL[p.status ?? -1] ?? "—"}
-                        </span>
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">{p.sortOrder}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate(`/products/${p.productId}`)}
-                          >
-                            <ExternalLinkIcon data-icon="inline-start" />
-                            查看商品
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openEditSort(p)}
-                          >
-                            <PencilIcon className="size-4" />
-                            修改排序
-                          </Button>
-                          <Button
-                            variant="outline-destructive"
-                            size="sm"
-                            onClick={() => openDeleteConfirm(p)}
-                          >
-                            <Trash2Icon data-icon="inline-start" />
-                            解绑
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          )}
+            }
+            body={products.map((p) => (
+              <TableRow key={p.productId} data-state={selectedIds.has(p.productId) ? "selected" : undefined}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedIds.has(p.productId)}
+                    onCheckedChange={() => toggleSelect(p.productId)}
+                    aria-label={`选择商品 ${p.productName ?? p.productId}`}
+                  />
+                </TableCell>
+                <TableCell className="font-mono text-xs">{p.productId}</TableCell>
+                <TableCell>{p.productName ?? "-"}</TableCell>
+                <TableCell className="font-mono text-xs">{p.price != null ? `¥ ${p.price.toFixed(2)}` : "-"}</TableCell>
+                <TableCell>
+                  <span className={PRODUCT_STATUS_TEXT_CLASSES[p.status ?? -1] ?? ""}>
+                    {PRODUCT_STATUS_LABEL[p.status ?? -1] ?? "—"}
+                  </span>
+                </TableCell>
+                <TableCell className="font-mono text-xs">{p.sortOrder}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/products/${p.productId}`)}
+                    >
+                      <ExternalLinkIcon data-icon="inline-start" />
+                      查看商品
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditSort(p)}
+                    >
+                      <PencilIcon className="size-4" />
+                      修改排序
+                    </Button>
+                    <Button
+                      variant="outline-destructive"
+                      size="sm"
+                      onClick={() => openDeleteConfirm(p)}
+                    >
+                      <Trash2Icon data-icon="inline-start" />
+                      解绑
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+            loading={loading}
+            isEmpty={products.length === 0}
+            colSpan={7}
+            hideRefresh
+            emptyIcon={<PackageIcon className="size-4" />}
+            emptyText="暂无商品"
+          />
         </div>
 
         {/* 绑定商品对话框 */}

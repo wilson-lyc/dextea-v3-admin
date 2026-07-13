@@ -6,7 +6,7 @@ import { redis } from '@/plugins/db/redis/index.js';
 import { geocode } from '@/plugins/utils/geocode.js';
 import { codeToNames } from '@/plugins/utils/area-code.js';
 import { hashPassword } from '@/plugins/utils/password.js';
-import { STORE_STATUS, STORE_STATUS_VALUES } from '@dextea-admin/contracts';
+import { STORE_STATUS } from '@dextea-admin/contracts';
 import type { StoreListRequest, CreateStoreRequest, UpdateStoreRequest, UpdateStoreBasicInfoRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest, BindStoreMenuRequest } from '@dextea-admin/contracts';
 
 export const storeService = {
@@ -132,10 +132,6 @@ export const storeService = {
 
   async updateStoreStatus(id: number, input: UpdateStoreStatusRequest) {
     const { status } = input;
-
-    if (!STORE_STATUS_VALUES.includes(status as 0 | 1 | 2 | 3)) {
-      throw new BizError(StoreErrorCodes.INVALID_STATUS);
-    }
 
     const store = await storeRepository.getStoreById(id);
     if (!store) {

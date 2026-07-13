@@ -4,7 +4,7 @@ import { EmployeeErrorCodes } from './employees.errorcode.js';
 import { employeeRepository } from './employees.repository.js';
 import { validateEmail, validateMaxLength } from '@/plugins/utils/validation.js';
 import { hashPassword } from '@/plugins/utils/password.js';
-import { EMPLOYEE_STATUS } from '@dextea-admin/contracts';
+import { EMPLOYEE_STATUS, EMPLOYEE_STATUS_VALUES } from '@dextea-admin/contracts';
 import type { GetEmployeeListRequest, CreateEmployeeRequest, UpdateEmployeeRequest } from '@dextea-admin/contracts';
 
 export const employeeService = {
@@ -60,20 +60,19 @@ export const employeeService = {
     return { id, email, displayName };
   },
 
-  async updateEmployeeStatus(id: number) {
+  async updateEmployeeStatus(id: number, status: number) {
+    if (!(EMPLOYEE_STATUS_VALUES as readonly number[]).includes(status)) {
+      throw new BizError(EmployeeErrorCodes.INVALID_STATUS);
+    }
+
     const employee = await employeeRepository.getEmployeeById(id);
     if (!employee) {
       throw new BizError(EmployeeErrorCodes.EMPLOYEE_NOT_FOUND);
     }
 
-    const newStatus =
-      employee.status === EMPLOYEE_STATUS.DISABLED.value
-        ? EMPLOYEE_STATUS.ACTIVE.value
-        : EMPLOYEE_STATUS.DISABLED.value;
+    await employeeRepository.updateEmployeeStatusById(id, status);
 
-    await employeeRepository.updateEmployeeStatusById(id, newStatus);
-
-    return { email: employee.email, status: newStatus };
+    return { email: employee.email, status };
   },
 
   async resetEmployeePassword(id: number) {

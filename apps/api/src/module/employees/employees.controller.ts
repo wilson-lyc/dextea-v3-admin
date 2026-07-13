@@ -9,6 +9,7 @@ import {
   CreateEmployeeResponseSchema,
   UpdateEmployeeRequestSchema,
   UpdateEmployeeResponseSchema,
+  UpdateEmployeeStatusRequestSchema,
   ToggleEmployeeStatusResponseSchema,
   ResetEmployeePasswordResponseSchema,
 } from '@dextea-admin/contracts';
@@ -76,13 +77,14 @@ export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
         tags: ['Employees'],
         description: '启用或禁用员工',
         params: z.object({ id: z.coerce.number().int().positive('ID 必须为正整数') }),
+        body: UpdateEmployeeStatusRequestSchema,
         response: {
           200: ApiResponseSchema(ToggleEmployeeStatusResponseSchema).describe('操作结果'),
         },
       },
     },
     async (request, _reply) => {
-      const data = await employeeService.updateEmployeeStatus(request.params.id);
+      const data = await employeeService.updateEmployeeStatus(request.params.id, request.body.status);
       return ApiResponse.success(data);
     },
   );

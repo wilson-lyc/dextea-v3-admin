@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { PlusIcon, Trash2Icon, LayersIcon, ListIcon, RotateCwIcon } from "lucide-react"
+import { PlusIcon, Trash2Icon, LayersIcon, ListIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { MenuGroup } from "@/api"
@@ -20,15 +20,12 @@ import {
 } from "@/components/ui/dialog"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 import {
-  Table,
   TableHeader,
   TableHead,
-  TableBody,
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-import { Spinner } from "@/components/ui/spinner"
-import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import DataTable from "@/components/ui/data-table"
 import { getMenuGroups, createMenuGroup, deleteMenuGroup } from "@/api"
 import GroupProductsSheet from "./GroupProductsSheet"
 
@@ -176,30 +173,26 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
   }
 
   return (
-    <div className="flex h-full flex-col gap-4 flex-1">
-      <div className="flex shrink-0 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Button onClick={openCreateDialog}>
-            <PlusIcon data-icon="inline-start" />
-            新增分组
-          </Button>
-          <Button variant="outline" size="icon" onClick={() => fetchGroups()} disabled={loading}>
-            <RotateCwIcon className="size-4" />
-          </Button>
-        </div>
-        {selectedIds.size > 0 && (
-          <Button
-            variant="outline-destructive"
-            onClick={() => setBatchDeleteOpen(true)}
-          >
-            <Trash2Icon data-icon="inline-start" />
-            批量删除（{selectedIds.size}）
-          </Button>
-        )}
-      </div>
-
-      <div className="flex flex-1 flex-col overflow-auto rounded-lg border">
-        <Table className={`${(groups.length === 0 || loading) ? "flex-1" : ""}`}>
+    <>
+      <DataTable
+        toolbarLeft={
+          <>
+            <Button onClick={openCreateDialog}>
+              <PlusIcon data-icon="inline-start" />
+              新增分组
+            </Button>
+            {selectedIds.size > 0 && (
+              <Button
+                variant="outline-destructive"
+                onClick={() => setBatchDeleteOpen(true)}
+              >
+                <Trash2Icon data-icon="inline-start" />
+                批量删除（{selectedIds.size}）
+              </Button>
+            )}
+          </>
+        }
+        header={
           <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
               <TableHead className="w-10">
@@ -216,71 +209,49 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
               <TableHead className="w-48 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
-          {loading ? (
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={5} className="h-96">
-                  <div className="flex items-center justify-center">
-                    <Spinner className="size-6 text-muted-foreground" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          ) : groups.length === 0 ? (
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={5} className="h-96">
-                  <div className="flex items-center justify-center">
-                    <Empty>
-                      <EmptyMedia variant="icon">
-                        <LayersIcon className="size-4" />
-                      </EmptyMedia>
-                      <EmptyTitle>暂无分组</EmptyTitle>
-                    </Empty>
-                  </div>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          ) : (
-            <TableBody>
-              {groups.map((group) => (
-                <TableRow key={group.id} data-state={selectedIds.has(group.id) ? "selected" : undefined}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedIds.has(group.id)}
-                      onCheckedChange={() => toggleSelect(group.id)}
-                      aria-label={`选择分组 ${group.name}`}
-                    />
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">{group.id}</TableCell>
-                  <TableCell>{group.name}</TableCell>
-                  <TableCell>{group.productCount ?? 0}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openProductsSheet(group)}
-                      >
-                        <ListIcon data-icon="inline-start" />
-                        查看商品
-                      </Button>
-                      <Button
-                        variant="outline-destructive"
-                        size="sm"
-                        onClick={() => openDeleteDialog(group)}
-                      >
-                        <Trash2Icon data-icon="inline-start" />
-                        删除
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          )}
-        </Table>
-      </div>
+        }
+        body={groups.map((group) => (
+          <TableRow key={group.id} data-state={selectedIds.has(group.id) ? "selected" : undefined}>
+            <TableCell>
+              <Checkbox
+                checked={selectedIds.has(group.id)}
+                onCheckedChange={() => toggleSelect(group.id)}
+                aria-label={`选择分组 ${group.name}`}
+              />
+            </TableCell>
+            <TableCell className="font-mono text-xs">{group.id}</TableCell>
+            <TableCell>{group.name}</TableCell>
+            <TableCell>{group.productCount ?? 0}</TableCell>
+            <TableCell className="text-right">
+              <div className="flex items-center justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openProductsSheet(group)}
+                >
+                  <ListIcon data-icon="inline-start" />
+                  查看商品
+                </Button>
+                <Button
+                  variant="outline-destructive"
+                  size="sm"
+                  onClick={() => openDeleteDialog(group)}
+                >
+                  <Trash2Icon data-icon="inline-start" />
+                  删除
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+        loading={loading}
+        isEmpty={groups.length === 0}
+        colSpan={5}
+        onRefresh={fetchGroups}
+        refreshDisabled={loading}
+        emptyIcon={<LayersIcon className="size-4" />}
+        emptyText="暂无分组"
+      />
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent>
@@ -347,6 +318,6 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
           if (!open) fetchGroups()
         }}
       />
-    </div>
+    </>
   )
 }

@@ -6,7 +6,6 @@ import type { BizErrorCode } from '@/common/types';
 export const StoreErrorCodes = {
   NAME_REQUIRED: { code: 10300, message: '门店名称不能为空' },
   STORE_NOT_FOUND: { code: 10301, message: '门店不存在' },
-  INVALID_STATUS: { code: 10302, message: '无效的状态值' },
   LIST_FAILED: { code: 10303, message: '获取门店列表失败' },
   GET_FAILED: { code: 10304, message: '获取门店信息失败' },
   CREATE_FAILED: { code: 10305, message: '创建门店失败' },

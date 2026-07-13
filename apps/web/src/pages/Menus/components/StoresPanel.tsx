@@ -6,7 +6,6 @@ import {
   ExternalLinkIcon,
   MapPinIcon,
   PlusIcon,
-  RotateCwIcon,
   UnlinkIcon,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -22,16 +21,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  Table,
   TableHeader,
   TableHead,
-  TableBody,
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-import { Spinner } from "@/components/ui/spinner"
-import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import PaginationBar from "@/components/ui/pagination-bar"
+import DataTable from "@/components/ui/data-table"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 import DispatchByAreaDialog from "./DispatchByAreaDialog"
 import DispatchByIdDialog from "./DispatchByIdDialog"
@@ -120,11 +115,9 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
   }
 
   return (
-    <div className="flex h-full flex-col gap-4 flex-1">
-      {/* 顶部操作栏 */}
-      <div className="flex shrink-0 items-center justify-between">
-        <div className="flex items-center gap-2">
-          {/* 分发菜单下拉按钮 */}
+    <>
+      <DataTable
+        toolbarLeft={
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="outline" />}>
               <PlusIcon data-icon="inline-start" />
@@ -146,21 +139,8 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* 刷新按钮 */}
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => fetchData(page)}
-          >
-            <RotateCwIcon className="size-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* 表格 */}
-      <div className="flex flex-1 flex-col overflow-auto rounded-lg border">
-        <Table className={`${(stores.length === 0 || loading) ? "flex-1" : ""}`}>
+        }
+        header={
           <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
               <TableHead className="w-24">门店ID</TableHead>
@@ -172,82 +152,50 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
               <TableHead className="w-48 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
-          {loading ? (
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={7} className="h-96">
-                  <div className="flex items-center justify-center">
-                    <Spinner className="size-6 text-muted-foreground" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          ) : stores.length === 0 ? (
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={7} className="h-96">
-                  <div className="flex items-center justify-center">
-                    <Empty>
-                      <EmptyMedia variant="icon">
-                        <ClipboardListIcon className="size-4" />
-                      </EmptyMedia>
-                      <EmptyTitle>暂无关联门店</EmptyTitle>
-                    </Empty>
-                  </div>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          ) : (
-            <TableBody>
-              {stores.map((store) => (
-                <TableRow key={store.id}>
-                  <TableCell className="font-mono text-xs">{store.id}</TableCell>
-                  <TableCell className="max-w-48 truncate">{store.name}</TableCell>
-                  <TableCell>{store.province}</TableCell>
-                  <TableCell>{store.city}</TableCell>
-                  <TableCell>{store.district}</TableCell>
-                  <TableCell>
-                    <span className={STORE_STATUS_TEXT_CLASSES[store.status]}>
-                      {STORE_STATUS_LABEL[store.status]}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/stores/${store.id}`)}
-                      >
-                        <ExternalLinkIcon data-icon="inline-start" />
-                        查看门店
-                      </Button>
-                      <Button
-                        variant="outline-destructive"
-                        size="sm"
-                        onClick={() => handleUnbindClick(store)}
-                      >
-                        <UnlinkIcon data-icon="inline-start" />
-                        解绑
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          )}
-        </Table>
-      </div>
-
-      {/* 分页 */}
-      {stores.length > 0 && (
-        <PaginationBar
-          page={page}
-          pageSize={pageSize}
-          total={total}
-          onPageChange={fetchData}
-          className="shrink-0 justify-end"
-        />
-      )}
+        }
+        body={stores.map((store) => (
+          <TableRow key={store.id}>
+            <TableCell className="font-mono text-xs">{store.id}</TableCell>
+            <TableCell className="max-w-48 truncate">{store.name}</TableCell>
+            <TableCell>{store.province}</TableCell>
+            <TableCell>{store.city}</TableCell>
+            <TableCell>{store.district}</TableCell>
+            <TableCell>
+              <span className={STORE_STATUS_TEXT_CLASSES[store.status]}>
+                {STORE_STATUS_LABEL[store.status]}
+              </span>
+            </TableCell>
+            <TableCell className="text-right">
+              <div className="flex items-center justify-end gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/stores/${store.id}`)}
+                >
+                  <ExternalLinkIcon data-icon="inline-start" />
+                  查看门店
+                </Button>
+                <Button
+                  variant="outline-destructive"
+                  size="sm"
+                  onClick={() => handleUnbindClick(store)}
+                >
+                  <UnlinkIcon data-icon="inline-start" />
+                  解绑
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+        loading={loading}
+        isEmpty={stores.length === 0}
+        colSpan={7}
+        onRefresh={() => fetchData(page)}
+        refreshDisabled={loading}
+        emptyIcon={<ClipboardListIcon className="size-4" />}
+        emptyText="暂无关联门店"
+        pagination={{ page, pageSize, total, onPageChange: fetchData }}
+      />
 
       {/* 解绑确认弹窗 */}
       <ConfirmDialog
@@ -287,6 +235,6 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
         menuName={menuName}
         onDispatched={() => fetchData(1)}
       />
-    </div>
+    </>
   )
 }

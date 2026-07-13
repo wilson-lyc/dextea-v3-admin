@@ -54,12 +54,12 @@ export function updateEmployee(id: number, data: UpdateEmployeeRequest) {
 }
 
 /**
- * 启用/禁用员工
+ * 启用/禁用员工（指定目标状态）
  * PATCH /employees/:id/status
  */
-export function toggleEmployeeStatus(id: number) {
+export function toggleEmployeeStatus(id: number, status: number) {
   return http
-    .patch<ApiResponse<ToggleEmployeeStatusResponse>>(`/employees/${id}/status`)
+    .patch<ApiResponse<ToggleEmployeeStatusResponse>>(`/employees/${id}/status`, { status })
     .then((res) => res.data)
 }
 

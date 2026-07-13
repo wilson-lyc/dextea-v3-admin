@@ -188,7 +188,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                     setEditOpen(true)
                   }}
                 >
-                  编辑
+                  编辑项目
                 </Button>
                 <Button
                   variant="outline"
@@ -206,7 +206,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                   onClick={() => handleToggleStatus(item)}
                   disabled={togglingId === item.id}
                 >
-                  {item.status === CUSTOMIZATION_STATUS.DISABLED.value ? "转激活" : "转禁用"}
+                  {item.status === CUSTOMIZATION_STATUS.DISABLED.value ? "激活" : "禁用"}
                 </Button>
               </div>
             </TableCell>

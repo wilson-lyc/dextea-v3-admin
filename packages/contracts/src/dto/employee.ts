@@ -55,7 +55,12 @@ export const UpdateEmployeeResponseSchema = z.object({
 });
 export type UpdateEmployeeResponse = z.infer<typeof UpdateEmployeeResponseSchema>;
 
-/** 启用/禁用员工 */
+/** 启用/禁用员工（指定目标状态，后端按契约校验合法性） */
+export const UpdateEmployeeStatusRequestSchema = z.object({
+  status: z.number(),
+});
+export type UpdateEmployeeStatusRequest = z.infer<typeof UpdateEmployeeStatusRequestSchema>;
+
 export const ToggleEmployeeStatusResponseSchema = z.object({
   email: z.string(),
   status: z.number(),

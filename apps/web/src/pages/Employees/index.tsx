@@ -142,7 +142,11 @@ export default function EmployeesPage() {
     setConfirmDialogOpen(false)
     setConfirmEmployee(null)
     try {
-      const res = await toggleEmployeeStatus(employee.id)
+      const targetStatus =
+        employee.status === EMPLOYEE_STATUS.ACTIVE.value
+          ? EMPLOYEE_STATUS.DISABLED.value
+          : EMPLOYEE_STATUS.ACTIVE.value
+      const res = await toggleEmployeeStatus(employee.id, targetStatus)
       if (res.code === 0) {
         toast.success(res.message)
         setEmployees((prev) =>

@@ -95,7 +95,7 @@ export const ingredientRepository = {
       .where(eq(ingredientsTable.id, id));
   },
 
-  // ──── 商品绑定 ────
+  // ──── 绑定商品（只读查询） ────
 
   async getIngredientProductList(ingredientId: number, page: number, pageSize: number) {
     page = Math.max(1, page);
@@ -126,51 +126,6 @@ export const ingredientRepository = {
 
     const total = Number(countResult[0]?.count ?? 0);
     return { items, total, page, pageSize };
-  },
-
-  async getProductById(productId: number) {
-    const rows = await db
-      .select({ id: productsTable.id })
-      .from(productsTable)
-      .where(eq(productsTable.id, productId))
-      .limit(1);
-    return rows[0] ?? null;
-  },
-
-  async getBindRecord(ingredientId: number, productId: number) {
-    const rows = await db
-      .select()
-      .from(productIngredientsTable)
-      .where(
-        sql`${productIngredientsTable.productId} = ${productId} and ${productIngredientsTable.ingredientId} = ${ingredientId}`,
-      )
-      .limit(1);
-    return rows[0] ?? null;
-  },
-
-  async bindProduct(ingredientId: number, productId: number, quantity: number) {
-    await db.insert(productIngredientsTable).values({
-      productId,
-      ingredientId,
-      quantity,
-    });
-  },
-
-  async updateBindQuantity(ingredientId: number, productId: number, quantity: number) {
-    await db
-      .update(productIngredientsTable)
-      .set({ quantity })
-      .where(
-        sql`${productIngredientsTable.productId} = ${productId} and ${productIngredientsTable.ingredientId} = ${ingredientId}`,
-      );
-  },
-
-  async unbindProduct(ingredientId: number, productId: number) {
-    await db
-      .delete(productIngredientsTable)
-      .where(
-        sql`${productIngredientsTable.productId} = ${productId} and ${productIngredientsTable.ingredientId} = ${ingredientId}`,
-      );
   },
 
   // ──── 客制化选项绑定 ────

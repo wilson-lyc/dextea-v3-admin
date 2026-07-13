@@ -66,6 +66,12 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
 
   const [ingredientOptions, setIngredientOptions] = useState<{ label: string; value: string; unit: string }[]>([])
 
+  // 已绑定的原料不可再次选择（禁止二次绑定）
+  const boundIngredientIds = new Set(ingredients.map((i) => i.ingredientId))
+  const availableIngredientOptions = ingredientOptions.filter(
+    (o) => !boundIngredientIds.has(Number(o.value)),
+  )
+
   const fetchIngredients = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
@@ -224,7 +230,7 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-medium">原料</label>
                   <SelectPicker
-                    options={ingredientOptions}
+                    options={availableIngredientOptions}
                     value={bindIngredientId}
                     onValueChange={(value) => {
                       setBindIngredientId(value)

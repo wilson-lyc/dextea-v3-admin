@@ -21,6 +21,7 @@ import {
 import { getIngredients } from "@/api"
 import DataTable from "@/components/ui/data-table"
 import { CreateIngredientDialog } from "./components/CreateIngredientDialog"
+import BoundProductsDialog from "./components/BoundProductsDialog"
 
 export default function IngredientsPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([])
@@ -133,7 +134,14 @@ export default function IngredientsPage() {
             <TableCell className="font-mono text-xs">{ingredient.id}</TableCell>
             <TableCell>{ingredient.name}</TableCell>
             <TableCell>{ingredient.unit}</TableCell>
-            <TableCell>{ingredient.boundCount}</TableCell>
+            <TableCell>
+              <BoundProductsDialog
+                ingredientId={ingredient.id}
+                ingredientName={ingredient.name}
+                unit={ingredient.unit}
+                count={ingredient.boundCount}
+              />
+            </TableCell>
             <TableCell>{ingredient.optionCount}</TableCell>
             <TableCell>
               <span className={INGREDIENT_STATUS_TEXT_CLASSES[ingredient.status] ?? ""}>
