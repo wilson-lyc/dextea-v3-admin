@@ -135,10 +135,9 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
       <ConfirmDialog
         open={deleteConfirmOpen}
         onOpenChange={setDeleteConfirmOpen}
-        title="确认解绑"
+        title="操作确认"
         description={`确定要解除标签「${deletingTag?.name}」与当前商品的绑定关系吗？`}
-        confirmText="确认解绑"
-        variant="destructive"
+        confirmText="确认"
         onConfirm={handleConfirmRemove}
       />
     </>

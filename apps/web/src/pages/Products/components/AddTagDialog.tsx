@@ -95,7 +95,7 @@ export function AddTagDialog({ open, onOpenChange, productId, existingTagIds, on
               <SelectContent>
                 {availableTags.length === 0 ? (
                   <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                    所有标签已添加
+                    暂无可绑定的标签
                   </div>
                 ) : (
                   availableTags.map((t) => (
