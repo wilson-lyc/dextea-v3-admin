@@ -5,6 +5,8 @@ import { productRepository } from './product.repository.js';
 import { PRODUCT_STATUS_VALUES } from '@dextea-admin/contracts';
 import { validateMaxLength, validatePrice, validateStatus } from '@/plugins/utils/validation.js';
 import { isDuplicateKeyError } from '@/plugins/utils/mysql-error.js';
+import { isSystemError } from '@/plugins/utils/system-error.js';
+import type { BizErrorCode } from '@/common/types/index.js';
 import type {
   ProductListRequest,
   CreateProductRequest,
@@ -16,6 +18,21 @@ import type {
   UpdateIngredientQuantityRequest,
   UpdateIngredientSortRequest,
 } from '@dextea-admin/contracts';
+
+/**
+ * 包裹一次写操作：业务异常（BizError）与系统级异常（数据库 / Redis 等）原样抛出，
+ * 交由全局拦截器分别给出具体业务提示或「服务器内部异常」；
+ * 其余非预期异常统一归并为操作级失败提示（如「创建失败」）。
+ */
+async function withMutation<T>(action: () => Promise<T>, failedCode: BizErrorCode): Promise<T> {
+  try {
+    return await action();
+  } catch (err) {
+    if (err instanceof BizError) throw err;
+    if (isSystemError(err)) throw err;
+    throw new BizError(failedCode);
+  }
+}
 
 export const productService = {
   // ─── 商品列表 ─────────────────────────────────────
@@ -58,91 +75,100 @@ export const productService = {
   // ─── 新增商品 ─────────────────────────────────────
 
   async createProduct(input: CreateProductRequest) {
-    const { name, brief, description, price, status } = input;
+    return withMutation(async () => {
+      const { name, brief, description, price, status } = input;
 
-    validateMaxLength(name, 255, '商品名称');
-    validateMaxLength(brief, 500, '简介');
-    validateMaxLength(description, 2000, '描述');
+      validateMaxLength(name, 255, '商品名称');
+      validateMaxLength(brief, 500, '简介');
+      validateMaxLength(description, 2000, '描述');
 
-    if (price !== undefined) {
-      validatePrice(price);
-    }
-    if (status !== undefined) {
-      validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
-    }
+      if (price !== undefined) {
+        validatePrice(price);
+      }
+      if (status !== undefined) {
+        validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
+      }
 
-    const insertId = await productRepository.createProduct({
-      name,
-      brief: brief ?? '',
-      description: description ?? '',
-      price: price ?? 0,
-      status: status ?? 0,
-    });
+      const insertId = await productRepository.createProduct({
+        name,
+        brief: brief ?? '',
+        description: description ?? '',
+        price: price ?? 0,
+        status: status ?? 0,
+      });
+      if (!insertId) {
+        throw new BizError(ProductErrorCodes.CREATE_FAILED);
+      }
 
-    return { id: insertId };
+      return { id: insertId };
+    }, ProductErrorCodes.CREATE_FAILED);
   },
 
   // ─── 更新商品 ─────────────────────────────────────
 
   async updateProduct(id: number, input: UpdateProductRequest) {
-    const { name, brief, description, price, status } = input;
+    return withMutation(async () => {
+      const { name, brief, description, price, status } = input;
 
-    const product = await productRepository.getProductById(id);
-    if (!product) {
-      throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
-    }
+      const product = await productRepository.getProductById(id);
+      if (!product) {
+        throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
+      }
 
-    if (name !== undefined) {
-      if (!name) throw new BizError(ProductErrorCodes.NAME_REQUIRED);
-      validateMaxLength(name, 255, '商品名称');
-    }
-    if (brief !== undefined) {
-      validateMaxLength(brief, 500, '简介');
-    }
-    if (description !== undefined) {
-      validateMaxLength(description, 2000, '描述');
-    }
-    if (price !== undefined) {
-      validatePrice(price);
-    }
-    if (status !== undefined) {
-      validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
-    }
+      if (name !== undefined) {
+        if (!name) throw new BizError(ProductErrorCodes.NAME_REQUIRED);
+        validateMaxLength(name, 255, '商品名称');
+      }
+      if (brief !== undefined) {
+        validateMaxLength(brief, 500, '简介');
+      }
+      if (description !== undefined) {
+        validateMaxLength(description, 2000, '描述');
+      }
+      if (price !== undefined) {
+        validatePrice(price);
+      }
+      if (status !== undefined) {
+        validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
+      }
 
-    const updateData: Partial<typeof product> = {};
-    if (name !== undefined) updateData.name = name;
-    if (brief !== undefined) updateData.brief = brief;
-    if (description !== undefined) updateData.description = description;
-    if (price !== undefined) updateData.price = price;
-    if (status !== undefined) updateData.status = status;
+      const updateData: Partial<typeof product> = {};
+      if (name !== undefined) updateData.name = name;
+      if (brief !== undefined) updateData.brief = brief;
+      if (description !== undefined) updateData.description = description;
+      if (price !== undefined) updateData.price = price;
+      if (status !== undefined) updateData.status = status;
 
-    if (Object.keys(updateData).length > 0) {
-      await productRepository.updateProductById(id, updateData);
-    }
+      if (Object.keys(updateData).length > 0) {
+        await productRepository.updateProductById(id, updateData);
+      }
 
-    const updated = await productRepository.getProductById(id);
-    const tags = await productRepository.getProductTagsById(id);
+      const updated = await productRepository.getProductById(id);
+      const tags = await productRepository.getProductTagsById(id);
 
-    return { ...updated, tags };
+      return { ...updated, tags };
+    }, ProductErrorCodes.UPDATE_FAILED);
   },
 
   // ─── 上下架商品 ───────────────────────────────────
 
   async updateProductStatus(id: number, input: UpdateProductStatusRequest) {
-    const { status } = input;
+    return withMutation(async () => {
+      const { status } = input;
 
-    validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
+      validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
 
-    const product = await productRepository.getProductById(id);
-    if (!product) {
-      throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
-    }
+      const product = await productRepository.getProductById(id);
+      if (!product) {
+        throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
+      }
 
-    await productRepository.updateProductById(id, { status });
+      await productRepository.updateProductById(id, { status });
 
-    const updated = await productRepository.getProductById(id);
+      const updated = await productRepository.getProductById(id);
 
-    return updated!;
+      return updated!;
+    }, ProductErrorCodes.STATUS_UPDATE_FAILED);
   },
 
   // ─── 商品标签列表（分页） ─────────────────────────
@@ -159,41 +185,45 @@ export const productService = {
   // ─── 批量绑定标签 ─────────────────────────────────
 
   async bindTagToProduct(productId: number, input: BindTagsRequest) {
-    const uniqueIds = [...new Set(input.tagIds)];
+    return withMutation(async () => {
+      const uniqueIds = [...new Set(input.tagIds)];
 
-    const product = await productRepository.getProductById(productId);
-    if (!product) {
-      throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
-    }
-
-    // 校验标签本身是否存在（标签不存在时给出明确反馈）
-    const existingTags = await productRepository.getTagsByIds(uniqueIds);
-    if (existingTags.length !== uniqueIds.length) {
-      throw new BizError(TagErrorCodes.TAG_NOT_FOUND);
-    }
-
-    // 唯一性由数据库复合主键 (product_id, tag_id) 保证：
-    // 写入失败即代表该标签已关联此商品，捕获唯一键冲突并给出明确反馈。
-    try {
-      await productRepository.insertProductTagRelations(
-        uniqueIds.map(tagId => ({ productId, tagId })),
-      );
-    } catch (err) {
-      if (isDuplicateKeyError(err)) {
-        throw new BizError(ProductErrorCodes.TAG_ALREADY_EXISTS);
+      const product = await productRepository.getProductById(productId);
+      if (!product) {
+        throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
       }
-      throw err;
-    }
 
-    return { boundCount: uniqueIds.length };
+      // 校验标签本身是否存在（标签不存在时给出明确反馈）
+      const existingTags = await productRepository.getTagsByIds(uniqueIds);
+      if (existingTags.length !== uniqueIds.length) {
+        throw new BizError(TagErrorCodes.TAG_NOT_FOUND);
+      }
+
+      // 唯一性由数据库复合主键 (product_id, tag_id) 保证：
+      // 写入失败即代表该标签已关联此商品，捕获唯一键冲突并给出明确反馈。
+      try {
+        await productRepository.insertProductTagRelations(
+          uniqueIds.map(tagId => ({ productId, tagId })),
+        );
+      } catch (err) {
+        if (isDuplicateKeyError(err)) {
+          throw new BizError(ProductErrorCodes.TAG_ALREADY_EXISTS);
+        }
+        throw err;
+      }
+
+      return { boundCount: uniqueIds.length };
+    }, ProductErrorCodes.TAG_BIND_FAILED);
   },
 
   // ─── 批量解绑标签 ─────────────────────────────────
 
   async unbindTagFromProduct(productId: number, input: UnbindTagsRequest) {
-    const uniqueIds = [...new Set(input.tagIds)];
+    return withMutation(async () => {
+      const uniqueIds = [...new Set(input.tagIds)];
 
-    await productRepository.deleteProductTagRelations(productId, uniqueIds);
+      await productRepository.deleteProductTagRelations(productId, uniqueIds);
+    }, ProductErrorCodes.TAG_UNBIND_FAILED);
   },
 
   // ─── 商品原料列表（分页） ─────────────────────────
@@ -210,24 +240,26 @@ export const productService = {
   // ─── 绑定原料 ─────────────────────────────────────
 
   async bindIngredient(productId: number, input: BindIngredientRequest) {
-    const { ingredientId, quantity, sort } = input;
+    return withMutation(async () => {
+      const { ingredientId, quantity, sort } = input;
 
-    const ingredient = await productRepository.getIngredientById(ingredientId);
-    if (!ingredient) {
-      throw new BizError(ProductErrorCodes.INGREDIENT_NOT_FOUND);
-    }
+      const ingredient = await productRepository.getIngredientById(ingredientId);
+      if (!ingredient) {
+        throw new BizError(ProductErrorCodes.INGREDIENT_NOT_FOUND);
+      }
 
-    const existing = await productRepository.getProductIngredientRelation(productId, ingredientId);
-    if (existing) {
-      throw new BizError(ProductErrorCodes.INGREDIENT_ALREADY_BOUND);
-    }
+      const existing = await productRepository.getProductIngredientRelation(productId, ingredientId);
+      if (existing) {
+        throw new BizError(ProductErrorCodes.INGREDIENT_ALREADY_BOUND);
+      }
 
-    await productRepository.insertProductIngredientRelation({
-      productId,
-      ingredientId,
-      quantity: quantity ?? 0,
-      sort: sort ?? 0,
-    });
+      await productRepository.insertProductIngredientRelation({
+        productId,
+        ingredientId,
+        quantity: quantity ?? 0,
+        sort: sort ?? 0,
+      });
+    }, ProductErrorCodes.INGREDIENT_BIND_FAILED);
   },
 
   // ─── 更新原料用量 ─────────────────────────────────
@@ -237,14 +269,16 @@ export const productService = {
     ingredientId: number,
     input: UpdateIngredientQuantityRequest,
   ) {
-    const { quantity } = input;
+    return withMutation(async () => {
+      const { quantity } = input;
 
-    const existing = await productRepository.getProductIngredientRelation(productId, ingredientId);
-    if (!existing) {
-      throw new BizError(ProductErrorCodes.INGREDIENT_BIND_NOT_FOUND);
-    }
+      const existing = await productRepository.getProductIngredientRelation(productId, ingredientId);
+      if (!existing) {
+        throw new BizError(ProductErrorCodes.INGREDIENT_BIND_NOT_FOUND);
+      }
 
-    await productRepository.updateProductIngredientQuantity(productId, ingredientId, quantity);
+      await productRepository.updateProductIngredientQuantity(productId, ingredientId, quantity);
+    }, ProductErrorCodes.INGREDIENT_QUANTITY_UPDATE_FAILED);
   },
 
   // ─── 更新原料排序 ─────────────────────────────────
@@ -254,20 +288,24 @@ export const productService = {
     ingredientId: number,
     input: UpdateIngredientSortRequest,
   ) {
-    const { sort } = input;
+    return withMutation(async () => {
+      const { sort } = input;
 
-    const existing = await productRepository.getProductIngredientRelation(productId, ingredientId);
-    if (!existing) {
-      throw new BizError(ProductErrorCodes.INGREDIENT_BIND_NOT_FOUND);
-    }
+      const existing = await productRepository.getProductIngredientRelation(productId, ingredientId);
+      if (!existing) {
+        throw new BizError(ProductErrorCodes.INGREDIENT_BIND_NOT_FOUND);
+      }
 
-    await productRepository.updateProductIngredientSort(productId, ingredientId, sort);
+      await productRepository.updateProductIngredientSort(productId, ingredientId, sort);
+    }, ProductErrorCodes.INGREDIENT_SORT_UPDATE_FAILED);
   },
 
   // ─── 解绑原料 ─────────────────────────────────────
 
   async unbindIngredient(productId: number, ingredientId: number) {
-    await productRepository.deleteProductIngredientRelation(productId, ingredientId);
+    return withMutation(async () => {
+      await productRepository.deleteProductIngredientRelation(productId, ingredientId);
+    }, ProductErrorCodes.INGREDIENT_UNBIND_FAILED);
   },
 
   // ─── 商品选项列表 ─────────────────────────────────

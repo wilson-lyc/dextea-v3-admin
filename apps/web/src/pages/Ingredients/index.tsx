@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom"
 import {
   PlusIcon,
   SearchIcon,
-  SettingsIcon,
   FlaskConicalIcon,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -21,7 +20,6 @@ import {
 import { getIngredients } from "@/api"
 import DataTable from "@/components/ui/data-table"
 import { CreateIngredientDialog } from "./components/CreateIngredientDialog"
-import BoundProductsDialog from "./components/BoundProductsDialog"
 
 export default function IngredientsPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([])
@@ -119,7 +117,7 @@ export default function IngredientsPage() {
         header={
           <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
-              <TableHead>ID</TableHead>
+              <TableHead>原料ID</TableHead>
               <TableHead>名称</TableHead>
               <TableHead>单位</TableHead>
               <TableHead>商品绑定</TableHead>
@@ -134,14 +132,7 @@ export default function IngredientsPage() {
             <TableCell className="font-mono text-xs">{ingredient.id}</TableCell>
             <TableCell>{ingredient.name}</TableCell>
             <TableCell>{ingredient.unit}</TableCell>
-            <TableCell>
-              <BoundProductsDialog
-                ingredientId={ingredient.id}
-                ingredientName={ingredient.name}
-                unit={ingredient.unit}
-                count={ingredient.boundCount}
-              />
-            </TableCell>
+            <TableCell>{ingredient.boundCount}</TableCell>
             <TableCell>{ingredient.optionCount}</TableCell>
             <TableCell>
               <span className={INGREDIENT_STATUS_TEXT_CLASSES[ingredient.status] ?? ""}>
@@ -150,7 +141,6 @@ export default function IngredientsPage() {
             </TableCell>
             <TableCell className="text-right">
               <Button variant="outline" size="sm" onClick={() => navigate(`/products/ingredients/${ingredient.id}`)}>
-                <SettingsIcon data-icon="inline-start" />
                 管理
               </Button>
             </TableCell>

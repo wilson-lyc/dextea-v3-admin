@@ -7,7 +7,7 @@ import type { BizErrorCode } from '@/common/types';
  */
 export const SystemErrorCodes = {
     // 业务码 (10000-10099)
-    INTERNAL_ERROR: { code: 10000, message: '服务器内部错误，请稍后重试' },
+    INTERNAL_ERROR: { code: 10000, message: '服务器内部异常' },
     UNKNOWN_ERROR: { code: 10001, message: '未知错误' },
     DATABASE_ERROR: { code: 10002, message: '数据库操作失败，请稍后重试' },
     REDIS_ERROR: { code: 10003, message: '缓存服务异常' },

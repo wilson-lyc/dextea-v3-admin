@@ -96,11 +96,16 @@ export function createModuleClient(moduleKey: ModuleKey): AxiosInstance {
           redirectToForbidden()
           return Promise.reject(error)
         }
+
+        // 后端已返回规范化 message（如「服务器内部异常」），直接弹出
+        const message = error.response.data?.message ?? "系统繁忙，请稍后重试"
+        toast.error(message)
+        return Promise.reject(new Error(message))
       }
 
-      // 兜底：系统错误或网络异常，不暴露原始错误信息给用户
-      toast.error("系统繁忙，请稍后重试")
-      return Promise.reject({ code: -1, message: "系统繁忙，请稍后重试", data: null })
+      // 兜底：网络异常等无响应体的情况
+      toast.error("网络异常，请稍后重试")
+      return Promise.reject(new Error("网络异常，请稍后重试"))
     },
   )
 

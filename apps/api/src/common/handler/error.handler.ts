@@ -2,6 +2,7 @@ import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import { BizError } from '../exceptions/biz-error.exception';
 import { ApiResponse } from '@/common/types';
 import { SystemErrorCodes } from '@/common/constants/error-code.constant';
+import { isSystemError } from '@/plugins/utils/system-error.js';
 
 /**
  * 全局异常处理
@@ -29,7 +30,19 @@ export function globalErrorHandler(
     );
   }
 
-  // 未知错误
+  // 底层基础设施异常（数据库错误 / Redis 错误 / 网络错误等）：
+  // 统一兜住，避免将原始错误细节暴露给用户，返回「服务器内部异常」。
+  if (isSystemError(error)) {
+    reply.log.error(error, '系统内部异常（数据库或缓存）');
+    return reply.status(500).send(
+      ApiResponse.error(
+        SystemErrorCodes.INTERNAL_ERROR.code,
+        SystemErrorCodes.INTERNAL_ERROR.message,
+      ),
+    );
+  }
+
+  // 其余未知错误
   reply.log.error(error);
   return reply.status(500).send(
     ApiResponse.error(

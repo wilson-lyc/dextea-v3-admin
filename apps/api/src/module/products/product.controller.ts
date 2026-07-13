@@ -23,6 +23,7 @@ import {
   UpdateIngredientSortRequestSchema,
   ProductOptionListResponseSchema,
 } from '@dextea-admin/contracts';
+import { ProductMessages } from './product.errorcode.js';
 
 export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
   // ── 商品列表 ──────────────────────────────────────
@@ -57,7 +58,7 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await productService.createProduct(request.body);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, ProductMessages.CREATE_SUCCESS);
     },
   );
 
@@ -134,7 +135,7 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await productService.updateProduct(request.params.id, request.body);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, ProductMessages.UPDATE_SUCCESS);
     },
   );
 
@@ -153,7 +154,7 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await productService.updateProductStatus(request.params.id, request.body);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, ProductMessages.STATUS_UPDATE_SUCCESS);
     },
   );
 
@@ -172,7 +173,7 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       await productService.bindTagToProduct(request.params.id, request.body);
-      return ApiResponse.success(null);
+      return ApiResponse.success(null, ProductMessages.TAG_BIND_SUCCESS);
     },
   );
 
@@ -191,7 +192,7 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       await productService.unbindTagFromProduct(request.params.id, request.body);
-      return ApiResponse.success(null);
+      return ApiResponse.success(null, ProductMessages.TAG_UNBIND_SUCCESS);
     },
   );
 
@@ -233,7 +234,7 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       await productService.bindIngredient(request.params.id, request.body);
-      return ApiResponse.success(null);
+      return ApiResponse.success(null, ProductMessages.INGREDIENT_BIND_SUCCESS);
     },
   );
 
@@ -259,7 +260,7 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
         request.params.ingredientId,
         request.body,
       );
-      return ApiResponse.success(null);
+      return ApiResponse.success(null, ProductMessages.INGREDIENT_QUANTITY_UPDATE_SUCCESS);
     },
   );
 
@@ -285,7 +286,7 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
         request.params.ingredientId,
         request.body,
       );
-      return ApiResponse.success(null);
+      return ApiResponse.success(null, ProductMessages.INGREDIENT_SORT_UPDATE_SUCCESS);
     },
   );
 
@@ -306,7 +307,7 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       await productService.unbindIngredient(request.params.id, request.params.ingredientId);
-      return ApiResponse.success(null);
+      return ApiResponse.success(null, ProductMessages.INGREDIENT_UNBIND_SUCCESS);
     },
   );
 };
