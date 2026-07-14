@@ -14,3 +14,5 @@ $:
           script: npm install -g pnpm
         - name: 安装依赖
           script: pnpm i
+        - name: 关联 .env
+          script: cp -f /root/.cnb/.env ./ 2>/dev/null || echo "文件不存在"

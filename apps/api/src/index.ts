@@ -8,7 +8,7 @@ import {
   validatorCompiler,
   serializerCompiler,
 } from 'fastify-type-provider-zod';
-import { config, initNacosConfig } from './config.js';
+import { config } from './config.js';
 import { authHook } from './middleware/auth.js';
 import { registerRedis } from './plugins/db/redis/index.js';
 import { registerDb } from './plugins/db/mysql/index.js';
@@ -16,9 +16,6 @@ import { globalErrorHandler, schemaErrorFormatter } from '@/common/exceptions/in
 import { registerModules } from './register-modules.js';
 
 async function main() {
-  // 初始化统一配置源（Nacos）。未配置时自动跳过，不改变既有行为。
-  await initNacosConfig();
-
   const app = Fastify({
     logger: {
       level: config.logLevel,
