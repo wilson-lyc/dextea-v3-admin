@@ -224,12 +224,17 @@ export const customizationService = {
     return customizationRepository.getOptionByIdWithIngredient(optionId);
   },
 
-  async deleteOption(customizationId: number, optionId: number) {
+  async updateOptionStatus(customizationId: number, optionId: number, status: number) {
+    if (!(CUSTOMIZATION_OPTION_STATUS_VALUES as readonly number[]).includes(status)) {
+      throw new BizError(CustomizationErrorCodes.INVALID_STATUS);
+    }
+
     const option = await customizationRepository.getOptionById(optionId);
     if (!option || option.customizationId !== customizationId) {
       throw new BizError(CustomizationErrorCodes.OPTION_NOT_FOUND);
     }
 
-    await customizationRepository.deleteOptionById(optionId);
+    await customizationRepository.updateOptionById(optionId, { status });
+    return customizationRepository.getOptionByIdWithIngredient(optionId);
   },
 };

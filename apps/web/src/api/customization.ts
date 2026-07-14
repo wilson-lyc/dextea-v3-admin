@@ -10,6 +10,7 @@ import type {
   CustomizationOption,
   CreateCustomizationOptionRequest,
   UpdateCustomizationOptionRequest,
+  UpdateCustomizationOptionStatusRequest,
   UpdateCustomizationOptionQuantityRequest,
   RebindCustomizationOptionIngredientRequest,
 } from "@dextea-admin/contracts/dto"
@@ -119,12 +120,19 @@ export function updateCustomizationOption(
 }
 
 /**
- * 删除客制化选项
- * DELETE /customizations/:id/options/:optionId
+ * 单独更新客制化选项状态（激活/禁用）
+ * PATCH /customizations/:id/options/:optionId/status
  */
-export function deleteCustomizationOption(customizationId: number, optionId: number) {
+export function updateCustomizationOptionStatus(
+  customizationId: number,
+  optionId: number,
+  status: number,
+) {
   return http
-    .delete<ApiResponse<null>>(`/customizations/${customizationId}/options/${optionId}`)
+    .patch<ApiResponse<CustomizationOption>>(
+      `/customizations/${customizationId}/options/${optionId}/status`,
+      { status } satisfies UpdateCustomizationOptionStatusRequest,
+    )
     .then((res) => res.data)
 }
 

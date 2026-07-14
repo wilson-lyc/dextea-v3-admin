@@ -16,11 +16,12 @@ import {
   CreateCustomizationOptionResponseSchema,
   UpdateCustomizationOptionRequestSchema,
   UpdateCustomizationOptionResponseSchema,
+  UpdateCustomizationOptionStatusRequestSchema,
+  UpdateCustomizationOptionStatusResponseSchema,
   UpdateCustomizationOptionQuantityRequestSchema,
   UpdateCustomizationOptionQuantityResponseSchema,
   RebindCustomizationOptionIngredientRequestSchema,
   RebindCustomizationOptionIngredientResponseSchema,
-  DeleteCustomizationOptionResponseSchema,
 } from '@dextea-admin/contracts';
 
 const ParamIdSchema = z.object({ id: z.coerce.number().int().positive('ID 必须为正整数') });
@@ -164,21 +165,26 @@ export const registerCustomizationRoutes: FastifyPluginAsyncZod = async (app) =>
     },
   );
 
-  // 删除客制化选项
-  app.delete(
-    '/customizations/:id/options/:optionId',
+  // 单独更新客制化选项状态（激活/禁用）
+  app.patch(
+    '/customizations/:id/options/:optionId/status',
     {
       schema: {
         tags: ['Customizations'],
-        description: '删除客制化选项',
+        description: '单独更新客制化选项状态（激活/禁用）',
         params: ParamIdOptionIdSchema,
-        response: { 200: ApiResponseSchema(DeleteCustomizationOptionResponseSchema).describe('删除成功') },
+        body: UpdateCustomizationOptionStatusRequestSchema,
+        response: { 200: ApiResponseSchema(UpdateCustomizationOptionStatusResponseSchema).describe('状态更新成功') },
         security: [{ bearerAuth: [] }],
       },
     },
     async (request, _reply) => {
-      await customizationService.deleteOption(request.params.id, request.params.optionId);
-      return ApiResponse.success(null, '删除成功');
+      const data = await customizationService.updateOptionStatus(
+        request.params.id,
+        request.params.optionId,
+        request.body.status,
+      );
+      return ApiResponse.success(data, '状态更新成功');
     },
   );
 

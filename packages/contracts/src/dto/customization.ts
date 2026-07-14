@@ -111,6 +111,16 @@ export type UpdateCustomizationOptionRequest = z.infer<typeof UpdateCustomizatio
 export const UpdateCustomizationOptionResponseSchema = CustomizationOptionSchema;
 export type UpdateCustomizationOptionResponse = CustomizationOption;
 
+// ─── 单独更新客制化选项状态（激活/禁用） ──
+
+export const UpdateCustomizationOptionStatusRequestSchema = z.object({
+  status: z.number(),
+});
+export type UpdateCustomizationOptionStatusRequest = z.infer<typeof UpdateCustomizationOptionStatusRequestSchema>;
+
+export const UpdateCustomizationOptionStatusResponseSchema = CustomizationOptionSchema;
+export type UpdateCustomizationOptionStatusResponse = CustomizationOption;
+
 // ─── 单独更新客制化选项绑定用量 ───────────────────
 
 export const UpdateCustomizationOptionQuantityRequestSchema = z.object({
@@ -132,7 +142,3 @@ export type RebindCustomizationOptionIngredientRequest = z.infer<typeof RebindCu
 
 export const RebindCustomizationOptionIngredientResponseSchema = CustomizationOptionSchema;
 export type RebindCustomizationOptionIngredientResponse = CustomizationOption;
-
-// ─── 删除客制化选项 ───────────────────────────────
-
-export const DeleteCustomizationOptionResponseSchema = z.null();

@@ -169,12 +169,6 @@ export const customizationRepository = {
       .where(eq(customizationOptionsTable.id, id));
   },
 
-  async deleteOptionById(id: number) {
-    await db
-      .delete(customizationOptionsTable)
-      .where(eq(customizationOptionsTable.id, id));
-  },
-
   async getIngredientById(id: number) {
     const rows = await db
       .select({ id: ingredientsTable.id })

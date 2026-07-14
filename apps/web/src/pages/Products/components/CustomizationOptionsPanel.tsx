@@ -39,9 +39,9 @@ import {
   getCustomizationOptions,
   createCustomizationOption,
   updateCustomizationOption,
+  updateCustomizationOptionStatus,
   updateCustomizationOptionQuantity,
   rebindCustomizationOptionIngredient,
-  deleteCustomizationOption,
   getIngredientOptions,
 } from "@/api"
 
@@ -109,6 +109,9 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
   const [rebindIngredientId, setRebindIngredientId] = useState("")
   const [rebindQuantity, setRebindQuantity] = useState("0")
   const [savingRebind, setSavingRebind] = useState(false)
+
+  // 激活/禁用切换中
+  const [togglingId, setTogglingId] = useState<number | null>(null)
 
   const [ingredientOptions, setIngredientOptions] = useState<{ label: string; value: string; unit: string }[]>([])
 
@@ -291,9 +294,15 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
     }
   }
 
-  const handleDelete = async (optionId: number) => {
+  const handleToggleStatus = async (option: CustomizationOption) => {
+    const targetStatus =
+      option.status === CUSTOMIZATION_OPTION_STATUS.ACTIVE.value
+        ? CUSTOMIZATION_OPTION_STATUS.DISABLED.value
+        : CUSTOMIZATION_OPTION_STATUS.ACTIVE.value
+
+    setTogglingId(option.id)
     try {
-      const res = await deleteCustomizationOption(customizationId, optionId)
+      const res = await updateCustomizationOptionStatus(customizationId, option.id, targetStatus)
       if (res.code === 0) {
         toast.success(res.message)
         await fetchOptions()
@@ -301,7 +310,9 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
         toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "删除失败")
+      toast.error(err instanceof Error ? err.message : "状态更新失败")
+    } finally {
+      setTogglingId(null)
     }
   }
 
@@ -356,6 +367,18 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
             </TableCell>
             <TableCell className="text-right">
               <div className="grid ml-auto w-fit grid-cols-2 gap-1" dir="rtl">
+                <Button
+                  variant={o.status === CUSTOMIZATION_OPTION_STATUS.ACTIVE.value ? "outline" : "default"}
+                  size="sm"
+                  disabled={togglingId === o.id}
+                  onClick={() => handleToggleStatus(o)}
+                >
+                  {togglingId === o.id
+                    ? "处理中..."
+                    : o.status === CUSTOMIZATION_OPTION_STATUS.ACTIVE.value
+                      ? "禁用"
+                      : "激活"}
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => openEdit(o)}>
                   编辑选项
                 </Button>
@@ -370,13 +393,6 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => openRebind(o)}>
                   换绑原料
-                </Button>
-                <Button
-                  variant="outline-destructive"
-                  size="sm"
-                  onClick={() => handleDelete(o.id)}
-                >
-                  删除选项
                 </Button>
               </div>
             </TableCell>
