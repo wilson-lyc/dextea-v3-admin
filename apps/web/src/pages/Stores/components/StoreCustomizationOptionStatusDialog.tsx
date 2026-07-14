@@ -4,6 +4,7 @@ import { toast } from "sonner"
 
 import type { StoreCustomizationOptionItem } from "@/api"
 import {
+  CUSTOMIZATION_OPTION_STATUS,
   CUSTOMIZATION_OPTION_STATUS_LABEL,
   CUSTOMIZATION_OPTION_STATUS_TEXT_CLASSES,
   CUSTOMIZATION_OPTION_STORE_STATUS,
