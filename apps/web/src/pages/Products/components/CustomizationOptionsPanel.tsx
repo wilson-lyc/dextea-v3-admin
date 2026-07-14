@@ -368,7 +368,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
             <TableCell className="text-right">
               <div className="grid ml-auto w-fit grid-cols-2 gap-1" dir="rtl">
                 <Button
-                  variant={o.status === CUSTOMIZATION_OPTION_STATUS.ACTIVE.value ? "outline" : "default"}
+                  variant={o.status === CUSTOMIZATION_OPTION_STATUS.ACTIVE.value ? "outline-destructive" : "outline-success"}
                   size="sm"
                   disabled={togglingId === o.id}
                   onClick={() => handleToggleStatus(o)}

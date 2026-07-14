@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import type { SendMailOptions, Transporter } from 'nodemailer';
-import { config } from '@/config/index.js';
+import { config } from '@/config.js';
 
 export interface MailService {
   sendMail(options: SendMailOptions): Promise<void>;

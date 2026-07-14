@@ -1,4 +1,4 @@
-import { config } from '../../config/index.js';
+import { config } from '../../config.js';
 
 interface AmapGeocodeResponse {
   status: string;
