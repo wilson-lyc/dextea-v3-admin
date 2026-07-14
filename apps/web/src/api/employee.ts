@@ -8,6 +8,8 @@ import type {
   ToggleEmployeeStatusResponse,
   ResetEmployeePasswordResponse,
   GetEmployeeListRequest,
+  EmployeeRolesResponse,
+  SetEmployeeRolesRequest,
 } from "@dextea-admin/contracts"
 
 // ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
@@ -19,6 +21,8 @@ export type {
   UpdateEmployeeResponse,
   ToggleEmployeeStatusResponse,
   ResetEmployeePasswordResponse,
+  EmployeeRolesResponse,
+  SetEmployeeRolesRequest,
 } from "@dextea-admin/contracts"
 
 const http = createModuleClient("employee")
@@ -70,5 +74,25 @@ export function toggleEmployeeStatus(id: number, status: number) {
 export function resetEmployeePassword(id: number) {
   return http
     .post<ApiResponse<ResetEmployeePasswordResponse>>(`/employees/${id}/reset-password`)
+    .then((res) => res.data)
+}
+
+/**
+ * 获取员工已绑定的角色
+ * GET /employees/:id/roles
+ */
+export function getEmployeeRoles(id: number) {
+  return http
+    .get<ApiResponse<EmployeeRolesResponse>>(`/employees/${id}/roles`)
+    .then((res) => res.data)
+}
+
+/**
+ * 设置员工角色（全量覆盖 = 绑定 + 解绑）
+ * PUT /employees/:id/roles
+ */
+export function setEmployeeRoles(id: number, data: SetEmployeeRolesRequest) {
+  return http
+    .put<ApiResponse<null>>(`/employees/${id}/roles`, data)
     .then((res) => res.data)
 }

@@ -1,6 +1,7 @@
 import { z } from 'zod/v4';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { ApiResponse, ApiResponseSchema } from '@/common/types/index.js';
+import { withPermission } from '@/middleware/authorize.js';
 import { employeeService } from './employees.service.js';
 import {
   GetEmployeeListRequestSchema,
@@ -12,6 +13,8 @@ import {
   UpdateEmployeeStatusRequestSchema,
   ToggleEmployeeStatusResponseSchema,
   ResetEmployeePasswordResponseSchema,
+  EmployeeRolesResponseSchema,
+  SetEmployeeRolesRequestSchema,
 } from '@dextea-admin/contracts';
 
 export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
@@ -104,6 +107,49 @@ export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
     async (request, _reply) => {
       const data = await employeeService.resetEmployeePassword(request.params.id);
       return ApiResponse.success(data);
+    },
+  );
+
+  // 获取员工已绑定的角色
+  app.get(
+    '/employees/:id/roles',
+    {
+      schema: {
+        tags: ['Employees'],
+        description: '获取员工已绑定的角色',
+        params: z.object({ id: z.coerce.number().int().positive('ID 必须为正整数') }),
+        response: {
+          200: ApiResponseSchema(EmployeeRolesResponseSchema).describe('员工角色'),
+        },
+        security: [{ bearerAuth: [] }],
+      },
+      preHandler: withPermission('employee:read'),
+    },
+    async (request, _reply) => {
+      const data = await employeeService.getEmployeeRoles(request.params.id);
+      return ApiResponse.success(data);
+    },
+  );
+
+  // 设置员工角色（全量覆盖 = 绑定 + 解绑）
+  app.put(
+    '/employees/:id/roles',
+    {
+      schema: {
+        tags: ['Employees'],
+        description: '设置员工角色（全量覆盖）',
+        params: z.object({ id: z.coerce.number().int().positive('ID 必须为正整数') }),
+        body: SetEmployeeRolesRequestSchema,
+        response: {
+          200: ApiResponseSchema(z.null()).describe('设置成功'),
+        },
+        security: [{ bearerAuth: [] }],
+      },
+      preHandler: withPermission('employee:write'),
+    },
+    async (request, _reply) => {
+      await employeeService.setEmployeeRoles(request.params.id, request.body);
+      return ApiResponse.success(null, '设置成功');
     },
   );
 };

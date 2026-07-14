@@ -8,7 +8,7 @@ import {
   storeMenusTable,
   storesTable,
 } from '@/plugins/db/mysql/schema.js';
-import { withPagination } from '@/utils/pagination.js';
+import { withPagination } from '@/utils';
 
 export const menuRepository = {
   // ─── 菜单 ──────────────────────────────────────────

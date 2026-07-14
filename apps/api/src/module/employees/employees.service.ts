@@ -2,10 +2,15 @@ import { nanoid } from 'nanoid';
 import { BizError } from '@/common/exceptions/index.js';
 import { EmployeeErrorCodes } from './employees.errorcode.js';
 import { employeeRepository } from './employees.repository.js';
-import { validateEmail, validateMaxLength } from '@/utils/validation.js';
+import { validateEmail, validateMaxLength } from '@/utils';
 import { hashPassword } from '@/plugins/password/index.js';
 import { EMPLOYEE_STATUS, EMPLOYEE_STATUS_VALUES } from '@dextea-admin/contracts';
-import type { GetEmployeeListRequest, CreateEmployeeRequest, UpdateEmployeeRequest } from '@dextea-admin/contracts';
+import type {
+  GetEmployeeListRequest,
+  CreateEmployeeRequest,
+  UpdateEmployeeRequest,
+  SetEmployeeRolesRequest,
+} from '@dextea-admin/contracts';
 
 export const employeeService = {
   async getEmployeeListWithPage(params: GetEmployeeListRequest) {
@@ -95,5 +100,35 @@ export const employeeService = {
       },
       initialPassword,
     };
+  },
+
+  async getEmployeeRoles(id: number) {
+    const employee = await employeeRepository.getEmployeeById(id);
+    if (!employee) {
+      throw new BizError(EmployeeErrorCodes.EMPLOYEE_NOT_FOUND);
+    }
+
+    const roleIds = await employeeRepository.getEmployeeRoleIds(id);
+    const roles = await employeeRepository.getRolesByIds(roleIds);
+
+    return { roleIds, roles };
+  },
+
+  async setEmployeeRoles(id: number, input: SetEmployeeRolesRequest) {
+    const employee = await employeeRepository.getEmployeeById(id);
+    if (!employee) {
+      throw new BizError(EmployeeErrorCodes.EMPLOYEE_NOT_FOUND);
+    }
+
+    // 去重
+    const requestedIds = Array.from(new Set(input.roleIds));
+
+    // 校验所有角色 id 均真实存在
+    const existingIds = await employeeRepository.filterExistingRoleIds(requestedIds);
+    if (existingIds.length !== requestedIds.length) {
+      throw new BizError(EmployeeErrorCodes.ROLE_NOT_FOUND);
+    }
+
+    await employeeRepository.setEmployeeRoles(id, requestedIds);
   },
 };

@@ -1,5 +1,6 @@
 import { z } from 'zod/v4';
 import { PaginatedDataSchema } from '../common/pagination.js';
+import { RoleOptionSchema } from './role.js';
 
 /** 员工实体 */
 export const EmployeeSchema = z.object({
@@ -78,3 +79,16 @@ export const ResetEmployeePasswordResponseSchema = z.object({
   initialPassword: z.string(),
 });
 export type ResetEmployeePasswordResponse = z.infer<typeof ResetEmployeePasswordResponseSchema>;
+
+/** 获取员工已绑定的角色 */
+export const EmployeeRolesResponseSchema = z.object({
+  roleIds: z.array(z.number()),
+  roles: z.array(RoleOptionSchema),
+});
+export type EmployeeRolesResponse = z.infer<typeof EmployeeRolesResponseSchema>;
+
+/** 设置员工角色（全量覆盖 = 绑定 + 解绑） */
+export const SetEmployeeRolesRequestSchema = z.object({
+  roleIds: z.array(z.number().int().positive()),
+});
+export type SetEmployeeRolesRequest = z.infer<typeof SetEmployeeRolesRequestSchema>;

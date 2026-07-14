@@ -1,7 +1,7 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { InitErrorCodes } from './init.errorcode.js';
 import { initRepository } from './init.repository.js';
-import { validateEmail, validatePassword, validateMaxLength } from '@/utils/validation.js';
+import { validateEmail, validatePassword, validateMaxLength } from '@/utils';
 import { hashPassword } from '@/plugins/password/index.js';
 import type { InitRequest } from '@dextea-admin/contracts';
 

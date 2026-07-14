@@ -3,9 +3,13 @@ import { ProductErrorCodes } from './product.errorcode.js';
 import { TagErrorCodes } from '@/module/tags/tag.errorcode.js';
 import { productRepository } from './product.repository.js';
 import { PRODUCT_STATUS_VALUES } from '@dextea-admin/contracts';
-import { validateMaxLength, validatePrice, validateStatus } from '@/utils/validation.js';
-import { isDuplicateKeyError } from '@/utils/mysql-error.js';
-import { isSystemError } from '@/utils/system-error.js';
+import {
+  validateMaxLength,
+  validatePrice,
+  validateStatus,
+  isDuplicateKeyError,
+  isSystemError,
+} from '@/utils';
 import type { BizErrorCode } from '@/common/types/index.js';
 import type {
   ProductListRequest,

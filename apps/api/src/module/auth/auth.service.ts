@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { BizError } from '@/common/exceptions/index.js';
 import { AuthErrorCodes } from './auth.errorcode.js';
 import { authRepository } from './auth.repository.js';
-import { validateEmail, validatePassword } from '@/utils/validation.js';
+import { validateEmail, validatePassword } from '@/utils';
 import { verifyPassword, hashPassword } from '@/plugins/password/index.js';
 import { EMPLOYEE_STATUS } from '@dextea-admin/contracts';
 import type Redis from 'ioredis';
@@ -29,11 +29,19 @@ export const authService = {
       throw new BizError(AuthErrorCodes.ACCOUNT_DISABLED, undefined, 401);
     }
 
+    // 加载员工的角色与权限（用于接口级鉴权）
+    const [roles, permissions] = await Promise.all([
+      authRepository.getEmployeeRoleNames(employee.id),
+      authRepository.getEmployeePermissionKeys(employee.id),
+    ]);
+
     const token = randomUUID();
     const sessionData = JSON.stringify({
       userId: employee.id,
       email: employee.email,
       displayName: employee.displayName,
+      roles,
+      permissions,
     });
 
     await redisClient.setex(`${TOKEN_PREFIX}${token}`, TOKEN_TTL, sessionData);

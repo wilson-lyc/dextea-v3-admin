@@ -2,7 +2,7 @@ import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import { BizError } from '../exceptions/biz-error.exception';
 import { ApiResponse } from '@/common/types';
 import { SystemErrorCodes } from '@/common/constants/error-code.constant';
-import { isSystemError } from '@/utils/system-error.js';
+import { isSystemError } from '@/utils';
 
 /**
  * 全局异常处理
