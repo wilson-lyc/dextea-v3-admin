@@ -15,7 +15,7 @@ function parseEnvFile(path: string): Record<string, string> {
   }
 }
 
-const envFile = parseEnvFile(resolvePath(__dirname, '../../.env'));
+const envFile = parseEnvFile(resolvePath(__dirname, '../.env'));
 
 // 解析单项配置，优先级：.env > 环境变量 > 兜底
 function coerce<T>(raw: string, fallback: T): T {
