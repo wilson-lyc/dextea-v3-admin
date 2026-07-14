@@ -218,36 +218,36 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
         header={
           <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
-              <TableHead className="w-[14%]">商品名称</TableHead>
-              <TableHead className="w-[14%]">价格</TableHead>
-              <TableHead className="w-[14%]">全局状态</TableHead>
-              <TableHead className="w-[14%]">门店状态</TableHead>
+              <TableHead className="w-[12%]">商品名称</TableHead>
+              <TableHead className="w-[12%]">价格</TableHead>
+              <TableHead className="w-[12%]">全局状态</TableHead>
+              <TableHead className="w-[12%]">门店状态</TableHead>
               <TableHead className="w-[16%]">最终状态</TableHead>
-              <TableHead className="w-[28%] text-right">操作</TableHead>
+              <TableHead className="w-[36%] text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
         }
         body={data.map((item) => (
           <TableRow key={item.id}>
-            <TableCell className="w-[18%] truncate">{item.name}</TableCell>
-            <TableCell className="w-[18%]">¥ {item.price.toFixed(2)}</TableCell>
-            <TableCell className="w-[18%]">
+            <TableCell className="w-[12%] truncate">{item.name}</TableCell>
+            <TableCell className="w-[12%]">¥ {item.price.toFixed(2)}</TableCell>
+            <TableCell className="w-[12%]">
               <span className={PRODUCT_STATUS_TEXT_CLASSES[item.globalStatus] ?? ""}>
                 {PRODUCT_STATUS_LABEL[item.globalStatus] ?? String(item.globalStatus)}
               </span>
             </TableCell>
-            <TableCell className="w-[18%]">
+            <TableCell className="w-[12%]">
               <span className={STORE_PRODUCT_STATUS_TEXT_CLASSES[item.storeStatus] ?? ""}>
                 {STORE_PRODUCT_STATUS_LABEL[item.storeStatus] ?? String(item.storeStatus)}
               </span>
             </TableCell>
-            <TableCell className="w-[18%]">
+            <TableCell className="w-[16%]">
               <span className={getProductFinalStatus(item.globalStatus, item.storeStatus).className}>
                 {getProductFinalStatus(item.globalStatus, item.storeStatus).label}
               </span>
             </TableCell>
             <TableCell className="w-[28%] text-right">
-              <div className="flex flex-wrap items-center justify-end gap-1">
+              <div className="flex flex-nowrap items-center justify-end gap-1 whitespace-nowrap">
                 <Button
                   variant="outline"
                   size="sm"
