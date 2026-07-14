@@ -25,7 +25,7 @@ export default function ManageOptionsSheet({
   open,
   onOpenChange,
 }: ManageOptionsSheetProps) {
-  const [sheetWidth, setSheetWidth] = useState(720)
+  const [sheetWidth, setSheetWidth] = useState(960)
   const isResizing = useRef(false)
   const startX = useRef(0)
   const startWidth = useRef(0)

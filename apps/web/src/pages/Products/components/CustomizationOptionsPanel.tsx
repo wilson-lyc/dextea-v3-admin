@@ -110,11 +110,21 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
   const [rebindQuantity, setRebindQuantity] = useState("0")
   const [savingRebind, setSavingRebind] = useState(false)
 
-  const [ingredientOptions, setIngredientOptions] = useState<{ label: string; value: string }[]>([])
+  const [ingredientOptions, setIngredientOptions] = useState<{ label: string; value: string; unit: string }[]>([])
+
+  const createUnit = ingredientOptions.find((o) => o.value === createForm.ingredientId)?.unit ?? ""
+  const rebindUnit = ingredientOptions.find((o) => o.value === rebindIngredientId)?.unit ?? ""
+  const quantityUnit = quantityOption
+    ? (ingredientOptions.find((o) => o.value === String(quantityOption.ingredientId))?.unit ?? "")
+    : ""
+
+  // 按原料 ID 取单位，用于列表用量列展示（如「20 毫升」）
+  const unitOf = (ingredientId: number | null) =>
+    ingredientId == null ? "" : (ingredientOptions.find((o) => o.value === String(ingredientId))?.unit ?? "")
 
   // 换绑可选清单：在原料列表末尾追加「解绑」项
   const rebindOptions = [
-    { label: "解绑（不绑定原料）", value: UNBIND_VALUE },
+    { label: "不绑定原料", value: UNBIND_VALUE },
     ...ingredientOptions,
   ]
 
@@ -307,14 +317,14 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
         header={
           <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
-              <TableHead className="w-20">ID</TableHead>
+              <TableHead className="w-20">选项ID</TableHead>
               <TableHead>名称</TableHead>
               <TableHead className="w-28">价格</TableHead>
               <TableHead className="w-20">排序</TableHead>
-              <TableHead className="w-20">状态</TableHead>
+              <TableHead className="w-20">全局状态</TableHead>
               <TableHead>绑定原料</TableHead>
               <TableHead className="w-20">用量</TableHead>
-              <TableHead className="w-44 text-right">操作</TableHead>
+              <TableHead className="w-72 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
         }
@@ -336,11 +346,18 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
                 <span className="text-muted-foreground">—</span>
               )}
             </TableCell>
-            <TableCell className="font-mono text-xs">{o.ingredientId != null ? o.quantity : "—"}</TableCell>
+            <TableCell className="font-mono text-xs">
+              {o.ingredientId != null
+                ? (() => {
+                    const u = unitOf(o.ingredientId)
+                    return u ? `${o.quantity} ${u}` : String(o.quantity)
+                  })()
+                : "—"}
+            </TableCell>
             <TableCell className="text-right">
               <div className="flex flex-wrap items-center justify-end gap-1">
                 <Button variant="outline" size="sm" onClick={() => openEdit(o)}>
-                  编辑
+                  编辑选项
                 </Button>
                 <Button
                   variant="outline"
@@ -349,17 +366,17 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
                   onClick={() => openQuantity(o)}
                   title={o.ingredientId == null ? "未绑定原料，无可编辑用量" : "修改绑定用量"}
                 >
-                  用量
+                  修改用量
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => openRebind(o)}>
-                  换绑
+                  换绑原料
                 </Button>
                 <Button
                   variant="outline-destructive"
                   size="sm"
                   onClick={() => handleDelete(o.id)}
                 >
-                  删除
+                  删除选项
                 </Button>
               </div>
             </TableCell>
@@ -449,15 +466,18 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="option-quantity">用量</FieldLabel>
-                  <Input
-                    id="option-quantity"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    placeholder="0"
-                    value={createForm.quantity}
-                    onChange={(e) => setCreateForm((f) => ({ ...f, quantity: e.target.value }))}
-                  />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="option-quantity"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      placeholder="0"
+                      value={createForm.quantity}
+                      onChange={(e) => setCreateForm((f) => ({ ...f, quantity: e.target.value }))}
+                    />
+                    <span className="text-sm text-muted-foreground shrink-0">{createUnit}</span>
+                  </div>
                 </Field>
               </>
             )}
@@ -550,18 +570,21 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
           <FieldGroup className="py-2">
             <Field>
               <FieldLabel htmlFor="edit-quantity">用量</FieldLabel>
-              <Input
-                id="edit-quantity"
-                type="number"
-                min="0"
-                step="0.1"
-                placeholder="0"
-                value={quantityValue}
-                onChange={(e) => setQuantityValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleUpdateQuantity()
-                }}
-              />
+              <div className="flex items-center gap-2">
+                <Input
+                  id="edit-quantity"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  placeholder="0"
+                  value={quantityValue}
+                  onChange={(e) => setQuantityValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleUpdateQuantity()
+                  }}
+                />
+                <span className="text-sm text-muted-foreground shrink-0">{quantityUnit}</span>
+              </div>
             </Field>
           </FieldGroup>
 
@@ -595,20 +618,21 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               />
             </Field>
 
-            {rebindIngredientId === UNBIND_VALUE ? (
-              <p className="text-xs text-muted-foreground">解绑后用量将重置为 0。</p>
-            ) : (
+            {rebindIngredientId !== UNBIND_VALUE && (
               <Field>
                 <FieldLabel htmlFor="rebind-quantity">新用量</FieldLabel>
-                <Input
-                  id="rebind-quantity"
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  placeholder="0"
-                  value={rebindQuantity}
-                  onChange={(e) => setRebindQuantity(e.target.value)}
-                />
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="rebind-quantity"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    placeholder="0"
+                    value={rebindQuantity}
+                    onChange={(e) => setRebindQuantity(e.target.value)}
+                  />
+                  <span className="text-sm text-muted-foreground shrink-0">{rebindUnit}</span>
+                </div>
               </Field>
             )}
           </FieldGroup>
