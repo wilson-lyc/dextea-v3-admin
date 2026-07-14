@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { createStore } from "@/api"
+import { createStore, resolveMessage } from "@/api"
 
 interface CreateStoreDialogProps {
   open: boolean
@@ -92,7 +92,7 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
         email: formEmail,
       })
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(resolveMessage(res, "创建成功"))
         onOpenChange(false)
         setInitialPassword(res.data.initialPassword)
         setPasswordDialogOpen(true)

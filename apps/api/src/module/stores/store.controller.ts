@@ -37,7 +37,7 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await storeService.getStoreList(request.query);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '查询成功');
     },
   );
 
@@ -55,7 +55,7 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await storeService.getStoreById(request.params.id);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '查询成功');
     },
   );
 
@@ -73,7 +73,7 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await storeService.createStore(request.body);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '创建成功');
     },
   );
 
@@ -92,7 +92,7 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await storeService.updateStore(request.params.id, request.body);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '更新成功');
     },
   );
 
@@ -111,7 +111,7 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await storeService.updateStoreBasicInfo(request.params.id, request.body);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '基础信息更新成功');
     },
   );
 
@@ -130,7 +130,7 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await storeService.updateStoreLocation(request.params.id, request.body);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '位置信息更新成功');
     },
   );
 
@@ -147,7 +147,7 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (_request, _reply) => {
       const data = await storeService.syncStoreLocations();
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '门店定位同步完成');
     },
   );
 
@@ -166,7 +166,7 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await storeService.updateStoreStatus(request.params.id, request.body);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '状态更新成功');
     },
   );
 
@@ -184,7 +184,7 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await storeService.resetStorePassword(request.params.id);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '密码重置成功');
     },
   );
 
@@ -203,7 +203,7 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await storeService.bindStoreMenu(request.params.id, request.body);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '菜单绑定成功');
     },
   );
 

@@ -112,3 +112,15 @@ export function createModuleClient(moduleKey: ModuleKey): AxiosInstance {
   clientCache.set(moduleKey, instance)
   return instance
 }
+
+/**
+ * 优先使用后端返回的 message；若后端漏传或为空，则回退到本地兜底文案。
+ * 这样即使后端未给出消息，也不会把默认的 "success" 或空串展示给用户。
+ */
+export function resolveMessage(
+  res: { message?: string } | undefined,
+  fallback: string,
+): string {
+  const msg = res?.message?.trim()
+  return msg ? msg : fallback
+}

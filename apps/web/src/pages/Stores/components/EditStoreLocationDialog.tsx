@@ -24,7 +24,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip"
-import { updateStoreLocation } from "@/api"
+import { updateStoreLocation, resolveMessage } from "@/api"
 import AmapMapPicker from "@/components/amap/amap-map-picker"
 
 interface EditStoreLocationDialogProps {
@@ -81,7 +81,7 @@ export function EditStoreLocationDialog({ open, onOpenChange, store, onUpdated }
         latitude,
       })
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(resolveMessage(res, "位置信息更新成功"))
         onOpenChange(false)
         onUpdated()
       } else {

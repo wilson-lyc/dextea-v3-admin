@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { updateStoreStatus } from "@/api"
+import { updateStoreStatus, resolveMessage } from "@/api"
 
 interface EditStoreStatusDialogProps {
   open: boolean
@@ -42,7 +42,7 @@ export function EditStoreStatusDialog({ open, onOpenChange, storeId, currentStat
     try {
       const res = await updateStoreStatus(storeId, { status: Number(selected) as StoreStatus })
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(resolveMessage(res, "状态更新成功"))
         onOpenChange(false)
         onUpdated()
       } else {
