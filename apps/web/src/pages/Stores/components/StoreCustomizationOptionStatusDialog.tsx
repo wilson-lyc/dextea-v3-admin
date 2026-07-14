@@ -126,7 +126,7 @@ export default function StoreCustomizationOptionStatusDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] max-w-3xl flex-col gap-4">
+      <DialogContent className="flex h-[70vh] w-[40vw] max-w-none flex-col gap-4">
         <DialogHeader>
           <DialogTitle>客制化选项门店状态 - {customizationName}</DialogTitle>
         </DialogHeader>
@@ -141,6 +141,7 @@ export default function StoreCustomizationOptionStatusDialog({
                   <TableHead className="w-28">价格</TableHead>
                   <TableHead className="w-24">全局状态</TableHead>
                   <TableHead className="w-24">门店状态</TableHead>
+                  <TableHead className="w-24">最终状态</TableHead>
                   <TableHead className="w-40 text-right">操作</TableHead>
                 </TableRow>
               </TableHeader>
@@ -172,6 +173,22 @@ export default function StoreCustomizationOptionStatusDialog({
                       String(o.storeStatus)}
                   </span>
                 </TableCell>
+                <TableCell>
+                  {(() => {
+                    const finalDisabled =
+                      o.globalStatus === CUSTOMIZATION_OPTION_STATUS.DISABLED.value
+                    const finalValue = finalDisabled ? 0 : o.storeStatus
+                    const finalLabel = finalDisabled
+                      ? CUSTOMIZATION_OPTION_STATUS_LABEL[finalValue]
+                      : CUSTOMIZATION_OPTION_STORE_STATUS_LABEL[finalValue]
+                    const finalClass = finalDisabled
+                      ? CUSTOMIZATION_OPTION_STATUS_TEXT_CLASSES[finalValue]
+                      : CUSTOMIZATION_OPTION_STORE_STATUS_TEXT_CLASSES[finalValue]
+                    return (
+                      <span className={finalClass ?? ""}>{finalLabel ?? String(finalValue)}</span>
+                    )
+                  })()}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Button
@@ -194,7 +211,7 @@ export default function StoreCustomizationOptionStatusDialog({
             ))}
             loading={loading}
             isEmpty={data.length === 0}
-            colSpan={6}
+            colSpan={7}
             fixedLayout
             hideRefresh
             hideToolbar

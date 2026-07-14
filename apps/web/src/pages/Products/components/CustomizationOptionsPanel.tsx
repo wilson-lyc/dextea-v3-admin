@@ -333,8 +333,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               <TableHead className="w-28">价格</TableHead>
               <TableHead className="w-20">排序</TableHead>
               <TableHead className="w-20">全局状态</TableHead>
-              <TableHead>绑定原料</TableHead>
-              <TableHead className="w-20">用量</TableHead>
+              <TableHead className="w-40">关联原料</TableHead>
               <TableHead className="w-80 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
@@ -351,19 +350,15 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               </span>
             </TableCell>
             <TableCell className="text-sm">
-              {o.ingredientId != null ? (
-                <span>{o.ingredientName || `原料 #${o.ingredientId}`}</span>
-              ) : (
-                <span className="text-muted-foreground">—</span>
-              )}
-            </TableCell>
-            <TableCell className="font-mono text-xs">
               {o.ingredientId != null
                 ? (() => {
                     const u = unitOf(o.ingredientId)
-                    return u ? `${o.quantity} ${u}` : String(o.quantity)
+                    const qty = u ? `${o.quantity} ${u}` : String(o.quantity)
+                    return `${o.ingredientName || `原料 #${o.ingredientId}`}（${qty}）`
                   })()
-                : "—"}
+                : (
+                  <span className="text-muted-foreground">—</span>
+                )}
             </TableCell>
             <TableCell className="text-right">
               <div className="grid ml-auto w-fit grid-cols-2 gap-1" dir="rtl">
@@ -400,7 +395,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
         ))}
         loading={loading}
         isEmpty={options.length === 0}
-        colSpan={8}
+        colSpan={7}
         hideRefresh
         emptyIcon={<ListIcon className="size-4" />}
         emptyText="暂无数据"
