@@ -66,7 +66,7 @@ export default function ManageOptionsSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" style={{ width: sheetWidth, maxWidth: "none" }}>
         <SheetHeader>
-          <SheetTitle>{customizationName} - 管理选项</SheetTitle>
+          <SheetTitle>客制化选项管理 - {customizationName}</SheetTitle>
         </SheetHeader>
 
         <div

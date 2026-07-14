@@ -324,7 +324,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               <TableHead className="w-20">全局状态</TableHead>
               <TableHead>绑定原料</TableHead>
               <TableHead className="w-20">用量</TableHead>
-              <TableHead className="w-72 text-right">操作</TableHead>
+              <TableHead className="w-80 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
         }
