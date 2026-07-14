@@ -74,6 +74,14 @@ export const PaginationQuerySchema = z.object({
 });
 export type PaginationQuery = z.infer<typeof PaginationQuerySchema>;
 
+/** 门店客制化项目列表查询（可按商品过滤） */
+export const StoreCustomizationListQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  pageSize: z.coerce.number().int().positive().max(100).default(20),
+  productId: z.coerce.number().int().positive().optional(),
+});
+export type StoreCustomizationListQuery = z.infer<typeof StoreCustomizationListQuerySchema>;
+
 /** 门店商品列表查询 */
 export const ProductListQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),

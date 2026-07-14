@@ -23,6 +23,7 @@ import {
 import DataTable from "@/components/ui/data-table"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 import { getStoreProducts, updateProductStoreStatus } from "@/api/store"
+import StoreCustomizationSheet from "./StoreCustomizationSheet"
 
 interface StoreProductStatusPanelProps {
   storeId: number
@@ -88,6 +89,13 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
     name: string
     currentStatus: number
   } | null>(null)
+
+  // 客制化项目管理 sheet
+  const [customizationTarget, setCustomizationTarget] = useState<{
+    id: number
+    name: string
+  } | null>(null)
+  const [customizationOpen, setCustomizationOpen] = useState(false)
 
   const handleToggleConfirm = useCallback(async () => {
     if (!toggleTarget) return
@@ -210,12 +218,12 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
         header={
           <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
-              <TableHead className="w-[18%]">商品名称</TableHead>
-              <TableHead className="w-[18%]">价格</TableHead>
-              <TableHead className="w-[18%]">全局状态</TableHead>
-              <TableHead className="w-[18%]">门店状态</TableHead>
-              <TableHead className="w-[18%]">最终状态</TableHead>
-              <TableHead className="w-[10%] text-right">操作</TableHead>
+              <TableHead className="w-[14%]">商品名称</TableHead>
+              <TableHead className="w-[14%]">价格</TableHead>
+              <TableHead className="w-[14%]">全局状态</TableHead>
+              <TableHead className="w-[14%]">门店状态</TableHead>
+              <TableHead className="w-[16%]">最终状态</TableHead>
+              <TableHead className="w-[28%] text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
         }
@@ -238,8 +246,8 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
                 {getProductFinalStatus(item.globalStatus, item.storeStatus).label}
               </span>
             </TableCell>
-            <TableCell className="w-[10%] text-right">
-              <div className="flex items-center justify-end gap-1">
+            <TableCell className="w-[28%] text-right">
+              <div className="flex flex-wrap items-center justify-end gap-1">
                 <Button
                   variant="outline"
                   size="sm"
@@ -259,6 +267,16 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
                   }
                 >
                   {item.storeStatus === 1 ? "转门店售罄" : "转门店可售"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setCustomizationTarget({ id: item.id, name: item.name })
+                    setCustomizationOpen(true)
+                  }}
+                >
+                  管理客制化
                 </Button>
               </div>
             </TableCell>
@@ -285,6 +303,19 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
         description={`确认修改「${toggleTarget?.name}」的门店状态为「${toggleTarget?.currentStatus === 1 ? "售罄" : "可售"}」？`}
         onConfirm={handleToggleConfirm}
       />
+
+      {customizationTarget && (
+        <StoreCustomizationSheet
+          storeId={storeId}
+          productId={customizationTarget.id}
+          productName={customizationTarget.name}
+          open={customizationOpen}
+          onOpenChange={(open) => {
+            setCustomizationOpen(open)
+            if (!open) setCustomizationTarget(null)
+          }}
+        />
+      )}
     </>
   )
 }

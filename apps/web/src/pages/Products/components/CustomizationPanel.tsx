@@ -160,6 +160,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         header={
           <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
+              <TableHead className="w-20">项目ID</TableHead>
               <TableHead>项目名称</TableHead>
               <TableHead className="w-20">排序</TableHead>
               <TableHead className="w-24">状态</TableHead>
@@ -170,6 +171,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         }
         body={data.map((item) => (
           <TableRow key={item.id}>
+            <TableCell className="font-mono text-xs">{item.id}</TableCell>
             <TableCell className="font-medium">{item.name}</TableCell>
             <TableCell className="font-mono text-xs">{item.sort}</TableCell>
             <TableCell>
@@ -214,7 +216,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         ))}
         loading={loading}
         isEmpty={data.length === 0}
-        colSpan={5}
+        colSpan={6}
         hideRefresh
         emptyIcon={<ListIcon className="size-4" />}
         emptyText="暂无数据"

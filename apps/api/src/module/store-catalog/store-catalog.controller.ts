@@ -13,6 +13,7 @@ import {
   CustomizationOptionIdParamsSchema,
   ProductListQuerySchema,
   PaginationQuerySchema,
+  StoreCustomizationListQuerySchema,
   UpdateProductStoreStatusBodySchema,
   UpdateOptionStoreStatusBodySchema,
 } from '@dextea-admin/contracts';
@@ -71,7 +72,7 @@ export const registerStoreCatalogRoutes: FastifyPluginAsyncZod = async (app) => 
         tags: ['StoreCatalog'],
         description: '门店客制化项目列表',
         params: StoreIdParamsSchema,
-        querystring: PaginationQuerySchema,
+        querystring: StoreCustomizationListQuerySchema,
         response: { 200: ApiResponseSchema(StoreCustomizationListResponseSchema).describe('门店客制化项目列表') },
         security: [{ bearerAuth: [] }],
       },

@@ -188,7 +188,7 @@ export function updateProductStoreStatus(
  */
 export function getStoreCustomizations(
   storeId: number,
-  params?: { page?: number; pageSize?: number },
+  params?: { page?: number; pageSize?: number; productId?: number },
 ) {
   return http
     .get<ApiResponse<PaginatedData<StoreCustomizationItem>>>(`/stores/${storeId}/customizations`, {

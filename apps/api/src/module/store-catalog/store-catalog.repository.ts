@@ -98,30 +98,48 @@ export const storeCatalogRepository = {
    * 门店客制化项目列表
    *
    * 客制化项目本身不设门店状态，仅返回全局状态与选项数量。
+   * 通过可选 productId 过滤「商品绑定的客制化项目」。
    */
-  async listStoreCustomizations(storeId: number, params: { page: number; pageSize: number }) {
+  async listStoreCustomizations(
+    storeId: number,
+    params: { page: number; pageSize: number; productId?: number },
+  ) {
     const page = Math.max(1, params.page);
     const pageSize = Math.min(100, Math.max(1, params.pageSize));
     const offset = (page - 1) * pageSize;
 
+    const conditions: (SQL | undefined)[] = [];
+    if (params.productId !== undefined) {
+      conditions.push(eq(customizationsTable.productId, params.productId));
+    }
+
+    const baseQuery = db
+      .select({
+        id: customizationsTable.id,
+        name: customizationsTable.name,
+        globalStatus: customizationsTable.status,
+        optionCount: sql<number>`(
+          SELECT COUNT(*) FROM ${customizationOptionsTable}
+          WHERE ${customizationOptionsTable.customizationId} = ${customizationsTable.id}
+        )`,
+      })
+      .from(customizationsTable)
+      .$dynamic();
+
+    const countQuery = db
+      .select({ count: sql<number>`count(*)` })
+      .from(customizationsTable)
+      .$dynamic();
+
+    if (conditions.length > 0) {
+      const where = and(...conditions);
+      baseQuery.where(where);
+      countQuery.where(where);
+    }
+
     const [items, countResult] = await Promise.all([
-      db
-        .select({
-          id: customizationsTable.id,
-          name: customizationsTable.name,
-          globalStatus: customizationsTable.status,
-          optionCount: sql<number>`(
-            SELECT COUNT(*) FROM ${customizationOptionsTable}
-            WHERE ${customizationOptionsTable.customizationId} = ${customizationsTable.id}
-          )`,
-        })
-        .from(customizationsTable)
-        .limit(pageSize)
-        .offset(offset)
-        .orderBy(customizationsTable.id),
-      db
-        .select({ count: sql<number>`count(*)` })
-        .from(customizationsTable),
+      baseQuery.limit(pageSize).offset(offset).orderBy(customizationsTable.id),
+      countQuery,
     ]);
 
     const total = Number(countResult[0]?.count ?? 0);

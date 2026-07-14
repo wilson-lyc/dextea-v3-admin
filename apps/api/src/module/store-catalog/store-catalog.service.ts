@@ -32,7 +32,10 @@ export const storeCatalogService = {
     );
   },
 
-  async listStoreCustomizations(storeId: number, params: { page: number; pageSize: number }) {
+  async listStoreCustomizations(
+    storeId: number,
+    params: { page: number; pageSize: number; productId?: number },
+  ) {
     await ensureStoreExists(storeId);
     return storeCatalogRepository.listStoreCustomizations(storeId, params);
   },
