@@ -355,7 +355,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
                 : "—"}
             </TableCell>
             <TableCell className="text-right">
-              <div className="grid grid-cols-2 justify-items-end gap-1">
+              <div className="grid ml-auto w-fit grid-cols-2 gap-1" dir="rtl">
                 <Button variant="outline" size="sm" onClick={() => openEdit(o)}>
                   编辑选项
                 </Button>
