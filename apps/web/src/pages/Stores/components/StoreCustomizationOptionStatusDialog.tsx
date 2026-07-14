@@ -197,6 +197,7 @@ export default function StoreCustomizationOptionStatusDialog({
             colSpan={6}
             fixedLayout
             hideRefresh
+            hideToolbar
             emptyIcon={<ListIcon className="size-4" />}
             emptyText="暂无选项"
             pagination={{ page, pageSize, total, onPageChange: fetchData }}

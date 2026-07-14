@@ -182,6 +182,7 @@ export default function StoreCustomizationSheet({
             colSpan={4}
             fixedLayout
             hideRefresh
+            hideToolbar
             emptyIcon={<ListIcon className="size-4" />}
             emptyText="该商品暂未绑定客制化项目"
             pagination={{ page, pageSize, total, onPageChange: fetchData }}
