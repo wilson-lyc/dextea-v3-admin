@@ -24,7 +24,7 @@ import {
 import { getStore, resetStorePassword } from "@/api"
 import { BasicInfoPanel } from "./components/BasicInfoPanel"
 import { StoreProductStatusPanel } from "./components/StoreProductStatusPanel"
-import { StoreIngredientStockPanel } from "./components/StoreIngredientStockPanel"
+import { StoreIngredientPanel } from "./components/StoreIngredientPanel"
 
 export default function StoreDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -113,7 +113,7 @@ export default function StoreDetailPage() {
       </TabsContent>
 
       <TabsContent value="ingredients">
-        {store && <StoreIngredientStockPanel storeId={store.id} />}
+        {store && <StoreIngredientPanel storeId={store.id} />}
       </TabsContent>
 
       {/* Reset Password Dialog */}

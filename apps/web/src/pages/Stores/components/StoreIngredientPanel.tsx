@@ -14,11 +14,11 @@ import { Input } from "@/components/ui/input"
 import DataTable from "@/components/ui/data-table"
 import { getStoreIngredients, updateStoreIngredientStock } from "@/api/store"
 
-interface StoreIngredientStockPanelProps {
+interface StoreIngredientPanelProps {
   storeId: number
 }
 
-export function StoreIngredientStockPanel({ storeId }: StoreIngredientStockPanelProps) {
+export function StoreIngredientPanel({ storeId }: StoreIngredientPanelProps) {
   const [data, setData] = useState<StoreIngredientItem[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -151,6 +151,7 @@ export function StoreIngredientStockPanel({ storeId }: StoreIngredientStockPanel
       isEmpty={data.length === 0}
       colSpan={3}
       hideRefresh
+      hideToolbar
       emptyIcon={<FlaskConicalIcon className="size-4" />}
       emptyText="暂无数据"
       pagination={{ page, pageSize, total, onPageChange: fetchData }}
