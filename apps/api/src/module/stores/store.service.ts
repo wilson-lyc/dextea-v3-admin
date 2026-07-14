@@ -3,10 +3,10 @@ import { BizError } from '@/common/exceptions/index.js';
 import { StoreErrorCodes } from './store.errorcode.js';
 import { storeRepository } from './store.repository.js';
 import { redis } from '@/plugins/db/redis/index.js';
-import { withDistributedLock } from '@/plugins/utils/distributed-lock.js';
-import { geocode } from '@/plugins/utils/geocode.js';
-import { codeToNames } from '@/plugins/utils/area-code.js';
-import { hashPassword } from '@/plugins/utils/password.js';
+import { withDistributedLock } from '@/plugins/lock/index.js';
+import { geocode } from '@/plugins/geocode/index.js';
+import { codeToNames } from '@/utils/area-code.js';
+import { hashPassword } from '@/plugins/password/index.js';
 import { STORE_STATUS } from '@dextea-admin/contracts';
 import type { StoreListRequest, CreateStoreRequest, UpdateStoreRequest, UpdateStoreBasicInfoRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest, BindStoreMenuRequest } from '@dextea-admin/contracts';
 

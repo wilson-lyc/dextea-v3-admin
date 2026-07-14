@@ -1,7 +1,7 @@
 import { eq, sql } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
 import { employeesTable } from '@/plugins/db/mysql/schema.js';
-import { withPagination } from '@/plugins/utils/pagination.js';
+import { withPagination } from '@/utils/pagination.js';
 
 export const employeeRepository = {
   async getEmployeeListWithPage(page: number, pageSize: number, keyword?: string) {

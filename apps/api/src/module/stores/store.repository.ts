@@ -5,7 +5,7 @@ import {
   menusTable,
   storeMenusTable,
 } from '@/plugins/db/mysql/schema.js';
-import { withPagination } from '@/plugins/utils/pagination.js';
+import { withPagination } from '@/utils/pagination.js';
 
 export const storeRepository = {
   async getStoreList(page: number, pageSize: number, keyword?: string) {

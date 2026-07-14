@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { BizError } from '@/common/exceptions/index.js';
 import { AuthErrorCodes } from './auth.errorcode.js';
 import { authRepository } from './auth.repository.js';
-import { validateEmail, validatePassword } from '@/plugins/utils/validation.js';
-import { verifyPassword, hashPassword } from '@/plugins/utils/password.js';
+import { validateEmail, validatePassword } from '@/utils/validation.js';
+import { verifyPassword, hashPassword } from '@/plugins/password/index.js';
 import { EMPLOYEE_STATUS } from '@dextea-admin/contracts';
 import type Redis from 'ioredis';
 

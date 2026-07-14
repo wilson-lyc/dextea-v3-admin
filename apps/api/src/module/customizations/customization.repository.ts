@@ -6,7 +6,7 @@ import {
   customizationOptionsTable,
   ingredientsTable,
 } from '@/plugins/db/mysql/schema.js';
-import { withPagination } from '@/plugins/utils/pagination.js';
+import { withPagination } from '@/utils/pagination.js';
 
 export const customizationRepository = {
   // ─── Customization CRUD ──────────────────────────
