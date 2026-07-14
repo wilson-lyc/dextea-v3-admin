@@ -1,14 +1,16 @@
 $:
   vscode:
     - runner:
-        cpus: 4
+        cpus: 2
       docker:
         image: cnbcool/default-dev-env:latest
       services:
         - vscode
         - docker
       stages:
+        - name: 配置镜像
+          script: npm config set registry https://mirrors.cloud.tencent.com/npm/
+        - name: 安装 PNPM
+          script: npm install -g pnpm
         - name: 安装依赖
-          script: 
-            - npm install -g pnpm
-            - pnpm i
+          script: pnpm i

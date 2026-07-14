@@ -2,6 +2,7 @@ import { BizError } from '@/common/exceptions/index.js';
 import { StoreCatalogErrorCodes } from './store-catalog.errorcode.js';
 import { storeCatalogRepository } from './store-catalog.repository.js';
 import { STORE_PRODUCT_STATUS_VALUES } from '@dextea-admin/contracts';
+import { withDistributedLock } from '@/plugins/utils/distributed-lock.js';
 
 // 校验门店是否存在（门店目录子资源接口共用）
 async function ensureStoreExists(storeId: number): Promise<void> {
@@ -23,7 +24,12 @@ export const storeCatalogService = {
       throw new BizError(StoreCatalogErrorCodes.INVALID_STATUS);
     }
     await ensureStoreExists(storeId);
-    await storeCatalogRepository.upsertProductStoreStatus(storeId, productId, status);
+    return withDistributedLock(
+      `store-catalog:product-status:${storeId}:${productId}`,
+      async () => {
+        await storeCatalogRepository.upsertProductStoreStatus(storeId, productId, status);
+      },
+    );
   },
 
   async listStoreCustomizations(storeId: number, params: { page: number; pageSize: number }) {
@@ -45,7 +51,12 @@ export const storeCatalogService = {
       throw new BizError(StoreCatalogErrorCodes.INVALID_STATUS);
     }
     await ensureStoreExists(storeId);
-    await storeCatalogRepository.upsertCustomizationOptionStoreStatus(storeId, optionId, status);
+    return withDistributedLock(
+      `store-catalog:option-status:${storeId}:${optionId}`,
+      async () => {
+        await storeCatalogRepository.upsertCustomizationOptionStoreStatus(storeId, optionId, status);
+      },
+    );
   },
 
   async listStoreIngredients(storeId: number, params: { page: number; pageSize: number }) {

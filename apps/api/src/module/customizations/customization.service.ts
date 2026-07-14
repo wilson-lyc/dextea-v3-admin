@@ -2,7 +2,6 @@ import { BizError } from '@/common/exceptions/index.js';
 import { CustomizationErrorCodes } from './customization.errorcode.js';
 import { customizationRepository } from './customization.repository.js';
 import { validateMaxLength, validateSort } from '@/plugins/utils/validation.js';
-import { withDistributedLock } from '@/plugins/utils/distributed-lock.js';
 import {
   CUSTOMIZATION_STATUS,
   CUSTOMIZATION_STATUS_VALUES,
@@ -218,17 +217,11 @@ export const customizationService = {
       if (Object.keys(updateData).length > 0) {
         await customizationRepository.updateOptionById(optionId, updateData);
       }
-      return customizationRepository.getOptionByIdWithIngredient(optionId);
-    };
+    return customizationRepository.getOptionByIdWithIngredient(optionId);
+  };
 
-    // 仅当本次请求修改「绑定原料 / 用量」时加分布式锁，
-    // 与原料侧绑定接口共用同一把锁，保证双向绑定写入互斥。
-    const touchesBinding = ingredientId !== undefined || quantity !== undefined;
-    if (touchesBinding) {
-      return withDistributedLock(`customization-option:bind:${optionId}`, persist);
-    }
-    return persist();
-  },
+  return persist();
+},
 
   async deleteOption(customizationId: number, optionId: number) {
     const option = await customizationRepository.getOptionById(optionId);
