@@ -2,7 +2,10 @@ import { useCallback, useEffect, useState } from "react"
 import { ListIcon, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import type { CustomizationOption } from "@/api"
+import type {
+  CustomizationOption,
+  RebindCustomizationOptionIngredientRequest,
+} from "@/api"
 import {
   CUSTOMIZATION_OPTION_STATUS,
   CUSTOMIZATION_OPTION_STATUS_LABEL,
@@ -36,6 +39,8 @@ import {
   getCustomizationOptions,
   createCustomizationOption,
   updateCustomizationOption,
+  updateCustomizationOptionQuantity,
+  rebindCustomizationOptionIngredient,
   deleteCustomizationOption,
   getIngredientOptions,
 } from "@/api"
@@ -44,7 +49,7 @@ interface CustomizationOptionsPanelProps {
   customizationId: number
 }
 
-type OptionForm = {
+type CreateForm = {
   name: string
   price: string
   sort: string
@@ -54,7 +59,16 @@ type OptionForm = {
   quantity: string
 }
 
-const emptyForm = (): OptionForm => ({
+type EditForm = {
+  name: string
+  price: string
+  sort: string
+  status: string
+}
+
+const UNBIND_VALUE = "__unbind__"
+
+const emptyCreateForm = (): CreateForm => ({
   name: "",
   price: "0",
   sort: "0",
@@ -64,21 +78,45 @@ const emptyForm = (): OptionForm => ({
   quantity: "0",
 })
 
+const emptyEditForm = (): EditForm => ({
+  name: "",
+  price: "0",
+  sort: "0",
+  status: "0",
+})
+
 export default function CustomizationOptionsPanel({ customizationId }: CustomizationOptionsPanelProps) {
   const [options, setOptions] = useState<CustomizationOption[]>([])
   const [loading, setLoading] = useState(true)
 
   // Create dialog
   const [createOpen, setCreateOpen] = useState(false)
-  const [createForm, setCreateForm] = useState<OptionForm>(emptyForm())
+  const [createForm, setCreateForm] = useState<CreateForm>(emptyCreateForm())
   const [creating, setCreating] = useState(false)
 
-  // Edit dialog
+  // Edit basic info dialog
   const [editingOption, setEditingOption] = useState<CustomizationOption | null>(null)
-  const [editForm, setEditForm] = useState<OptionForm>(emptyForm())
+  const [editForm, setEditForm] = useState<EditForm>(emptyEditForm())
   const [saving, setSaving] = useState(false)
 
+  // Edit quantity dialog
+  const [quantityOption, setQuantityOption] = useState<CustomizationOption | null>(null)
+  const [quantityValue, setQuantityValue] = useState("0")
+  const [savingQuantity, setSavingQuantity] = useState(false)
+
+  // Rebind ingredient dialog
+  const [rebindOption, setRebindOption] = useState<CustomizationOption | null>(null)
+  const [rebindIngredientId, setRebindIngredientId] = useState("")
+  const [rebindQuantity, setRebindQuantity] = useState("0")
+  const [savingRebind, setSavingRebind] = useState(false)
+
   const [ingredientOptions, setIngredientOptions] = useState<{ label: string; value: string }[]>([])
+
+  // 换绑可选清单：在原料列表末尾追加「解绑」项
+  const rebindOptions = [
+    { label: "解绑（不绑定原料）", value: UNBIND_VALUE },
+    ...ingredientOptions,
+  ]
 
   const fetchOptions = useCallback(async () => {
     setLoading(true)
@@ -124,7 +162,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
       if (res.code === 0) {
         toast.success(res.message)
         setCreateOpen(false)
-        setCreateForm(emptyForm())
+        setCreateForm(emptyCreateForm())
         await fetchOptions()
       } else {
         toast.error(res.message)
@@ -143,9 +181,6 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
       price: String(option.price),
       sort: String(option.sort),
       status: String(option.status),
-      bindIngredient: option.ingredientId != null,
-      ingredientId: option.ingredientId ? String(option.ingredientId) : "",
-      quantity: String(option.quantity),
     })
   }
 
@@ -163,8 +198,6 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
         price: Number(editForm.price) || 0,
         sort: Number(editForm.sort) || 0,
         status: Number(editForm.status) as CustomizationOption["status"],
-        ingredientId: editForm.bindIngredient ? (Number(editForm.ingredientId) || null) : null,
-        quantity: editForm.bindIngredient ? (Number(editForm.quantity) || 0) : 0,
       })
       if (res.code === 0) {
         toast.success(res.message)
@@ -177,6 +210,74 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
       toast.error(err instanceof Error ? err.message : "更新失败")
     } finally {
       setSaving(false)
+    }
+  }
+
+  const openQuantity = (option: CustomizationOption) => {
+    setQuantityOption(option)
+    setQuantityValue(String(option.quantity))
+  }
+
+  const handleUpdateQuantity = async () => {
+    if (!quantityOption) return
+    const quantity = Number(quantityValue)
+    if (Number.isNaN(quantity) || quantity < 0) {
+      toast.error("请输入有效的用量")
+      return
+    }
+
+    setSavingQuantity(true)
+    try {
+      const res = await updateCustomizationOptionQuantity(customizationId, quantityOption.id, quantity)
+      if (res.code === 0) {
+        toast.success(res.message)
+        setQuantityOption(null)
+        await fetchOptions()
+      } else {
+        toast.error(res.message)
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "更新用量失败")
+    } finally {
+      setSavingQuantity(false)
+    }
+  }
+
+  const openRebind = (option: CustomizationOption) => {
+    setRebindOption(option)
+    setRebindIngredientId(option.ingredientId != null ? String(option.ingredientId) : "")
+    setRebindQuantity(String(option.quantity))
+  }
+
+  const handleRebind = async () => {
+    if (!rebindOption) return
+
+    const isUnbind = rebindIngredientId === UNBIND_VALUE
+    const ingredientId = isUnbind ? null : Number(rebindIngredientId)
+    // 解绑时用量重置为 0；换绑到具体原料时必须填写新用量。
+    const quantity = isUnbind ? 0 : Number(rebindQuantity)
+
+    if (!isUnbind && (Number.isNaN(quantity) || quantity < 0)) {
+      toast.error("换绑原料时请填写有效的用量")
+      return
+    }
+
+    const payload: RebindCustomizationOptionIngredientRequest = { ingredientId, quantity }
+
+    setSavingRebind(true)
+    try {
+      const res = await rebindCustomizationOptionIngredient(customizationId, rebindOption.id, payload)
+      if (res.code === 0) {
+        toast.success(res.message)
+        setRebindOption(null)
+        await fetchOptions()
+      } else {
+        toast.error(res.message)
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "换绑失败")
+    } finally {
+      setSavingRebind(false)
     }
   }
 
@@ -213,7 +314,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               <TableHead className="w-20">状态</TableHead>
               <TableHead>绑定原料</TableHead>
               <TableHead className="w-20">用量</TableHead>
-              <TableHead className="w-28 text-right">操作</TableHead>
+              <TableHead className="w-44 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
         }
@@ -237,9 +338,21 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
             </TableCell>
             <TableCell className="font-mono text-xs">{o.ingredientId != null ? o.quantity : "—"}</TableCell>
             <TableCell className="text-right">
-              <div className="flex items-center justify-end gap-1">
+              <div className="flex flex-wrap items-center justify-end gap-1">
                 <Button variant="outline" size="sm" onClick={() => openEdit(o)}>
                   编辑
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={o.ingredientId == null}
+                  onClick={() => openQuantity(o)}
+                  title={o.ingredientId == null ? "未绑定原料，无可编辑用量" : "修改绑定用量"}
+                >
+                  用量
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => openRebind(o)}>
+                  换绑
                 </Button>
                 <Button
                   variant="outline-destructive"
@@ -361,7 +474,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
+      {/* Edit Basic Info Dialog */}
       <Dialog open={!!editingOption} onOpenChange={(open) => { if (!open) setEditingOption(null) }}>
         <DialogContent>
           <DialogHeader>
@@ -414,48 +527,6 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               placeholder="请选择状态"
             />
             </Field>
-
-            <Field>
-              <div className="flex items-center gap-3">
-                <Switch
-                  checked={editForm.bindIngredient}
-                  onCheckedChange={(checked) =>
-                    setEditForm((f) => ({ ...f, bindIngredient: checked }))
-                  }
-                  id="edit-option-bind-ingredient"
-                />
-                <FieldLabel htmlFor="edit-option-bind-ingredient" className="mb-0">
-                  绑定原料
-                </FieldLabel>
-              </div>
-            </Field>
-
-            {editForm.bindIngredient && (
-              <>
-                <Field>
-                  <FieldLabel htmlFor="edit-option-ingredient">原料</FieldLabel>
-                  <SelectPicker
-                    options={ingredientOptions}
-                    value={editForm.ingredientId}
-                    onValueChange={(v) => setEditForm((f) => ({ ...f, ingredientId: v }))}
-                    placeholder="请选择原料"
-                    className="w-full"
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="edit-option-quantity">用量</FieldLabel>
-                  <Input
-                    id="edit-option-quantity"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    placeholder="0"
-                    value={editForm.quantity}
-                    onChange={(e) => setEditForm((f) => ({ ...f, quantity: e.target.value }))}
-                  />
-                </Field>
-              </>
-            )}
           </FieldGroup>
 
           <DialogFooter>
@@ -464,6 +535,90 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
             </Button>
             <Button onClick={handleUpdate} disabled={saving}>
               {saving ? "保存中..." : "保存"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Quantity Dialog */}
+      <Dialog open={!!quantityOption} onOpenChange={(open) => { if (!open) setQuantityOption(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>修改绑定用量</DialogTitle>
+          </DialogHeader>
+
+          <FieldGroup className="py-2">
+            <Field>
+              <FieldLabel htmlFor="edit-quantity">用量</FieldLabel>
+              <Input
+                id="edit-quantity"
+                type="number"
+                min="0"
+                step="0.1"
+                placeholder="0"
+                value={quantityValue}
+                onChange={(e) => setQuantityValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleUpdateQuantity()
+                }}
+              />
+            </Field>
+          </FieldGroup>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setQuantityOption(null)}>
+              取消
+            </Button>
+            <Button onClick={handleUpdateQuantity} disabled={savingQuantity}>
+              {savingQuantity ? "保存中..." : "保存"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rebind Ingredient Dialog */}
+      <Dialog open={!!rebindOption} onOpenChange={(open) => { if (!open) setRebindOption(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>换绑原料</DialogTitle>
+          </DialogHeader>
+
+          <FieldGroup className="py-2">
+            <Field>
+              <FieldLabel htmlFor="rebind-ingredient">原料</FieldLabel>
+              <SelectPicker
+                options={rebindOptions}
+                value={rebindIngredientId}
+                onValueChange={(v) => setRebindIngredientId(v)}
+                placeholder="请选择原料或解绑"
+                className="w-full"
+              />
+            </Field>
+
+            {rebindIngredientId === UNBIND_VALUE ? (
+              <p className="text-xs text-muted-foreground">解绑后用量将重置为 0。</p>
+            ) : (
+              <Field>
+                <FieldLabel htmlFor="rebind-quantity">新用量</FieldLabel>
+                <Input
+                  id="rebind-quantity"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  placeholder="0"
+                  value={rebindQuantity}
+                  onChange={(e) => setRebindQuantity(e.target.value)}
+                />
+              </Field>
+            )}
+          </FieldGroup>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRebindOption(null)}>
+              取消
+            </Button>
+            <Button onClick={handleRebind} disabled={savingRebind}>
+              {savingRebind ? "保存中..." : "保存"}
             </Button>
           </DialogFooter>
         </DialogContent>

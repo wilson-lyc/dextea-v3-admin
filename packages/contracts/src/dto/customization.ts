@@ -97,20 +97,41 @@ export type CreateCustomizationOptionRequest = z.infer<typeof CreateCustomizatio
 export const CreateCustomizationOptionResponseSchema = CustomizationOptionSchema;
 export type CreateCustomizationOptionResponse = CustomizationOption;
 
-// ─── 更新客制化选项 ───────────────────────────────
+// ─── 更新客制化选项基础信息 ───────────────────────
+// 仅处理名称/加价/排序/状态，绑定关系与用量由下方独立接口维护。
 
 export const UpdateCustomizationOptionRequestSchema = z.object({
   name: z.string().min(1, '客制化选项名称不能为空').optional(),
   price: z.number().optional(),
   sort: z.number().int().optional(),
   status: z.number().optional(),
-  ingredientId: z.number().int().positive().nullable().optional(),
-  quantity: z.number().optional(),
 });
 export type UpdateCustomizationOptionRequest = z.infer<typeof UpdateCustomizationOptionRequestSchema>;
 
 export const UpdateCustomizationOptionResponseSchema = CustomizationOptionSchema;
 export type UpdateCustomizationOptionResponse = CustomizationOption;
+
+// ─── 单独更新客制化选项绑定用量 ───────────────────
+
+export const UpdateCustomizationOptionQuantityRequestSchema = z.object({
+  quantity: z.number(),
+});
+export type UpdateCustomizationOptionQuantityRequest = z.infer<typeof UpdateCustomizationOptionQuantityRequestSchema>;
+
+export const UpdateCustomizationOptionQuantityResponseSchema = CustomizationOptionSchema;
+export type UpdateCustomizationOptionQuantityResponse = CustomizationOption;
+
+// ─── 换绑客制化选项原料（可换绑到新原料或解绑） ──
+// 换绑到具体原料时须一并提交新用量；解绑（ingredientId 为 null）时用量重置为 0。
+
+export const RebindCustomizationOptionIngredientRequestSchema = z.object({
+  ingredientId: z.number().int().positive().nullable(),
+  quantity: z.number(),
+});
+export type RebindCustomizationOptionIngredientRequest = z.infer<typeof RebindCustomizationOptionIngredientRequestSchema>;
+
+export const RebindCustomizationOptionIngredientResponseSchema = CustomizationOptionSchema;
+export type RebindCustomizationOptionIngredientResponse = CustomizationOption;
 
 // ─── 删除客制化选项 ───────────────────────────────
 

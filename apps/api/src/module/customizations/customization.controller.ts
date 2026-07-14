@@ -16,6 +16,10 @@ import {
   CreateCustomizationOptionResponseSchema,
   UpdateCustomizationOptionRequestSchema,
   UpdateCustomizationOptionResponseSchema,
+  UpdateCustomizationOptionQuantityRequestSchema,
+  UpdateCustomizationOptionQuantityResponseSchema,
+  RebindCustomizationOptionIngredientRequestSchema,
+  RebindCustomizationOptionIngredientResponseSchema,
   DeleteCustomizationOptionResponseSchema,
 } from '@dextea-admin/contracts';
 
@@ -175,6 +179,53 @@ export const registerCustomizationRoutes: FastifyPluginAsyncZod = async (app) =>
     async (request, _reply) => {
       await customizationService.deleteOption(request.params.id, request.params.optionId);
       return ApiResponse.success(null, '删除成功');
+    },
+  );
+
+  // 单独更新客制化选项绑定用量
+  app.patch(
+    '/customizations/:id/options/:optionId/quantity',
+    {
+      schema: {
+        tags: ['Customizations'],
+        description: '更新客制化选项绑定原料的用量',
+        params: ParamIdOptionIdSchema,
+        body: UpdateCustomizationOptionQuantityRequestSchema,
+        response: { 200: ApiResponseSchema(UpdateCustomizationOptionQuantityResponseSchema).describe('更新成功') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await customizationService.updateOptionQuantity(
+        request.params.id,
+        request.params.optionId,
+        request.body.quantity,
+      );
+      return ApiResponse.success(data, '更新成功');
+    },
+  );
+
+  // 换绑客制化选项原料（换绑到新原料或解绑）
+  app.patch(
+    '/customizations/:id/options/:optionId/ingredient',
+    {
+      schema: {
+        tags: ['Customizations'],
+        description: '换绑客制化选项原料（含新用量），或解绑',
+        params: ParamIdOptionIdSchema,
+        body: RebindCustomizationOptionIngredientRequestSchema,
+        response: { 200: ApiResponseSchema(RebindCustomizationOptionIngredientResponseSchema).describe('换绑成功') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await customizationService.rebindOptionIngredient(
+        request.params.id,
+        request.params.optionId,
+        request.body.ingredientId,
+        request.body.quantity,
+      );
+      return ApiResponse.success(data, '换绑成功');
     },
   );
 };

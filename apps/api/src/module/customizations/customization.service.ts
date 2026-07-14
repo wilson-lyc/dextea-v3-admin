@@ -157,71 +157,72 @@ export const customizationService = {
   },
 
   async updateOption(customizationId: number, optionId: number, input: UpdateCustomizationOptionRequest) {
-    const { name, price, sort, status, ingredientId, quantity } = input;
+    const { name, price, sort, status } = input;
 
     const option = await customizationRepository.getOptionById(optionId);
     if (!option || option.customizationId !== customizationId) {
       throw new BizError(CustomizationErrorCodes.OPTION_NOT_FOUND);
     }
 
-    // 构建更新数据（含必要的存在性 / 范围校验）
-    const buildUpdate = (): Record<string, unknown> => {
-      const updateData: Record<string, unknown> = {};
-      if (name !== undefined) {
-        const trimmedName = name.trim();
-        validateMaxLength(trimmedName, 255, '客制化选项名称');
-        updateData.name = trimmedName;
+    const updateData: Record<string, unknown> = {};
+    if (name !== undefined) {
+      const trimmedName = name.trim();
+      validateMaxLength(trimmedName, 255, '客制化选项名称');
+      updateData.name = trimmedName;
+    }
+    if (price !== undefined) updateData.price = price;
+    if (sort !== undefined) {
+      validateSort(sort, '客制化选项排序');
+      updateData.sort = sort;
+    }
+    if (status !== undefined) {
+      if ((CUSTOMIZATION_OPTION_STATUS_VALUES as readonly number[]).includes(status)) {
+        updateData.status = status;
       }
-      if (price !== undefined) updateData.price = price;
-      if (sort !== undefined) {
-        validateSort(sort, '客制化选项排序');
-        updateData.sort = sort;
-      }
-      if (status !== undefined) {
-        if ((CUSTOMIZATION_OPTION_STATUS_VALUES as readonly number[]).includes(status)) {
-          updateData.status = status;
-        }
-      }
-      if (ingredientId !== undefined) {
-        updateData.ingredientId = ingredientId;
-      }
-      if (quantity !== undefined) updateData.ingredientQuantity = quantity;
-      return updateData;
-    };
+    }
 
-    // 在锁内重新读取最新状态，避免锁外 TOCTOU 导致并发写覆盖
-    const persist = async () => {
-      const fresh = await customizationRepository.getOptionById(optionId);
-      if (!fresh || fresh.customizationId !== customizationId) {
-        throw new BizError(CustomizationErrorCodes.OPTION_NOT_FOUND);
-      }
-
-      // 绑定关系不可重复创建：选项已绑定原料时，禁止改派到其它原料。
-      // - 目标原料与当前已绑定原料相同：视为无变更，放行（不重复绑定）。
-      // - 目标为 null：解绑，放行。
-      // - 目标非空且与当前不同：已绑定则拒绝（改派）。
-      if (ingredientId !== undefined && ingredientId != null) {
-        if (fresh.ingredientId != null && ingredientId !== fresh.ingredientId) {
-          throw new BizError(CustomizationErrorCodes.OPTION_ALREADY_BOUND);
-        }
-        // 仅新绑定（当前未绑定）时需要校验原料存在性；已绑定同值无需重复校验
-        if (fresh.ingredientId == null) {
-          const ingredient = await customizationRepository.getIngredientById(ingredientId);
-          if (!ingredient) {
-            throw new BizError(CustomizationErrorCodes.INGREDIENT_NOT_FOUND);
-          }
-        }
-      }
-
-      const updateData = buildUpdate();
-      if (Object.keys(updateData).length > 0) {
-        await customizationRepository.updateOptionById(optionId, updateData);
-      }
+    if (Object.keys(updateData).length > 0) {
+      await customizationRepository.updateOptionById(optionId, updateData);
+    }
     return customizationRepository.getOptionByIdWithIngredient(optionId);
-  };
+  },
 
-  return persist();
-},
+  async updateOptionQuantity(customizationId: number, optionId: number, quantity: number) {
+    const option = await customizationRepository.getOptionById(optionId);
+    if (!option || option.customizationId !== customizationId) {
+      throw new BizError(CustomizationErrorCodes.OPTION_NOT_FOUND);
+    }
+
+    await customizationRepository.updateOptionById(optionId, { ingredientQuantity: quantity });
+    return customizationRepository.getOptionByIdWithIngredient(optionId);
+  },
+
+  async rebindOptionIngredient(
+    customizationId: number,
+    optionId: number,
+    ingredientId: number | null,
+    quantity: number,
+  ) {
+    const option = await customizationRepository.getOptionById(optionId);
+    if (!option || option.customizationId !== customizationId) {
+      throw new BizError(CustomizationErrorCodes.OPTION_NOT_FOUND);
+    }
+
+    // 换绑到具体原料时须校验原料存在性；解绑（ingredientId 为 null）无需校验。
+    if (ingredientId != null) {
+      const ingredient = await customizationRepository.getIngredientById(ingredientId);
+      if (!ingredient) {
+        throw new BizError(CustomizationErrorCodes.INGREDIENT_NOT_FOUND);
+      }
+    }
+
+    await customizationRepository.updateOptionById(optionId, {
+      ingredientId: ingredientId ?? null,
+      // 解绑时用量重置为 0；换绑到具体原料时用提交的新用量。
+      ingredientQuantity: ingredientId == null ? 0 : quantity,
+    });
+    return customizationRepository.getOptionByIdWithIngredient(optionId);
+  },
 
   async deleteOption(customizationId: number, optionId: number) {
     const option = await customizationRepository.getOptionById(optionId);

@@ -10,6 +10,8 @@ import type {
   CustomizationOption,
   CreateCustomizationOptionRequest,
   UpdateCustomizationOptionRequest,
+  UpdateCustomizationOptionQuantityRequest,
+  RebindCustomizationOptionIngredientRequest,
 } from "@dextea-admin/contracts/dto"
 
 export type {
@@ -19,6 +21,8 @@ export type {
   CustomizationOption,
   CreateCustomizationOptionRequest,
   UpdateCustomizationOptionRequest,
+  UpdateCustomizationOptionQuantityRequest,
+  RebindCustomizationOptionIngredientRequest,
 } from "@dextea-admin/contracts/dto"
 
 const http = createModuleClient("customization")
@@ -121,5 +125,39 @@ export function updateCustomizationOption(
 export function deleteCustomizationOption(customizationId: number, optionId: number) {
   return http
     .delete<ApiResponse<null>>(`/customizations/${customizationId}/options/${optionId}`)
+    .then((res) => res.data)
+}
+
+/**
+ * 单独更新客制化选项绑定用量
+ * PATCH /customizations/:id/options/:optionId/quantity
+ */
+export function updateCustomizationOptionQuantity(
+  customizationId: number,
+  optionId: number,
+  quantity: number,
+) {
+  return http
+    .patch<ApiResponse<CustomizationOption>>(
+      `/customizations/${customizationId}/options/${optionId}/quantity`,
+      { quantity } satisfies UpdateCustomizationOptionQuantityRequest,
+    )
+    .then((res) => res.data)
+}
+
+/**
+ * 换绑客制化选项原料（含新用量）或解绑
+ * PATCH /customizations/:id/options/:optionId/ingredient
+ */
+export function rebindCustomizationOptionIngredient(
+  customizationId: number,
+  optionId: number,
+  payload: RebindCustomizationOptionIngredientRequest,
+) {
+  return http
+    .patch<ApiResponse<CustomizationOption>>(
+      `/customizations/${customizationId}/options/${optionId}/ingredient`,
+      payload,
+    )
     .then((res) => res.data)
 }
