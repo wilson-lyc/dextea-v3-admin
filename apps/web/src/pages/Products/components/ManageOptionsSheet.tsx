@@ -65,7 +65,7 @@ export default function ManageOptionsSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" style={{ width: sheetWidth, maxWidth: "none" }} className="gap-0">
-        <SheetHeader className="p-4 pb-0">
+        <SheetHeader>
           <SheetTitle>客制化选项管理 - {customizationName}</SheetTitle>
         </SheetHeader>
 
