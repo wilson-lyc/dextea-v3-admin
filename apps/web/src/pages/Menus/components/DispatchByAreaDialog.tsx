@@ -39,8 +39,8 @@ export default function DispatchByAreaDialog({
   // 拼接地域显示文本
   const areaLabel = [area.province, area.city, area.district].filter(Boolean).join("")
 
-  // 是否可以进入确认步骤（至少选了省）
-  const canProceed = area.province.length > 0
+  // 是否可以进入确认步骤（至少选中省级区域，得到区域代码）
+  const canProceed = area.code.length > 0
 
   // 重置状态
   const reset = () => {
@@ -69,13 +69,10 @@ export default function DispatchByAreaDialog({
   const handleConfirm = async () => {
     setSubmitting(true)
     try {
-      const res = await dispatchMenuByArea(menuId, {
-        province: area.province,
-        ...(area.city ? { city: area.city } : {}),
-        ...(area.district ? { district: area.district } : {}),
-      })
+      const res = await dispatchMenuByArea(menuId, { regionCode: area.code })
       if (res.code === 0) {
-        toast.success(`已向「${areaLabel}」区域内的门店分发菜单`)
+        const label = res.data?.regionName || areaLabel
+        toast.success(`已向「${label}」区域内的门店分发菜单`)
         handleClose(false)
         onDispatched?.()
       } else {
@@ -98,7 +95,7 @@ export default function DispatchByAreaDialog({
           <DialogDescription>
             {confirming
               ? "请确认分发信息"
-              : "选择地域范围，未选中则分发全部"}
+              : "选择地域范围（省 / 市 / 区），将按层级前缀分发到对应门店"}
           </DialogDescription>
         </DialogHeader>
 

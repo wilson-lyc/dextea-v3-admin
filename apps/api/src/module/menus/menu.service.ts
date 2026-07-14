@@ -1,7 +1,7 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { MenuErrorCodes } from './menu.errorcode.js';
 import { menuRepository } from './menu.repository.js';
-import { namesToCode } from '@/plugins/utils/area-code.js';
+import { codeToNames, isValidRegionCode, regionCodeToPrefix } from '@/plugins/utils/area-code.js';
 import type {
   MenuListRequest,
   CreateMenuRequest,
@@ -197,19 +197,17 @@ export const menuService = {
       throw new BizError(MenuErrorCodes.MENU_NOT_FOUND);
     }
 
-    const { province, city, district } = input;
-    if (!province || province.trim().length === 0) {
-      throw new BizError(MenuErrorCodes.PROVINCE_REQUIRED);
+    const { regionCode } = input;
+    if (!isValidRegionCode(regionCode)) {
+      throw new BizError(MenuErrorCodes.INVALID_REGION_CODE);
     }
 
-    const regionPrefix = namesToCode(
-      province.trim(),
-      city?.trim() || undefined,
-      district?.trim() || undefined,
-    );
-    if (!regionPrefix) {
-      throw new BizError(MenuErrorCodes.NO_MATCHED_STORES);
-    }
+    // 由区域模块将区域码转为前缀匹配串（去尾零），实现 省/市/区 层级分发
+    const regionPrefix = regionCodeToPrefix(regionCode);
+    const regionName = (() => {
+      const { province, city, district } = codeToNames(regionCode);
+      return [province, city, district].filter(Boolean).join('');
+    })();
 
     const matched = await menuRepository.countStoresByArea(regionPrefix);
 
@@ -220,13 +218,13 @@ export const menuService = {
     const unboundStores = await menuRepository.getUnboundStoreIdsByArea(menuId, regionPrefix);
 
     if (unboundStores.length === 0) {
-      return { matched, dispatched: 0 };
+      return { matched, dispatched: 0, regionName };
     }
 
     const values = unboundStores.map(s => ({ storeId: s.id, menuId }));
     await menuRepository.insertStoreMenuRelations(values);
 
-    return { matched, dispatched: unboundStores.length };
+    return { matched, dispatched: unboundStores.length, regionName };
   },
 
   async dispatchById(menuId: number, input: DispatchByIdRequest) {
