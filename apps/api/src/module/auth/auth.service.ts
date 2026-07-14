@@ -25,7 +25,7 @@ export const authService = {
       throw new BizError(AuthErrorCodes.INVALID_CREDENTIALS, undefined, 401);
     }
 
-    if (employee.status === EMPLOYEE_STATUS.DISABLED.value) {
+    if (employee.status !== EMPLOYEE_STATUS.ACTIVE.value) {
       throw new BizError(AuthErrorCodes.ACCOUNT_DISABLED, undefined, 401);
     }
 

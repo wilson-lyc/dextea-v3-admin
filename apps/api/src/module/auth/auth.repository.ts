@@ -21,6 +21,15 @@ export const authRepository = {
     return rows[0] ?? null;
   },
 
+  async getEmployeeStatusById(id: number): Promise<number | null> {
+    const rows = await db
+      .select({ status: employeesTable.status })
+      .from(employeesTable)
+      .where(eq(employeesTable.id, id))
+      .limit(1);
+    return rows[0]?.status ?? null;
+  },
+
   async updatePassword(id: number, hashedPassword: string) {
     await db
       .update(employeesTable)
