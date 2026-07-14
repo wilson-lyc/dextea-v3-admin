@@ -1,7 +1,7 @@
 $:
   vscode:
     - runner:
-        cpus: 4
+        cpus: 2
       docker:
         image: cnbcool/default-dev-env:latest
       services:
