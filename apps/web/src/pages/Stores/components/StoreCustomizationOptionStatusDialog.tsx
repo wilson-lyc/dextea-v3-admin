@@ -127,7 +127,7 @@ export default function StoreCustomizationOptionStatusDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[70vh] w-[40vw] max-w-none flex-col gap-4">
+      <DialogContent className="flex h-[70vh] w-[40vw] max-w-none sm:max-w-none flex-col gap-4">
         <DialogHeader>
           <DialogTitle>客制化选项门店状态 - {customizationName}</DialogTitle>
         </DialogHeader>
