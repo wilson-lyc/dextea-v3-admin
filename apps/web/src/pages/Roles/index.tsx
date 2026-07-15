@@ -12,8 +12,8 @@ import { toast } from "sonner"
 import type { Role } from "@/api"
 import {
   ROLE_STATUS,
-  ROLE_STATUS_BADGE_CLASSES,
   ROLE_STATUS_LABEL,
+  ROLE_STATUS_TEXT_CLASSES,
 } from "@dextea-admin/contracts/status"
 import {
   deleteRole,
@@ -21,7 +21,6 @@ import {
   toggleRoleStatus,
 } from "@/api"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import {
   TableHeader,
@@ -221,12 +220,9 @@ export default function RolesPage() {
             <TableCell className="font-medium">{role.name}</TableCell>
             <TableCell className="text-muted-foreground">{role.note || "—"}</TableCell>
             <TableCell>
-              <Badge
-                className={ROLE_STATUS_BADGE_CLASSES[role.status]}
-                variant="outline"
-              >
-                {ROLE_STATUS_LABEL[role.status] ?? role.status}
-              </Badge>
+              <span className={ROLE_STATUS_TEXT_CLASSES[role.status] ?? ""}>
+                {ROLE_STATUS_LABEL[role.status]}
+              </span>
             </TableCell>
             <TableCell className="text-muted-foreground">{role.createdAt}</TableCell>
             <TableCell className="text-right">
