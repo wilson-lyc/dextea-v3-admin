@@ -1,6 +1,5 @@
-/** 存储厂商配置（来自全局 .env 的 S3 连接配置） */
+/** 存储配置（来自全局 .env 的 S3 连接配置） */
 export interface StorageConfig {
-  provider: string;
   region: string;
   endpoint: string;
   bucket: string;

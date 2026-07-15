@@ -4,7 +4,6 @@ import {
   DeleteObjectCommand,
   HeadBucketCommand,
 } from '@aws-sdk/client-s3';
-import { getStorageProvider } from '@dextea-admin/contracts';
 import type {
   StorageAdapter,
   StorageConfig,
@@ -14,9 +13,8 @@ import type {
 
 /**
  * 基于 S3 协议的对象存储适配器。
- * 当前严格仅适配腾讯云 COS（注册为 `s3` 协议）。
- * endpoint 模板与路径风格来自厂商注册表（STORAGE_PROVIDERS），
- * 由 createStorageAdapter 依据 provider 注入，实现「对每家厂商做适配」。
+ * 适配任意 S3 兼容存储，endpoint 与路径风格完全由 .env 的 S3 配置决定，
+ * 不再依赖厂商注册表或 provider 字段。
  */
 export class S3StorageAdapter implements StorageAdapter {
   private readonly client: S3Client;
@@ -24,18 +22,8 @@ export class S3StorageAdapter implements StorageAdapter {
   private readonly publicBaseUrl: string;
 
   constructor(config: StorageConfig) {
-    // 解析厂商注册表，作为 endpoint 模板与路径风格的兜底（当 .env 未显式给出时）
-    const def = getStorageProvider(config.provider);
-
-    // endpoint 优先级：显式 endpoint > 厂商注册表模板（{region} 替换为实际 region）
-    const endpoint = config.endpoint
-      ? config.endpoint
-      : def?.endpointTemplate
-        ? def.endpointTemplate.replace('{region}', config.region)
-        : undefined;
-
-    // 路径风格：优先使用 .env 显式配置，否则回退到厂商注册表默认值
-    const forcePathStyle = config.forcePathStyle || def?.forcePathStyle || false;
+    const endpoint = config.endpoint || undefined;
+    const forcePathStyle = config.forcePathStyle;
 
     this.bucket = config.bucket;
     this.publicBaseUrl = config.publicBaseUrl.replace(/\/$/, '');

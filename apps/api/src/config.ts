@@ -80,7 +80,6 @@ function buildConfig() {
      * 不再支持多存储位置，所有上传/删除均使用这一份配置。
      */
     s3: {
-      provider: resolveValue('S3_PROVIDER', 'tencent'),
       region: resolveValue('S3_REGION', ''),
       endpoint: resolveValue('S3_ENDPOINT', ''),
       bucket: resolveValue('S3_BUCKET', ''),
