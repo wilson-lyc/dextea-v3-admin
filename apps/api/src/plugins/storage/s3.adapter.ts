@@ -79,7 +79,7 @@ export class S3StorageAdapter implements StorageAdapter {
   }
 
   getPublicUrl(objectKey: string): string {
-    // 由运维通过 STORAGE_PUBLIC_BASE_URL 指向存储桶公网域名（如 https://bucket.oss-cn-hangzhou.aliyuncs.com）
+    // publicBaseUrl 来自数据库 storage_locations 表配置（桶公网域名，如 https://bucket.oss-cn-hangzhou.aliyuncs.com）
     // 前端据此直链直接访问对象存储，鉴权由存储服务商完成
     return `${this.publicBaseUrl}/${objectKey}`;
   }

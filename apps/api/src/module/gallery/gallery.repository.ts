@@ -56,6 +56,17 @@ export const galleryRepository = {
     return rows[0] ?? null;
   },
 
+  /** 取默认存储位置：第一个启用的存储位置（按 id 升序） */
+  async getDefaultStorageLocation() {
+    const rows = await db
+      .select()
+      .from(storageLocationsTable)
+      .where(eq(storageLocationsTable.status, 1))
+      .orderBy(storageLocationsTable.id)
+      .limit(1);
+    return rows[0] ?? null;
+  },
+
   async createGalleryImage(data: typeof galleryImagesTable.$inferInsert) {
     const result = await db.insert(galleryImagesTable).values(data);
     return Number(result[0]?.insertId ?? 0);

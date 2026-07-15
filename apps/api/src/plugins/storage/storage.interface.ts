@@ -1,4 +1,4 @@
-/** 存储厂商配置（与 config.storage 对齐） */
+/** 存储厂商配置（由数据库 storage_locations 表行映射而来） */
 export interface StorageConfig {
   provider: string;
   region: string;

@@ -1,12 +1,52 @@
 import path from 'node:path';
 import { nanoid } from 'nanoid';
 import { BizError } from '@/common/exceptions/index.js';
-import { createStorageAdapter, getStorageAdapter } from '@/plugins/storage/index.js';
+import { createStorageAdapter } from '@/plugins/storage/index.js';
 import type { StorageAdapter } from '@/plugins/storage/index.js';
 import { decryptSecret } from '@/utils/crypto.js';
 import { GalleryErrorCodes } from './gallery.errorcode.js';
 import { galleryRepository } from './gallery.repository.js';
 import type { GetGalleryImageListRequest } from '@dextea-admin/contracts';
+
+type StorageLocationRow = NonNullable<
+  Awaited<ReturnType<typeof galleryRepository.getStorageLocationById>>
+>;
+
+/**
+ * 从数据库解析 S3 适配器：
+ * - 指定 storageLocationId → 校验存在且启用；
+ * - 未指定 → 取首个启用的默认存储位置；
+ * 不再依赖任何环境变量中的 S3 连接配置。
+ */
+async function resolveStorageLocation(
+  storageLocationId?: number | null,
+): Promise<{ adapter: StorageAdapter; locationId: number }> {
+  let row: StorageLocationRow;
+
+  if (storageLocationId != null) {
+    const found = await galleryRepository.getStorageLocationById(storageLocationId);
+    if (!found) throw new BizError(GalleryErrorCodes.STORAGE_LOCATION_NOT_FOUND);
+    if (found.status !== 1) throw new BizError(GalleryErrorCodes.STORAGE_LOCATION_DISABLED);
+    row = found;
+  } else {
+    const def = await galleryRepository.getDefaultStorageLocation();
+    if (!def) throw new BizError(GalleryErrorCodes.NO_DEFAULT_STORAGE_LOCATION);
+    row = def;
+  }
+
+  const adapter = createStorageAdapter({
+    provider: row.provider,
+    region: row.region,
+    endpoint: row.endpoint,
+    bucket: row.bucket,
+    accessKey: row.accessKey,
+    secretKey: decryptSecret(row.secretKey),
+    forcePathStyle: row.forcePathStyle === 1,
+    publicBaseUrl: row.publicBaseUrl,
+  });
+
+  return { adapter, locationId: row.id };
+}
 
 const MIME_TO_EXT: Record<string, string> = {
   'image/jpeg': '.jpg',
@@ -34,29 +74,9 @@ export const galleryService = {
     const ext = (MIME_TO_EXT[mimetype] ?? path.extname(filename).toLowerCase()) || '.bin';
     const key = `gallery_${Date.now()}_${nanoid(8)}${ext}`;
 
-    // 未指定存储位置 → 退回全局兜底配置（兼容历史/老图）
-    let adapter: StorageAdapter = getStorageAdapter();
-    const resolvedLocationId = storageLocationId ?? null;
-
-    if (resolvedLocationId != null) {
-      const location = await galleryRepository.getStorageLocationById(resolvedLocationId);
-      if (!location) {
-        throw new BizError(GalleryErrorCodes.STORAGE_LOCATION_NOT_FOUND);
-      }
-      if (location.status !== 1) {
-        throw new BizError(GalleryErrorCodes.STORAGE_LOCATION_DISABLED);
-      }
-      adapter = createStorageAdapter({
-        provider: location.provider,
-        region: location.region,
-        endpoint: location.endpoint,
-        bucket: location.bucket,
-        accessKey: location.accessKey,
-        secretKey: decryptSecret(location.secretKey),
-        forcePathStyle: location.forcePathStyle === 1,
-        publicBaseUrl: location.publicBaseUrl,
-      });
-    }
+    // 统一从数据库解析存储位置（指定 id 校验存在且启用；未指定则取默认启用位置）
+    const { adapter, locationId } = await resolveStorageLocation(storageLocationId);
+    const resolvedLocationId = locationId;
 
     let result;
     try {
@@ -92,23 +112,8 @@ export const galleryService = {
       throw new BizError(GalleryErrorCodes.NOT_FOUND);
     }
 
-    // 统一按所属存储位置（数据库配置）构造适配器；旧图无 storageLocationId 时退回全局兜底
-    let adapter: StorageAdapter = getStorageAdapter();
-    if (record.storageLocationId != null) {
-      const location = await galleryRepository.getStorageLocationById(record.storageLocationId);
-      if (location) {
-        adapter = createStorageAdapter({
-          provider: location.provider,
-          region: location.region,
-          endpoint: location.endpoint,
-          bucket: location.bucket,
-          accessKey: location.accessKey,
-          secretKey: decryptSecret(location.secretKey),
-          forcePathStyle: location.forcePathStyle === 1,
-          publicBaseUrl: location.publicBaseUrl,
-        });
-      }
-    }
+    // 统一从数据库解析存储位置（旧图无 storageLocationId 时取默认启用位置）
+    const { adapter } = await resolveStorageLocation(record.storageLocationId);
 
     // 对象存储删除失败不阻断数据库记录删除，避免产生悬挂引用
     try {

@@ -75,22 +75,10 @@ function buildConfig() {
     amapJsKey: resolveValue('AMAP_JS_KEY', ''),
     amapJsSecurityCode: resolveValue('AMAP_JS_SECURITY_CODE', ''),
 
-    storage: {
-      /** 存储厂商（仅支持 S3 协议对象存储）：aws / aliyun / tencent / minio / generic */
-      provider: resolveValue('STORAGE_PROVIDER', 'aws'),
-      region: resolveValue('STORAGE_REGION', 'us-east-1'),
-      /** S3 兼容服务地址（MinIO / 自建等需要填写，主流云厂商留空即可） */
-      endpoint: resolveValue('STORAGE_ENDPOINT', ''),
-      bucket: resolveValue('STORAGE_BUCKET', ''),
-      accessKey: resolveValue('STORAGE_ACCESS_KEY', ''),
-      secretKey: resolveValue('STORAGE_SECRET_KEY', ''),
-      /** 强制路径风格（MinIO 等通常需要 true） */
-      forcePathStyle: resolveValue('STORAGE_FORCE_PATH_STYLE', false),
-      /** 存储桶公网可访问的基础地址，用于拼接图片直链，例如 https://my-bucket.oss-cn-hangzhou.aliyuncs.com */
-      publicBaseUrl: resolveValue('STORAGE_PUBLIC_BASE_URL', ''),
-    },
-
-    /** 存储位置 secretKey 加密密钥（生产环境务必通过环境变量配置） */
+    /**
+     * 存储位置 secretKey 加密密钥（生产环境务必通过环境变量配置）。
+     * 注意：S3 连接配置（endpoint / bucket / ak / sk 等）不再从环境变量读取，统一取自数据库 storage_locations 表。
+     */
     storageEncryptionKey: resolveValue('STORAGE_ENCRYPTION_KEY', ''),
   };
 }

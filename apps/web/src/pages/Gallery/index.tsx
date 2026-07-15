@@ -64,7 +64,7 @@ export default function GalleryPage() {
   const [deleteTarget, setDeleteTarget] = useState<GalleryImage | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
-  // 存储位置下拉与当前选择（null = 默认全局兜底）
+  // 存储位置下拉与当前选择（null = 默认存储位置，由后端取首个启用位置）
   const [locations, setLocations] = useState<StorageLocationOption[]>([])
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
 
@@ -234,10 +234,10 @@ export default function GalleryPage() {
           }
         >
           <SelectTrigger className="w-72">
-            <SelectValue placeholder="默认存储（全局）" />
+            <SelectValue placeholder="默认存储位置" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="default">默认存储（全局）</SelectItem>
+            <SelectItem value="default">默认存储位置</SelectItem>
             {locations.map((loc) => (
               <SelectItem key={loc.id} value={String(loc.id)}>
                 {loc.name}
@@ -376,7 +376,7 @@ export default function GalleryPage() {
                   {`图片 #${img.id}`}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {img.storageLocationName ?? "默认存储"} ·{" "}
+                  {img.storageLocationName ?? "默认存储位置"} ·{" "}
                   {new Date(img.createdAt).toLocaleDateString("zh-CN")}
                 </p>
               </CardContent>
