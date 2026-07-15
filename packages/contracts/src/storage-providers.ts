@@ -26,8 +26,6 @@ export interface StorageProviderDef {
   regionPlaceholder: string;
   endpointPlaceholder: string;
   publicBaseUrlPlaceholder: string;
-  /** 备注说明 */
-  description?: string;
 }
 
 export const STORAGE_PROVIDERS: StorageProviderDef[] = [
@@ -41,7 +39,6 @@ export const STORAGE_PROVIDERS: StorageProviderDef[] = [
     regionPlaceholder: 'ap-guangzhou',
     endpointPlaceholder: 'https://my-bucket.cos.ap-guangzhou.myqcloud.com',
     publicBaseUrlPlaceholder: 'https://my-bucket.cos.ap-guangzhou.myqcloud.com',
-    description: '腾讯云对象存储（COS），S3 兼容协议：使用 AWS S3 SDK 通过 COS endpoint 接入',
   },
 ];
 

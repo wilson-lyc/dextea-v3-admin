@@ -223,9 +223,6 @@ export default function StorageLocationDialog({
                 onValueChange={handleProviderChange}
                 placeholder="请选择存储厂商"
               />
-              {currentProvider?.description ? (
-                <p className="text-xs text-muted-foreground">{currentProvider.description}</p>
-              ) : null}
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
@@ -263,7 +260,7 @@ export default function StorageLocationDialog({
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>AccessKey</Label>
+              <Label>SecretId</Label>
               <Input
                 value={form.accessKey}
                 onChange={(e) => setField("accessKey", e.target.value)}
