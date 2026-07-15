@@ -23,6 +23,8 @@ declare module 'fastify' {
       userId: number;
       email: string;
       displayName: string;
+      roles: string[];
+      permissions: string[];
     } | null;
   }
 }

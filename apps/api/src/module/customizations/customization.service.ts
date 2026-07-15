@@ -1,7 +1,7 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { CustomizationErrorCodes } from './customization.errorcode.js';
 import { customizationRepository } from './customization.repository.js';
-import { validateMaxLength, validateSort } from '@/plugins/utils/validation.js';
+import { validateMaxLength, validateSort } from '@/utils';
 import {
   CUSTOMIZATION_STATUS,
   CUSTOMIZATION_STATUS_VALUES,

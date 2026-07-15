@@ -1,7 +1,7 @@
-import { eq, sql } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
-import { employeesTable } from '@/plugins/db/mysql/schema.js';
-import { withPagination } from '@/plugins/utils/pagination.js';
+import { employeesTable, employeeRolesTable, rolesTable } from '@/plugins/db/mysql/schema.js';
+import { withPagination } from '@/utils';
 
 export const employeeRepository = {
   async getEmployeeListWithPage(page: number, pageSize: number, keyword?: string) {
@@ -83,5 +83,47 @@ export const employeeRepository = {
       .update(employeesTable)
       .set({ password })
       .where(eq(employeesTable.id, id));
+  },
+
+  // ──── 员工-角色关联 ────
+
+  /** 获取员工已绑定的角色 id 列表 */
+  async getEmployeeRoleIds(employeeId: number): Promise<number[]> {
+    const rows = await db
+      .select({ roleId: employeeRolesTable.roleId })
+      .from(employeeRolesTable)
+      .where(eq(employeeRolesTable.employeeId, employeeId));
+    return rows.map((r) => r.roleId);
+  },
+
+  /** 按 id 批量获取角色（id + name） */
+  async getRolesByIds(ids: number[]) {
+    if (ids.length === 0) return [];
+    return db
+      .select({ id: rolesTable.id, name: rolesTable.name })
+      .from(rolesTable)
+      .where(inArray(rolesTable.id, ids));
+  },
+
+  /** 校验给定 id 中真实存在的角色 id */
+  async filterExistingRoleIds(ids: number[]): Promise<number[]> {
+    if (ids.length === 0) return [];
+    const rows = await db
+      .select({ id: rolesTable.id })
+      .from(rolesTable)
+      .where(inArray(rolesTable.id, ids));
+    return rows.map((r) => r.id);
+  },
+
+  /** 全量覆盖员工角色（绑定 + 解绑一步到位） */
+  async setEmployeeRoles(employeeId: number, roleIds: number[]) {
+    await db.transaction(async (tx) => {
+      await tx.delete(employeeRolesTable).where(eq(employeeRolesTable.employeeId, employeeId));
+      if (roleIds.length > 0) {
+        await tx
+          .insert(employeeRolesTable)
+          .values(roleIds.map((roleId) => ({ employeeId, roleId })));
+      }
+    });
   },
 };

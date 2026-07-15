@@ -9,6 +9,7 @@ import {
   PackageIcon,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
+  ShieldCheckIcon,
   ShoppingCartIcon,
   StoreIcon,
   TagsIcon,
@@ -41,6 +42,14 @@ const navItems: NavItem[] = [
   { label: "菜单管理", icon: BookOpenIcon, path: "/menus" },
   { label: "顾客管理", icon: UserCircleIcon, path: "/customers" },
   { label: "订单管理", icon: ShoppingCartIcon, path: "/orders" },
+  {
+    label: "系统管理",
+    icon: ShieldCheckIcon,
+    children: [
+      { label: "角色管理", path: "/roles" },
+      { label: "权限管理", path: "/permissions" },
+    ],
+  },
 ]
 
 export default function AppSidebar() {

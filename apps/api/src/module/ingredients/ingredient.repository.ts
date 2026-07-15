@@ -7,7 +7,7 @@ import {
   customizationOptionsTable,
   customizationsTable,
 } from '@/plugins/db/mysql/schema.js';
-import { withPagination } from '@/plugins/utils/pagination.js';
+import { withPagination } from '@/utils';
 
 export const ingredientRepository = {
   // ──── 原料基础 CRUD ────

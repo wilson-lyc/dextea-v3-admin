@@ -12,6 +12,8 @@ import { registerIngredientModule } from './module/ingredients/ingredient.module
 import { registerMenuModule } from './module/menus/menu.module.js';
 import { registerCustomizationModule } from './module/customizations/customization.module.js';
 import { registerDashboardModule } from './module/dashboard/dashboard.module.js';
+import { registerRoleModule } from './module/roles/role.module.js';
+import { registerPermissionModule } from './module/permissions/permission.module.js';
 
 /**
  * 注册所有业务路由模块
@@ -31,4 +33,6 @@ export async function registerModules(app: FastifyInstance) {
   await app.register(registerMenuModule);
   await app.register(registerCustomizationModule);
   await app.register(registerDashboardModule);
+  await app.register(registerRoleModule);
+  await app.register(registerPermissionModule);
 }

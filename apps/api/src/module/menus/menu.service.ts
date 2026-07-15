@@ -1,7 +1,7 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { MenuErrorCodes } from './menu.errorcode.js';
 import { menuRepository } from './menu.repository.js';
-import { codeToNames, isValidRegionCode, regionCodeToPrefix } from '@/plugins/utils/area-code.js';
+import { codeToNames, isValidRegionCode, regionCodeToPrefix } from '@/utils';
 import type {
   MenuListRequest,
   CreateMenuRequest,

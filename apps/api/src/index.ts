@@ -14,6 +14,7 @@ import { registerRedis } from './plugins/db/redis/index.js';
 import { registerDb } from './plugins/db/mysql/index.js';
 import { globalErrorHandler, schemaErrorFormatter } from '@/common/exceptions/index.js';
 import { registerModules } from './register-modules.js';
+import { ensureRbacBootstrap } from './module/roles/role.bootstrap.js';
 
 async function main() {
   const app = Fastify({
@@ -91,6 +92,9 @@ async function main() {
 
   // 注册路由模块
   await registerModules(app);
+
+  // RBAC 引导：保证存在可用的超级管理员，避免开启鉴权后无人可管理（幂等）
+  await ensureRbacBootstrap(app.log);
 
   // 启动服务
   await app.listen({ port: config.port, host: config.host });

@@ -3,7 +3,7 @@ import {
   getDivisionChildren,
   namesToCode,
   getDivisionPath,
-} from '@/plugins/utils/area-code.js';
+} from '@/utils';
 
 export const areaRepository = {
   async getProvinceList() {

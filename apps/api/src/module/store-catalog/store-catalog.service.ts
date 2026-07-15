@@ -2,7 +2,7 @@ import { BizError } from '@/common/exceptions/index.js';
 import { StoreCatalogErrorCodes } from './store-catalog.errorcode.js';
 import { storeCatalogRepository } from './store-catalog.repository.js';
 import { STORE_PRODUCT_STATUS_VALUES } from '@dextea-admin/contracts';
-import { withDistributedLock } from '@/plugins/utils/distributed-lock.js';
+import { withDistributedLock } from '@/plugins/lock/index.js';
 
 // 校验门店是否存在（门店目录子资源接口共用）
 async function ensureStoreExists(storeId: number): Promise<void> {

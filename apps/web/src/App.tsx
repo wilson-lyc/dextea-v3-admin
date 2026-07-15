@@ -6,6 +6,8 @@ import Initialization from "@/pages/Initialization"
 import Forbidden from "@/pages/Forbidden"
 import DashboardPage from "@/pages/Dashboard"
 import EmployeesPage from "@/pages/Employees"
+import RolesPage from "@/pages/Roles"
+import PermissionsPage from "@/pages/Permissions"
 import MePage from "@/pages/Me"
 import MenusPage from "@/pages/Menus"
 import MenuDetailPage from "@/pages/Menus/detail"
@@ -40,6 +42,8 @@ function App() {
             <Route index element={<DashboardPage />} />
             <Route path="me" element={<MePage />} />
             <Route path="employees" element={<EmployeesPage />} />
+            <Route path="roles" element={<RolesPage />} />
+            <Route path="permissions" element={<PermissionsPage />} />
             <Route path="menus" element={<MenusPage />} />
             <Route path="menus/:id" element={<MenuDetailPage />} />
             <Route path="stores" element={<StoresPage />} />

@@ -23,6 +23,7 @@ import DataTable from "@/components/ui/data-table"
 import { getEmployees, toggleEmployeeStatus, resetEmployeePassword } from "@/api"
 import CreateEmployeeModal from "./components/CreateEmployeeModal"
 import EditEmployeeModal from "./components/EditEmployeeModal"
+import AssignRolesModal from "./components/AssignRolesModal"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 
 export default function EmployeesPage() {
@@ -38,6 +39,10 @@ export default function EmployeesPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
+
+  // Assign roles dialog
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false)
+  const [assignEmployee, setAssignEmployee] = useState<Employee | null>(null)
 
   // Password dialog state
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
@@ -100,6 +105,12 @@ export default function EmployeesPage() {
   const openEditDialog = (employee: Employee) => {
     setSelectedEmployee(employee)
     setEditDialogOpen(true)
+  }
+
+  // Open assign roles dialog
+  const openAssignDialog = (employee: Employee) => {
+    setAssignEmployee(employee)
+    setAssignDialogOpen(true)
   }
 
   // Open confirm dialog for toggling status
@@ -223,6 +234,9 @@ export default function EmployeesPage() {
             </TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1">
+                <Button variant="outline" size="sm" onClick={() => openAssignDialog(employee)}>
+                  分配角色
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => openEditDialog(employee)}>
                   编辑
                 </Button>
@@ -269,6 +283,13 @@ export default function EmployeesPage() {
         onOpenChange={setEditDialogOpen}
         employee={selectedEmployee}
         onUpdated={() => fetchEmployees(page)}
+      />
+
+      <AssignRolesModal
+        open={assignDialogOpen}
+        onOpenChange={setAssignDialogOpen}
+        employee={assignEmployee}
+        onAssigned={() => {}}
       />
 
       {/* Initial / Reset Password Dialog */}
