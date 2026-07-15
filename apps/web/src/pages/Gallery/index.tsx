@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import {
   HardDriveIcon,
   ImageIcon,
@@ -47,6 +48,7 @@ interface UploadTask {
 }
 
 export default function GalleryPage() {
+  const navigate = useNavigate()
   const [images, setImages] = useState<GalleryImage[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -62,6 +64,8 @@ export default function GalleryPage() {
   // 存储位置下拉与当前选择（null = 默认存储位置，由后端取首个启用位置）
   const [locations, setLocations] = useState<StorageLocationOption[]>([])
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
+  // 尚未配置任何存储位置时，引导用户先去配置
+  const [noLocations, setNoLocations] = useState(false)
 
   const fetchImages = useCallback(async (targetPage: number) => {
     setLoading(true)
@@ -84,14 +88,25 @@ export default function GalleryPage() {
   }, [selectedLocationId])
 
   useEffect(() => {
-    fetchImages(1)
-  }, [selectedLocationId, fetchImages])
+    getStorageLocationOptions()
+      .then((res) => {
+        const opts = res.data ?? []
+        setLocations(opts)
+        if (opts.length === 0) {
+          setNoLocations(true)
+          setLoading(false)
+        }
+      })
+      .catch(() => {
+        setLocations([])
+        setNoLocations(true)
+        setLoading(false)
+      })
+  }, [])
 
   useEffect(() => {
-    getStorageLocationOptions()
-      .then((res) => setLocations(res.data))
-      .catch(() => setLocations([]))
-  }, [])
+    if (!noLocations) fetchImages(1)
+  }, [noLocations, selectedLocationId, fetchImages])
 
   const runUploads = useCallback(
     async (files: File[]) => {
@@ -203,34 +218,51 @@ export default function GalleryPage() {
         </div>
       </div>
 
-      {/* 存储位置选择 */}
-      <div className="flex items-center gap-3">
-        <span className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
-          <HardDriveIcon className="size-4" />
-          存储位置
-        </span>
-        <Select
-          value={selectedLocationId != null ? String(selectedLocationId) : "default"}
-          onValueChange={(v) =>
-            setSelectedLocationId(v == null || v === "default" ? null : Number(v))
-          }
-        >
-          <SelectTrigger className="w-72">
-            <SelectValue placeholder="默认存储位置" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="default">默认存储位置</SelectItem>
-            {locations.map((loc) => (
-              <SelectItem key={loc.id} value={String(loc.id)}>
-                {loc.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* 未配置任何存储位置时，引导前往配置 */}
+      {noLocations ? (
+        <Empty className="border border-dashed py-16">
+          <EmptyMedia variant="icon">
+            <HardDriveIcon className="size-5" />
+          </EmptyMedia>
+          <EmptyTitle>尚未配置存储位置</EmptyTitle>
+          <EmptyDescription>
+            图库需要一个对象存储位置来保存图片，请先前往配置。
+          </EmptyDescription>
+          <Button className="mt-4" onClick={() => navigate("/storage-locations")}>
+            <HardDriveIcon />
+            前往配置存储位置
+          </Button>
+        </Empty>
+      ) : (
+        <>
+          {/* 存储位置选择 */}
+          <div className="flex items-center gap-3">
+            <span className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
+              <HardDriveIcon className="size-4" />
+              存储位置
+            </span>
+            <Select
+              value={selectedLocationId != null ? String(selectedLocationId) : "default"}
+              onValueChange={(v) =>
+                setSelectedLocationId(v == null || v === "default" ? null : Number(v))
+              }
+            >
+              <SelectTrigger className="w-72">
+                <SelectValue placeholder="默认存储位置" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">默认存储位置</SelectItem>
+                {locations.map((loc) => (
+                  <SelectItem key={loc.id} value={String(loc.id)}>
+                    {loc.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-      {/* 上传区 */}
-      <Card>
+          {/* 上传区 */}
+          <Card>
         <CardContent className="p-6">
           <label
             onDragOver={(e) => {
@@ -374,6 +406,8 @@ export default function GalleryPage() {
           total={total}
           onPageChange={fetchImages}
         />
+      )}
+        </>
       )}
 
       <ConfirmDialog

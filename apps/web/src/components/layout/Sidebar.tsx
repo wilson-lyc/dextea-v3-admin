@@ -25,13 +25,15 @@ interface NavItem {
   label: string
   icon: React.ComponentType<{ className?: string }>
   path?: string
-  children?: { label: string; path: string }[]
+  children?: {
+    label: string
+    path: string
+    icon?: React.ComponentType<{ className?: string }>
+  }[]
 }
 
 const navItems: NavItem[] = [
   { label: "工作台", icon: LayoutDashboardIcon, path: "/" },
-  { label: "图库", icon: ImagesIcon, path: "/gallery" },
-  { label: "存储位置", icon: HardDriveIcon, path: "/storage-locations" },
   { label: "员工管理", icon: UsersIcon, path: "/employees" },
   { label: "门店管理", icon: StoreIcon, path: "/stores" },
   {
@@ -46,10 +48,12 @@ const navItems: NavItem[] = [
   { label: "菜单管理", icon: BookOpenIcon, path: "/menus" },
   { label: "顾客管理", icon: UserCircleIcon, path: "/customers" },
   { label: "订单管理", icon: ShoppingCartIcon, path: "/orders" },
+  { label: "图库", icon: ImagesIcon, path: "/gallery" },
   {
     label: "系统管理",
     icon: ShieldCheckIcon,
     children: [
+      { label: "存储管理", path: "/storage-locations", icon: HardDriveIcon },
       { label: "角色管理", path: "/roles" },
       { label: "权限管理", path: "/permissions" },
     ],
@@ -129,6 +133,7 @@ export default function AppSidebar() {
                   <ul className="ml-2 mt-0.5 flex flex-col gap-0.5 border-l border-sidebar-border pl-2">
                     {item.children.map((child) => {
                       const isChildActive = location.pathname === child.path
+                      const ChildIcon = child.icon ?? TagsIcon
                       return (
                         <li key={child.label}>
                           <button
@@ -138,7 +143,7 @@ export default function AppSidebar() {
                               isChildActive && "bg-sidebar-accent text-sidebar-accent-foreground"
                             )}
                           >
-                            <TagsIcon className="size-4 shrink-0" />
+                            <ChildIcon className="size-4 shrink-0" />
                             <span className="truncate">{child.label}</span>
                           </button>
                         </li>

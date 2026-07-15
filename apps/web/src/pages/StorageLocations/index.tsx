@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { HardDriveIcon, PencilIcon, PlusIcon, SearchIcon, Trash2Icon } from "lucide-react"
+import {
+  HardDriveIcon,
+  PencilIcon,
+  PlusIcon,
+  SearchIcon,
+  Trash2Icon,
+} from "lucide-react"
 import { toast } from "sonner"
 
-import { cn } from "@/lib/utils"
 import {
-  STORAGE_LOCATION_STATUS_BADGE_CLASSES,
+  STORAGE_LOCATION_STATUS,
   STORAGE_LOCATION_STATUS_LABEL,
+  STORAGE_LOCATION_STATUS_TEXT_CLASSES,
 } from "@dextea-admin/contracts"
 import type {
   CreateStorageLocationRequest,
@@ -20,7 +26,7 @@ import {
   updateStorageLocation,
 } from "@/api"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
@@ -29,14 +35,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
   TableHeader,
+  TableHead,
   TableRow,
+  TableCell,
 } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import {
@@ -46,12 +49,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import PaginationBar from "@/components/ui/pagination-bar"
-import { Spinner } from "@/components/ui/spinner"
+import DataTable from "@/components/ui/data-table"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 20
 
 const PROVIDERS = [
   { value: "aws", label: "AWS S3" },
@@ -91,11 +92,12 @@ export default function StorageLocationsPage() {
   const [list, setList] = useState<StorageLocation[]>([])
   const [loading, setLoading] = useState(true)
   const [keyword, setKeyword] = useState("")
+  const [searchKeyword, setSearchKeyword] = useState("")
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
 
   const keywordRef = useRef("")
-  keywordRef.current = keyword
+  keywordRef.current = searchKeyword
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<StorageLocation | null>(null)
@@ -125,9 +127,30 @@ export default function StorageLocationsPage() {
     }
   }, [])
 
+  // 刷新（与员工/商品列表风格一致：等待 1 秒后重载）
+  const handleRefresh = useCallback(async () => {
+    setLoading(true)
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await fetchList(page)
+    toast.success("刷新成功")
+  }, [fetchList, page])
+
   useEffect(() => {
     fetchList(1)
   }, [fetchList])
+
+  const handleSearch = () => {
+    setKeyword(keywordRef.current)
+    setSearchKeyword(keywordRef.current)
+    fetchList(1)
+  }
+
+  const handleClear = () => {
+    setKeyword("")
+    setSearchKeyword("")
+    keywordRef.current = ""
+    fetchList(1)
+  }
 
   const setField = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -271,126 +294,96 @@ export default function StorageLocationsPage() {
     }
   }
 
+  const hasFilters = keyword.trim().length > 0
+
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">存储位置</h1>
-          <p className="text-sm text-muted-foreground">
-            配置多个对象存储服务商（S3 协议），供图库上传时选择
-          </p>
-        </div>
-        <Button onClick={openCreate}>
-          <PlusIcon />
-          新增存储位置
-        </Button>
-      </div>
-
-      <div className="relative w-72">
-        <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="按名称搜索"
-          className="pl-8"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") fetchList(1)
-          }}
-        />
-      </div>
-
-      <Card>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="flex justify-center py-20">
-              <Spinner className="size-6" />
+    <>
+      <DataTable
+        className="p-6"
+        toolbarLeft={
+          <Button onClick={openCreate}>
+            <PlusIcon data-icon="inline-start" />
+            新增存储位置
+          </Button>
+        }
+        toolbarRight={
+          <div className="flex items-center gap-2">
+            <div className="relative max-w-sm">
+              <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="按名称搜索"
+                className="pl-8"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSearch()
+                }}
+              />
             </div>
-          ) : list.length === 0 ? (
-            <Empty className="border-0 py-16">
-              <EmptyMedia variant="icon">
-                <HardDriveIcon className="size-5" />
-              </EmptyMedia>
-              <EmptyTitle>暂无存储位置</EmptyTitle>
-              <EmptyDescription>新增一个 S3 兼容的对象存储位置吧</EmptyDescription>
-            </Empty>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>名称</TableHead>
-                  <TableHead>厂商</TableHead>
-                  <TableHead>区域</TableHead>
-                  <TableHead>存储桶</TableHead>
-                  <TableHead>AccessKey</TableHead>
-                  <TableHead>状态</TableHead>
-                  <TableHead>创建时间</TableHead>
-                  <TableHead className="text-right">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {list.map((loc) => (
-                  <TableRow key={loc.id}>
-                    <TableCell className="font-medium">{loc.name}</TableCell>
-                    <TableCell>
-                      {PROVIDERS.find((p) => p.value === loc.provider)?.label ??
-                        loc.provider}
-                    </TableCell>
-                    <TableCell>{loc.region}</TableCell>
-                    <TableCell>{loc.bucket}</TableCell>
-                    <TableCell className="max-w-[160px] truncate">
-                      {loc.accessKey}
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={cn(
-                          "rounded-md px-2 py-0.5 text-xs font-medium",
-                          STORAGE_LOCATION_STATUS_BADGE_CLASSES[loc.status] ??
-                            "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
-                        )}
-                      >
-                        {STORAGE_LOCATION_STATUS_LABEL[loc.status] ?? loc.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(loc.createdAt).toLocaleString("zh-CN")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => openEdit(loc)}
-                          aria-label="编辑"
-                        >
-                          <PencilIcon />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-destructive"
-                          onClick={() => setDeleteTarget(loc)}
-                          aria-label="删除"
-                        >
-                          <Trash2Icon />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-
-      {!loading && list.length > 0 && (
-        <PaginationBar
-          page={page}
-          pageSize={PAGE_SIZE}
-          total={total}
-          onPageChange={fetchList}
-        />
-      )}
+            <Button variant="secondary" onClick={handleSearch}>
+              搜索
+            </Button>
+            {hasFilters && (
+              <Button variant="ghost" onClick={handleClear}>
+                清除
+              </Button>
+            )}
+          </div>
+        }
+        header={
+          <TableHeader className="sticky top-0 z-50 bg-background">
+            <TableRow>
+              <TableHead className="w-20">ID</TableHead>
+              <TableHead>名称</TableHead>
+              <TableHead>厂商</TableHead>
+              <TableHead>区域</TableHead>
+              <TableHead>存储桶</TableHead>
+              <TableHead>AccessKey</TableHead>
+              <TableHead className="w-20">状态</TableHead>
+              <TableHead className="w-36 text-right">操作</TableHead>
+            </TableRow>
+          </TableHeader>
+        }
+        body={list.map((loc) => (
+          <TableRow key={loc.id}>
+            <TableCell className="font-mono text-xs">{loc.id}</TableCell>
+            <TableCell className="font-medium">{loc.name}</TableCell>
+            <TableCell>
+              {PROVIDERS.find((p) => p.value === loc.provider)?.label ?? loc.provider}
+            </TableCell>
+            <TableCell>{loc.region}</TableCell>
+            <TableCell>{loc.bucket}</TableCell>
+            <TableCell className="max-w-[160px] truncate">{loc.accessKey}</TableCell>
+            <TableCell>
+              <span className={STORAGE_LOCATION_STATUS_TEXT_CLASSES[loc.status] ?? ""}>
+                {STORAGE_LOCATION_STATUS_LABEL[loc.status] ?? loc.status}
+              </span>
+            </TableCell>
+            <TableCell className="text-right">
+              <div className="flex items-center justify-end gap-1">
+                <Button variant="outline" size="sm" onClick={() => openEdit(loc)}>
+                  编辑
+                </Button>
+                <Button
+                  variant="outline-destructive"
+                  size="sm"
+                  onClick={() => setDeleteTarget(loc)}
+                >
+                  删除
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+        loading={loading}
+        isEmpty={list.length === 0}
+        colSpan={8}
+        onRefresh={handleRefresh}
+        refreshDisabled={loading}
+        emptyIcon={<HardDriveIcon className="size-4" />}
+        emptyText="暂无存储位置"
+        pagination={{ page, pageSize: PAGE_SIZE, total, onPageChange: fetchList }}
+      />
 
       {/* 新增 / 编辑弹窗 */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -537,6 +530,6 @@ export default function StorageLocationsPage() {
         loading={deleteLoading}
         onConfirm={handleDelete}
       />
-    </div>
+    </>
   )
 }
