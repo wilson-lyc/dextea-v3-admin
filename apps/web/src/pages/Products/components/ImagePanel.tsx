@@ -33,8 +33,6 @@ function toProductImage(
   return {
     id: data.id,
     url: data.url,
-    storageLocationId: data.storageLocationId,
-    storageLocationName: null,
     createdAt: data.createdAt,
   }
 }
@@ -269,9 +267,6 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
                       <Trash2Icon />
                     </Button>
                   </div>
-                  <p className="mt-2 truncate text-xs text-muted-foreground" title={img.storageLocationName ?? "默认存储位置"}>
-                    {img.storageLocationName ?? "默认存储位置"}
-                  </p>
                   <div className="mt-2 flex items-center justify-between">
                     <Button
                       variant="outline"

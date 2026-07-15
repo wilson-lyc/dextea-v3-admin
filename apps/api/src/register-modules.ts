@@ -15,7 +15,6 @@ import { registerDashboardModule } from './module/dashboard/dashboard.module.js'
 import { registerRoleModule } from './module/roles/role.module.js';
 import { registerPermissionModule } from './module/permissions/permission.module.js';
 import { registerGalleryModule } from './module/gallery/gallery.module.js';
-import { registerStorageLocationModule } from './module/storage-location/storage-location.module.js';
 
 export async function registerModules(app: FastifyInstance) {
   await app.register(registerEmployeeModule);
@@ -34,5 +33,4 @@ export async function registerModules(app: FastifyInstance) {
   await app.register(registerRoleModule);
   await app.register(registerPermissionModule);
   await app.register(registerGalleryModule);
-  await app.register(registerStorageLocationModule);
 }

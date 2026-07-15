@@ -166,10 +166,6 @@ export type ProductOptionListResponse = z.infer<typeof ProductOptionListResponse
 export const ProductImageSchema = z.object({
   id: z.number(),
   url: z.string(),
-  /** 所属存储位置 ID（旧图/全局兜底图可为空） */
-  storageLocationId: z.number().nullable(),
-  /** 所属存储位置名称 */
-  storageLocationName: z.string().nullable(),
   createdAt: z.string(),
 });
 export type ProductImage = z.infer<typeof ProductImageSchema>;

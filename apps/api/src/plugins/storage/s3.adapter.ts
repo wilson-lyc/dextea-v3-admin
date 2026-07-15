@@ -24,17 +24,18 @@ export class S3StorageAdapter implements StorageAdapter {
   private readonly publicBaseUrl: string;
 
   constructor(config: StorageConfig) {
-    // 解析厂商注册表，拿到该厂商专属的 endpoint 模板与路径风格
+    // 解析厂商注册表，作为 endpoint 模板与路径风格的兜底（当 .env 未显式给出时）
     const def = getStorageProvider(config.provider);
-    const endpointTemplate = def?.endpointTemplate ?? '';
-    const forcePathStyle = def?.forcePathStyle ?? false;
 
     // endpoint 优先级：显式 endpoint > 厂商注册表模板（{region} 替换为实际 region）
     const endpoint = config.endpoint
       ? config.endpoint
-      : endpointTemplate
-        ? endpointTemplate.replace('{region}', config.region)
+      : def?.endpointTemplate
+        ? def.endpointTemplate.replace('{region}', config.region)
         : undefined;
+
+    // 路径风格：优先使用 .env 显式配置，否则回退到厂商注册表默认值
+    const forcePathStyle = config.forcePathStyle || def?.forcePathStyle || false;
 
     this.bucket = config.bucket;
     this.publicBaseUrl = config.publicBaseUrl.replace(/\/$/, '');
@@ -42,7 +43,7 @@ export class S3StorageAdapter implements StorageAdapter {
     this.client = new S3Client({
       region: config.region,
       endpoint,
-      forcePathStyle: endpoint ? forcePathStyle : false,
+      forcePathStyle,
       credentials:
         config.accessKeyId && config.secretAccessKey
           ? { accessKeyId: config.accessKeyId, secretAccessKey: config.secretAccessKey }
@@ -67,7 +68,7 @@ export class S3StorageAdapter implements StorageAdapter {
   }
 
   getPublicUrl(objectKey: string): string {
-    // publicBaseUrl 来自数据库 storage_locations 表配置（桶公网域名，如 https://bucket.oss-cn-hangzhou.aliyuncs.com）
+    // publicBaseUrl 来自全局 .env 的 S3 配置（桶公网域名，如 https://bucket.cos.ap-guangzhou.myqcloud.com）
     // 前端据此直链直接访问对象存储，鉴权由存储服务商完成
     return `${this.publicBaseUrl}/${objectKey}`;
   }

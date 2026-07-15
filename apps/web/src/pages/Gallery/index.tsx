@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
 import {
-  HardDriveIcon,
   ImageIcon,
   PlusIcon,
   SearchIcon,
@@ -10,27 +8,18 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import type { GalleryImage, StorageLocationOption } from "@/api"
+import type { GalleryImage } from "@/api"
 import {
   deleteGalleryImage,
   getGalleryImages,
-  getStorageLocationOptions,
   uploadGalleryImage,
 } from "@/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -42,7 +31,6 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
-import { SelectPicker } from "@/components/ui/select-picker"
 import DataTable from "@/components/ui/data-table"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 
@@ -61,7 +49,6 @@ interface UploadTask {
 }
 
 export default function GalleryPage() {
-  const navigate = useNavigate()
   const [images, setImages] = useState<GalleryImage[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -75,17 +62,10 @@ export default function GalleryPage() {
   const [deleteTarget, setDeleteTarget] = useState<GalleryImage | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
-  // 存储位置筛选（null = 全部）
-  const [locations, setLocations] = useState<StorageLocationOption[]>([])
-  const [filterLocationId, setFilterLocationId] = useState<number | null>(null)
-  const [noLocations, setNoLocations] = useState(false)
-  const [noLocationDialogOpen, setNoLocationDialogOpen] = useState(false)
-
   // 上传弹窗
   const [uploadOpen, setUploadOpen] = useState(false)
   const [tasks, setTasks] = useState<UploadTask[]>([])
   const [uploading, setUploading] = useState(false)
-  const [pickLocationId, setPickLocationId] = useState<number | null>(null)
 
   const fetchImages = useCallback(async (targetPage: number) => {
     setLoading(true)
@@ -94,10 +74,8 @@ export default function GalleryPage() {
         page: number
         pageSize: number
         keyword?: string
-        storageLocationId?: number
       } = { page: targetPage, pageSize: PAGE_SIZE }
       if (keywordRef.current.trim()) params.keyword = keywordRef.current.trim()
-      if (filterLocationId != null) params.storageLocationId = filterLocationId
       const res = await getGalleryImages(params)
       setImages(res.data.items)
       setTotal(res.data.total)
@@ -107,31 +85,11 @@ export default function GalleryPage() {
     } finally {
       setLoading(false)
     }
-  }, [filterLocationId])
-
-  // 进入页面先检查是否配置过存储位置，没有则引导配置
-  useEffect(() => {
-    getStorageLocationOptions()
-      .then((res) => {
-        const opts = res.data ?? []
-        setLocations(opts)
-        if (opts.length === 0) {
-          setNoLocations(true)
-          setNoLocationDialogOpen(true)
-          setLoading(false)
-        }
-      })
-      .catch(() => {
-        setLocations([])
-        setNoLocations(true)
-        setNoLocationDialogOpen(true)
-        setLoading(false)
-      })
   }, [])
 
   useEffect(() => {
-    if (!noLocations) fetchImages(1)
-  }, [noLocations, fetchImages])
+    fetchImages(1)
+  }, [fetchImages])
 
   const handleRefresh = useCallback(async () => {
     setLoading(true)
@@ -152,7 +110,7 @@ export default function GalleryPage() {
     fetchImages(1)
   }
 
-  const hasFilters = keyword.trim().length > 0 || filterLocationId != null
+  const hasFilters = keyword.trim().length > 0
 
   // ─── 上传 ───
   const handleFiles = (fileList: FileList | null) => {
@@ -197,7 +155,7 @@ export default function GalleryPage() {
         )
         await uploadGalleryImage(task.file, (pct) => {
           setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, progress: pct } : t)))
-        }, pickLocationId)
+        })
         setTasks((prev) =>
           prev.map((t) => (t.id === task.id ? { ...t, status: "done", progress: 100 } : t)),
         )
@@ -252,41 +210,13 @@ export default function GalleryPage() {
       <DataTable
         className="p-6"
         toolbarLeft={
-          <Button onClick={() => setUploadOpen(true)} disabled={noLocations}>
+          <Button onClick={() => setUploadOpen(true)}>
             <PlusIcon data-icon="inline-start" />
             上传图片
           </Button>
         }
         toolbarRight={
           <div className="flex items-center gap-2">
-            <SelectPicker
-              options={[
-                { label: "全部存储位置", value: "" },
-                ...locations.map((loc) => ({ label: loc.name, value: String(loc.id) })),
-              ]}
-              value={filterLocationId != null ? String(filterLocationId) : ""}
-              onValueChange={(v) => {
-                const id = v ? Number(v) : null
-                setFilterLocationId(id)
-                const params: {
-                  page: number
-                  pageSize: number
-                  keyword?: string
-                  storageLocationId?: number
-                } = { page: 1, pageSize: PAGE_SIZE }
-                if (keywordRef.current.trim()) params.keyword = keywordRef.current.trim()
-                if (id != null) params.storageLocationId = id
-                getGalleryImages(params)
-                  .then((res) => {
-                    setImages(res.data.items)
-                    setTotal(res.data.total)
-                    setPage(1)
-                  })
-                  .catch(() => toast.error("获取图片列表失败"))
-              }}
-              placeholder="全部存储位置"
-              className="w-40"
-            />
             <div className="relative max-w-sm">
               <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -314,7 +244,6 @@ export default function GalleryPage() {
             <TableRow>
               <TableHead className="w-20">ID</TableHead>
               <TableHead className="w-24">缩略图</TableHead>
-              <TableHead>存储位置</TableHead>
               <TableHead>创建时间</TableHead>
               <TableHead className="w-36 text-right">操作</TableHead>
             </TableRow>
@@ -333,7 +262,6 @@ export default function GalleryPage() {
                 />
               </div>
             </TableCell>
-            <TableCell>{img.storageLocationName ?? "默认存储位置"}</TableCell>
             <TableCell>{new Date(img.createdAt).toLocaleString("zh-CN")}</TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1">
@@ -346,37 +274,13 @@ export default function GalleryPage() {
         ))}
         loading={loading}
         isEmpty={images.length === 0}
-        colSpan={5}
+        colSpan={4}
         onRefresh={handleRefresh}
         refreshDisabled={loading}
         emptyIcon={<ImageIcon className="size-4" />}
         emptyText="暂无图片"
         pagination={{ page, pageSize: PAGE_SIZE, total, onPageChange: fetchImages }}
       />
-
-      {/* 未配置存储位置时，弹窗提示需先创建存储位置 */}
-      <Dialog
-        open={noLocationDialogOpen}
-        disablePointerDismissal
-        onOpenChange={(open) => {
-          if (open) setNoLocationDialogOpen(true)
-        }}
-      >
-        <DialogContent showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <HardDriveIcon className="size-4" />
-              未配置存储位置
-            </DialogTitle>
-            <DialogDescription>
-              使用图库前，请先创建至少一个可用的存储位置。
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => navigate("/storage-locations")}>确定</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* 上传图片弹窗 */}
       <Dialog open={uploadOpen} onOpenChange={(open) => { if (!open) closeUpload() }}>
@@ -386,28 +290,6 @@ export default function GalleryPage() {
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>存储位置</Label>
-              <Select
-                value={pickLocationId != null ? String(pickLocationId) : "default"}
-                onValueChange={(v) =>
-                  setPickLocationId(v == null || v === "default" ? null : Number(v))
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="默认存储位置" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="default">默认存储位置</SelectItem>
-                  {locations.map((loc) => (
-                    <SelectItem key={loc.id} value={String(loc.id)}>
-                      {loc.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="space-y-1.5">
               <Label>选择照片</Label>
               <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 text-center transition-colors hover:border-primary/50">

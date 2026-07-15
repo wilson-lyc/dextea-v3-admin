@@ -11,7 +11,7 @@ import { z } from 'zod/v4';
  * 适配器工厂会依据 `protocol` 自动分派实现。
  */
 export interface StorageProviderDef {
-  /** provider 字段值，与数据库 storage_locations.provider 对应 */
+  /** provider 字段值，与全局 S3 配置的 provider 对应 */
   value: string;
   /** 中文展示名 */
   label: string;

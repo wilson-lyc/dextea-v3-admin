@@ -1,4 +1,4 @@
-/** 存储厂商配置（由数据库 storage_locations 表行映射而来） */
+/** 存储厂商配置（来自全局 .env 的 S3 连接配置） */
 export interface StorageConfig {
   provider: string;
   region: string;

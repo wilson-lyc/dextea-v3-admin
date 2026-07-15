@@ -47,15 +47,11 @@ export const registerGalleryRoutes: FastifyPluginAsyncZod = async (app) => {
         throw new BizError(GalleryErrorCodes.INVALID_FILE, '请选择要上传的文件');
       }
 
-      const rawLocationId = extractFieldValue(data.fields?.storageLocationId);
-      const storageLocationId = rawLocationId ? Number(rawLocationId) : null;
-
       const buffer = await data.toBuffer();
       const result = await galleryService.uploadImage({
         buffer,
         filename: data.filename,
         mimetype: data.mimetype,
-        storageLocationId,
       });
 
       return ApiResponse.success(result);

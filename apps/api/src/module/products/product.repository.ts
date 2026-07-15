@@ -346,7 +346,6 @@ export const productRepository = {
     const coverCols = {
       id: galleryImagesTable.id,
       url: galleryImagesTable.url,
-      storageLocationId: galleryImagesTable.storageLocationId,
       createdAt: galleryImagesTable.createdAt,
     };
 
@@ -375,8 +374,8 @@ export const productRepository = {
       .orderBy(productImagesTable.sort, galleryImagesTable.id);
 
     return {
-      cover: coverRows[0] ? { ...coverRows[0], storageLocationName: null } : null,
-      gallery: galleryRows.map((r) => ({ ...r, storageLocationName: null })),
+      cover: coverRows[0] ?? null,
+      gallery: galleryRows,
     };
   },
 

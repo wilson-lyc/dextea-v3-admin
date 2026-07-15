@@ -76,7 +76,6 @@ CREATE TABLE `gallery_images` (
 	`id` serial AUTO_INCREMENT NOT NULL,
 	`url` varchar(1024) NOT NULL,
 	`object_key` varchar(512) NOT NULL,
-	`storage_location_id` bigint unsigned,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	CONSTRAINT `gallery_images_id` PRIMARY KEY(`id`)
 );
@@ -231,24 +230,6 @@ CREATE TABLE `roles` (
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT `roles_id` PRIMARY KEY(`id`),
 	CONSTRAINT `roles_name_unique` UNIQUE(`name`)
-);
---> statement-breakpoint
-CREATE TABLE `storage_locations` (
-	`id` serial AUTO_INCREMENT NOT NULL,
-	`name` varchar(255) NOT NULL,
-	`provider` varchar(64) NOT NULL DEFAULT 'tencent',
-	`region` varchar(255) NOT NULL,
-	`endpoint` varchar(512) NOT NULL,
-	`bucket` varchar(255) NOT NULL,
-	`access_key` varchar(1024) NOT NULL,
-	`secret_key` varchar(1024) NOT NULL,
-	`force_path_style` tinyint NOT NULL DEFAULT 0,
-	`public_base_url` varchar(512) NOT NULL,
-	`status` tinyint NOT NULL DEFAULT 1,
-	`created_at` timestamp NOT NULL DEFAULT (now()),
-	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT `storage_locations_id` PRIMARY KEY(`id`),
-	CONSTRAINT `storage_locations_name_unique` UNIQUE(`name`)
 );
 --> statement-breakpoint
 CREATE TABLE `store_ingredients` (

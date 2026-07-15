@@ -376,23 +376,5 @@ export const galleryImagesTable = mysqlTable('gallery_images', {
   id: serial().primaryKey(),
   url: varchar('url', { length: 1024 }).notNull(),
   objectKey: varchar('object_key', { length: 512 }).notNull(),
-  storageLocationId: bigint('storage_location_id', { mode: 'number', unsigned: true }),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
-});
-
-/** 存储位置表 */
-export const storageLocationsTable = mysqlTable('storage_locations', {
-  id: serial().primaryKey(),
-  name: varchar({ length: 255 }).notNull().unique(),
-  provider: varchar('provider', { length: 64 }).notNull().default('tencent'),
-  region: varchar('region', { length: 255 }).notNull(),
-  endpoint: varchar('endpoint', { length: 512 }).notNull(),
-  bucket: varchar('bucket', { length: 255 }).notNull(),
-  accessKeyId: varchar('access_key', { length: 1024 }).notNull(),
-  secretAccessKey: varchar('secret_key', { length: 1024 }).notNull(),
-  forcePathStyle: tinyint('force_path_style').notNull().default(0),
-  publicBaseUrl: varchar('public_base_url', { length: 512 }).notNull(),
-  status: tinyint('status').notNull().default(1),
-  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });

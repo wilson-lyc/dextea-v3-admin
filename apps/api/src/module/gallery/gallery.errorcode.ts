@@ -9,7 +9,4 @@ export const GalleryErrorCodes = {
   DELETE_FAILED: { code: 11003, message: '图片删除失败，请稍后重试' },
   INVALID_FILE: { code: 11004, message: '仅支持上传图片文件' },
   LIST_FAILED: { code: 11005, message: '获取图片列表失败' },
-  STORAGE_LOCATION_NOT_FOUND: { code: 11006, message: '指定的存储位置不存在' },
-  STORAGE_LOCATION_DISABLED: { code: 11007, message: '指定的存储位置已禁用' },
-  NO_DEFAULT_STORAGE_LOCATION: { code: 11008, message: '未配置默认存储位置，请在「存储位置」中至少添加一个并启用' },
 } as const satisfies Record<string, BizErrorCode>;

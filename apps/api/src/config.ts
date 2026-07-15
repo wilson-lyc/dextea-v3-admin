@@ -76,10 +76,19 @@ function buildConfig() {
     amapJsSecurityCode: resolveValue('AMAP_JS_SECURITY_CODE', ''),
 
     /**
-     * 存储位置 secretAccessKey 加密密钥（生产环境务必通过环境变量配置）。
-     * 注意：S3 连接配置（endpoint / bucket / ak / sk 等）不再从环境变量读取，统一取自数据库 storage_locations 表。
+     * 全局唯一的 S3 对象存储连接配置（通过环境变量配置，进程内单例）。
+     * 不再支持多存储位置，所有上传/删除均使用这一份配置。
      */
-    storageEncryptionKey: resolveValue('STORAGE_ENCRYPTION_KEY', ''),
+    s3: {
+      provider: resolveValue('S3_PROVIDER', 'tencent'),
+      region: resolveValue('S3_REGION', ''),
+      endpoint: resolveValue('S3_ENDPOINT', ''),
+      bucket: resolveValue('S3_BUCKET', ''),
+      accessKeyId: resolveValue('S3_ACCESS_KEY_ID', ''),
+      secretAccessKey: resolveValue('S3_SECRET_ACCESS_KEY', ''),
+      forcePathStyle: resolveValue('S3_FORCE_PATH_STYLE', false),
+      publicBaseUrl: resolveValue('S3_PUBLIC_BASE_URL', ''),
+    },
   };
 }
 

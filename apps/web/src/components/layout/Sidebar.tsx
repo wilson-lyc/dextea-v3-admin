@@ -5,7 +5,6 @@ import { useLocation, useNavigate } from "react-router-dom"
 import {
   BookOpenIcon,
   ChevronDownIcon,
-  HardDriveIcon,
   ImagesIcon,
   LayoutDashboardIcon,
   PackageIcon,
@@ -53,7 +52,6 @@ const navItems: NavItem[] = [
     label: "系统管理",
     icon: ShieldCheckIcon,
     children: [
-      { label: "存储管理", path: "/storage-locations", icon: HardDriveIcon },
       { label: "角色管理", path: "/roles" },
       { label: "权限管理", path: "/permissions" },
     ],
