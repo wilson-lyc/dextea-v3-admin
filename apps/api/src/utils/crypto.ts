@@ -2,7 +2,7 @@ import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:
 import { config } from '@/config';
 
 /**
- * secretKey 加密工具（AES-256-GCM）。
+ * secretAccessKey 加密工具（AES-256-GCM）。
  * 存储位置的私密密钥落库前加密，构造适配器 / 测试连接时解密。
  * 加密结果带 `enc:v1:` 前缀；无此前缀的存量数据按明文兼容返回。
  */

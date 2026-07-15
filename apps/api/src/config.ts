@@ -76,7 +76,7 @@ function buildConfig() {
     amapJsSecurityCode: resolveValue('AMAP_JS_SECURITY_CODE', ''),
 
     /**
-     * 存储位置 secretKey 加密密钥（生产环境务必通过环境变量配置）。
+     * 存储位置 secretAccessKey 加密密钥（生产环境务必通过环境变量配置）。
      * 注意：S3 连接配置（endpoint / bucket / ak / sk 等）不再从环境变量读取，统一取自数据库 storage_locations 表。
      */
     storageEncryptionKey: resolveValue('STORAGE_ENCRYPTION_KEY', ''),

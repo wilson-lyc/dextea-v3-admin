@@ -36,8 +36,8 @@ interface FormState {
   region: string
   endpoint: string
   bucket: string
-  accessKey: string
-  secretKey: string
+  accessKeyId: string
+  secretAccessKey: string
   publicBaseUrl: string
   forcePathStyle: boolean
   status: number
@@ -49,8 +49,8 @@ const EMPTY_FORM: FormState = {
   region: "",
   endpoint: "",
   bucket: "",
-  accessKey: "",
-  secretKey: "",
+  accessKeyId: "",
+  secretAccessKey: "",
   publicBaseUrl: "",
   forcePathStyle: false,
   status: 1,
@@ -83,8 +83,8 @@ export default function StorageLocationDialog({
         region: editing.region,
         endpoint: editing.endpoint,
         bucket: editing.bucket,
-        accessKey: editing.accessKey,
-        secretKey: "",
+        accessKeyId: editing.accessKeyId,
+        secretAccessKey: "",
         publicBaseUrl: editing.publicBaseUrl,
         forcePathStyle: editing.forcePathStyle,
         status: editing.status,
@@ -113,13 +113,13 @@ export default function StorageLocationDialog({
       !form.region ||
       !form.endpoint ||
       !form.bucket ||
-      !form.accessKey ||
+      !form.accessKeyId ||
       !form.publicBaseUrl
     ) {
-      toast.error("请填写必填项（名称/区域/端点/桶/AccessKey/公网地址）")
+      toast.error("请填写必填项（名称/区域/端点/桶/SecretId/公网地址）")
       return
     }
-    if (!editing && !form.secretKey) {
+    if (!editing && !form.secretAccessKey) {
       toast.error("新增时请填写 SecretKey")
       return
     }
@@ -133,13 +133,13 @@ export default function StorageLocationDialog({
           region: form.region,
           endpoint: form.endpoint,
           bucket: form.bucket,
-          accessKey: form.accessKey,
+          accessKeyId: form.accessKeyId,
           forcePathStyle: form.forcePathStyle,
           publicBaseUrl: form.publicBaseUrl,
           status: form.status,
         }
-        // secretKey 留空表示保留原值
-        if (form.secretKey) payload.secretKey = form.secretKey
+        // secretAccessKey 留空表示保留原值
+        if (form.secretAccessKey) payload.secretAccessKey = form.secretAccessKey
         await updateStorageLocation(editing.id, payload)
         toast.success("更新成功")
       } else {
@@ -149,8 +149,8 @@ export default function StorageLocationDialog({
           region: form.region,
           endpoint: form.endpoint,
           bucket: form.bucket,
-          accessKey: form.accessKey,
-          secretKey: form.secretKey,
+          accessKeyId: form.accessKeyId,
+          secretAccessKey: form.secretAccessKey,
           forcePathStyle: form.forcePathStyle,
           publicBaseUrl: form.publicBaseUrl,
           status: form.status,
@@ -172,13 +172,13 @@ export default function StorageLocationDialog({
       !form.region ||
       !form.endpoint ||
       !form.bucket ||
-      !form.accessKey ||
+      !form.accessKeyId ||
       !form.publicBaseUrl
     ) {
-      toast.error("请先填写区域/端点/桶/AccessKey/公网地址")
+      toast.error("请先填写区域/端点/桶/SecretId/公网地址")
       return
     }
-    if (!form.secretKey) {
+    if (!form.secretAccessKey) {
       toast.error(
         editing ? "编辑模式下测试请重新填写 SecretKey" : "请填写 SecretKey 后再测试",
       )
@@ -262,8 +262,8 @@ export default function StorageLocationDialog({
             <div className="space-y-1.5 sm:col-span-2">
               <Label>SecretId</Label>
               <Input
-                value={form.accessKey}
-                onChange={(e) => setField("accessKey", e.target.value)}
+                value={form.accessKeyId}
+                onChange={(e) => setField("accessKeyId", e.target.value)}
                 placeholder={editing ? "置空表示不修改" : ""}
               />
             </div>
@@ -272,8 +272,8 @@ export default function StorageLocationDialog({
               <Label>SecretKey</Label>
               <Input
                 type="password"
-                value={form.secretKey}
-                onChange={(e) => setField("secretKey", e.target.value)}
+                value={form.secretAccessKey}
+                onChange={(e) => setField("secretAccessKey", e.target.value)}
                 placeholder={editing ? "置空表示不修改" : ""}
               />
             </div>

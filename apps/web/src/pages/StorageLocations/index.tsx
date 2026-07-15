@@ -163,7 +163,7 @@ export default function StorageLocationsPage() {
               <TableHead>厂商</TableHead>
               <TableHead>区域</TableHead>
               <TableHead>存储桶</TableHead>
-              <TableHead>AccessKey</TableHead>
+              <TableHead>SecretId</TableHead>
               <TableHead className="w-20">状态</TableHead>
               <TableHead className="w-36 text-right">操作</TableHead>
             </TableRow>
@@ -176,7 +176,7 @@ export default function StorageLocationsPage() {
             <TableCell>{loc.provider}</TableCell>
             <TableCell>{loc.region}</TableCell>
             <TableCell>{loc.bucket}</TableCell>
-            <TableCell className="max-w-[160px] truncate">{loc.accessKey}</TableCell>
+            <TableCell className="max-w-[160px] truncate">{loc.accessKeyId}</TableCell>
             <TableCell>
               <span className={STORAGE_LOCATION_STATUS_TEXT_CLASSES[loc.status] ?? ""}>
                 {STORAGE_LOCATION_STATUS_LABEL[loc.status] ?? loc.status}

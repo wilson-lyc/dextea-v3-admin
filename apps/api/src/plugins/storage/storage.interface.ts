@@ -4,8 +4,8 @@ export interface StorageConfig {
   region: string;
   endpoint: string;
   bucket: string;
-  accessKey: string;
-  secretKey: string;
+  accessKeyId: string;
+  secretAccessKey: string;
   forcePathStyle: boolean;
   publicBaseUrl: string;
 }

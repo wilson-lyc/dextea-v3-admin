@@ -5,7 +5,7 @@ import { StorageProviderEnumSchema, STORAGE_PROVIDER_VALUES } from '../storage-p
 // ─── 存储位置状态枚举见 @dextea-admin/contracts/status (STORAGE_LOCATION_STATUS) ───
 
 /** 存储位置实体（详情 / 列表项）。
- * 安全：secretKey 由后端脱敏返回（统一 `********`），accessKey 原样返回。 */
+ * 安全：secretAccessKey 由后端脱敏返回（统一 `********`），accessKeyId 原样返回。 */
 export const StorageLocationSchema = z.object({
   id: z.number(),
   /** 用户自定义名称 */
@@ -18,10 +18,10 @@ export const StorageLocationSchema = z.object({
   endpoint: z.string(),
   /** 存储桶名称 */
   bucket: z.string(),
-  /** 访问密钥 ID */
-  accessKey: z.string(),
-  /** 私密访问密钥（脱敏返回，恒为 `********`） */
-  secretKey: z.string(),
+  /** 访问密钥 ID（SecretId） */
+  accessKeyId: z.string(),
+  /** 私密访问密钥（SecretKey，脱敏返回，恒为 `********`） */
+  secretAccessKey: z.string(),
   /** 强制路径风格 */
   forcePathStyle: z.boolean(),
   /** 存储桶公网基础地址 */
@@ -51,8 +51,8 @@ export const CreateStorageLocationRequestSchema = z.object({
   region: z.string().min(1, '区域不能为空'),
   endpoint: z.string().min(1, '端点不能为空'),
   bucket: z.string().min(1, '桶名不能为空'),
-  accessKey: z.string().min(1, 'AccessKey 不能为空'),
-  secretKey: z.string().min(1, 'SecretKey 不能为空'),
+  accessKeyId: z.string().min(1, 'SecretId 不能为空'),
+  secretAccessKey: z.string().min(1, 'SecretKey 不能为空'),
   forcePathStyle: z.boolean().optional().default(false),
   publicBaseUrl: z.string().min(1, '公网基础地址不能为空'),
   status: z.number().optional().default(1),
@@ -62,16 +62,16 @@ export type CreateStorageLocationRequest = z.infer<typeof CreateStorageLocationR
 export const CreateStorageLocationResponseSchema = z.object({ id: z.number() });
 export type CreateStorageLocationResponse = z.infer<typeof CreateStorageLocationResponseSchema>;
 
-/** 更新存储位置（全部可选；secretKey 留空表示保留原值，不重新加密） */
+/** 更新存储位置（全部可选；secretAccessKey 留空表示保留原值，不重新加密） */
 export const UpdateStorageLocationRequestSchema = z.object({
   name: z.string().min(1, '名称不能为空').max(255, '名称过长').optional(),
   provider: StorageProviderEnumSchema.optional(),
   region: z.string().min(1, '区域不能为空').optional(),
   endpoint: z.string().min(1, '端点不能为空').optional(),
   bucket: z.string().min(1, '桶名不能为空').optional(),
-  accessKey: z.string().min(1, 'AccessKey 不能为空').optional(),
+  accessKeyId: z.string().min(1, 'SecretId 不能为空').optional(),
   /** 留空 = 保留原 SecretKey（沿用库中既有密文） */
-  secretKey: z.string().optional(),
+  secretAccessKey: z.string().optional(),
   forcePathStyle: z.boolean().optional(),
   publicBaseUrl: z.string().min(1, '公网基础地址不能为空').optional(),
   status: z.number().optional(),
@@ -98,8 +98,8 @@ export const TestStorageLocationConnectionRequestSchema = z.object({
   provider: StorageProviderEnumSchema,
   endpoint: z.string().min(1, '端点不能为空'),
   bucket: z.string().min(1, '桶名不能为空'),
-  accessKey: z.string().min(1, 'AccessKey 不能为空'),
-  secretKey: z.string().min(1, 'SecretKey 不能为空'),
+  accessKeyId: z.string().min(1, 'SecretId 不能为空'),
+  secretAccessKey: z.string().min(1, 'SecretKey 不能为空'),
   forcePathStyle: z.boolean().optional().default(false),
   publicBaseUrl: z.string().min(1, '公网基础地址不能为空'),
 });

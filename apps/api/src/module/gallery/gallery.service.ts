@@ -39,8 +39,8 @@ async function resolveStorageLocation(
     region: row.region,
     endpoint: row.endpoint,
     bucket: row.bucket,
-    accessKey: row.accessKey,
-    secretKey: decryptSecret(row.secretKey),
+    accessKeyId: row.accessKeyId,
+    secretAccessKey: decryptSecret(row.secretAccessKey),
     forcePathStyle: row.forcePathStyle === 1,
     publicBaseUrl: row.publicBaseUrl,
   });

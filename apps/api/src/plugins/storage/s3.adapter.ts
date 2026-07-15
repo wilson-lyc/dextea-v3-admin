@@ -44,8 +44,8 @@ export class S3StorageAdapter implements StorageAdapter {
       endpoint,
       forcePathStyle: endpoint ? forcePathStyle : false,
       credentials:
-        config.accessKey && config.secretKey
-          ? { accessKeyId: config.accessKey, secretAccessKey: config.secretKey }
+        config.accessKeyId && config.secretAccessKey
+          ? { accessKeyId: config.accessKeyId, secretAccessKey: config.secretAccessKey }
           : undefined,
     });
   }

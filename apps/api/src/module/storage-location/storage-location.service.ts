@@ -14,7 +14,7 @@ import type {
 
 const SECRET_MASK = '********';
 
-/** 将数据库行映射为前端 DTO：secretKey 脱敏、forcePathStyle 转为布尔 */
+/** 将数据库行映射为前端 DTO：secretAccessKey 脱敏、forcePathStyle 转为布尔 */
 function toDTO(row: StorageLocationRow): StorageLocation {
   return {
     id: row.id,
@@ -23,8 +23,8 @@ function toDTO(row: StorageLocationRow): StorageLocation {
     region: row.region,
     endpoint: row.endpoint,
     bucket: row.bucket,
-    accessKey: row.accessKey,
-    secretKey: SECRET_MASK,
+    accessKeyId: row.accessKeyId,
+    secretAccessKey: SECRET_MASK,
     forcePathStyle: row.forcePathStyle === 1,
     publicBaseUrl: row.publicBaseUrl,
     status: row.status,
@@ -72,8 +72,8 @@ export const storageLocationService = {
       region: input.region,
       endpoint: input.endpoint,
       bucket: input.bucket,
-      accessKey: input.accessKey,
-      secretKey: encryptSecret(input.secretKey),
+      accessKeyId: input.accessKeyId,
+      secretAccessKey: encryptSecret(input.secretAccessKey),
       forcePathStyle: input.forcePathStyle ? 1 : 0,
       publicBaseUrl: input.publicBaseUrl,
       status: input.status ?? 1,
@@ -97,9 +97,9 @@ export const storageLocationService = {
     if (input.region !== undefined) patch.region = input.region;
     if (input.endpoint !== undefined) patch.endpoint = input.endpoint;
     if (input.bucket !== undefined) patch.bucket = input.bucket;
-    if (input.accessKey !== undefined) patch.accessKey = input.accessKey;
-    // secretKey 留空表示保留原值（沿用库中既有密文），仅当填写时才重新加密
-    if (input.secretKey) patch.secretKey = encryptSecret(input.secretKey);
+    if (input.accessKeyId !== undefined) patch.accessKeyId = input.accessKeyId;
+    // secretAccessKey 留空表示保留原值（沿用库中既有密文），仅当填写时才重新加密
+    if (input.secretAccessKey) patch.secretAccessKey = encryptSecret(input.secretAccessKey);
     if (input.forcePathStyle !== undefined) patch.forcePathStyle = input.forcePathStyle ? 1 : 0;
     if (input.publicBaseUrl !== undefined) patch.publicBaseUrl = input.publicBaseUrl;
     if (input.status !== undefined) patch.status = input.status;
@@ -122,8 +122,8 @@ export const storageLocationService = {
       region: input.region,
       endpoint: input.endpoint,
       bucket: input.bucket,
-      accessKey: input.accessKey,
-      secretKey: input.secretKey,
+      accessKeyId: input.accessKeyId,
+      secretAccessKey: input.secretAccessKey,
       forcePathStyle: input.forcePathStyle ?? false,
       publicBaseUrl: input.publicBaseUrl,
     });
