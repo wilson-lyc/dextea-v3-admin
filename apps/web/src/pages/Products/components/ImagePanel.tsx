@@ -10,7 +10,13 @@ import type {
 } from "@/api"
 import { getProductImages, setProductImages } from "@/api"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 import GalleryPicker from "@/components/GalleryPicker"
@@ -143,14 +149,9 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
     <div className="space-y-6 p-6">
       {/* 封面图 */}
       <Card>
-        <CardContent className="space-y-4 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium">封面图</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                有且仅有一张，可暂时不设置，后期在图库中选择
-              </p>
-            </div>
+        <CardHeader>
+          <CardTitle>封面图</CardTitle>
+          <CardAction>
             {cover && (
               <div className="flex gap-2">
                 <Button
@@ -171,8 +172,9 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
                 </Button>
               </div>
             )}
-          </div>
-
+          </CardAction>
+        </CardHeader>
+        <CardContent className="space-y-4">
           {cover ? (
             <ImageThumb src={cover.url} alt={cover.url} />
           ) : (
@@ -191,14 +193,9 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
 
       {/* 图库 */}
       <Card>
-        <CardContent className="space-y-4 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium">图库</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                最多 {MAX_GALLERY} 张，可调整顺序后保存
-              </p>
-            </div>
+        <CardHeader>
+          <CardTitle>图库</CardTitle>
+          <CardAction>
             <Button
               variant="outline"
               size="sm"
@@ -208,8 +205,9 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
               <ImagesIcon data-icon="inline-start" />
               从图库添加
             </Button>
-          </div>
-
+          </CardAction>
+        </CardHeader>
+        <CardContent className="space-y-4">
           {gallery.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-12 text-center">
               <ImageIcon className="size-6 text-muted-foreground" />
