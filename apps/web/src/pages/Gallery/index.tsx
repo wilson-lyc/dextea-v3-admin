@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
+  HardDriveIcon,
   ImageIcon,
   SearchIcon,
   Trash2Icon,
@@ -8,13 +9,25 @@ import {
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
-import type { GalleryImage } from "@/api"
-import { deleteGalleryImage, getGalleryImages, uploadGalleryImage } from "@/api"
+import type { GalleryImage, StorageLocationOption } from "@/api"
+import {
+  deleteGalleryImage,
+  getGalleryImages,
+  getStorageLocationOptions,
+  uploadGalleryImage,
+} from "@/api"
 import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
 } from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import PaginationBar from "@/components/ui/pagination-bar"
@@ -34,12 +47,6 @@ interface UploadTask {
   file: File
 }
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / 1024 / 1024).toFixed(2)} MB`
-}
-
 export default function GalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([])
   const [loading, setLoading] = useState(true)
@@ -56,6 +63,10 @@ export default function GalleryPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<GalleryImage | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+
+  // 存储位置下拉与当前选择（null = 默认全局兜底）
+  const [locations, setLocations] = useState<StorageLocationOption[]>([])
+  const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
 
   const fetchImages = useCallback(async (targetPage: number) => {
     setLoading(true)
@@ -80,6 +91,12 @@ export default function GalleryPage() {
     fetchImages(1)
   }, [fetchImages])
 
+  useEffect(() => {
+    getStorageLocationOptions()
+      .then((res) => setLocations(res.data))
+      .catch(() => setLocations([]))
+  }, [])
+
   const runUploads = useCallback(
     async (files: File[]) => {
       const newTasks: UploadTask[] = files.map((file) => ({
@@ -99,7 +116,7 @@ export default function GalleryPage() {
             setTasks((prev) =>
               prev.map((t) => (t.id === task.id ? { ...t, progress: pct } : t)),
             )
-          })
+          }, selectedLocationId)
           setTasks((prev) =>
             prev.map((t) =>
               t.id === task.id ? { ...t, status: "done", progress: 100 } : t,
@@ -133,7 +150,7 @@ export default function GalleryPage() {
         })
       }, 1500)
     },
-    [fetchImages, page],
+    [fetchImages, page, selectedLocationId],
   )
 
   const handleFiles = (fileList: FileList | null) => {
@@ -202,6 +219,32 @@ export default function GalleryPage() {
             }}
           />
         </div>
+      </div>
+
+      {/* 存储位置选择 */}
+      <div className="flex items-center gap-3">
+        <span className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
+          <HardDriveIcon className="size-4" />
+          存储位置
+        </span>
+        <Select
+          value={selectedLocationId != null ? String(selectedLocationId) : "default"}
+          onValueChange={(v) =>
+            setSelectedLocationId(v == null || v === "default" ? null : Number(v))
+          }
+        >
+          <SelectTrigger className="w-72">
+            <SelectValue placeholder="默认存储（全局）" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">默认存储（全局）</SelectItem>
+            {locations.map((loc) => (
+              <SelectItem key={loc.id} value={String(loc.id)}>
+                {loc.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* 上传区 */}
@@ -314,7 +357,7 @@ export default function GalleryPage() {
               <div className="relative aspect-square overflow-hidden bg-muted">
                 <img
                   src={img.url}
-                  alt={img.fileName}
+                  alt={`图片 ${img.id}`}
                   loading="lazy"
                   className="size-full object-cover"
                 />
@@ -329,11 +372,11 @@ export default function GalleryPage() {
                 </Button>
               </div>
               <CardContent className="space-y-1 p-3">
-                <p className="truncate text-sm" title={img.fileName}>
-                  {img.fileName}
+                <p className="truncate text-sm" title={img.url}>
+                  {`图片 #${img.id}`}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {formatBytes(img.fileSize)} ·{" "}
+                  {img.storageLocationName ?? "默认存储"} ·{" "}
                   {new Date(img.createdAt).toLocaleDateString("zh-CN")}
                 </p>
               </CardContent>
@@ -359,7 +402,7 @@ export default function GalleryPage() {
         title="删除图片"
         description={
           <>
-            确定要删除「{deleteTarget?.fileName}」吗？此操作不可恢复，且会从对象存储中一并移除。
+            确定要删除「图片 #{deleteTarget?.id}」吗？此操作不可恢复，且会从对象存储中一并移除。
           </>
         }
         variant="destructive"

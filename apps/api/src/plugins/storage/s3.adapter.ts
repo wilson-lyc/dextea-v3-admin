@@ -1,4 +1,9 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  HeadBucketCommand,
+} from '@aws-sdk/client-s3';
 import type {
   StorageAdapter,
   StorageConfig,
@@ -77,5 +82,15 @@ export class S3StorageAdapter implements StorageAdapter {
     // 由运维通过 STORAGE_PUBLIC_BASE_URL 指向存储桶公网域名（如 https://bucket.oss-cn-hangzhou.aliyuncs.com）
     // 前端据此直链直接访问对象存储，鉴权由存储服务商完成
     return `${this.publicBaseUrl}/${objectKey}`;
+  }
+
+  async testConnection(): Promise<{ ok: boolean; message: string }> {
+    try {
+      await this.client.send(new HeadBucketCommand({ Bucket: this.bucket }));
+      return { ok: true, message: '连接成功' };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '连接失败';
+      return { ok: false, message };
+    }
   }
 }

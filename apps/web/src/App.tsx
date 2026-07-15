@@ -19,6 +19,7 @@ import TagListPage from "@/pages/ProductTags"
 import IngredientsPage from "@/pages/Ingredients"
 import IngredientDetailPage from "@/pages/Ingredients/detail"
 import GalleryPage from "@/pages/Gallery"
+import StorageLocationsPage from "@/pages/StorageLocations"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/hooks/use-theme"
@@ -42,6 +43,7 @@ function App() {
           <Route path="/" element={<AppLayout />}>
             <Route index element={<DashboardPage />} />
             <Route path="gallery" element={<GalleryPage />} />
+            <Route path="storage-locations" element={<StorageLocationsPage />} />
             <Route path="me" element={<MePage />} />
             <Route path="employees" element={<EmployeesPage />} />
             <Route path="roles" element={<RolesPage />} />

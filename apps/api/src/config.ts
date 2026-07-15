@@ -89,6 +89,9 @@ function buildConfig() {
       /** 存储桶公网可访问的基础地址，用于拼接图片直链，例如 https://my-bucket.oss-cn-hangzhou.aliyuncs.com */
       publicBaseUrl: resolveValue('STORAGE_PUBLIC_BASE_URL', ''),
     },
+
+    /** 存储位置 secretKey 加密密钥（生产环境务必通过环境变量配置） */
+    storageEncryptionKey: resolveValue('STORAGE_ENCRYPTION_KEY', ''),
   };
 }
 

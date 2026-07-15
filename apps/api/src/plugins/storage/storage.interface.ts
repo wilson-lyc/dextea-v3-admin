@@ -34,4 +34,6 @@ export interface StorageAdapter {
   delete(objectKey: string): Promise<void>;
   /** 根据对象键拼出可直连访问的地址 */
   getPublicUrl(objectKey: string): string;
+  /** 探测存储连通性，返回是否可用与提示信息 */
+  testConnection(): Promise<{ ok: boolean; message: string }>;
 }

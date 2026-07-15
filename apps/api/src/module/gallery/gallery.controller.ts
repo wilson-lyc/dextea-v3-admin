@@ -12,6 +12,17 @@ import {
   DeleteGalleryImageResponseSchema,
 } from '@dextea-admin/contracts';
 
+/** 从 multipart 字段中安全提取字符串值（兼容 string / string[] / { value } 形态） */
+function extractFieldValue(value: unknown): string {
+  if (value == null) return '';
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) return extractFieldValue(value[0]);
+  if (typeof value === 'object' && 'value' in value) {
+    return extractFieldValue((value as { value: unknown }).value);
+  }
+  return String(value);
+}
+
 export const registerGalleryRoutes: FastifyPluginAsyncZod = async (app) => {
   // 注册 multipart 解析（单文件、最大 10MB）
   await app.register(multipart, {
@@ -36,11 +47,15 @@ export const registerGalleryRoutes: FastifyPluginAsyncZod = async (app) => {
         throw new BizError(GalleryErrorCodes.INVALID_FILE, '请选择要上传的文件');
       }
 
+      const rawLocationId = extractFieldValue(data.fields?.storageLocationId);
+      const storageLocationId = rawLocationId ? Number(rawLocationId) : null;
+
       const buffer = await data.toBuffer();
       const result = await galleryService.uploadImage({
         buffer,
         filename: data.filename,
         mimetype: data.mimetype,
+        storageLocationId,
       });
 
       return ApiResponse.success(result);

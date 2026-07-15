@@ -33,9 +33,13 @@ export function getGalleryImages(params?: Partial<GetGalleryImageListRequest>) {
 export function uploadGalleryImage(
   file: File,
   onProgress?: (percent: number) => void,
+  storageLocationId?: number | null,
 ) {
   const form = new FormData()
   form.append("file", file)
+  if (storageLocationId != null) {
+    form.append("storageLocationId", String(storageLocationId))
+  }
 
   return http
     .post<ApiResponse<UploadGalleryImageResponse>>("/gallery/images", form, {
