@@ -45,15 +45,6 @@ export const galleryRepository = {
     return rows[0] ?? null;
   },
 
-  async getGalleryImageByObjectKey(objectKey: string) {
-    const rows = await db
-      .select()
-      .from(galleryImagesTable)
-      .where(eq(galleryImagesTable.objectKey, objectKey))
-      .limit(1);
-    return rows[0] ?? null;
-  },
-
   async createGalleryImage(data: typeof galleryImagesTable.$inferInsert) {
     const result = await db.insert(galleryImagesTable).values(data);
     return Number(result[0]?.insertId ?? 0);

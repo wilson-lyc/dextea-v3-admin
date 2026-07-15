@@ -1,5 +1,3 @@
-import type { Readable } from 'node:stream';
-
 /** 存储厂商配置（与 config.storage 对齐） */
 export interface StorageConfig {
   provider: string;
@@ -10,7 +8,6 @@ export interface StorageConfig {
   secretKey: string;
   forcePathStyle: boolean;
   publicBaseUrl: string;
-  localDir: string;
 }
 
 export interface StorageUploadInput {
@@ -21,26 +18,20 @@ export interface StorageUploadInput {
 
 export interface StorageUploadResult {
   objectKey: string;
-  /** 可直接用于前端访问的完整地址 */
+  /** 可直接用于前端直连访问的完整地址 */
   url: string;
-}
-
-export interface StorageObject {
-  stream: Readable;
-  contentType: string;
 }
 
 /**
  * 对象存储适配层统一接口。
- * 后端业务仅依赖此接口，具体实现可为本地磁盘或任意 S3 协议兼容的云存储。
+ * 后端业务仅依赖此接口，具体实现为任意 S3 协议兼容的云存储。
+ * 前端通过 getPublicUrl 返回的直链直接访问对象存储，鉴权由存储服务商完成。
  */
 export interface StorageAdapter {
   /** 上传对象，返回对象键与可访问地址 */
   upload(input: StorageUploadInput): Promise<StorageUploadResult>;
   /** 删除对象 */
   delete(objectKey: string): Promise<void>;
-  /** 根据对象键拼出可访问地址 */
+  /** 根据对象键拼出可直连访问的地址 */
   getPublicUrl(objectKey: string): string;
-  /** 读取对象内容流（用于本地回源等场景） */
-  read(objectKey: string): Promise<StorageObject | null>;
 }

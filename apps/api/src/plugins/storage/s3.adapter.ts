@@ -1,9 +1,7 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import type { Readable } from 'node:stream';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import type {
   StorageAdapter,
   StorageConfig,
-  StorageObject,
   StorageUploadInput,
   StorageUploadResult,
 } from './storage.interface.js';
@@ -77,13 +75,7 @@ export class S3StorageAdapter implements StorageAdapter {
 
   getPublicUrl(objectKey: string): string {
     // 由运维通过 STORAGE_PUBLIC_BASE_URL 指向存储桶公网域名（如 https://bucket.oss-cn-hangzhou.aliyuncs.com）
+    // 前端据此直链直接访问对象存储，鉴权由存储服务商完成
     return `${this.publicBaseUrl}/${objectKey}`;
-  }
-
-  async read(objectKey: string): Promise<StorageObject | null> {
-    const res = await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: objectKey }));
-    if (!res.Body) return null;
-    const stream = res.Body as unknown as Readable;
-    return { stream, contentType: res.ContentType ?? 'application/octet-stream' };
   }
 }

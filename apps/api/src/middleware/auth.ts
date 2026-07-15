@@ -9,7 +9,6 @@ const AUTH_WHITELIST = [
   '/api/v2/auth/login',
   '/api/v2/init',
   '/api/v2/docs',
-  '/api/v2/gallery/files',
 ] as const;
 
 function isWhitelisted(pathname: string): boolean {

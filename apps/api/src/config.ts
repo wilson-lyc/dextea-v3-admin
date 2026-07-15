@@ -76,20 +76,18 @@ function buildConfig() {
     amapJsSecurityCode: resolveValue('AMAP_JS_SECURITY_CODE', ''),
 
     storage: {
-      /** 存储厂商：local（本地磁盘，便于开发）/ aws / aliyun / tencent / minio / generic */
-      provider: resolveValue('STORAGE_PROVIDER', 'local'),
+      /** 存储厂商（仅支持 S3 协议对象存储）：aws / aliyun / tencent / minio / generic */
+      provider: resolveValue('STORAGE_PROVIDER', 'aws'),
       region: resolveValue('STORAGE_REGION', 'us-east-1'),
-      /** S3 兼容服务地址（MinIO / 自建等需要填写） */
+      /** S3 兼容服务地址（MinIO / 自建等需要填写，主流云厂商留空即可） */
       endpoint: resolveValue('STORAGE_ENDPOINT', ''),
       bucket: resolveValue('STORAGE_BUCKET', ''),
       accessKey: resolveValue('STORAGE_ACCESS_KEY', ''),
       secretKey: resolveValue('STORAGE_SECRET_KEY', ''),
       /** 强制路径风格（MinIO 等通常需要 true） */
       forcePathStyle: resolveValue('STORAGE_FORCE_PATH_STYLE', false),
-      /** 公网可访问的基础地址，用于拼接图片访问地址；S3 类需指向存储桶域名 */
-      publicBaseUrl: resolveValue('STORAGE_PUBLIC_BASE_URL', 'http://localhost:3001'),
-      /** local 模式下的文件根目录（相对工作目录） */
-      localDir: resolveValue('STORAGE_LOCAL_DIR', 'uploads'),
+      /** 存储桶公网可访问的基础地址，用于拼接图片直链，例如 https://my-bucket.oss-cn-hangzhou.aliyuncs.com */
+      publicBaseUrl: resolveValue('STORAGE_PUBLIC_BASE_URL', ''),
     },
   };
 }

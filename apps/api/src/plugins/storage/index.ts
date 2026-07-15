@@ -1,5 +1,4 @@
 import { config } from '@/config';
-import { LocalStorageAdapter } from './local.adapter.js';
 import { S3StorageAdapter } from './s3.adapter.js';
 import type { StorageAdapter, StorageConfig } from './storage.interface.js';
 
@@ -7,7 +6,7 @@ let cachedAdapter: StorageAdapter | null = null;
 
 /**
  * 获取对象存储适配器单例。
- * 根据 config.storage.provider 选择具体实现，从而兼容本地磁盘与各类 S3 协议云存储。
+ * 当前仅支持 S3 协议兼容的云存储（AWS / 阿里云 OSS / 腾讯云 COS / MinIO / 自建等）。
  */
 export function getStorageAdapter(): StorageAdapter {
   if (cachedAdapter) return cachedAdapter;
@@ -22,11 +21,9 @@ export function getStorageAdapter(): StorageAdapter {
     secretKey: s.secretKey,
     forcePathStyle: s.forcePathStyle,
     publicBaseUrl: s.publicBaseUrl,
-    localDir: s.localDir,
   };
 
-  cachedAdapter =
-    s.provider === 'local' ? new LocalStorageAdapter(storageConfig) : new S3StorageAdapter(storageConfig);
+  cachedAdapter = new S3StorageAdapter(storageConfig);
 
   return cachedAdapter;
 }
