@@ -178,7 +178,7 @@ export default function EmployeesPage() {
         toolbarLeft={
           <Button onClick={openCreateDialog}>
             <PlusIcon data-icon="inline-start" />
-            创建用户
+            新增员工
           </Button>
         }
         toolbarRight={

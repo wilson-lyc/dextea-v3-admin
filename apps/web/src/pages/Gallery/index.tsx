@@ -41,6 +41,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
+import { SelectPicker } from "@/components/ui/select-picker"
 import DataTable from "@/components/ui/data-table"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 
@@ -254,10 +255,14 @@ export default function GalleryPage() {
         }
         toolbarRight={
           <div className="flex items-center gap-2">
-            <Select
-              value={filterLocationId != null ? String(filterLocationId) : "all"}
+            <SelectPicker
+              options={[
+                { label: "全部存储位置", value: "" },
+                ...locations.map((loc) => ({ label: loc.name, value: String(loc.id) })),
+              ]}
+              value={filterLocationId != null ? String(filterLocationId) : ""}
               onValueChange={(v) => {
-                const id = v == null || v === "all" ? null : Number(v)
+                const id = v ? Number(v) : null
                 setFilterLocationId(id)
                 const params: {
                   page: number
@@ -275,19 +280,9 @@ export default function GalleryPage() {
                   })
                   .catch(() => toast.error("获取图片列表失败"))
               }}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="全部存储位置" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部存储位置</SelectItem>
-                {locations.map((loc) => (
-                  <SelectItem key={loc.id} value={String(loc.id)}>
-                    {loc.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="全部存储位置"
+              className="w-40"
+            />
             <div className="relative max-w-sm">
               <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input

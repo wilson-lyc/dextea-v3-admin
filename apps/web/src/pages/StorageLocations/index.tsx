@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/table"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Select,
   SelectContent,
@@ -392,7 +393,8 @@ export default function StorageLocationsPage() {
             <DialogTitle>{editing ? "编辑存储位置" : "新增存储位置"}</DialogTitle>
           </DialogHeader>
 
-          <div className="grid max-h-[60vh] grid-cols-1 gap-4 overflow-y-auto p-1 sm:grid-cols-2">
+          <ScrollArea className="max-h-[60vh] p-1">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>名称</Label>
               <Input
@@ -448,7 +450,7 @@ export default function StorageLocationsPage() {
               />
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:col-span-2">
               <Label>AccessKey</Label>
               <Input
                 value={form.accessKey}
@@ -457,7 +459,7 @@ export default function StorageLocationsPage() {
               />
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:col-span-2">
               <Label>
                 SecretKey
                 {editing && (
@@ -498,7 +500,8 @@ export default function StorageLocationsPage() {
               />
               启用
             </label>
-          </div>
+            </div>
+          </ScrollArea>
 
           <DialogFooter>
             <Button variant="outline" onClick={handleTest} disabled={testing}>
