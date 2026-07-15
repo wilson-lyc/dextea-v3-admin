@@ -13,7 +13,6 @@ import {
   ROLE_STATUS_TEXT_CLASSES,
 } from "@dextea-admin/contracts/status"
 import {
-  deleteRole,
   getRoles,
   toggleRoleStatus,
 } from "@/api"
@@ -46,12 +45,6 @@ export default function RolesPage() {
   const [editingRole, setEditingRole] = useState<Role | null>(null)
   const [assignOpen, setAssignOpen] = useState(false)
   const [assigningRole, setAssigningRole] = useState<Role | null>(null)
-
-  // 确认弹窗状态
-  const [deleteOpen, setDeleteOpen] = useState(false)
-  const [deletingRole, setDeletingRole] = useState<Role | null>(null)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
-  const [deleting, setDeleting] = useState(false)
 
   const [statusOpen, setStatusOpen] = useState(false)
   const [statusRole, setStatusRole] = useState<Role | null>(null)
@@ -100,34 +93,6 @@ export default function RolesPage() {
   const openAssign = (role: Role) => {
     setAssigningRole(role)
     setAssignOpen(true)
-  }
-
-  const openDelete = (role: Role) => {
-    setDeletingRole(role)
-    setDeleteError(null)
-    setDeleteOpen(true)
-  }
-
-  const handleConfirmDelete = async () => {
-    if (!deletingRole) return
-    const role = deletingRole
-    setDeleting(true)
-    setDeleteError(null)
-    try {
-      const res = await deleteRole(role.id)
-      if (res.code === 0) {
-        toast.success(res.message || "删除成功")
-        setDeleteOpen(false)
-        setDeletingRole(null)
-        fetchRoles(page)
-      } else {
-        setDeleteError(res.message)
-      }
-    } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "删除异常")
-    } finally {
-      setDeleting(false)
-    }
   }
 
   const openToggleStatus = (role: Role) => {
@@ -241,13 +206,6 @@ export default function RolesPage() {
                 >
                   {role.status === ROLE_STATUS.ACTIVE.value ? "禁用" : "激活"}
                 </Button>
-                <Button
-                  variant="outline-destructive"
-                  size="sm"
-                  onClick={() => openDelete(role)}
-                >
-                  删除
-                </Button>
               </div>
             </TableCell>
           </TableRow>
@@ -278,23 +236,6 @@ export default function RolesPage() {
         onOpenChange={setAssignOpen}
         role={assigningRole}
         onAssigned={() => {}}
-      />
-
-      <ConfirmDialog
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        title="删除角色"
-        description={
-          <>
-            确定要删除角色「<span className="font-semibold text-foreground">{deletingRole?.name}</span>
-            」吗？该角色与员工、权限的关联关系将一并解除。
-          </>
-        }
-        confirmText="删除"
-        variant="destructive"
-        loading={deleting}
-        errorMessage={deleteError}
-        onConfirm={handleConfirmDelete}
       />
 
       <ConfirmDialog

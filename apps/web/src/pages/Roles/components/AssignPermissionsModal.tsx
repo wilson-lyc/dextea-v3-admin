@@ -105,20 +105,17 @@ export default function AssignPermissionsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="dialog-fixed-height flex w-[640px] max-w-[calc(100%-2rem)] flex-col">
         <DialogHeader>
-          <DialogTitle>分配权限</DialogTitle>
-          <DialogDescription>
-            为「{role?.name}」勾选所需权限，提交后将全量覆盖已有绑定（{selectedIds.size} 项已选）
-          </DialogDescription>
+          <DialogTitle>权限配置</DialogTitle>
         </DialogHeader>
 
         {loading ? (
-          <div className="flex h-64 items-center justify-center">
+          <div className="flex h-[60vh] items-center justify-center">
             <Loader2Icon className="size-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <ScrollArea className="max-h-[55vh] pr-2">
+          <ScrollArea className="h-[60vh] pr-2">
             <div className="flex flex-col gap-4 py-1">
               {groups.map((group) => (
                 <div key={group.resource} className="flex flex-col gap-2">

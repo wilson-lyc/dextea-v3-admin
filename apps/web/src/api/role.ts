@@ -74,16 +74,6 @@ export function toggleRoleStatus(id: number, status: number) {
 }
 
 /**
- * 删除角色
- * DELETE /roles/:id/info
- */
-export function deleteRole(id: number) {
-  return http
-    .delete<ApiResponse<null>>(`/roles/${id}/info`)
-    .then((res) => res.data)
-}
-
-/**
  * 获取角色已绑定的权限
  * GET /roles/:id/permissions
  */

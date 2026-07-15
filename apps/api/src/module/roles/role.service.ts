@@ -77,15 +77,6 @@ export const roleService = {
     return { name: role.name, status };
   },
 
-  async deleteRole(id: number) {
-    const role = await roleRepository.getRoleById(id);
-    if (!role) {
-      throw new BizError(RoleErrorCodes.ROLE_NOT_FOUND);
-    }
-
-    await roleRepository.deleteRoleWithRelations(id);
-  },
-
   async getRolePermissions(id: number) {
     const role = await roleRepository.getRoleById(id);
     if (!role) {

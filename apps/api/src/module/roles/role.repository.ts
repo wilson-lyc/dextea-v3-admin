@@ -4,7 +4,6 @@ import {
   rolesTable,
   permissionsTable,
   rolePermissionsTable,
-  employeeRolesTable,
 } from '@/plugins/db/mysql/schema.js';
 import { withPagination } from '@/utils';
 import { ROLE_STATUS } from '@dextea-admin/contracts';
@@ -76,15 +75,6 @@ export const roleRepository = {
 
   async updateRoleStatusById(id: number, status: number) {
     await db.update(rolesTable).set({ status }).where(eq(rolesTable.id, id));
-  },
-
-  /** 删除角色，同时清理角色-权限、员工-角色关联 */
-  async deleteRoleWithRelations(id: number) {
-    await db.transaction(async (tx) => {
-      await tx.delete(rolePermissionsTable).where(eq(rolePermissionsTable.roleId, id));
-      await tx.delete(employeeRolesTable).where(eq(employeeRolesTable.roleId, id));
-      await tx.delete(rolesTable).where(eq(rolesTable.id, id));
-    });
   },
 
   /** 获取启用状态的角色选项 */

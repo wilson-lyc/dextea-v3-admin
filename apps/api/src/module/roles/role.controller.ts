@@ -114,25 +114,6 @@ export const registerRoleRoutes: FastifyPluginAsyncZod = async (app) => {
     },
   );
 
-  // 删除角色
-  app.delete(
-    '/roles/:id/info',
-    {
-      schema: {
-        tags: ['Roles'],
-        description: '删除角色',
-        params: z.object({ id: z.coerce.number().int().positive('ID 必须为正整数') }),
-        response: { 200: ApiResponseSchema(z.null()).describe('删除成功') },
-        security: [{ bearerAuth: [] }],
-      },
-      preHandler: withPermission('role:write'),
-    },
-    async (request, _reply) => {
-      await roleService.deleteRole(request.params.id);
-      return ApiResponse.success(null, '删除成功');
-    },
-  );
-
   // 获取角色已绑定的权限
   app.get(
     '/roles/:id/permissions',

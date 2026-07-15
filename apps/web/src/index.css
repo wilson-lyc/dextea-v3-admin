@@ -130,3 +130,9 @@
     @apply font-sans;
     }
 }
+
+/* 固定尺寸的弹窗：总高度固定，内容区通过滚动展示，不随内容撑开 */
+.dialog-fixed-height {
+  height: auto;
+  max-height: calc(60vh + 12rem);
+}
