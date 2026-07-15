@@ -43,6 +43,9 @@ export function uploadGalleryImage(
 
   return http
     .post<ApiResponse<UploadGalleryImageResponse>>("/gallery/images", form, {
+      // 显式清除默认的 application/json，让 axios 自动设置
+      // multipart/form-data 及正确的 boundary，否则后端 multipart 解析会失败
+      headers: { "Content-Type": undefined },
       onUploadProgress: (e) => {
         if (onProgress && e.total) {
           onProgress(Math.round((e.loaded / e.total) * 100))
