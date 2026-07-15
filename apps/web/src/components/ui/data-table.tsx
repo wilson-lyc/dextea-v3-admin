@@ -1,11 +1,14 @@
+import * as React from "react"
 import { RotateCwIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Table,
   TableBody,
   TableRow,
   TableCell,
+  TableHead,
 } from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -52,6 +55,14 @@ interface DataTableProps {
   className?: string
   /** Use fixed table layout so column widths are strictly honored (set via <TableHead> widths) */
   fixedLayout?: boolean
+  /** 开启行选择（复选框）能力：自动渲染表头「全选」列与每行的复选框单元 */
+  showSelection?: boolean
+  /** 当前选中的行 id 集合（受控） */
+  selectedIds?: Set<number> | number[]
+  /** 从行元素中提取 id；缺省时读取行上的 data-id 属性 */
+  getRowId?: (row: React.ReactElement) => number
+  /** 选择变化回调，返回最新的选中 id 集合 */
+  onSelectionChange?: (ids: Set<number>) => void
 }
 
 /**
@@ -106,7 +117,115 @@ export default function DataTable({
   emptyText = "暂无数据",
   className,
   fixedLayout = false,
+  showSelection,
+  selectedIds,
+  getRowId,
+  onSelectionChange,
 }: DataTableProps) {
+  const selectionEnabled = !!showSelection
+
+  const selectedSet = React.useMemo(
+    () =>
+      new Set(
+        Array.isArray(selectedIds)
+          ? (selectedIds as number[])
+          : ((selectedIds as Set<number> | undefined) ?? []),
+      ),
+    [selectedIds],
+  )
+
+  const visibleRowIds = React.useMemo(() => {
+    if (!selectionEnabled || !body) return []
+    const ids: number[] = []
+    React.Children.forEach(body, (child) => {
+      if (!React.isValidElement(child)) return
+      const el = child as React.ReactElement
+      const id = getRowId
+        ? getRowId(el)
+        : Number((el.props as Record<string, unknown>)["data-id"])
+      if (Number.isFinite(id)) ids.push(id)
+    })
+    return ids
+  }, [selectionEnabled, body, getRowId])
+
+  const allChecked =
+    visibleRowIds.length > 0 && visibleRowIds.every((id) => selectedSet.has(id))
+  const someChecked = visibleRowIds.some((id) => selectedSet.has(id))
+
+  const handleToggleRow = React.useCallback(
+    (id: number) => {
+      if (!onSelectionChange) return
+      const next = new Set(selectedSet)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      onSelectionChange(next)
+    },
+    [selectedSet, onSelectionChange],
+  )
+
+  const handleToggleAll = React.useCallback(
+    (checked: boolean) => {
+      if (!onSelectionChange) return
+      const next = new Set(selectedSet)
+      if (checked) visibleRowIds.forEach((id) => next.add(id))
+      else visibleRowIds.forEach((id) => next.delete(id))
+      onSelectionChange(next)
+    },
+    [selectedSet, visibleRowIds, onSelectionChange],
+  )
+
+  const renderedHeader =
+    selectionEnabled && header
+      ? (() => {
+          const headerEl = header as React.ReactElement
+          const rowEl = headerEl.props.children as React.ReactElement
+          const originalHeads = React.Children.toArray(rowEl.props.children)
+          return React.cloneElement(
+            headerEl,
+            {},
+            React.cloneElement(
+              rowEl,
+              {},
+              <TableHead key="__selection_head" className="w-10">
+                <Checkbox
+                  checked={allChecked}
+                  indeterminate={someChecked && !allChecked}
+                  onCheckedChange={(v) => handleToggleAll(v === true)}
+                  aria-label="全选"
+                />
+              </TableHead>,
+              ...originalHeads,
+            ),
+          )
+        })()
+      : header
+
+  const renderedBody =
+    selectionEnabled && body
+      ? React.Children.map(body, (child) => {
+          if (!React.isValidElement(child)) return child
+          const el = child as React.ReactElement
+          const id = getRowId
+            ? getRowId(el)
+            : Number((el.props as Record<string, unknown>)["data-id"])
+          const originalCells = React.Children.toArray(el.props.children)
+          return React.cloneElement(
+            el,
+            {},
+            <TableCell key="__selection_cell" className="w-10">
+              <Checkbox
+                checked={selectedSet.has(id)}
+                onCheckedChange={() => handleToggleRow(id)}
+                aria-label="选择"
+              />
+            </TableCell>,
+            ...originalCells,
+          )
+        })
+      : body
+
+  const effectiveColSpan = colSpan + (selectionEnabled ? 1 : 0)
+
   return (
     <div className={cn("flex h-full flex-col gap-4", className)}>
       {/* Toolbar */}
@@ -141,11 +260,11 @@ export default function DataTable({
             fixedLayout && "table-fixed",
           )}
         >
-          {header}
+          {renderedHeader}
           {loading ? (
             <TableBody>
               <TableRow>
-                <TableCell colSpan={colSpan} className="h-96">
+                <TableCell colSpan={effectiveColSpan} className="h-96">
                   <div className="flex items-center justify-center">
                     <Spinner className="size-6 text-muted-foreground" />
                   </div>
@@ -155,7 +274,7 @@ export default function DataTable({
           ) : isEmpty ? (
             <TableBody>
               <TableRow>
-                <TableCell colSpan={colSpan} className="h-96">
+                <TableCell colSpan={effectiveColSpan} className="h-96">
                   <div className="flex items-center justify-center">
                     <Empty>
                       <EmptyMedia variant="icon">
@@ -167,9 +286,9 @@ export default function DataTable({
                 </TableCell>
               </TableRow>
             </TableBody>
-          ) : body ? (
+          ) : renderedBody ? (
             <TableBody>
-              {body}
+              {renderedBody}
             </TableBody>
           ) : null}
         </Table>
