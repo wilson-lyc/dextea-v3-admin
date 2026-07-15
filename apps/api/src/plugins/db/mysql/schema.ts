@@ -384,7 +384,7 @@ export const galleryImagesTable = mysqlTable('gallery_images', {
 export const storageLocationsTable = mysqlTable('storage_locations', {
   id: serial().primaryKey(),
   name: varchar({ length: 255 }).notNull().unique(),
-  provider: varchar('provider', { length: 64 }).notNull().default('generic'),
+  provider: varchar('provider', { length: 64 }).notNull().default('tencent'),
   region: varchar('region', { length: 255 }).notNull(),
   endpoint: varchar('endpoint', { length: 512 }).notNull(),
   bucket: varchar('bucket', { length: 255 }).notNull(),

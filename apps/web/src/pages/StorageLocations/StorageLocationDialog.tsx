@@ -15,6 +15,7 @@ import {
   STORAGE_LOCATION_STATUS,
   STORAGE_LOCATION_STATUS_LABEL,
 } from "@dextea-admin/contracts/status"
+import { STORAGE_PROVIDERS, type StorageProviderValue } from "@dextea-admin/contracts"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -25,13 +26,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
 import { StatusSelectPicker } from "@/components/ui/status-select-picker"
+import { SelectPicker } from "@/components/ui/select-picker"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface FormState {
   name: string
-  provider: string
+  provider: StorageProviderValue
   region: string
   endpoint: string
   bucket: string
@@ -44,7 +45,7 @@ interface FormState {
 
 const EMPTY_FORM: FormState = {
   name: "",
-  provider: "aliyun",
+  provider: "tencent",
   region: "",
   endpoint: "",
   bucket: "",
@@ -95,6 +96,16 @@ export default function StorageLocationDialog({
 
   const setField = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }))
+
+  // 当前选中厂商的注册信息，用于带出各厂商专属的表单提示与路径风格默认值
+  const currentProvider =
+    STORAGE_PROVIDERS.find((p) => p.value === form.provider) ?? STORAGE_PROVIDERS[0]
+
+  const handleProviderChange = (value: string) => {
+    const def = STORAGE_PROVIDERS.find((p) => p.value === value)
+    setField("provider", value as StorageProviderValue)
+    if (def) setField("forcePathStyle", def.forcePathStyle)
+  }
 
   const handleSave = async () => {
     if (
@@ -213,11 +224,11 @@ export default function StorageLocationDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label>地域</Label>
+              <Label>{currentProvider.regionLabel}</Label>
               <Input
                 value={form.region}
                 onChange={(e) => setField("region", e.target.value)}
-                placeholder="如：oss-cn-hangzhou"
+                placeholder={currentProvider.regionPlaceholder}
               />
             </div>
 
@@ -234,7 +245,7 @@ export default function StorageLocationDialog({
               <Input
                 value={form.endpoint}
                 onChange={(e) => setField("endpoint", e.target.value)}
-                placeholder="https://xxx.cos.ap-guangzhou.myqcloud.com"
+                placeholder={currentProvider.endpointPlaceholder}
               />
             </div>
 
@@ -262,27 +273,22 @@ export default function StorageLocationDialog({
               <Input
                 value={form.publicBaseUrl}
                 onChange={(e) => setField("publicBaseUrl", e.target.value)}
-                placeholder="https://my-bucket.oss-cn-hangzhou.aliyuncs.com"
+                placeholder={currentProvider.publicBaseUrlPlaceholder}
               />
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>
-                厂商
-              </Label>
-              <Input
+              <Label>厂商</Label>
+              <SelectPicker
+                options={STORAGE_PROVIDERS.map((p) => ({ label: p.label, value: p.value }))}
                 value={form.provider}
-                onChange={(e) => setField("provider", e.target.value)}
+                onValueChange={handleProviderChange}
+                placeholder="请选择存储厂商"
               />
+              {currentProvider?.description ? (
+                <p className="text-xs text-muted-foreground">{currentProvider.description}</p>
+              ) : null}
             </div>
-
-            <label className="flex items-center gap-2 text-sm">
-              <Switch
-                checked={form.forcePathStyle}
-                onCheckedChange={(v) => setField("forcePathStyle", v)}
-              />
-              强制路径风格（MinIO需开启）
-            </label>
 
             <div className="space-y-1.5 sm:col-span-2">
               <Label>状态</Label>

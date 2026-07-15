@@ -1,5 +1,6 @@
 import { z } from 'zod/v4';
 import { PaginatedDataSchema } from '../common/pagination.js';
+import { StorageProviderEnumSchema, STORAGE_PROVIDER_VALUES } from '../storage-providers.js';
 
 // ─── 存储位置状态枚举见 @dextea-admin/contracts/status (STORAGE_LOCATION_STATUS) ───
 
@@ -9,8 +10,8 @@ export const StorageLocationSchema = z.object({
   id: z.number(),
   /** 用户自定义名称 */
   name: z.string(),
-  /** 存储厂商（aws / aliyun / tencent / minio / generic） */
-  provider: z.string(),
+  /** 存储厂商（受限于已注册白名单：见 STORAGE_PROVIDERS） */
+  provider: z.enum(STORAGE_PROVIDER_VALUES),
   /** S3 区域 */
   region: z.string(),
   /** 自定义端点（S3 兼容服务地址） */
@@ -46,7 +47,7 @@ export type StorageLocationListResponse = z.infer<typeof StorageLocationListResp
 /** 新增存储位置（密钥为明文，落库前由后端加密） */
 export const CreateStorageLocationRequestSchema = z.object({
   name: z.string().min(1, '名称不能为空').max(255, '名称过长'),
-  provider: z.string().min(1, '厂商不能为空'),
+  provider: StorageProviderEnumSchema,
   region: z.string().min(1, '区域不能为空'),
   endpoint: z.string().min(1, '端点不能为空'),
   bucket: z.string().min(1, '桶名不能为空'),
@@ -64,7 +65,7 @@ export type CreateStorageLocationResponse = z.infer<typeof CreateStorageLocation
 /** 更新存储位置（全部可选；secretKey 留空表示保留原值，不重新加密） */
 export const UpdateStorageLocationRequestSchema = z.object({
   name: z.string().min(1, '名称不能为空').max(255, '名称过长').optional(),
-  provider: z.string().min(1, '厂商不能为空').optional(),
+  provider: StorageProviderEnumSchema.optional(),
   region: z.string().min(1, '区域不能为空').optional(),
   endpoint: z.string().min(1, '端点不能为空').optional(),
   bucket: z.string().min(1, '桶名不能为空').optional(),
@@ -94,7 +95,7 @@ export type StorageLocationOptionsResponse = z.infer<typeof StorageLocationOptio
 /** 测试连接请求（使用所填明文配置临时探测，不落库） */
 export const TestStorageLocationConnectionRequestSchema = z.object({
   region: z.string().min(1, '区域不能为空'),
-  provider: z.string().min(1, '厂商不能为空'),
+  provider: StorageProviderEnumSchema,
   endpoint: z.string().min(1, '端点不能为空'),
   bucket: z.string().min(1, '桶名不能为空'),
   accessKey: z.string().min(1, 'AccessKey 不能为空'),

@@ -236,7 +236,7 @@ CREATE TABLE `roles` (
 CREATE TABLE `storage_locations` (
 	`id` serial AUTO_INCREMENT NOT NULL,
 	`name` varchar(255) NOT NULL,
-	`provider` varchar(64) NOT NULL DEFAULT 'generic',
+	`provider` varchar(64) NOT NULL DEFAULT 'tencent',
 	`region` varchar(255) NOT NULL,
 	`endpoint` varchar(512) NOT NULL,
 	`bucket` varchar(255) NOT NULL,

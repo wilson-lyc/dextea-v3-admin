@@ -78,6 +78,7 @@ export default function GalleryPage() {
   const [locations, setLocations] = useState<StorageLocationOption[]>([])
   const [filterLocationId, setFilterLocationId] = useState<number | null>(null)
   const [noLocations, setNoLocations] = useState(false)
+  const [noLocationDialogOpen, setNoLocationDialogOpen] = useState(false)
 
   // 上传弹窗
   const [uploadOpen, setUploadOpen] = useState(false)
@@ -115,12 +116,14 @@ export default function GalleryPage() {
         setLocations(opts)
         if (opts.length === 0) {
           setNoLocations(true)
+          setNoLocationDialogOpen(true)
           setLoading(false)
         }
       })
       .catch(() => {
         setLocations([])
         setNoLocations(true)
+        setNoLocationDialogOpen(true)
         setLoading(false)
       })
   }, [])
@@ -345,20 +348,34 @@ export default function GalleryPage() {
         colSpan={5}
         onRefresh={handleRefresh}
         refreshDisabled={loading}
-        emptyIcon={noLocations ? <HardDriveIcon className="size-4" /> : <ImageIcon className="size-4" />}
-        emptyText={noLocations ? "尚未配置存储位置" : "暂无图片"}
+        emptyIcon={<ImageIcon className="size-4" />}
+        emptyText="暂无图片"
         pagination={{ page, pageSize: PAGE_SIZE, total, onPageChange: fetchImages }}
       />
 
-      {/* 未配置存储位置时，引导前往配置 */}
-      {noLocations && (
-        <div className="fixed inset-x-0 bottom-8 z-50 flex justify-center">
-          <Button onClick={() => navigate("/storage-locations")}>
-            <HardDriveIcon data-icon="inline-start" />
-            前往配置存储位置
-          </Button>
-        </div>
-      )}
+      {/* 未配置存储位置时，弹窗提示需先创建存储位置 */}
+      <Dialog
+        open={noLocationDialogOpen}
+        disablePointerDismissal
+        onOpenChange={(open) => {
+          if (open) setNoLocationDialogOpen(true)
+        }}
+      >
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <HardDriveIcon className="size-4" />
+              未配置存储位置
+            </DialogTitle>
+            <DialogDescription>
+              使用图库前，请先创建至少一个可用的存储位置。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => navigate("/storage-locations")}>确定</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 上传图片弹窗 */}
       <Dialog open={uploadOpen} onOpenChange={(open) => { if (!open) closeUpload() }}>
