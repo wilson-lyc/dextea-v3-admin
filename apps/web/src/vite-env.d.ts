@@ -15,6 +15,7 @@ interface ImportMetaEnv {
   readonly VITE_API_INIT_BASE_URL: string
   readonly VITE_API_ROLE_BASE_URL: string
   readonly VITE_API_PERMISSION_BASE_URL: string
+  readonly VITE_API_GALLERY_BASE_URL?: string
   readonly VITE_API_HEALTH_BASE_URL: string
 }
 

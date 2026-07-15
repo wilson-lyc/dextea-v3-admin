@@ -14,6 +14,7 @@ import { registerCustomizationModule } from './module/customizations/customizati
 import { registerDashboardModule } from './module/dashboard/dashboard.module.js';
 import { registerRoleModule } from './module/roles/role.module.js';
 import { registerPermissionModule } from './module/permissions/permission.module.js';
+import { registerGalleryModule } from './module/gallery/gallery.module.js';
 
 /**
  * 注册所有业务路由模块
@@ -35,4 +36,5 @@ export async function registerModules(app: FastifyInstance) {
   await app.register(registerDashboardModule);
   await app.register(registerRoleModule);
   await app.register(registerPermissionModule);
+  await app.register(registerGalleryModule);
 }

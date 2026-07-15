@@ -19,6 +19,7 @@ export type ModuleKey =
   | "init"
   | "role"
   | "permission"
+  | "gallery"
   | "health"
 
 // 各模块独立的环境变量键（集中在 .env 管理）
@@ -37,6 +38,7 @@ const MODULE_ENV_KEYS: Record<ModuleKey, keyof ImportMetaEnv> = {
   init: "VITE_API_INIT_BASE_URL",
   role: "VITE_API_ROLE_BASE_URL",
   permission: "VITE_API_PERMISSION_BASE_URL",
+  gallery: "VITE_API_GALLERY_BASE_URL",
   health: "VITE_API_HEALTH_BASE_URL",
 }
 

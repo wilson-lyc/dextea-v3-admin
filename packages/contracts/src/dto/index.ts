@@ -4,6 +4,7 @@ export * from './config.js';
 export * from './dashboard.js';
 export * from './customization.js';
 export * from './employee.js';
+export * from './gallery.js';
 export * from './ingredient.js';
 export * from './init.js';
 export * from './menu.js';

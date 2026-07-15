@@ -349,3 +349,22 @@ export const orderItemsTable = mysqlTable(
     uniqueOrderSku: uniqueIndex('uq_order_items_order_sku').on(table.orderId, table.skuId),
   }),
 );
+
+/** 图片资源表 */
+export const galleryImagesTable = mysqlTable('gallery_images', {
+  id: serial().primaryKey(),
+  /** 访问地址（可直接用于前端 <img src>） */
+  url: varchar('url', { length: 1024 }).notNull(),
+  /** 对象存储中的对象键 */
+  objectKey: varchar('object_key', { length: 512 }).notNull(),
+  /** 存储厂商（local / aws / aliyun / tencent / minio / generic） */
+  provider: varchar('provider', { length: 64 }).notNull(),
+  /** 原始文件名 */
+  fileName: varchar('file_name', { length: 255 }).notNull(),
+  /** 文件大小（字节） */
+  fileSize: int('file_size').notNull(),
+  /** 文件 MIME 类型 */
+  contentType: varchar('content_type', { length: 128 }).notNull(),
+  /** 上传时间 */
+  createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+});

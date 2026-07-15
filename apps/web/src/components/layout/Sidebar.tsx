@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom"
 import {
   BookOpenIcon,
   ChevronDownIcon,
+  ImagesIcon,
   LayoutDashboardIcon,
   PackageIcon,
   PanelLeftCloseIcon,
@@ -28,6 +29,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "工作台", icon: LayoutDashboardIcon, path: "/" },
+  { label: "图库", icon: ImagesIcon, path: "/gallery" },
   { label: "员工管理", icon: UsersIcon, path: "/employees" },
   { label: "门店管理", icon: StoreIcon, path: "/stores" },
   {
