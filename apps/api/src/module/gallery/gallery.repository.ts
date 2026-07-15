@@ -1,4 +1,4 @@
-import { and, desc, eq, like, sql, type SQL } from 'drizzle-orm';
+import { and, desc, eq, like, or, sql, type SQL } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
 import { galleryImagesTable } from '@/plugins/db/mysql/schema.js';
 import { withPagination } from '@/utils';
@@ -14,13 +14,15 @@ export const galleryRepository = {
 
     const conditions: SQL[] = [];
     if (filters.keyword) {
-      conditions.push(like(galleryImagesTable.url, `%${filters.keyword}%`));
+      const kw = `%${filters.keyword}%`;
+      conditions.push(or(like(galleryImagesTable.name, kw), like(galleryImagesTable.url, kw)));
     }
     const where = conditions.length > 0 ? and(...conditions) : undefined;
 
     const baseQuery = db
       .select({
         id: galleryImagesTable.id,
+        name: galleryImagesTable.name,
         url: galleryImagesTable.url,
         createdAt: galleryImagesTable.createdAt,
       })

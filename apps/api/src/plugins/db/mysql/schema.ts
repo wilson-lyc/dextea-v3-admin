@@ -374,6 +374,7 @@ export const orderItemsTable = mysqlTable(
 /** 图片资源表 */
 export const galleryImagesTable = mysqlTable('gallery_images', {
   id: serial().primaryKey(),
+  name: varchar('name', { length: 255 }).notNull().default(''),
   url: varchar('url', { length: 1024 }).notNull(),
   objectKey: varchar('object_key', { length: 512 }).notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),

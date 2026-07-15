@@ -66,6 +66,7 @@ export default function GalleryPage() {
   const [uploadOpen, setUploadOpen] = useState(false)
   const [tasks, setTasks] = useState<UploadTask[]>([])
   const [uploading, setUploading] = useState(false)
+  const [imageName, setImageName] = useState("")
 
   const fetchImages = useCallback(async (targetPage: number) => {
     setLoading(true)
@@ -115,21 +116,21 @@ export default function GalleryPage() {
   // ─── 上传 ───
   const handleFiles = (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return
-    const files = Array.from(fileList).filter((f) => f.type.startsWith("image/"))
-    if (files.length === 0) {
+    const file = fileList[0]
+    if (!file.type.startsWith("image/")) {
       toast.error("仅支持上传图片文件")
       return
     }
-    setTasks((prev) => [
-      ...prev,
-      ...files.map((file) => ({
+    // 仅允许单张：直接覆盖已有选择
+    setTasks([
+      {
         id: crypto.randomUUID(),
         name: file.name,
         file,
         preview: URL.createObjectURL(file),
         status: "pending" as const,
         progress: 0,
-      })),
+      },
     ])
   }
 
@@ -142,6 +143,11 @@ export default function GalleryPage() {
   }
 
   const handleUpload = async () => {
+    const name = imageName.trim()
+    if (!name) {
+      toast.error("请填写图片名称")
+      return
+    }
     const pending = tasks.filter((t) => t.status !== "done" && t.status !== "uploading" && t.status !== "error")
     if (pending.length === 0) {
       toast.error("请先选择要上传的图片")
@@ -153,7 +159,7 @@ export default function GalleryPage() {
         setTasks((prev) =>
           prev.map((t) => (t.id === task.id ? { ...t, status: "uploading", progress: 0 } : t)),
         )
-        await uploadGalleryImage(task.file, (pct) => {
+        await uploadGalleryImage(task.file, name, (pct) => {
           setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, progress: pct } : t)))
         })
         setTasks((prev) =>
@@ -170,6 +176,7 @@ export default function GalleryPage() {
       }
     }
     setUploading(false)
+    setImageName("")
     await fetchImages(page)
     toast.success("上传完成")
   }
@@ -181,6 +188,7 @@ export default function GalleryPage() {
     })
     setTasks([])
     setUploading(false)
+    setImageName("")
     setUploadOpen(false)
   }
 
@@ -220,7 +228,7 @@ export default function GalleryPage() {
             <div className="relative max-w-sm">
               <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="搜索图片"
+                placeholder="搜索图片名称"
                 className="pl-8"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
@@ -243,6 +251,7 @@ export default function GalleryPage() {
           <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
               <TableHead className="w-20">ID</TableHead>
+              <TableHead>名称</TableHead>
               <TableHead className="w-24">缩略图</TableHead>
               <TableHead>创建时间</TableHead>
               <TableHead className="w-36 text-right">操作</TableHead>
@@ -252,11 +261,14 @@ export default function GalleryPage() {
         body={images.map((img) => (
           <TableRow key={img.id}>
             <TableCell className="font-mono text-xs">{img.id}</TableCell>
+            <TableCell className="max-w-xs truncate" title={img.name}>
+              {img.name}
+            </TableCell>
             <TableCell>
               <div className="size-12 overflow-hidden rounded bg-muted">
                 <img
                   src={img.url}
-                  alt={`图片 ${img.id}`}
+                  alt={img.name}
                   loading="lazy"
                   className="size-full object-cover"
                 />
@@ -274,7 +286,7 @@ export default function GalleryPage() {
         ))}
         loading={loading}
         isEmpty={images.length === 0}
-        colSpan={4}
+        colSpan={5}
         onRefresh={handleRefresh}
         refreshDisabled={loading}
         emptyIcon={<ImageIcon className="size-4" />}
@@ -291,19 +303,18 @@ export default function GalleryPage() {
 
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label>选择照片</Label>
+              <Label>选择照片（单张）</Label>
               <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 text-center transition-colors hover:border-primary/50">
                 <UploadIcon className="size-7 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">点击选择图片</p>
+                  <p className="text-sm font-medium">点击选择单张图片</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    支持多选，单文件最大 10MB，仅限图片格式
+                    单文件最大 10MB，仅限图片格式
                   </p>
                 </div>
                 <input
                   type="file"
                   accept="image/*"
-                  multiple
                   className="hidden"
                   onChange={(e) => {
                     handleFiles(e.target.files)
@@ -311,6 +322,17 @@ export default function GalleryPage() {
                   }}
                 />
               </label>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>
+                图片名称 <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                placeholder="请输入图片名称，便于后续检索"
+                value={imageName}
+                onChange={(e) => setImageName(e.target.value)}
+              />
             </div>
 
             {tasks.length > 0 && (
@@ -367,7 +389,7 @@ export default function GalleryPage() {
             <Button variant="ghost" onClick={closeUpload}>
               取消
             </Button>
-            <Button onClick={handleUpload} disabled={uploading}>
+            <Button onClick={handleUpload} disabled={uploading || !imageName.trim() || tasks.length === 0}>
               {uploading ? (
                 <>
                   <Spinner className="size-4" />

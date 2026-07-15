@@ -29,12 +29,16 @@ export function getGalleryImages(params?: Partial<GetGalleryImageListRequest>) {
 /**
  * 上传单张图片（带上传进度回调）
  * POST /gallery/images  multipart/form-data
+ * @param file 图片文件（单张）
+ * @param name 图片名称（必填，用于检索）
  */
 export function uploadGalleryImage(
   file: File,
+  name: string,
   onProgress?: (percent: number) => void,
 ) {
   const form = new FormData()
+  form.append("name", name)
   form.append("file", file)
 
   return http

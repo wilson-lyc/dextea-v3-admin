@@ -4,6 +4,8 @@ import { PaginatedDataSchema } from '../common/pagination.js';
 /** 图片资源实体 */
 export const GalleryImageSchema = z.object({
   id: z.number(),
+  /** 图片名称（用于检索） */
+  name: z.string(),
   /** 访问地址（可直接用于 <img src>） */
   url: z.string(),
   /** 上传时间 */
@@ -25,6 +27,7 @@ export type GetGalleryImageListResponse = z.infer<typeof GetGalleryImageListResp
 /** 单文件上传响应 */
 export const UploadGalleryImageResponseSchema = z.object({
   id: z.number(),
+  name: z.string(),
   url: z.string(),
   createdAt: z.string(),
 });

@@ -5,7 +5,6 @@ import { toast } from "sonner"
 import type {
   GalleryImage,
   ProductImage,
-  GetProductImagesResponse,
   SetProductImagesRequest,
 } from "@/api"
 import { getProductImages, setProductImages } from "@/api"
@@ -38,7 +37,6 @@ function ImageThumb({ src, alt }: { src: string; alt: string }) {
 }
 
 export default function ImagePanel({ productId }: ImagePanelProps) {
-  const [initial, setInitial] = useState<GetProductImagesResponse | null>(null)
   const [cover, setCover] = useState<ProductImage | null>(null)
   const [gallery, setGallery] = useState<ProductImage[]>([])
   const [loading, setLoading] = useState(true)
@@ -53,7 +51,6 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
     try {
       const res = await getProductImages(productId)
       if (res.code === 0) {
-        setInitial(res.data)
         setCover(res.data.cover)
         setGallery(res.data.gallery)
       } else {
@@ -70,63 +67,28 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
     fetchImages()
   }, [fetchImages])
 
-  // 是否已修改（用于保存按钮状态与禁用判断）
-  const dirty =
-    initial !== null &&
-    ((initial.cover?.id ?? null) !== (cover?.id ?? null) ||
-      initial.gallery.map((i) => i.id).join(",") !==
-        gallery.map((i) => i.id).join(","))
-
   const openPicker = (mode: Exclude<PickerMode, null>) => {
     setPickerMode(mode)
     setPickerOpen(true)
   }
 
-  const handlePickerConfirm = (images: GalleryImage[]) => {
-    if (pickerMode === "cover") {
-      const img = images[0]
-      if (img) {
-        setCover(img)
-        toast.success("封面已选择，记得点击「保存」")
-      }
-    } else if (pickerMode === "gallery") {
-      setGallery((prev) => {
-        const existing = new Set(prev.map((i) => i.id))
-        const added = images.filter((i) => !existing.has(i.id))
-        return [...prev, ...added]
-      })
-      toast.success("图片已添加，记得点击「保存」")
-    }
-  }
-
-  const moveGallery = (index: number, dir: -1 | 1) => {
-    const target = index + dir
-    if (target < 0 || target >= gallery.length) return
-    setGallery((prev) => {
-      const next = [...prev]
-      const [item] = next.splice(index, 1)
-      next.splice(target, 0, item)
-      return next
-    })
-  }
-
-  const removeGallery = (index: number) => {
-    setGallery((prev) => prev.filter((_, i) => i !== index))
-  }
-
-  const handleSave = async () => {
+  // 任何改动（设置封面 / 添加图库 / 移除 / 排序）后立即保存
+  const persist = async (
+    nextCover: ProductImage | null,
+    nextGallery: ProductImage[],
+    successMsg = "已保存",
+  ) => {
     setSaving(true)
     try {
       const payload: SetProductImagesRequest = {
-        coverImageId: cover?.id ?? null,
-        galleryImageIds: gallery.map((i) => i.id),
+        coverImageId: nextCover?.id ?? null,
+        galleryImageIds: nextGallery.map((i) => i.id),
       }
       const res = await setProductImages(productId, payload)
       if (res.code === 0) {
-        toast.success(res.message || "保存成功")
-        setInitial(res.data)
         setCover(res.data.cover)
         setGallery(res.data.gallery)
+        toast.success(res.message || successMsg)
       } else {
         toast.error(res.message)
       }
@@ -135,6 +97,31 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
     } finally {
       setSaving(false)
     }
+  }
+
+  const handlePickerConfirm = (images: GalleryImage[]) => {
+    if (pickerMode === "cover") {
+      const img = images[0]
+      if (img) void persist(img, gallery, "封面已设置")
+    } else if (pickerMode === "gallery") {
+      const existing = new Set(gallery.map((i) => i.id))
+      const added = images.filter((i) => !existing.has(i.id))
+      if (added.length > 0) void persist(cover, [...gallery, ...added], "图片已添加")
+    }
+  }
+
+  const moveGallery = (index: number, dir: -1 | 1) => {
+    const target = index + dir
+    if (target < 0 || target >= gallery.length) return
+    const next = [...gallery]
+    const [item] = next.splice(index, 1)
+    next.splice(target, 0, item)
+    void persist(cover, next, "顺序已更新")
+  }
+
+  const removeGallery = (index: number) => {
+    const next = gallery.filter((_, i) => i !== index)
+    void persist(cover, next, "图片已移除")
   }
 
   if (loading) {
@@ -146,47 +133,40 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="flex flex-col gap-4">
       {/* 封面图 */}
       <Card>
         <CardHeader>
           <CardTitle>封面图</CardTitle>
           <CardAction>
-            {cover && (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openPicker("cover")}
-                >
-                  <ImagesIcon data-icon="inline-start" />
-                  更换封面
-                </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => openPicker("cover")}
+              >
+                <ImagesIcon data-icon="inline-start" />
+                {cover ? "更换封面" : "选择封面"}
+              </Button>
+              {cover && (
                 <Button
                   variant="outline-destructive"
-                  size="sm"
                   onClick={() => setRemoveCoverOpen(true)}
                 >
                   <Trash2Icon data-icon="inline-start" />
                   移除
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </CardAction>
         </CardHeader>
         <CardContent className="space-y-4">
           {cover ? (
             <ImageThumb src={cover.url} alt={cover.url} />
           ) : (
-            <button
-              type="button"
-              onClick={() => openPicker("cover")}
-              className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-10 text-center transition-colors hover:border-primary/50"
-            >
-              <ImagesIcon className="size-7 text-muted-foreground" />
-              <span className="text-sm font-medium">从图库选择封面图</span>
-              <span className="text-xs text-muted-foreground">从已上传的图库中选择一张作为封面</span>
-            </button>
+            <div className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-12 text-center">
+              <ImageIcon className="size-6 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">暂无封面图</span>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -198,7 +178,6 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
           <CardAction>
             <Button
               variant="outline"
-              size="sm"
               onClick={() => openPicker("gallery")}
               disabled={gallery.length >= MAX_GALLERY}
             >
@@ -254,14 +233,6 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
         </CardContent>
       </Card>
 
-      {/* 保存栏 */}
-      <div className="flex items-center justify-end gap-3">
-        {dirty && <span className="text-xs text-muted-foreground">有未保存的修改</span>}
-        <Button onClick={handleSave} disabled={!dirty || saving}>
-          {saving ? "保存中…" : "保存图片设置"}
-        </Button>
-      </div>
-
       {/* 图库选择器 */}
       <GalleryPicker
         open={pickerOpen}
@@ -278,12 +249,11 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
         open={removeCoverOpen}
         onOpenChange={setRemoveCoverOpen}
         title="移除封面图"
-        description="确定要移除当前封面图吗？移除后仍可重新上传。"
+        description="确定要移除当前封面图吗？移除后仍可重新选择。"
         confirmText="确认移除"
         onConfirm={() => {
-          setCover(null)
           setRemoveCoverOpen(false)
-          toast.success("封面已移除，记得点击「保存」")
+          void persist(null, gallery, "封面已移除")
         }}
       />
     </div>

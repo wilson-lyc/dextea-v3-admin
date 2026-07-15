@@ -23,8 +23,8 @@ function getStorageAdapter(): StorageAdapter {
 }
 
 export const galleryService = {
-  async uploadImage(input: { buffer: Buffer; filename: string; mimetype: string }) {
-    const { buffer, filename, mimetype } = input;
+  async uploadImage(input: { buffer: Buffer; filename: string; mimetype: string; name: string }) {
+    const { buffer, filename, mimetype, name } = input;
 
     if (!mimetype.startsWith('image/')) {
       throw new BizError(GalleryErrorCodes.INVALID_FILE);
@@ -47,12 +47,14 @@ export const galleryService = {
     }
 
     const id = await galleryRepository.createGalleryImage({
+      name,
       url: result.url,
       objectKey: result.objectKey,
     });
 
     return {
       id,
+      name,
       url: result.url,
       createdAt: new Date().toISOString(),
     };

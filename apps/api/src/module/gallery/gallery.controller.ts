@@ -48,10 +48,17 @@ export const registerGalleryRoutes: FastifyPluginAsyncZod = async (app) => {
       }
 
       const buffer = await data.toBuffer();
+      // 文件流消费后，busboy 才会解析其后的表单字段
+      const name = extractFieldValue(data.fields?.name).trim();
+      if (!name) {
+        throw new BizError(GalleryErrorCodes.INVALID_FILE, '请填写图片名称');
+      }
+
       const result = await galleryService.uploadImage({
         buffer,
         filename: data.filename,
         mimetype: data.mimetype,
+        name,
       });
 
       return ApiResponse.success(result);

@@ -185,7 +185,8 @@ export default function GalleryPicker({
                   >
                     <img
                       src={img.url}
-                      alt={`图片 ${img.id}`}
+                      alt={img.name}
+                      title={img.name}
                       loading="lazy"
                       className="size-full object-cover"
                     />
