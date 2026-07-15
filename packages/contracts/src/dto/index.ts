@@ -13,4 +13,5 @@ export * from './product.js';
 export * from './role.js';
 export * from './store-catalog.js';
 export * from './store.js';
+export * from './storage-location.js';
 export * from './tag.js';

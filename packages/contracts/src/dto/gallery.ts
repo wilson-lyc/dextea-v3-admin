@@ -14,6 +14,10 @@ export const GalleryImageSchema = z.object({
   provider: z.string(),
   /** 文件 MIME 类型 */
   contentType: z.string(),
+  /** 所属存储位置 ID（旧图/全局兜底图可为空） */
+  storageLocationId: z.number().nullable(),
+  /** 所属存储位置名称 */
+  storageLocationName: z.string().nullable(),
   /** 上传时间 */
   createdAt: z.string(),
 });
@@ -24,6 +28,8 @@ export const GetGalleryImageListRequestSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().positive().max(100).default(20),
   keyword: z.string().optional(),
+  /** 按存储位置筛选（可选） */
+  storageLocationId: z.coerce.number().int().positive().optional(),
 });
 export type GetGalleryImageListRequest = z.infer<typeof GetGalleryImageListRequestSchema>;
 
@@ -38,6 +44,8 @@ export const UploadGalleryImageResponseSchema = z.object({
   fileSize: z.number(),
   provider: z.string(),
   contentType: z.string(),
+  /** 所属存储位置 ID */
+  storageLocationId: z.number().nullable(),
   createdAt: z.string(),
 });
 export type UploadGalleryImageResponse = z.infer<typeof UploadGalleryImageResponseSchema>;
