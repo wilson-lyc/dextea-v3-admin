@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom"
 import {
   HardDriveIcon,
   ImageIcon,
+  PlusIcon,
+  SearchIcon,
   Trash2Icon,
   UploadIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { cn } from "@/lib/utils"
 import type { GalleryImage, StorageLocationOption } from "@/api"
 import {
   deleteGalleryImage,
@@ -17,10 +18,8 @@ import {
   uploadGalleryImage,
 } from "@/api"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -28,23 +27,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import ConfirmDialog from "@/components/ui/confirm-dialog"
-import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import PaginationBar from "@/components/ui/pagination-bar"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  TableHeader,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table"
 import { Spinner } from "@/components/ui/spinner"
+import DataTable from "@/components/ui/data-table"
+import ConfirmDialog from "@/components/ui/confirm-dialog"
 
-const PAGE_SIZE = 24
+const PAGE_SIZE = 20
 
-type UploadStatus = "uploading" | "done" | "error"
+type UploadStatus = "pending" | "uploading" | "done" | "error"
 
 interface UploadTask {
   id: string
   name: string
-  progress: number
-  status: UploadStatus
-  error?: string
-  preview: string
   file: File
+  preview: string
+  status: UploadStatus
+  progress: number
+  error?: string
 }
 
 export default function GalleryPage() {
@@ -54,29 +65,37 @@ export default function GalleryPage() {
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
 
-  const [dragging, setDragging] = useState(false)
-  const [tasks, setTasks] = useState<UploadTask[]>([])
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [keyword, setKeyword] = useState("")
+  const [searchKeyword, setSearchKeyword] = useState("")
+  const keywordRef = useRef("")
+  keywordRef.current = searchKeyword
 
   const [deleteTarget, setDeleteTarget] = useState<GalleryImage | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
-  // 存储位置下拉与当前选择（null = 默认存储位置，由后端取首个启用位置）
+  // 存储位置筛选（null = 全部）
   const [locations, setLocations] = useState<StorageLocationOption[]>([])
-  const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
-  // 尚未配置任何存储位置时，引导用户先去配置
+  const [filterLocationId, setFilterLocationId] = useState<number | null>(null)
   const [noLocations, setNoLocations] = useState(false)
+
+  // 上传弹窗
+  const [uploadOpen, setUploadOpen] = useState(false)
+  const [tasks, setTasks] = useState<UploadTask[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [pickLocationId, setPickLocationId] = useState<number | null>(null)
 
   const fetchImages = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
-      const res = await getGalleryImages({
-        page: targetPage,
-        pageSize: PAGE_SIZE,
-        ...(selectedLocationId != null
-          ? { storageLocationId: selectedLocationId }
-          : {}),
-      })
+      const params: {
+        page: number
+        pageSize: number
+        keyword?: string
+        storageLocationId?: number
+      } = { page: targetPage, pageSize: PAGE_SIZE }
+      if (keywordRef.current.trim()) params.keyword = keywordRef.current.trim()
+      if (filterLocationId != null) params.storageLocationId = filterLocationId
+      const res = await getGalleryImages(params)
       setImages(res.data.items)
       setTotal(res.data.total)
       setPage(targetPage)
@@ -85,8 +104,9 @@ export default function GalleryPage() {
     } finally {
       setLoading(false)
     }
-  }, [selectedLocationId])
+  }, [filterLocationId])
 
+  // 进入页面先检查是否配置过存储位置，没有则引导配置
   useEffect(() => {
     getStorageLocationOptions()
       .then((res) => {
@@ -106,64 +126,30 @@ export default function GalleryPage() {
 
   useEffect(() => {
     if (!noLocations) fetchImages(1)
-  }, [noLocations, selectedLocationId, fetchImages])
+  }, [noLocations, fetchImages])
 
-  const runUploads = useCallback(
-    async (files: File[]) => {
-      const newTasks: UploadTask[] = files.map((file) => ({
-        id: crypto.randomUUID(),
-        name: file.name,
-        progress: 0,
-        status: "uploading",
-        preview: URL.createObjectURL(file),
-        file,
-      }))
+  const handleRefresh = useCallback(async () => {
+    setLoading(true)
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await fetchImages(page)
+    toast.success("刷新成功")
+  }, [fetchImages, page])
 
-      setTasks((prev) => [...prev, ...newTasks])
+  const handleSearch = () => {
+    setSearchKeyword(keyword)
+    fetchImages(1)
+  }
 
-      for (const task of newTasks) {
-        try {
-          await uploadGalleryImage(task.file, (pct) => {
-            setTasks((prev) =>
-              prev.map((t) => (t.id === task.id ? { ...t, progress: pct } : t)),
-            )
-          }, selectedLocationId)
-          setTasks((prev) =>
-            prev.map((t) =>
-              t.id === task.id ? { ...t, status: "done", progress: 100 } : t,
-            ),
-          )
-        } catch (err) {
-          setTasks((prev) =>
-            prev.map((t) =>
-              t.id === task.id
-                ? {
-                    ...t,
-                    status: "error",
-                    error: err instanceof Error ? err.message : "上传失败",
-                  }
-                : t,
-            ),
-          )
-        }
-      }
+  const handleClear = () => {
+    setKeyword("")
+    setSearchKeyword("")
+    keywordRef.current = ""
+    fetchImages(1)
+  }
 
-      // 上传完成后刷新列表，保证展示状态同步
-      await fetchImages(page)
+  const hasFilters = keyword.trim().length > 0 || filterLocationId != null
 
-      // 清理已完成的任务（释放预览内存）
-      setTimeout(() => {
-        setTasks((prev) => {
-          prev.forEach((t) => {
-            if (t.status === "done") URL.revokeObjectURL(t.preview)
-          })
-          return prev.filter((t) => t.status !== "done")
-        })
-      }, 1500)
-    },
-    [fetchImages, page, selectedLocationId],
-  )
-
+  // ─── 上传 ───
   const handleFiles = (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return
     const files = Array.from(fileList).filter((f) => f.type.startsWith("image/"))
@@ -171,18 +157,68 @@ export default function GalleryPage() {
       toast.error("仅支持上传图片文件")
       return
     }
-    void runUploads(files)
+    setTasks((prev) => [
+      ...prev,
+      ...files.map((file) => ({
+        id: crypto.randomUUID(),
+        name: file.name,
+        file,
+        preview: URL.createObjectURL(file),
+        status: "pending" as const,
+        progress: 0,
+      })),
+    ])
   }
 
-  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleFiles(e.target.files)
-    e.target.value = ""
+  const removeTask = (id: string) => {
+    setTasks((prev) => {
+      const target = prev.find((t) => t.id === id)
+      if (target && target.status !== "uploading") URL.revokeObjectURL(target.preview)
+      return prev.filter((t) => t.id !== id)
+    })
   }
 
-  const onDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setDragging(false)
-    handleFiles(e.dataTransfer.files)
+  const handleUpload = async () => {
+    const pending = tasks.filter((t) => t.status !== "done" && t.status !== "uploading" && t.status !== "error")
+    if (pending.length === 0) {
+      toast.error("请先选择要上传的图片")
+      return
+    }
+    setUploading(true)
+    for (const task of pending) {
+      try {
+        setTasks((prev) =>
+          prev.map((t) => (t.id === task.id ? { ...t, status: "uploading", progress: 0 } : t)),
+        )
+        await uploadGalleryImage(task.file, (pct) => {
+          setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, progress: pct } : t)))
+        }, pickLocationId)
+        setTasks((prev) =>
+          prev.map((t) => (t.id === task.id ? { ...t, status: "done", progress: 100 } : t)),
+        )
+      } catch (err) {
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.id === task.id
+              ? { ...t, status: "error", error: err instanceof Error ? err.message : "上传失败" }
+              : t,
+          ),
+        )
+      }
+    }
+    setUploading(false)
+    await fetchImages(page)
+    toast.success("上传完成")
+  }
+
+  // 弹窗关闭时释放预览内存
+  const closeUpload = () => {
+    tasks.forEach((t) => {
+      if (t.status !== "uploading") URL.revokeObjectURL(t.preview)
+    })
+    setTasks([])
+    setUploading(false)
+    setUploadOpen(false)
   }
 
   const openDelete = (img: GalleryImage) => setDeleteTarget(img)
@@ -195,7 +231,6 @@ export default function GalleryPage() {
       if (res.code === 0) {
         toast.success(res.message || "删除成功")
         setDeleteTarget(null)
-        // 删除后刷新列表，保证状态同步
         await fetchImages(page)
       } else {
         toast.error(res.message)
@@ -208,50 +243,44 @@ export default function GalleryPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">图库</h1>
-          <p className="text-sm text-muted-foreground">
-            管理图片资源，支持多图上传、缩略图预览与删除
-          </p>
-        </div>
-      </div>
-
-      {/* 未配置任何存储位置时，引导前往配置 */}
-      {noLocations ? (
-        <Empty className="border border-dashed py-16">
-          <EmptyMedia variant="icon">
-            <HardDriveIcon className="size-5" />
-          </EmptyMedia>
-          <EmptyTitle>尚未配置存储位置</EmptyTitle>
-          <EmptyDescription>
-            图库需要一个对象存储位置来保存图片，请先前往配置。
-          </EmptyDescription>
-          <Button className="mt-4" onClick={() => navigate("/storage-locations")}>
-            <HardDriveIcon />
-            前往配置存储位置
+    <>
+      <DataTable
+        className="p-6"
+        toolbarLeft={
+          <Button onClick={() => setUploadOpen(true)} disabled={noLocations}>
+            <PlusIcon data-icon="inline-start" />
+            上传图片
           </Button>
-        </Empty>
-      ) : (
-        <>
-          {/* 存储位置选择 */}
-          <div className="flex items-center gap-3">
-            <span className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
-              <HardDriveIcon className="size-4" />
-              存储位置
-            </span>
+        }
+        toolbarRight={
+          <div className="flex items-center gap-2">
             <Select
-              value={selectedLocationId != null ? String(selectedLocationId) : "default"}
-              onValueChange={(v) =>
-                setSelectedLocationId(v == null || v === "default" ? null : Number(v))
-              }
+              value={filterLocationId != null ? String(filterLocationId) : "all"}
+              onValueChange={(v) => {
+                const id = v == null || v === "all" ? null : Number(v)
+                setFilterLocationId(id)
+                const params: {
+                  page: number
+                  pageSize: number
+                  keyword?: string
+                  storageLocationId?: number
+                } = { page: 1, pageSize: PAGE_SIZE }
+                if (keywordRef.current.trim()) params.keyword = keywordRef.current.trim()
+                if (id != null) params.storageLocationId = id
+                getGalleryImages(params)
+                  .then((res) => {
+                    setImages(res.data.items)
+                    setTotal(res.data.total)
+                    setPage(1)
+                  })
+                  .catch(() => toast.error("获取图片列表失败"))
+              }}
             >
-              <SelectTrigger className="w-72">
-                <SelectValue placeholder="默认存储位置" />
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="全部存储位置" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="default">默认存储位置</SelectItem>
+                <SelectItem value="all">全部存储位置</SelectItem>
                 {locations.map((loc) => (
                   <SelectItem key={loc.id} value={String(loc.id)}>
                     {loc.name}
@@ -259,156 +288,203 @@ export default function GalleryPage() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-
-          {/* 上传区 */}
-          <Card>
-        <CardContent className="p-6">
-          <label
-            onDragOver={(e) => {
-              e.preventDefault()
-              setDragging(true)
-            }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={onDrop}
-            className={cn(
-              "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-8 text-center transition-colors",
-              dragging
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50",
+            <div className="relative max-w-sm">
+              <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="搜索图片"
+                className="pl-8"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSearch()
+                }}
+              />
+            </div>
+            <Button variant="secondary" onClick={handleSearch}>
+              搜索
+            </Button>
+            {hasFilters && (
+              <Button variant="ghost" onClick={handleClear}>
+                清除
+              </Button>
             )}
-          >
-            <UploadIcon className="size-8 text-muted-foreground" />
-            <div>
-              <p className="text-sm font-medium">点击或拖拽图片到此处上传</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                支持多选，单文件最大 10MB，仅限图片格式
-              </p>
-            </div>
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={onInputChange}
-            />
-          </label>
-
-          {tasks.length > 0 && (
-            <div className="mt-4 space-y-2">
-              {tasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex items-center gap-3 rounded-lg border p-3"
-                >
-                  <div className="size-10 shrink-0 overflow-hidden rounded bg-muted">
-                    {task.preview ? (
-                      <img
-                        src={task.preview}
-                        alt={task.name}
-                        className="size-full object-cover"
-                      />
-                    ) : (
-                      <ImageIcon className="m-auto size-5 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="truncate text-sm">{task.name}</span>
-                      <span className="shrink-0 text-xs text-muted-foreground">
-                        {task.status === "done" ? (
-                          "已完成"
-                        ) : task.status === "error" ? (
-                          <span className="text-destructive">
-                            {task.error ?? "上传失败"}
-                          </span>
-                        ) : (
-                          `${task.progress}%`
-                        )}
-                      </span>
-                    </div>
-                    <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                      <div
-                        className={cn(
-                          "h-full rounded-full transition-all",
-                          task.status === "error"
-                            ? "bg-destructive"
-                            : task.status === "done"
-                              ? "bg-green-500"
-                              : "bg-primary",
-                        )}
-                        style={{ width: `${task.progress}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* 浏览列表 */}
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <Spinner className="size-6" />
-        </div>
-      ) : images.length === 0 ? (
-        <Empty className="border border-dashed py-16">
-          <EmptyMedia variant="icon">
-            <ImageIcon className="size-5" />
-          </EmptyMedia>
-          <EmptyTitle>暂无图片</EmptyTitle>
-          <EmptyDescription>
-            上传图片后将在此处展示缩略图
-          </EmptyDescription>
-        </Empty>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {images.map((img) => (
-            <Card key={img.id} className="group overflow-hidden">
-              <div className="relative aspect-square overflow-hidden bg-muted">
+          </div>
+        }
+        header={
+          <TableHeader className="sticky top-0 z-50 bg-background">
+            <TableRow>
+              <TableHead className="w-20">ID</TableHead>
+              <TableHead className="w-24">缩略图</TableHead>
+              <TableHead>存储位置</TableHead>
+              <TableHead>创建时间</TableHead>
+              <TableHead className="w-36 text-right">操作</TableHead>
+            </TableRow>
+          </TableHeader>
+        }
+        body={images.map((img) => (
+          <TableRow key={img.id}>
+            <TableCell className="font-mono text-xs">{img.id}</TableCell>
+            <TableCell>
+              <div className="size-12 overflow-hidden rounded bg-muted">
                 <img
                   src={img.url}
                   alt={`图片 ${img.id}`}
                   loading="lazy"
                   className="size-full object-cover"
                 />
-                <Button
-                  variant="destructive"
-                  size="icon-sm"
-                  className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100"
-                  onClick={() => openDelete(img)}
-                  aria-label="删除图片"
-                >
-                  <Trash2Icon />
+              </div>
+            </TableCell>
+            <TableCell>{img.storageLocationName ?? "默认存储位置"}</TableCell>
+            <TableCell>{new Date(img.createdAt).toLocaleString("zh-CN")}</TableCell>
+            <TableCell className="text-right">
+              <div className="flex items-center justify-end gap-1">
+                <Button variant="outline-destructive" size="sm" onClick={() => openDelete(img)}>
+                  删除
                 </Button>
               </div>
-              <CardContent className="space-y-1 p-3">
-                <p className="truncate text-sm" title={img.url}>
-                  {`图片 #${img.id}`}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {img.storageLocationName ?? "默认存储位置"} ·{" "}
-                  {new Date(img.createdAt).toLocaleDateString("zh-CN")}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+            </TableCell>
+          </TableRow>
+        ))}
+        loading={loading}
+        isEmpty={images.length === 0}
+        colSpan={5}
+        onRefresh={handleRefresh}
+        refreshDisabled={loading}
+        emptyIcon={noLocations ? <HardDriveIcon className="size-4" /> : <ImageIcon className="size-4" />}
+        emptyText={noLocations ? "尚未配置存储位置" : "暂无图片"}
+        pagination={{ page, pageSize: PAGE_SIZE, total, onPageChange: fetchImages }}
+      />
+
+      {/* 未配置存储位置时，引导前往配置 */}
+      {noLocations && (
+        <div className="fixed inset-x-0 bottom-8 z-50 flex justify-center">
+          <Button onClick={() => navigate("/storage-locations")}>
+            <HardDriveIcon data-icon="inline-start" />
+            前往配置存储位置
+          </Button>
         </div>
       )}
 
-      {!loading && images.length > 0 && (
-        <PaginationBar
-          page={page}
-          pageSize={PAGE_SIZE}
-          total={total}
-          onPageChange={fetchImages}
-        />
-      )}
-        </>
-      )}
+      {/* 上传图片弹窗 */}
+      <Dialog open={uploadOpen} onOpenChange={(open) => { if (!open) closeUpload() }}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>上传图片</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>存储位置</Label>
+              <Select
+                value={pickLocationId != null ? String(pickLocationId) : "default"}
+                onValueChange={(v) =>
+                  setPickLocationId(v == null || v === "default" ? null : Number(v))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="默认存储位置" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">默认存储位置</SelectItem>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc.id} value={String(loc.id)}>
+                      {loc.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>选择照片</Label>
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 text-center transition-colors hover:border-primary/50">
+                <UploadIcon className="size-7 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">点击选择图片</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    支持多选，单文件最大 10MB，仅限图片格式
+                  </p>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    handleFiles(e.target.files)
+                    e.target.value = ""
+                  }}
+                />
+              </label>
+            </div>
+
+            {tasks.length > 0 && (
+              <div className="max-h-64 space-y-2 overflow-y-auto">
+                {tasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="flex items-center gap-3 rounded-lg border p-2"
+                  >
+                    <div className="size-10 shrink-0 overflow-hidden rounded bg-muted">
+                      <img src={task.preview} alt={task.name} className="size-full object-cover" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="truncate text-sm">{task.name}</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {task.status === "done" ? (
+                            "已完成"
+                          ) : task.status === "error" ? (
+                            <span className="text-destructive">{task.error ?? "上传失败"}</span>
+                          ) : task.status === "uploading" ? (
+                            `${task.progress}%`
+                          ) : (
+                            "待上传"
+                          )}
+                        </span>
+                      </div>
+                      {task.status === "uploading" && (
+                        <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                          <div
+                            className="h-full rounded-full bg-primary transition-all"
+                            style={{ width: `${task.progress}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    {task.status !== "uploading" && (
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => removeTask(task.id)}
+                        aria-label="移除"
+                      >
+                        <Trash2Icon />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={closeUpload}>
+              取消
+            </Button>
+            <Button onClick={handleUpload} disabled={uploading}>
+              {uploading ? (
+                <>
+                  <Spinner className="size-4" />
+                  上传中...
+                </>
+              ) : (
+                "开始上传"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={deleteTarget !== null}
@@ -426,6 +502,6 @@ export default function GalleryPage() {
         loading={deleteLoading}
         onConfirm={handleDelete}
       />
-    </div>
+    </>
   )
 }
