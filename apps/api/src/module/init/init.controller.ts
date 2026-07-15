@@ -32,7 +32,7 @@ export const registerInitRoutes: FastifyPluginAsyncZod = async (app) => {
     {
       schema: {
         tags: ['System Init'],
-        description: '系统初始化（创建管理员账号）',
+        description: '系统初始化：写入预设角色与权限、注册超级管理员并绑定超级管理员角色',
         body: InitRequestSchema,
         response: {
           200: ApiResponseSchema(InitResponseSchema).describe('初始化成功'),
