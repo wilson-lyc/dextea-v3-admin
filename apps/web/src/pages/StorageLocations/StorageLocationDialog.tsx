@@ -11,6 +11,10 @@ import {
   testStorageLocationConnection,
   updateStorageLocation,
 } from "@/api"
+import {
+  STORAGE_LOCATION_STATUS,
+  STORAGE_LOCATION_STATUS_LABEL,
+} from "@dextea-admin/contracts/status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -22,6 +26,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { StatusSelectPicker } from "@/components/ui/status-select-picker"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface FormState {
@@ -200,7 +205,7 @@ export default function StorageLocationDialog({
         <ScrollArea className="max-h-[60vh] p-1">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>名称</Label>
+              <Label>位置名称</Label>
               <Input
                 value={form.name}
                 onChange={(e) => setField("name", e.target.value)}
@@ -221,7 +226,6 @@ export default function StorageLocationDialog({
               <Input
                 value={form.bucket}
                 onChange={(e) => setField("bucket", e.target.value)}
-                placeholder="bucket-name"
               />
             </div>
 
@@ -280,13 +284,17 @@ export default function StorageLocationDialog({
               强制路径风格（MinIO需开启）
             </label>
 
-            <label className="flex items-center gap-2 text-sm">
-              <Switch
-                checked={form.status === 1}
-                onCheckedChange={(v) => setField("status", v ? 1 : 0)}
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>状态</Label>
+              <StatusSelectPicker
+                statusEnum={STORAGE_LOCATION_STATUS}
+                labels={STORAGE_LOCATION_STATUS_LABEL}
+                value={String(form.status)}
+                onValueChange={(v) => setField("status", Number(v))}
+                placeholder="请选择状态"
+                className="w-full"
               />
-              启用
-            </label>
+            </div>
           </div>
         </ScrollArea>
 
