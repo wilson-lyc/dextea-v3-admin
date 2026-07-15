@@ -1,30 +1,32 @@
 import { eq, sql } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
-import { galleryImagesTable } from '@/plugins/db/mysql/schema.js';
+import { galleryImagesTable, storageLocationsTable } from '@/plugins/db/mysql/schema.js';
 import { withPagination } from '@/utils';
 
 export const galleryRepository = {
-  async getGalleryImageList(page: number, pageSize: number, keyword?: string) {
+  async getGalleryImageList(page: number, pageSize: number) {
     page = Math.max(1, page);
     pageSize = Math.min(100, Math.max(1, pageSize));
-    keyword = keyword?.trim();
 
     const baseQuery = db
-      .select()
+      .select({
+        id: galleryImagesTable.id,
+        url: galleryImagesTable.url,
+        storageLocationId: galleryImagesTable.storageLocationId,
+        storageLocationName: storageLocationsTable.name,
+        createdAt: galleryImagesTable.createdAt,
+      })
       .from(galleryImagesTable)
+      .leftJoin(
+        storageLocationsTable,
+        eq(galleryImagesTable.storageLocationId, storageLocationsTable.id),
+      )
       .orderBy(galleryImagesTable.id)
       .$dynamic();
 
     const countQuery = db
       .select({ count: sql<number>`count(*)` })
       .from(galleryImagesTable);
-
-    if (keyword) {
-      const pattern = `%${keyword}%`;
-      const filter = sql`(${galleryImagesTable.fileName} like ${pattern})`;
-      baseQuery.where(filter);
-      countQuery.where(filter);
-    }
 
     const [items, countResult] = await Promise.all([
       withPagination(baseQuery, page, pageSize),
@@ -41,6 +43,15 @@ export const galleryRepository = {
       .select()
       .from(galleryImagesTable)
       .where(eq(galleryImagesTable.id, id))
+      .limit(1);
+    return rows[0] ?? null;
+  },
+
+  async getStorageLocationById(id: number) {
+    const rows = await db
+      .select()
+      .from(storageLocationsTable)
+      .where(eq(storageLocationsTable.id, id))
       .limit(1);
     return rows[0] ?? null;
   },

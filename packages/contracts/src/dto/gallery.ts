@@ -6,14 +6,6 @@ export const GalleryImageSchema = z.object({
   id: z.number(),
   /** 访问地址（可直接用于 <img src>） */
   url: z.string(),
-  /** 原始文件名 */
-  fileName: z.string(),
-  /** 文件大小（字节） */
-  fileSize: z.number(),
-  /** 存储厂商（local / aws / aliyun / tencent / minio / generic） */
-  provider: z.string(),
-  /** 文件 MIME 类型 */
-  contentType: z.string(),
   /** 所属存储位置 ID（旧图/全局兜底图可为空） */
   storageLocationId: z.number().nullable(),
   /** 所属存储位置名称 */
@@ -40,10 +32,6 @@ export type GetGalleryImageListResponse = z.infer<typeof GetGalleryImageListResp
 export const UploadGalleryImageResponseSchema = z.object({
   id: z.number(),
   url: z.string(),
-  fileName: z.string(),
-  fileSize: z.number(),
-  provider: z.string(),
-  contentType: z.string(),
   /** 所属存储位置 ID */
   storageLocationId: z.number().nullable(),
   createdAt: z.string(),

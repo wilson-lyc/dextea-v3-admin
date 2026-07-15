@@ -76,10 +76,6 @@ CREATE TABLE `gallery_images` (
 	`id` serial AUTO_INCREMENT NOT NULL,
 	`url` varchar(1024) NOT NULL,
 	`object_key` varchar(512) NOT NULL,
-	`provider` varchar(64) NOT NULL,
-	`file_name` varchar(255) NOT NULL,
-	`file_size` int NOT NULL,
-	`content_type` varchar(128) NOT NULL,
 	`storage_location_id` bigint unsigned,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	CONSTRAINT `gallery_images_id` PRIMARY KEY(`id`)
@@ -240,6 +236,7 @@ CREATE TABLE `roles` (
 CREATE TABLE `storage_locations` (
 	`id` serial AUTO_INCREMENT NOT NULL,
 	`name` varchar(255) NOT NULL,
+	`provider` varchar(64) NOT NULL DEFAULT 'generic',
 	`region` varchar(255) NOT NULL,
 	`endpoint` varchar(512) NOT NULL,
 	`bucket` varchar(255) NOT NULL,

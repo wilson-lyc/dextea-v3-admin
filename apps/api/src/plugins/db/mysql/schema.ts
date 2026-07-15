@@ -374,44 +374,24 @@ export const orderItemsTable = mysqlTable(
 /** 图片资源表 */
 export const galleryImagesTable = mysqlTable('gallery_images', {
   id: serial().primaryKey(),
-  /** 访问地址（可直接用于前端 <img src>） */
   url: varchar('url', { length: 1024 }).notNull(),
-  /** 对象存储中的对象键 */
   objectKey: varchar('object_key', { length: 512 }).notNull(),
-  /** 存储厂商（local / aws / aliyun / tencent / minio / generic） */
-  provider: varchar('provider', { length: 64 }).notNull(),
-  /** 原始文件名 */
-  fileName: varchar('file_name', { length: 255 }).notNull(),
-  /** 文件大小（字节） */
-  fileSize: int('file_size').notNull(),
-  /** 文件 MIME 类型 */
-  contentType: varchar('content_type', { length: 128 }).notNull(),
-  /** 所属存储位置 ID（指向 storage_locations.id；旧图/全局兜底图可为空） */
   storageLocationId: bigint('storage_location_id', { mode: 'number', unsigned: true }),
-  /** 上传时间 */
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
 });
 
-/** 存储位置表（每条记录即一个通用 S3 连接配置 + 用户自定义名称） */
+/** 存储位置表 */
 export const storageLocationsTable = mysqlTable('storage_locations', {
   id: serial().primaryKey(),
-  /** 用户自定义名称（唯一，便于识别） */
   name: varchar({ length: 255 }).notNull().unique(),
-  /** S3 区域，如 ap-guangzhou / us-east-1 */
+  provider: varchar('provider', { length: 64 }).notNull().default('generic'),
   region: varchar('region', { length: 255 }).notNull(),
-  /** 自定义端点（S3 兼容服务地址，主流云厂商可留空，这里非空约束由业务层兜底） */
   endpoint: varchar('endpoint', { length: 512 }).notNull(),
-  /** 存储桶名称 */
   bucket: varchar('bucket', { length: 255 }).notNull(),
-  /** 访问密钥 ID（密文存储，AES-256-GCM） */
   accessKey: varchar('access_key', { length: 1024 }).notNull(),
-  /** 私密访问密钥（密文存储，AES-256-GCM） */
   secretKey: varchar('secret_key', { length: 1024 }).notNull(),
-  /** 强制路径风格（MinIO 等通常需要 true；0=false 1=true） */
   forcePathStyle: tinyint('force_path_style').notNull().default(0),
-  /** 存储桶公网可访问的基础地址，用于拼接图片直链 */
   publicBaseUrl: varchar('public_base_url', { length: 512 }).notNull(),
-  /** 启用状态：0=禁用 1=启用（见 @dextea-admin/contracts STORAGE_LOCATION_STATUS） */
   status: tinyint('status').notNull().default(1),
   createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),

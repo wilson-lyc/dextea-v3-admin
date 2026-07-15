@@ -346,10 +346,7 @@ export const productRepository = {
     const coverCols = {
       id: galleryImagesTable.id,
       url: galleryImagesTable.url,
-      fileName: galleryImagesTable.fileName,
-      fileSize: galleryImagesTable.fileSize,
-      provider: galleryImagesTable.provider,
-      contentType: galleryImagesTable.contentType,
+      storageLocationId: galleryImagesTable.storageLocationId,
       createdAt: galleryImagesTable.createdAt,
     };
 
@@ -378,8 +375,8 @@ export const productRepository = {
       .orderBy(productImagesTable.sort, galleryImagesTable.id);
 
     return {
-      cover: coverRows[0] ?? null,
-      gallery: galleryRows,
+      cover: coverRows[0] ? { ...coverRows[0], storageLocationName: null } : null,
+      gallery: galleryRows.map((r) => ({ ...r, storageLocationName: null })),
     };
   },
 
