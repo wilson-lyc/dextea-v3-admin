@@ -33,10 +33,8 @@ function toProductImage(
   return {
     id: data.id,
     url: data.url,
-    fileName: data.fileName,
-    fileSize: data.fileSize,
-    provider: data.provider,
-    contentType: data.contentType,
+    storageLocationId: data.storageLocationId,
+    storageLocationName: null,
     createdAt: data.createdAt,
   }
 }
@@ -78,8 +76,9 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
   // 是否已修改（用于保存按钮状态与禁用判断）
   const dirty =
     initial !== null &&
-    (initial.cover?.id ?? null) !== (cover?.id ?? null) ||
-    initial.gallery.map((i) => i.id).join(",") !== gallery.map((i) => i.id).join(",")
+    ((initial.cover?.id ?? null) !== (cover?.id ?? null) ||
+      initial.gallery.map((i) => i.id).join(",") !==
+        gallery.map((i) => i.id).join(","))
 
   const uploadAndMap = async (file: File): Promise<ProductImage | null> => {
     setUploading(true)
@@ -212,7 +211,7 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
           </div>
 
           {cover ? (
-            <ImageThumb src={cover.url} alt={cover.fileName} />
+            <ImageThumb src={cover.url} alt={cover.url} />
           ) : (
             <button
               type="button"
@@ -259,7 +258,7 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
               {gallery.map((img, index) => (
                 <div key={img.id} className="rounded-lg border p-2">
                   <div className="relative aspect-square overflow-hidden rounded bg-muted">
-                    <img src={img.url} alt={img.fileName} className="size-full object-cover" />
+                    <img src={img.url} alt={img.url} className="size-full object-cover" />
                     <Button
                       variant="destructive"
                       size="icon-sm"
@@ -270,8 +269,8 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
                       <Trash2Icon />
                     </Button>
                   </div>
-                  <p className="mt-2 truncate text-xs text-muted-foreground" title={img.fileName}>
-                    {img.fileName}
+                  <p className="mt-2 truncate text-xs text-muted-foreground" title={img.storageLocationName ?? "默认存储位置"}>
+                    {img.storageLocationName ?? "默认存储位置"}
                   </p>
                   <div className="mt-2 flex items-center justify-between">
                     <Button

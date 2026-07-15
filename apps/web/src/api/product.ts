@@ -8,7 +8,6 @@ import type {
   ProductOption,
   UpdateProductRequest,
   TagSimple,
-  ProductImage,
   GetProductImagesResponse,
   SetProductImagesRequest,
   SetProductImagesResponse,

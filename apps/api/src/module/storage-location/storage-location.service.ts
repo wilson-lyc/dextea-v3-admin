@@ -1,5 +1,6 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { createStorageAdapter } from '@/plugins/storage/index.js';
+import { storageLocationsTable } from '@/plugins/db/mysql/schema.js';
 import { encryptSecret } from '@/utils/crypto.js';
 import { storageLocationRepository } from './storage-location.repository.js';
 import { StorageLocationErrorCodes } from './storage-location.errorcode.js';

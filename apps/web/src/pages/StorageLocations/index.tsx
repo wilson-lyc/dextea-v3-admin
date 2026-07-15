@@ -15,7 +15,6 @@ import type {
 import {
   createStorageLocation,
   deleteStorageLocation,
-  getStorageLocationOptions,
   getStorageLocations,
   testStorageLocationConnection,
   updateStorageLocation,
