@@ -190,7 +190,7 @@ export default function RolesPage() {
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1">
                 <Button variant="outline" size="sm" onClick={() => openAssign(role)}>
-                  管理权限
+                  权限配置
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => openEdit(role)}>
                   编辑角色
