@@ -59,7 +59,7 @@ export default function ProductsPage() {
       .then((res) => {
         if (res.code === 0) setTagOptions(res.data)
       })
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   const hasFilters = !!(keyword || filterStatus || priceMin || priceMax || selectedTag)
@@ -116,6 +116,9 @@ export default function ProductsPage() {
     setPriceMin("")
     setPriceMax("")
     setSelectedTag("")
+    keywordRef.current = ""
+    filterRef.current = { filterStatus: "", priceMin: "", priceMax: "", selectedTag: "" }
+    fetchProducts(1)
   }
 
   const refreshProducts = useCallback(async (targetPage: number) => {
@@ -312,15 +315,12 @@ export default function ProductsPage() {
       <ConfirmDialog
         open={statusConfirmOpen}
         onOpenChange={setStatusConfirmOpen}
-        title={`确认${statusConfirmAction === 1 ? "上架" : "下架"}`}
+        title="操作确认"
         description={
           <>
-            确定将「{statusConfirmTarget?.name}」更新为
-            {statusConfirmAction === 1 ? "上架" : "下架"}吗？
+            确定修改「{statusConfirmTarget?.name}」的全局状态为「{statusConfirmAction === 1 ? "上架" : "下架"}」吗？
           </>
         }
-        confirmText="确认"
-        variant={statusConfirmAction === 1 ? "default" : "destructive"}
         loading={statusToggling}
         onConfirm={handleStatusToggle}
       />

@@ -85,9 +85,9 @@ export function EditBasicInfoDialog({ open, onOpenChange, productId, product, on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>编辑基础信息</DialogTitle>
+          <DialogTitle>编辑商品基础信息</DialogTitle>
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh] p-[3px]">
