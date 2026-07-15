@@ -6,7 +6,10 @@ import {
   productTagMapTable,
   productIngredientsTable,
   ingredientsTable,
+  productImagesTable,
+  galleryImagesTable,
 } from '@/plugins/db/mysql/schema.js';
+import { PRODUCT_IMAGE_TYPE } from '@dextea-admin/contracts';
 import { withPagination } from '@/utils';
 
 export const productRepository = {
@@ -334,5 +337,91 @@ export const productRepository = {
       .where(eq(ingredientsTable.id, ingredientId))
       .limit(1);
     return rows[0] ?? null;
+  },
+
+  // ─── 商品图片（封面图 + 图库，统一存放于 product_images） ───
+
+  /** 查询商品图片：封面（最多 1 张）+ 图库（按 sort 升序） */
+  async getProductImages(productId: number) {
+    const coverCols = {
+      id: galleryImagesTable.id,
+      url: galleryImagesTable.url,
+      fileName: galleryImagesTable.fileName,
+      fileSize: galleryImagesTable.fileSize,
+      provider: galleryImagesTable.provider,
+      contentType: galleryImagesTable.contentType,
+      createdAt: galleryImagesTable.createdAt,
+    };
+
+    const coverRows = await db
+      .select(coverCols)
+      .from(productImagesTable)
+      .innerJoin(galleryImagesTable, eq(productImagesTable.imageId, galleryImagesTable.id))
+      .where(
+        and(
+          eq(productImagesTable.productId, productId),
+          eq(productImagesTable.type, PRODUCT_IMAGE_TYPE.COVER.value),
+        ),
+      )
+      .limit(1);
+
+    const galleryRows = await db
+      .select(coverCols)
+      .from(productImagesTable)
+      .innerJoin(galleryImagesTable, eq(productImagesTable.imageId, galleryImagesTable.id))
+      .where(
+        and(
+          eq(productImagesTable.productId, productId),
+          eq(productImagesTable.type, PRODUCT_IMAGE_TYPE.GALLERY.value),
+        ),
+      )
+      .orderBy(productImagesTable.sort, galleryImagesTable.id);
+
+    return {
+      cover: coverRows[0] ?? null,
+      gallery: galleryRows,
+    };
+  },
+
+  /** 批量校验图片资源是否存在（用于绑定前校验） */
+  async getGalleryImagesByIds(ids: number[]) {
+    if (ids.length === 0) return [];
+    return db
+      .select({ id: galleryImagesTable.id })
+      .from(galleryImagesTable)
+      .where(inArray(galleryImagesTable.id, ids));
+  },
+
+  /** 全量替换商品图片：先删后插，封面与图库各自写入 */
+  async setProductImages(
+    productId: number,
+    coverImageId: number | null,
+    galleryImageIds: number[],
+  ) {
+    await db.transaction(async (tx) => {
+      await tx
+        .delete(productImagesTable)
+        .where(eq(productImagesTable.productId, productId));
+
+      if (coverImageId !== null) {
+        await tx.insert(productImagesTable).values({
+          productId,
+          imageId: coverImageId,
+          type: PRODUCT_IMAGE_TYPE.COVER.value,
+          sort: 0,
+        });
+      }
+
+      if (galleryImageIds.length > 0) {
+        await tx.insert(productImagesTable).values(
+          galleryImageIds.map((imageId, index) => ({
+            productId,
+            imageId,
+            type: PRODUCT_IMAGE_TYPE.GALLERY.value,
+            sort: index,
+          })),
+        );
+      }
+    });
   },
 };

@@ -21,6 +21,9 @@ export const ProductErrorCodes = {
   INGREDIENT_UNBIND_FAILED: { code: 10823, message: '解绑原料失败' },
   INGREDIENT_QUANTITY_UPDATE_FAILED: { code: 10824, message: '更新用量失败' },
   INGREDIENT_SORT_UPDATE_FAILED: { code: 10825, message: '更新排序失败' },
+  IMAGE_NOT_FOUND: { code: 10826, message: '图片不存在' },
+  IMAGE_DUPLICATED: { code: 10827, message: '图库图片不能重复' },
+  IMAGE_BIND_FAILED: { code: 10828, message: '保存商品图片失败' },
 } as const satisfies Record<string, BizErrorCode>;
 
 /**
@@ -36,4 +39,5 @@ export const ProductMessages = {
   INGREDIENT_UNBIND_SUCCESS: '解绑原料成功',
   INGREDIENT_QUANTITY_UPDATE_SUCCESS: '更新用量成功',
   INGREDIENT_SORT_UPDATE_SUCCESS: '更新排序成功',
+  IMAGE_BIND_SUCCESS: '保存成功',
 } as const;

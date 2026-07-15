@@ -226,6 +226,27 @@ export const productStoreStatusTable = mysqlTable(
   }),
 );
 
+/** 商品图片关联表（封面图 / 图库统一存放，type 区分类型） */
+export const productImagesTable = mysqlTable(
+  'product_images',
+  {
+    productId: bigint('product_id', { mode: 'number', unsigned: true }).notNull(),
+    imageId: bigint('image_id', { mode: 'number', unsigned: true }).notNull(),
+    /** 图片类型：1=封面图 2=图库（见 @dextea-admin/contracts PRODUCT_IMAGE_TYPE） */
+    type: tinyint('type').notNull(),
+    /** 排序（图库按此字段升序展示） */
+    sort: int('sort').notNull().default(0),
+    createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    primaryKey: primaryKey({
+      name: 'pk_product_images',
+      columns: [table.productId, table.imageId, table.type],
+    }),
+  }),
+);
+
 /** 客制化选项-门店状态表 */
 export const customizationOptionStoreStatusTable = mysqlTable(
   'customization_option_store_status',

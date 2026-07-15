@@ -22,6 +22,9 @@ import {
   UpdateIngredientQuantityRequestSchema,
   UpdateIngredientSortRequestSchema,
   ProductOptionListResponseSchema,
+  GetProductImagesResponseSchema,
+  SetProductImagesRequestSchema,
+  SetProductImagesResponseSchema,
 } from '@dextea-admin/contracts';
 import { ProductMessages } from './product.errorcode.js';
 
@@ -308,6 +311,43 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     async (request, _reply) => {
       await productService.unbindIngredient(request.params.id, request.params.ingredientId);
       return ApiResponse.success(null, ProductMessages.INGREDIENT_UNBIND_SUCCESS);
+    },
+  );
+
+  // ── 获取商品图片（封面图 + 图库） ─────────────────
+  app.get(
+    '/products/:id/images',
+    {
+      schema: {
+        tags: ['Products'],
+        description: '获取商品绑定的图片（封面图 + 图库）',
+        params: z.object({ id: z.coerce.number().int().positive('商品ID 必须为正整数') }),
+        response: { 200: ApiResponseSchema(GetProductImagesResponseSchema).describe('商品图片') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await productService.getProductImages(request.params.id);
+      return ApiResponse.success(data);
+    },
+  );
+
+  // ── 设置商品图片（全量替换封面图 + 图库） ─────────
+  app.put(
+    '/products/:id/images',
+    {
+      schema: {
+        tags: ['Products'],
+        description: '设置商品图片（全量替换：封面图 + 图库），封面可留空，图库最多 10 张',
+        params: z.object({ id: z.coerce.number().int().positive('商品ID 必须为正整数') }),
+        body: SetProductImagesRequestSchema,
+        response: { 200: ApiResponseSchema(SetProductImagesResponseSchema).describe('保存成功') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await productService.setProductImages(request.params.id, request.body);
+      return ApiResponse.success(data, ProductMessages.IMAGE_BIND_SUCCESS);
     },
   );
 };

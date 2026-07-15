@@ -159,3 +159,39 @@ export type UpdateIngredientSortRequest = z.infer<typeof UpdateIngredientSortReq
 /** 商品选项列表 */
 export const ProductOptionListResponseSchema = z.array(ProductOptionSchema);
 export type ProductOptionListResponse = z.infer<typeof ProductOptionListResponseSchema>;
+
+// ─── 商品图片（封面图 + 图库，统一存放于 product_images 表） ───
+
+/** 图片实体（复用图片资源池字段，前端可直接用于 <img src>） */
+export const ProductImageSchema = z.object({
+  id: z.number(),
+  url: z.string(),
+  fileName: z.string(),
+  fileSize: z.number(),
+  provider: z.string(),
+  contentType: z.string(),
+  createdAt: z.string(),
+});
+export type ProductImage = z.infer<typeof ProductImageSchema>;
+
+/** 获取商品图片 */
+export const GetProductImagesResponseSchema = z.object({
+  /** 封面图（允许为空，商品可暂时不设置封面） */
+  cover: ProductImageSchema.nullable(),
+  /** 图库图片（按 sort 升序） */
+  gallery: z.array(ProductImageSchema),
+});
+export type GetProductImagesResponse = z.infer<typeof GetProductImagesResponseSchema>;
+
+/** 设置商品图片（全量替换：封面临时可为空，图库最多 10 张） */
+export const SetProductImagesRequestSchema = z.object({
+  /** 封面图资源 ID；传 null 表示清除封面 */
+  coverImageId: z.number().int().positive().nullable(),
+  /** 图库图片资源 ID 列表，最多 10 张 */
+  galleryImageIds: z.array(z.number().int().positive()).max(10, '图库最多 10 张'),
+});
+export type SetProductImagesRequest = z.infer<typeof SetProductImagesRequestSchema>;
+
+/** 设置商品图片响应（返回保存后的最新图片） */
+export const SetProductImagesResponseSchema = GetProductImagesResponseSchema;
+export type SetProductImagesResponse = z.infer<typeof SetProductImagesResponseSchema>;

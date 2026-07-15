@@ -28,6 +28,27 @@ export const PRODUCT_STATUS_LABEL: Record<number, string> = Object.fromEntries(
   Object.values(PRODUCT_STATUS).map((s) => [s.value, s.label]),
 ) as Record<number, string>;
 
+// ──── 商品图片类型（封面图 / 图库，统一存放于 product_images 表） ────
+/**
+ * 商品图片类型
+ * 1=封面图  2=图库
+ *
+ * 封面图有且仅有一张（允许为空，可后期补）；图库最多 10 张。
+ * 同一图片可同时作为封面与图库（以 type 区分，互不冲突）。
+ */
+export const PRODUCT_IMAGE_TYPE = {
+  COVER: { key: 'cover', label: '封面图', value: 1 },
+  GALLERY: { key: 'gallery', label: '图库', value: 2 },
+} as const;
+
+/** 单个图片类型项类型 */
+export type ProductImageTypeItem = (typeof PRODUCT_IMAGE_TYPE)[keyof typeof PRODUCT_IMAGE_TYPE];
+
+/** 所有图片类型值 */
+export const PRODUCT_IMAGE_TYPE_VALUES: readonly number[] = Object.values(PRODUCT_IMAGE_TYPE).map(
+  (s) => s.value,
+);
+
 // ──── 前端展示样式（视图层，按状态值映射到 Tailwind 类） ────
 
 export const PRODUCT_STATUS_TEXT_CLASSES: Record<number, string> = {

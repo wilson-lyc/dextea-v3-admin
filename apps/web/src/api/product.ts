@@ -8,6 +8,10 @@ import type {
   ProductOption,
   UpdateProductRequest,
   TagSimple,
+  ProductImage,
+  GetProductImagesResponse,
+  SetProductImagesRequest,
+  SetProductImagesResponse,
 } from "@dextea-admin/contracts"
 
 // ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
@@ -19,6 +23,10 @@ export type {
   ProductOption,
   UpdateProductRequest,
   TagSimple,
+  ProductImage,
+  GetProductImagesResponse,
+  SetProductImagesRequest,
+  SetProductImagesResponse,
 } from "@dextea-admin/contracts"
 
 const http = createModuleClient("product")
@@ -183,4 +191,22 @@ export function unbindIngredientFromProduct(productId: number, ingredientId: num
  */
 export function getProductOptions() {
   return http.get<ApiResponse<ProductOption[]>>("/products/options").then((res) => res.data)
+}
+
+/**
+ * 获取商品绑定的图片（封面图 + 图库）
+ * GET /products/:id/images
+ */
+export function getProductImages(id: number) {
+  return http.get<ApiResponse<GetProductImagesResponse>>(`/products/${id}/images`).then((res) => res.data)
+}
+
+/**
+ * 设置商品图片（全量替换封面图 + 图库）
+ * PUT /products/:id/images
+ */
+export function setProductImages(id: number, data: SetProductImagesRequest) {
+  return http
+    .put<ApiResponse<SetProductImagesResponse>>(`/products/${id}/images`, data)
+    .then((res) => res.data)
 }

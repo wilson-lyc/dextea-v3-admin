@@ -16,6 +16,7 @@ import BasicInfoPanel from "./components/BasicInfoPanel"
 import TagsPanel from "./components/TagsPanel"
 import CustomizationPanel from "./components/CustomizationPanel"
 import IngredientPanel from "./components/IngredientPanel"
+import ImagePanel from "./components/ImagePanel"
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -69,6 +70,7 @@ export default function ProductDetailPage() {
         { value: "tags", label: "标签" },
         { value: "customization", label: "客制化" },
         { value: "ingredients", label: "原料" },
+        { value: "images", label: "图片" },
       ]}
     >
       <TabsContent value="basic">
@@ -85,6 +87,10 @@ export default function ProductDetailPage() {
 
       <TabsContent value="ingredients">
         {productId && <IngredientPanel productId={productId} />}
+      </TabsContent>
+
+      <TabsContent value="images">
+        {productId && <ImagePanel productId={productId} />}
       </TabsContent>
     </DetailLayout>
   )

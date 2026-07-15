@@ -21,6 +21,7 @@ import type {
   BindIngredientRequest,
   UpdateIngredientQuantityRequest,
   UpdateIngredientSortRequest,
+  SetProductImagesRequest,
 } from '@dextea-admin/contracts';
 
 /**
@@ -316,5 +317,52 @@ export const productService = {
 
   async getProductOptionSelectList() {
     return productRepository.getProductOptionSelectList();
+  },
+
+  // ─── 商品图片（封面图 + 图库） ───────────────────
+
+  async getProductImages(id: number) {
+    const product = await productRepository.getProductById(id);
+    if (!product) {
+      throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
+    }
+    return productRepository.getProductImages(id);
+  },
+
+  async setProductImages(id: number, input: SetProductImagesRequest) {
+    return withMutation(async () => {
+      const product = await productRepository.getProductById(id);
+      if (!product) {
+        throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
+      }
+
+      const { coverImageId, galleryImageIds } = input;
+
+      // 图库图片去重
+      const uniqueGallery = [...new Set(galleryImageIds)];
+      if (uniqueGallery.length !== galleryImageIds.length) {
+        throw new BizError(ProductErrorCodes.IMAGE_DUPLICATED);
+      }
+
+      // 统一校验所引用的图片资源是否存在于图片资源池
+      const referencedIds = [
+        ...(coverImageId !== null ? [coverImageId] : []),
+        ...uniqueGallery,
+      ];
+      if (referencedIds.length > 0) {
+        const existing = await productRepository.getGalleryImagesByIds(referencedIds);
+        const existingIds = new Set(existing.map((r) => r.id));
+        const missing = referencedIds.filter((rid) => !existingIds.has(rid));
+        if (missing.length > 0) {
+          throw new BizError(ProductErrorCodes.IMAGE_NOT_FOUND);
+        }
+      }
+
+      // 全量替换：事务内先删后插，封面与图库各自写入
+      await productRepository.setProductImages(id, coverImageId, uniqueGallery);
+
+      // 返回保存后的最新图片
+      return productRepository.getProductImages(id);
+    }, ProductErrorCodes.IMAGE_BIND_FAILED);
   },
 };
