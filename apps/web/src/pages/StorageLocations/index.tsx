@@ -29,14 +29,6 @@ import StorageLocationDialog from "./StorageLocationDialog"
 
 const PAGE_SIZE = 20
 
-const PROVIDERS = [
-  { value: "aws", label: "AWS S3" },
-  { value: "aliyun", label: "阿里云 OSS" },
-  { value: "tencent", label: "腾讯云 COS" },
-  { value: "minio", label: "MinIO" },
-  { value: "generic", label: "通用 S3 兼容" },
-]
-
 export default function StorageLocationsPage() {
   const [list, setList] = useState<StorageLocation[]>([])
   const [loading, setLoading] = useState(true)
@@ -181,9 +173,7 @@ export default function StorageLocationsPage() {
           <TableRow key={loc.id}>
             <TableCell className="font-mono text-xs">{loc.id}</TableCell>
             <TableCell className="font-medium">{loc.name}</TableCell>
-            <TableCell>
-              {PROVIDERS.find((p) => p.value === loc.provider)?.label ?? loc.provider}
-            </TableCell>
+            <TableCell>{loc.provider}</TableCell>
             <TableCell>{loc.region}</TableCell>
             <TableCell>{loc.bucket}</TableCell>
             <TableCell className="max-w-[160px] truncate">{loc.accessKey}</TableCell>

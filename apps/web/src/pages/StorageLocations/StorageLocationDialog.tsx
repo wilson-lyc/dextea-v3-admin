@@ -204,12 +204,11 @@ export default function StorageLocationDialog({
               <Input
                 value={form.name}
                 onChange={(e) => setField("name", e.target.value)}
-                placeholder="如：阿里云 OSS-华东"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label>区域</Label>
+              <Label>地域</Label>
               <Input
                 value={form.region}
                 onChange={(e) => setField("region", e.target.value)}
@@ -218,7 +217,7 @@ export default function StorageLocationDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label>存储桶</Label>
+              <Label>存储桶名称</Label>
               <Input
                 value={form.bucket}
                 onChange={(e) => setField("bucket", e.target.value)}
@@ -227,11 +226,11 @@ export default function StorageLocationDialog({
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>端点（Endpoint）</Label>
+              <Label>访问域名</Label>
               <Input
                 value={form.endpoint}
                 onChange={(e) => setField("endpoint", e.target.value)}
-                placeholder="https://oss-cn-hangzhou.aliyuncs.com"
+                placeholder="https://xxx.cos.ap-guangzhou.myqcloud.com"
               />
             </div>
 
@@ -240,24 +239,17 @@ export default function StorageLocationDialog({
               <Input
                 value={form.accessKey}
                 onChange={(e) => setField("accessKey", e.target.value)}
-                placeholder="AKID..."
+                placeholder={editing ? "置空表示不修改" : ""}
               />
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>
-                SecretKey
-                {editing && (
-                  <span className="ml-1 text-xs text-muted-foreground">
-                    （留空表示保留原值）
-                  </span>
-                )}
-              </Label>
+              <Label>SecretKey</Label>
               <Input
                 type="password"
                 value={form.secretKey}
                 onChange={(e) => setField("secretKey", e.target.value)}
-                placeholder={editing ? "保留原值" : "SK..."}
+                placeholder={editing ? "置空表示不修改" : ""}
               />
             </div>
 
@@ -273,14 +265,10 @@ export default function StorageLocationDialog({
             <div className="space-y-1.5 sm:col-span-2">
               <Label>
                 厂商
-                <span className="ml-1 text-xs text-muted-foreground">
-                  （选填，仅用于标识）
-                </span>
               </Label>
               <Input
                 value={form.provider}
                 onChange={(e) => setField("provider", e.target.value)}
-                placeholder="如：aliyun / aws / minio / generic"
               />
             </div>
 
@@ -289,7 +277,7 @@ export default function StorageLocationDialog({
                 checked={form.forcePathStyle}
                 onCheckedChange={(v) => setField("forcePathStyle", v)}
               />
-              强制路径风格（MinIO 等通常需要开启）
+              强制路径风格（MinIO需开启）
             </label>
 
             <label className="flex items-center gap-2 text-sm">
