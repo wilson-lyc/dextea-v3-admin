@@ -216,6 +216,19 @@ export default function StorageLocationDialog({
         <ScrollArea className="max-h-[60vh] p-1">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5 sm:col-span-2">
+              <Label>厂商</Label>
+              <SelectPicker
+                options={STORAGE_PROVIDERS.map((p) => ({ label: p.label, value: p.value }))}
+                value={form.provider}
+                onValueChange={handleProviderChange}
+                placeholder="请选择存储厂商"
+              />
+              {currentProvider?.description ? (
+                <p className="text-xs text-muted-foreground">{currentProvider.description}</p>
+              ) : null}
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2">
               <Label>位置名称</Label>
               <Input
                 value={form.name}
@@ -241,7 +254,7 @@ export default function StorageLocationDialog({
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>访问域名</Label>
+              <Label>Endpoint（地域节点）</Label>
               <Input
                 value={form.endpoint}
                 onChange={(e) => setField("endpoint", e.target.value)}
@@ -269,25 +282,12 @@ export default function StorageLocationDialog({
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>公网基础地址（Public Base URL）</Label>
+              <Label>访问域名</Label>
               <Input
                 value={form.publicBaseUrl}
                 onChange={(e) => setField("publicBaseUrl", e.target.value)}
                 placeholder={currentProvider.publicBaseUrlPlaceholder}
               />
-            </div>
-
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label>厂商</Label>
-              <SelectPicker
-                options={STORAGE_PROVIDERS.map((p) => ({ label: p.label, value: p.value }))}
-                value={form.provider}
-                onValueChange={handleProviderChange}
-                placeholder="请选择存储厂商"
-              />
-              {currentProvider?.description ? (
-                <p className="text-xs text-muted-foreground">{currentProvider.description}</p>
-              ) : null}
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
