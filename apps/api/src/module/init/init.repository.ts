@@ -1,5 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
+import { BizError } from '@/common/exceptions/index.js';
+import { InitErrorCodes } from './init.errorcode.js';
 import {
   configTable,
   employeesTable,
@@ -9,6 +11,19 @@ import {
   employeeRolesTable,
 } from '@/plugins/db/mysql/schema.js';
 import { PRESET_PERMISSIONS, PRESET_ROLES } from './init.presets.js';
+
+/** drizzle 事务对象类型（与 db 拥有相同的查询能力） */
+type DbTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/** 是否为 MySQL 唯一键冲突（ER_DUP_ENTRY） */
+function isDuplicateKeyError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    (err as { code?: string }).code === 'ER_DUP_ENTRY'
+  );
+}
 
 export const initRepository = {
   async getInitStatus() {
@@ -20,8 +35,8 @@ export const initRepository = {
     return rows[0] ?? null;
   },
 
-  async getEmployeeByEmail(email: string) {
-    const rows = await db
+  async getEmployeeByEmail(tx: DbTx, email: string) {
+    const rows = await tx
       .select()
       .from(employeesTable)
       .where(eq(employeesTable.email, email))
@@ -29,27 +44,42 @@ export const initRepository = {
     return rows[0] ?? null;
   },
 
-  async createAdmin(data: { email: string; password: string; displayName: string; status: number }) {
-    const result = await db.insert(employeesTable).values(data);
+  /**
+   * 抢占「已初始化」标记（幂等闸门）。
+   * config.key 具备唯一约束：并发请求或失败重试时若标记已存在会触发唯一键冲突，
+   * 此时转为 ALREADY_INITIALIZED，严格保证「已初始化过不允许再初始化」。
+   */
+  async claimInitFlag(tx: DbTx) {
+    try {
+      await tx.insert(configTable).values({
+        key: 'Initialized',
+        value: 'true',
+      });
+    } catch (err) {
+      if (isDuplicateKeyError(err)) {
+        throw new BizError(InitErrorCodes.ALREADY_INITIALIZED);
+      }
+      throw err;
+    }
+  },
+
+  async createAdmin(
+    tx: DbTx,
+    data: { email: string; password: string; displayName: string; status: number },
+  ) {
+    const result = await tx.insert(employeesTable).values(data);
     return Number(result[0]?.insertId ?? 0);
   },
 
-  async writeInitFlag() {
-    await db.insert(configTable).values({
-      key: 'Initialized',
-      value: 'true',
-    });
-  },
-
   /**
-   * 写入预设权限数据（幂等：已存在的 key 跳过）。
+   * 写入预设权限数据（幂等：已存在的 key 跳过，不覆盖）。
    * @returns 权限 key -> id 的映射，供角色绑定使用
    */
-  async ensurePresetPermissions(): Promise<Map<string, number>> {
+  async ensurePresetPermissions(tx: DbTx): Promise<Map<string, number>> {
     const keyToId = new Map<string, number>();
 
     for (const p of PRESET_PERMISSIONS) {
-      const existing = await db
+      const existing = await tx
         .select({ id: permissionsTable.id })
         .from(permissionsTable)
         .where(eq(permissionsTable.key, p.key))
@@ -60,7 +90,7 @@ export const initRepository = {
         continue;
       }
 
-      const result = await db
+      const result = await tx
         .insert(permissionsTable)
         .values({ key: p.key, name: p.name, note: p.note });
       keyToId.set(p.key, Number(result[0]?.insertId ?? 0));
@@ -70,14 +100,14 @@ export const initRepository = {
   },
 
   /**
-   * 写入预设角色数据并绑定其权限（幂等：角色/绑定已存在则跳过）。
+   * 写入预设角色数据并绑定其权限（幂等：角色/绑定已存在则跳过，不覆盖）。
    * @returns 角色名 -> id 的映射，供超级管理员绑定使用
    */
-  async ensurePresetRoles(permKeyToId: Map<string, number>): Promise<Map<string, number>> {
+  async ensurePresetRoles(tx: DbTx, permKeyToId: Map<string, number>): Promise<Map<string, number>> {
     const nameToId = new Map<string, number>();
 
     for (const r of PRESET_ROLES) {
-      const existing = await db
+      const existing = await tx
         .select({ id: rolesTable.id })
         .from(rolesTable)
         .where(eq(rolesTable.name, r.name))
@@ -87,7 +117,7 @@ export const initRepository = {
       if (existing.length > 0) {
         roleId = existing[0]!.id;
       } else {
-        const result = await db
+        const result = await tx
           .insert(rolesTable)
           .values({ name: r.name, note: r.note, status: r.status });
         roleId = Number(result[0]?.insertId ?? 0);
@@ -99,7 +129,7 @@ export const initRepository = {
         .filter((id): id is number => id !== undefined);
       if (permissionIds.length === 0) continue;
 
-      const bound = await db
+      const bound = await tx
         .select({ permissionId: rolePermissionsTable.permissionId })
         .from(rolePermissionsTable)
         .where(eq(rolePermissionsTable.roleId, roleId));
@@ -107,7 +137,7 @@ export const initRepository = {
       const toAdd = permissionIds.filter((id) => !existingIds.has(id));
 
       if (toAdd.length > 0) {
-        await db
+        await tx
           .insert(rolePermissionsTable)
           .values(toAdd.map((permissionId) => ({ roleId, permissionId })));
       }
@@ -116,9 +146,9 @@ export const initRepository = {
     return nameToId;
   },
 
-  /** 将员工绑定到指定角色（幂等：已绑定则跳过） */
-  async bindEmployeeRole(employeeId: number, roleId: number) {
-    const bound = await db
+  /** 将员工绑定到指定角色（幂等：已绑定则跳过，不覆盖） */
+  async bindEmployeeRole(tx: DbTx, employeeId: number, roleId: number) {
+    const bound = await tx
       .select({ roleId: employeeRolesTable.roleId })
       .from(employeeRolesTable)
       .where(eq(employeeRolesTable.employeeId, employeeId))
@@ -126,6 +156,6 @@ export const initRepository = {
 
     if (bound.some((b) => b.roleId === roleId)) return;
 
-    await db.insert(employeeRolesTable).values({ employeeId, roleId });
+    await tx.insert(employeeRolesTable).values({ employeeId, roleId });
   },
 };

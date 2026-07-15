@@ -1,8 +1,5 @@
 import type { BizErrorCode } from '@/common/types';
 
-/**
- * 系统初始化错误码 (10500-10599)
- */
 export const InitErrorCodes = {
   ALREADY_INITIALIZED: { code: 10500, message: '系统已初始化，请勿重复操作' },
   INIT_FAILED: { code: 10501, message: '初始化失败，请检查数据库连接或稍后重试' },
