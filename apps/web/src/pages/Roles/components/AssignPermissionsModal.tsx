@@ -116,7 +116,7 @@ export default function AssignPermissionsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex w-[20vw] h-[40vh] flex-col">
+      <DialogContent className="flex w-[40vw] h-[60vh] flex-col">
         <DialogHeader>
           <DialogTitle>权限配置</DialogTitle>
         </DialogHeader>
