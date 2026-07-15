@@ -103,7 +103,10 @@ export const galleryService = {
   },
 
   async getGalleryImageList(params: GetGalleryImageListRequest) {
-    return galleryRepository.getGalleryImageList(params.page, params.pageSize);
+    return galleryRepository.getGalleryImageList(params.page, params.pageSize, {
+      keyword: params.keyword,
+      storageLocationId: params.storageLocationId,
+    });
   },
 
   async deleteGalleryImage(id: number) {

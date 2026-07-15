@@ -3,6 +3,10 @@ import { HardDriveIcon, PencilIcon, PlusIcon, SearchIcon, Trash2Icon } from "luc
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
+import {
+  STORAGE_LOCATION_STATUS_BADGE_CLASSES,
+  STORAGE_LOCATION_STATUS_LABEL,
+} from "@dextea-admin/contracts"
 import type {
   CreateStorageLocationRequest,
   StorageLocation,
@@ -341,12 +345,11 @@ export default function StorageLocationsPage() {
                       <span
                         className={cn(
                           "rounded-md px-2 py-0.5 text-xs font-medium",
-                          loc.status === 1
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+                          STORAGE_LOCATION_STATUS_BADGE_CLASSES[loc.status] ??
+                            "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
                         )}
                       >
-                        {loc.status === 1 ? "启用" : "禁用"}
+                        {STORAGE_LOCATION_STATUS_LABEL[loc.status] ?? loc.status}
                       </span>
                     </TableCell>
                     <TableCell>

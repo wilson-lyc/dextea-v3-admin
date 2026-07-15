@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import {
   HardDriveIcon,
   ImageIcon,
-  SearchIcon,
   Trash2Icon,
   UploadIcon,
 } from "lucide-react"
@@ -50,12 +49,8 @@ interface UploadTask {
 export default function GalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([])
   const [loading, setLoading] = useState(true)
-  const [keyword, setKeyword] = useState("")
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
-
-  const keywordRef = useRef("")
-  keywordRef.current = keyword
 
   const [dragging, setDragging] = useState(false)
   const [tasks, setTasks] = useState<UploadTask[]>([])
@@ -71,11 +66,12 @@ export default function GalleryPage() {
   const fetchImages = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
-      const kw = keywordRef.current.trim()
       const res = await getGalleryImages({
         page: targetPage,
         pageSize: PAGE_SIZE,
-        ...(kw ? { keyword: kw } : {}),
+        ...(selectedLocationId != null
+          ? { storageLocationId: selectedLocationId }
+          : {}),
       })
       setImages(res.data.items)
       setTotal(res.data.total)
@@ -85,11 +81,11 @@ export default function GalleryPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [selectedLocationId])
 
   useEffect(() => {
     fetchImages(1)
-  }, [fetchImages])
+  }, [selectedLocationId, fetchImages])
 
   useEffect(() => {
     getStorageLocationOptions()
@@ -174,8 +170,6 @@ export default function GalleryPage() {
     handleFiles(e.dataTransfer.files)
   }
 
-  const handleSearch = () => fetchImages(1)
-
   const openDelete = (img: GalleryImage) => setDeleteTarget(img)
 
   const handleDelete = async () => {
@@ -206,18 +200,6 @@ export default function GalleryPage() {
           <p className="text-sm text-muted-foreground">
             管理图片资源，支持多图上传、缩略图预览与删除
           </p>
-        </div>
-        <div className="relative w-72">
-          <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            placeholder="按文件名搜索"
-            className="h-8 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSearch()
-            }}
-          />
         </div>
       </div>
 

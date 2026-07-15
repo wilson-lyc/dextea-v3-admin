@@ -41,6 +41,16 @@ export function getStorageLocationOptions() {
 }
 
 /**
+ * 获取存储位置详情
+ * GET /storage-locations/:id
+ */
+export function getStorageLocationById(id: number) {
+  return http
+    .get<ApiResponse<StorageLocation>>(`/storage-locations/${id}`)
+    .then((res) => res.data)
+}
+
+/**
  * 新增存储位置
  * POST /storage-locations
  */
