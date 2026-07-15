@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useState } from "react"
 import {
-  KeyRoundIcon,
-  PencilIcon,
   PlusIcon,
   SearchIcon,
   ShieldCheckIcon,
-  Trash2Icon,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -218,22 +215,20 @@ export default function RolesPage() {
           <TableRow key={role.id}>
             <TableCell className="font-mono text-xs">{role.id}</TableCell>
             <TableCell className="font-medium">{role.name}</TableCell>
-            <TableCell className="text-muted-foreground">{role.note || "—"}</TableCell>
+            <TableCell>{role.note || "—"}</TableCell>
             <TableCell>
               <span className={ROLE_STATUS_TEXT_CLASSES[role.status] ?? ""}>
                 {ROLE_STATUS_LABEL[role.status]}
               </span>
             </TableCell>
-            <TableCell className="text-muted-foreground">{role.createdAt}</TableCell>
+            <TableCell>{role.createdAt}</TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1">
                 <Button variant="outline" size="sm" onClick={() => openAssign(role)}>
-                  <KeyRoundIcon data-icon="inline-start" />
-                  分配权限
+                  管理权限
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => openEdit(role)}>
-                  <PencilIcon data-icon="inline-start" />
-                  编辑
+                  编辑角色
                 </Button>
                 <Button
                   variant={
@@ -244,14 +239,13 @@ export default function RolesPage() {
                   size="sm"
                   onClick={() => openToggleStatus(role)}
                 >
-                  {role.status === ROLE_STATUS.ACTIVE.value ? "禁用" : "启用"}
+                  {role.status === ROLE_STATUS.ACTIVE.value ? "禁用" : "激活"}
                 </Button>
                 <Button
                   variant="outline-destructive"
                   size="sm"
                   onClick={() => openDelete(role)}
                 >
-                  <Trash2Icon data-icon="inline-start" />
                   删除
                 </Button>
               </div>
