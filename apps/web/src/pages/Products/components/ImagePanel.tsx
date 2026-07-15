@@ -1,19 +1,23 @@
-import { useCallback, useEffect, useRef, useState } from "react"
-import { ImageIcon, Trash2Icon, UploadIcon } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
+import { ImageIcon, ImagesIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import type {
+  GalleryImage,
   ProductImage,
   GetProductImagesResponse,
   SetProductImagesRequest,
 } from "@/api"
-import { getProductImages, setProductImages, uploadGalleryImage } from "@/api"
+import { getProductImages, setProductImages } from "@/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
+import GalleryPicker from "@/components/GalleryPicker"
 
 const MAX_GALLERY = 10
+
+type PickerMode = "cover" | "gallery" | null
 
 interface ImagePanelProps {
   productId: number
@@ -27,27 +31,16 @@ function ImageThumb({ src, alt }: { src: string; alt: string }) {
   )
 }
 
-function toProductImage(
-  data: Awaited<ReturnType<typeof uploadGalleryImage>>["data"],
-): ProductImage {
-  return {
-    id: data.id,
-    url: data.url,
-    createdAt: data.createdAt,
-  }
-}
-
 export default function ImagePanel({ productId }: ImagePanelProps) {
   const [initial, setInitial] = useState<GetProductImagesResponse | null>(null)
   const [cover, setCover] = useState<ProductImage | null>(null)
   const [gallery, setGallery] = useState<ProductImage[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [uploading, setUploading] = useState(false)
 
   const [removeCoverOpen, setRemoveCoverOpen] = useState(false)
-  const coverInputRef = useRef<HTMLInputElement>(null)
-  const galleryInputRef = useRef<HTMLInputElement>(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [pickerMode, setPickerMode] = useState<PickerMode>(null)
 
   const fetchImages = useCallback(async () => {
     setLoading(true)
@@ -78,53 +71,26 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
       initial.gallery.map((i) => i.id).join(",") !==
         gallery.map((i) => i.id).join(","))
 
-  const uploadAndMap = async (file: File): Promise<ProductImage | null> => {
-    setUploading(true)
-    try {
-      const res = await uploadGalleryImage(file)
-      if (res.code === 0) {
-        return toProductImage(res.data)
+  const openPicker = (mode: Exclude<PickerMode, null>) => {
+    setPickerMode(mode)
+    setPickerOpen(true)
+  }
+
+  const handlePickerConfirm = (images: GalleryImage[]) => {
+    if (pickerMode === "cover") {
+      const img = images[0]
+      if (img) {
+        setCover(img)
+        toast.success("封面已选择，记得点击「保存」")
       }
-      toast.error(res.message)
-      return null
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "上传失败")
-      return null
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  const handleCoverFile = async (file: File) => {
-    const image = await uploadAndMap(file)
-    if (image) {
-      setCover(image)
-      toast.success("封面上传成功，记得点击「保存」")
-    }
-  }
-
-  const handleGalleryFile = async (file: File) => {
-    if (gallery.length >= MAX_GALLERY) {
-      toast.error(`图库最多 ${MAX_GALLERY} 张`)
-      return
-    }
-    const image = await uploadAndMap(file)
-    if (image) {
-      setGallery((prev) => [...prev, image])
+    } else if (pickerMode === "gallery") {
+      setGallery((prev) => {
+        const existing = new Set(prev.map((i) => i.id))
+        const added = images.filter((i) => !existing.has(i.id))
+        return [...prev, ...added]
+      })
       toast.success("图片已添加，记得点击「保存」")
     }
-  }
-
-  const onCoverInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) void handleCoverFile(file)
-    e.target.value = ""
-  }
-
-  const onGalleryInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) void handleGalleryFile(file)
-    e.target.value = ""
   }
 
   const moveGallery = (index: number, dir: -1 | 1) => {
@@ -182,7 +148,7 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
             <div>
               <h3 className="text-sm font-medium">封面图</h3>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                有且仅有一张，可暂时不设置，后期在此补传
+                有且仅有一张，可暂时不设置，后期在图库中选择
               </p>
             </div>
             {cover && (
@@ -190,10 +156,9 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => coverInputRef.current?.click()}
-                  disabled={uploading}
+                  onClick={() => openPicker("cover")}
                 >
-                  <UploadIcon data-icon="inline-start" />
+                  <ImagesIcon data-icon="inline-start" />
                   更换封面
                 </Button>
                 <Button
@@ -213,13 +178,12 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
           ) : (
             <button
               type="button"
-              onClick={() => coverInputRef.current?.click()}
-              disabled={uploading}
+              onClick={() => openPicker("cover")}
               className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-10 text-center transition-colors hover:border-primary/50"
             >
-              <UploadIcon className="size-7 text-muted-foreground" />
-              <span className="text-sm font-medium">点击上传封面图</span>
-              <span className="text-xs text-muted-foreground">仅支持图片格式，单文件最大 10MB</span>
+              <ImagesIcon className="size-7 text-muted-foreground" />
+              <span className="text-sm font-medium">从图库选择封面图</span>
+              <span className="text-xs text-muted-foreground">从已上传的图库中选择一张作为封面</span>
             </button>
           )}
         </CardContent>
@@ -238,11 +202,11 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => galleryInputRef.current?.click()}
-              disabled={uploading || gallery.length >= MAX_GALLERY}
+              onClick={() => openPicker("gallery")}
+              disabled={gallery.length >= MAX_GALLERY}
             >
-              <UploadIcon data-icon="inline-start" />
-              添加图片
+              <ImagesIcon data-icon="inline-start" />
+              从图库添加
             </Button>
           </div>
 
@@ -295,25 +259,20 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
       {/* 保存栏 */}
       <div className="flex items-center justify-end gap-3">
         {dirty && <span className="text-xs text-muted-foreground">有未保存的修改</span>}
-        <Button onClick={handleSave} disabled={!dirty || saving || uploading}>
+        <Button onClick={handleSave} disabled={!dirty || saving}>
           {saving ? "保存中…" : "保存图片设置"}
         </Button>
       </div>
 
-      {/* 隐藏的文件选择器 */}
-      <input
-        ref={coverInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={onCoverInputChange}
-      />
-      <input
-        ref={galleryInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={onGalleryInputChange}
+      {/* 图库选择器 */}
+      <GalleryPicker
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        multiple={pickerMode === "gallery"}
+        disabledIds={pickerMode === "gallery" ? gallery.map((i) => i.id) : []}
+        maxSelect={pickerMode === "gallery" ? MAX_GALLERY - gallery.length : undefined}
+        title={pickerMode === "gallery" ? "从图库选择图片" : "从图库选择封面"}
+        onConfirm={handlePickerConfirm}
       />
 
       {/* 移除封面确认 */}
