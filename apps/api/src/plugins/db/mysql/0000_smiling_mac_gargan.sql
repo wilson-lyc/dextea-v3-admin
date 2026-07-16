@@ -1,3 +1,6 @@
+-- Current sql file was generated after introspecting the database
+-- If you want to run this migration please uncomment this code before executing migrations
+/*
 CREATE TABLE `config` (
 	`id` serial AUTO_INCREMENT NOT NULL,
 	`key` varchar(255) NOT NULL,
@@ -5,19 +8,28 @@ CREATE TABLE `config` (
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT `config_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`),
 	CONSTRAINT `config_key_unique` UNIQUE(`key`)
 );
 --> statement-breakpoint
 CREATE TABLE `customers` (
 	`id` serial AUTO_INCREMENT NOT NULL,
-	`source` tinyint NOT NULL,
-	`open_id` varchar(255) NOT NULL,
-	`nickname` varchar(255) NOT NULL,
+	`name` varchar(255),
+	`email` varchar(255),
+	`phone` varchar(50),
+	`password` varchar(255),
+	`platform` tinyint NOT NULL,
+	`weixin_open_id` varchar(255),
+	`alipay_open_id` varchar(255),
+	`status` tinyint NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT `customers_id` PRIMARY KEY(`id`),
-	CONSTRAINT `uq_customers_source_openid` UNIQUE(`source`,`open_id`),
-	CONSTRAINT `uq_customers_openid` UNIQUE(`open_id`)
+	CONSTRAINT `id` UNIQUE(`id`),
+	CONSTRAINT `uq_customers_email` UNIQUE(`email`),
+	CONSTRAINT `uq_customers_phone` UNIQUE(`phone`),
+	CONSTRAINT `uq_customers_weixin_open_id` UNIQUE(`weixin_open_id`),
+	CONSTRAINT `uq_customers_alipay_open_id` UNIQUE(`alipay_open_id`)
 );
 --> statement-breakpoint
 CREATE TABLE `customization_option_store_status` (
@@ -26,7 +38,7 @@ CREATE TABLE `customization_option_store_status` (
 	`status` tinyint NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT `pk_customization_option_store_status` PRIMARY KEY(`customization_option_id`,`store_id`)
+	CONSTRAINT `customization_option_store_status_customization_option_id_store_id` PRIMARY KEY(`customization_option_id`,`store_id`)
 );
 --> statement-breakpoint
 CREATE TABLE `customization_options` (
@@ -40,7 +52,8 @@ CREATE TABLE `customization_options` (
 	`ingredient_quantity` double NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT `customization_options_id` PRIMARY KEY(`id`)
+	CONSTRAINT `customization_options_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `customizations` (
@@ -51,13 +64,14 @@ CREATE TABLE `customizations` (
 	`status` tinyint NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT `customizations_id` PRIMARY KEY(`id`)
+	CONSTRAINT `customizations_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `employee_roles` (
 	`employee_id` bigint unsigned NOT NULL,
 	`role_id` bigint unsigned NOT NULL,
-	CONSTRAINT `pk_employee_roles` PRIMARY KEY(`employee_id`,`role_id`)
+	CONSTRAINT `employee_roles_employee_id_role_id` PRIMARY KEY(`employee_id`,`role_id`)
 );
 --> statement-breakpoint
 CREATE TABLE `employees` (
@@ -69,15 +83,18 @@ CREATE TABLE `employees` (
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT `employees_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`),
 	CONSTRAINT `employees_email_unique` UNIQUE(`email`)
 );
 --> statement-breakpoint
-CREATE TABLE `gallery_images` (
+CREATE TABLE `gallery` (
 	`id` serial AUTO_INCREMENT NOT NULL,
 	`url` varchar(1024) NOT NULL,
 	`object_key` varchar(512) NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
-	CONSTRAINT `gallery_images_id` PRIMARY KEY(`id`)
+	`name` varchar(255) NOT NULL DEFAULT '',
+	CONSTRAINT `gallery_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `ingredients` (
@@ -87,7 +104,8 @@ CREATE TABLE `ingredients` (
 	`status` tinyint NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT `ingredients_id` PRIMARY KEY(`id`)
+	CONSTRAINT `ingredients_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `menu_groups` (
@@ -97,7 +115,8 @@ CREATE TABLE `menu_groups` (
 	`sort` int NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT `menu_groups_id` PRIMARY KEY(`id`)
+	CONSTRAINT `menu_groups_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `menu_products` (
@@ -106,7 +125,7 @@ CREATE TABLE `menu_products` (
 	`sort` int NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT `pk_menu_products` PRIMARY KEY(`group_id`,`product_id`)
+	CONSTRAINT `menu_products_group_id_product_id` PRIMARY KEY(`group_id`,`product_id`)
 );
 --> statement-breakpoint
 CREATE TABLE `menus` (
@@ -115,7 +134,8 @@ CREATE TABLE `menus` (
 	`description` varchar(500) NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT `menus_id` PRIMARY KEY(`id`)
+	CONSTRAINT `menus_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `order_items` (
@@ -128,6 +148,7 @@ CREATE TABLE `order_items` (
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT `order_items_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`),
 	CONSTRAINT `uq_order_items_order_sku` UNIQUE(`order_id`,`sku_id`)
 );
 --> statement-breakpoint
@@ -145,6 +166,7 @@ CREATE TABLE `orders` (
 	`refunded_at` timestamp,
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT `orders_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`),
 	CONSTRAINT `orders_order_no_unique` UNIQUE(`order_no`)
 );
 --> statement-breakpoint
@@ -156,6 +178,7 @@ CREATE TABLE `permissions` (
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT `permissions_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`),
 	CONSTRAINT `permissions_key_unique` UNIQUE(`key`)
 );
 --> statement-breakpoint
@@ -166,7 +189,7 @@ CREATE TABLE `product_images` (
 	`sort` int NOT NULL DEFAULT 0,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT `pk_product_images` PRIMARY KEY(`product_id`,`image_id`,`type`)
+	CONSTRAINT `product_images_product_id_image_id_type` PRIMARY KEY(`product_id`,`image_id`,`type`)
 );
 --> statement-breakpoint
 CREATE TABLE `product_ingredients` (
@@ -176,7 +199,7 @@ CREATE TABLE `product_ingredients` (
 	`sort` int NOT NULL DEFAULT 0,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT `pk_product_ingredients` PRIMARY KEY(`product_id`,`ingredient_id`)
+	CONSTRAINT `product_ingredients_product_id_ingredient_id` PRIMARY KEY(`product_id`,`ingredient_id`)
 );
 --> statement-breakpoint
 CREATE TABLE `product_store_status` (
@@ -185,13 +208,13 @@ CREATE TABLE `product_store_status` (
 	`status` tinyint NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT `pk_product_store_status` PRIMARY KEY(`product_id`,`store_id`)
+	CONSTRAINT `product_store_status_product_id_store_id` PRIMARY KEY(`product_id`,`store_id`)
 );
 --> statement-breakpoint
 CREATE TABLE `product_tag_map` (
 	`product_id` bigint unsigned NOT NULL,
 	`tag_id` bigint unsigned NOT NULL,
-	CONSTRAINT `pk_product_tag_map` PRIMARY KEY(`product_id`,`tag_id`)
+	CONSTRAINT `product_tag_map_product_id_tag_id` PRIMARY KEY(`product_id`,`tag_id`)
 );
 --> statement-breakpoint
 CREATE TABLE `product_tags` (
@@ -200,6 +223,7 @@ CREATE TABLE `product_tags` (
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT `product_tags_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`),
 	CONSTRAINT `product_tags_name_unique` UNIQUE(`name`)
 );
 --> statement-breakpoint
@@ -212,13 +236,14 @@ CREATE TABLE `products` (
 	`price` double NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT `products_id` PRIMARY KEY(`id`)
+	CONSTRAINT `products_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `role_permissions` (
 	`role_id` bigint unsigned NOT NULL,
 	`permission_id` bigint unsigned NOT NULL,
-	CONSTRAINT `pk_role_permissions` PRIMARY KEY(`role_id`,`permission_id`)
+	CONSTRAINT `role_permissions_role_id_permission_id` PRIMARY KEY(`role_id`,`permission_id`)
 );
 --> statement-breakpoint
 CREATE TABLE `roles` (
@@ -229,6 +254,7 @@ CREATE TABLE `roles` (
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT `roles_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`),
 	CONSTRAINT `roles_name_unique` UNIQUE(`name`)
 );
 --> statement-breakpoint
@@ -238,14 +264,14 @@ CREATE TABLE `store_ingredients` (
 	`quantity` double NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT `pk_store_ingredients` PRIMARY KEY(`ingredient_id`,`store_id`)
+	CONSTRAINT `store_ingredients_ingredient_id_store_id` PRIMARY KEY(`ingredient_id`,`store_id`)
 );
 --> statement-breakpoint
 CREATE TABLE `store_menus` (
 	`store_id` bigint unsigned NOT NULL,
 	`menu_id` bigint unsigned NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
-	CONSTRAINT `pk_store_menus` PRIMARY KEY(`store_id`,`menu_id`)
+	CONSTRAINT `store_menus_store_id_menu_id` PRIMARY KEY(`store_id`,`menu_id`)
 );
 --> statement-breakpoint
 CREATE TABLE `stores` (
@@ -264,5 +290,8 @@ CREATE TABLE `stores` (
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT `stores_id` PRIMARY KEY(`id`),
+	CONSTRAINT `id` UNIQUE(`id`),
 	CONSTRAINT `stores_account_unique` UNIQUE(`account`)
 );
+
+*/

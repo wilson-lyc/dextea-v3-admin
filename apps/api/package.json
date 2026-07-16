@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "typecheck": "pnpm -C ../../packages/contracts build && tsc --noEmit",
     "db:push": "drizzle-kit push",
+    "db:pull": "drizzle-kit pull",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:drop": "drizzle-kit drop",

@@ -1,53 +1,51 @@
 {
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
   "version": "5",
   "dialect": "mysql",
-  "id": "93dbbd2b-540a-457e-92d5-69330b2f511a",
-  "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "config": {
       "name": "config",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "key": {
+          "autoincrement": false,
           "name": "key",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "value": {
+          "autoincrement": false,
           "name": "value",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "config_id": {
           "name": "config_id",
@@ -56,7 +54,15 @@
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        },
         "config_key_unique": {
           "name": "config_key_unique",
           "columns": [
@@ -70,69 +76,86 @@
       "name": "customers",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
-        "source": {
-          "name": "source",
+        "name": {
+          "autoincrement": false,
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "autoincrement": false,
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phone": {
+          "autoincrement": false,
+          "name": "phone",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "password": {
+          "autoincrement": false,
+          "name": "password",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "platform": {
+          "autoincrement": false,
+          "name": "platform",
           "type": "tinyint",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
-        "open_id": {
-          "name": "open_id",
+        "weixin_open_id": {
+          "autoincrement": false,
+          "name": "weixin_open_id",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": false
         },
-        "nickname": {
-          "name": "nickname",
+        "alipay_open_id": {
+          "autoincrement": false,
+          "name": "alipay_open_id",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": false
+        },
+        "status": {
+          "autoincrement": false,
+          "name": "status",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {
-        "uq_customers_source_openid": {
-          "name": "uq_customers_source_openid",
-          "columns": [
-            "source",
-            "open_id"
-          ],
-          "isUnique": true
-        },
-        "uq_customers_openid": {
-          "name": "uq_customers_openid",
-          "columns": [
-            "open_id"
-          ],
-          "isUnique": true
-        }
-      },
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "customers_id": {
           "name": "customers_id",
@@ -141,62 +164,95 @@
           ]
         }
       },
-      "uniqueConstraints": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        },
+        "uq_customers_email": {
+          "name": "uq_customers_email",
+          "columns": [
+            "email"
+          ]
+        },
+        "uq_customers_phone": {
+          "name": "uq_customers_phone",
+          "columns": [
+            "phone"
+          ]
+        },
+        "uq_customers_weixin_open_id": {
+          "name": "uq_customers_weixin_open_id",
+          "columns": [
+            "weixin_open_id"
+          ]
+        },
+        "uq_customers_alipay_open_id": {
+          "name": "uq_customers_alipay_open_id",
+          "columns": [
+            "alipay_open_id"
+          ]
+        }
+      },
       "checkConstraint": {}
     },
     "customization_option_store_status": {
       "name": "customization_option_store_status",
       "columns": {
         "customization_option_id": {
+          "autoincrement": false,
           "name": "customization_option_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "store_id": {
+          "autoincrement": false,
           "name": "store_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "status": {
+          "autoincrement": false,
           "name": "status",
           "type": "tinyint",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
-        "pk_customization_option_store_status": {
-          "name": "pk_customization_option_store_status",
+        "customization_option_store_status_customization_option_id_store_id": {
+          "name": "customization_option_store_status_customization_option_id_store_id",
           "columns": [
             "customization_option_id",
             "store_id"
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -204,81 +260,79 @@
       "name": "customization_options",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "customization_id": {
+          "autoincrement": false,
           "name": "customization_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "name": {
+          "autoincrement": false,
           "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "price": {
+          "autoincrement": false,
           "name": "price",
           "type": "double",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "sort": {
+          "autoincrement": false,
           "name": "sort",
           "type": "tinyint",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "status": {
+          "autoincrement": false,
           "name": "status",
           "type": "tinyint",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "ingredient_id": {
+          "autoincrement": false,
           "name": "ingredient_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": false
         },
         "ingredient_quantity": {
+          "autoincrement": false,
           "name": "ingredient_quantity",
           "type": "double",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "customization_options_id": {
           "name": "customization_options_id",
@@ -287,68 +341,75 @@
           ]
         }
       },
-      "uniqueConstraints": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
       "checkConstraint": {}
     },
     "customizations": {
       "name": "customizations",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "product_id": {
+          "autoincrement": false,
           "name": "product_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "name": {
+          "autoincrement": false,
           "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "sort": {
+          "default": 0,
+          "autoincrement": false,
           "name": "sort",
           "type": "int",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
+          "notNull": true
         },
         "status": {
+          "autoincrement": false,
           "name": "status",
           "type": "tinyint",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "customizations_id": {
           "name": "customizations_id",
@@ -357,38 +418,47 @@
           ]
         }
       },
-      "uniqueConstraints": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
       "checkConstraint": {}
     },
     "employee_roles": {
       "name": "employee_roles",
       "columns": {
         "employee_id": {
+          "autoincrement": false,
           "name": "employee_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "role_id": {
+          "autoincrement": false,
           "name": "role_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
-        "pk_employee_roles": {
-          "name": "pk_employee_roles",
+        "employee_roles_employee_id_role_id": {
+          "name": "employee_roles_employee_id_role_id",
           "columns": [
             "employee_id",
             "role_id"
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -396,60 +466,58 @@
       "name": "employees",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "email": {
+          "autoincrement": false,
           "name": "email",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "password": {
+          "autoincrement": false,
           "name": "password",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "display_name": {
+          "autoincrement": false,
           "name": "display_name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "status": {
+          "autoincrement": false,
           "name": "status",
           "type": "tinyint",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "employees_id": {
           "name": "employees_id",
@@ -458,7 +526,15 @@
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        },
         "employees_email_unique": {
           "name": "employees_email_unique",
           "columns": [
@@ -468,103 +544,116 @@
       },
       "checkConstraint": {}
     },
-    "gallery_images": {
-      "name": "gallery_images",
+    "gallery": {
+      "name": "gallery",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "url": {
+          "autoincrement": false,
           "name": "url",
           "type": "varchar(1024)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "object_key": {
+          "autoincrement": false,
           "name": "object_key",
           "type": "varchar(512)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": true
+        },
+        "name": {
+          "default": "''",
           "autoincrement": false,
-          "default": "(now())"
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
-        "gallery_images_id": {
-          "name": "gallery_images_id",
+        "gallery_id": {
+          "name": "gallery_id",
           "columns": [
             "id"
           ]
         }
       },
-      "uniqueConstraints": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
       "checkConstraint": {}
     },
     "ingredients": {
       "name": "ingredients",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "name": {
+          "autoincrement": false,
           "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "unit": {
+          "autoincrement": false,
           "name": "unit",
           "type": "varchar(50)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "status": {
+          "autoincrement": false,
           "name": "status",
           "type": "tinyint",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "ingredients_id": {
           "name": "ingredients_id",
@@ -573,60 +662,67 @@
           ]
         }
       },
-      "uniqueConstraints": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
       "checkConstraint": {}
     },
     "menu_groups": {
       "name": "menu_groups",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "menu_id": {
+          "autoincrement": false,
           "name": "menu_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "name": {
+          "autoincrement": false,
           "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "sort": {
+          "autoincrement": false,
           "name": "sort",
           "type": "int",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "menu_groups_id": {
           "name": "menu_groups_id",
@@ -635,62 +731,71 @@
           ]
         }
       },
-      "uniqueConstraints": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
       "checkConstraint": {}
     },
     "menu_products": {
       "name": "menu_products",
       "columns": {
         "group_id": {
+          "autoincrement": false,
           "name": "group_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "product_id": {
+          "autoincrement": false,
           "name": "product_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "sort": {
+          "autoincrement": false,
           "name": "sort",
           "type": "int",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
-        "pk_menu_products": {
-          "name": "pk_menu_products",
+        "menu_products_group_id_product_id": {
+          "name": "menu_products_group_id_product_id",
           "columns": [
             "group_id",
             "product_id"
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -698,46 +803,44 @@
       "name": "menus",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "name": {
+          "autoincrement": false,
           "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "description": {
+          "autoincrement": false,
           "name": "description",
           "type": "varchar(500)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "menus_id": {
           "name": "menus_id",
@@ -746,83 +849,81 @@
           ]
         }
       },
-      "uniqueConstraints": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
       "checkConstraint": {}
     },
     "order_items": {
       "name": "order_items",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "order_id": {
+          "autoincrement": false,
           "name": "order_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "product_id": {
+          "autoincrement": false,
           "name": "product_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "sku_id": {
+          "autoincrement": false,
           "name": "sku_id",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "unit_price": {
+          "autoincrement": false,
           "name": "unit_price",
           "type": "double",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "quantity": {
+          "autoincrement": false,
           "name": "quantity",
           "type": "int",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {
-        "uq_order_items_order_sku": {
-          "name": "uq_order_items_order_sku",
-          "columns": [
-            "order_id",
-            "sku_id"
-          ],
-          "isUnique": true
-        }
-      },
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "order_items_id": {
           "name": "order_items_id",
@@ -831,102 +932,116 @@
           ]
         }
       },
-      "uniqueConstraints": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        },
+        "uq_order_items_order_sku": {
+          "name": "uq_order_items_order_sku",
+          "columns": [
+            "order_id",
+            "sku_id"
+          ]
+        }
+      },
       "checkConstraint": {}
     },
     "orders": {
       "name": "orders",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "order_no": {
+          "autoincrement": false,
           "name": "order_no",
           "type": "varchar(64)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "customer_id": {
+          "autoincrement": false,
           "name": "customer_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "store_id": {
+          "autoincrement": false,
           "name": "store_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "status": {
+          "autoincrement": false,
           "name": "status",
           "type": "tinyint",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "price": {
+          "autoincrement": false,
           "name": "price",
           "type": "double",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "pay_method": {
+          "autoincrement": false,
           "name": "pay_method",
           "type": "tinyint",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": false
         },
         "remark": {
+          "autoincrement": false,
           "name": "remark",
           "type": "varchar(500)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "paid_at": {
+          "autoincrement": false,
           "name": "paid_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": false
         },
         "refunded_at": {
+          "autoincrement": false,
           "name": "refunded_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": false
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "orders_id": {
           "name": "orders_id",
@@ -935,7 +1050,15 @@
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        },
         "orders_order_no_unique": {
           "name": "orders_order_no_unique",
           "columns": [
@@ -949,53 +1072,51 @@
       "name": "permissions",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "key": {
+          "autoincrement": false,
           "name": "key",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "name": {
+          "autoincrement": false,
           "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "note": {
+          "autoincrement": false,
           "name": "note",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": false
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "permissions_id": {
           "name": "permissions_id",
@@ -1004,7 +1125,15 @@
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        },
         "permissions_key_unique": {
           "name": "permissions_key_unique",
           "columns": [
@@ -1018,57 +1147,55 @@
       "name": "product_images",
       "columns": {
         "product_id": {
+          "autoincrement": false,
           "name": "product_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "image_id": {
+          "autoincrement": false,
           "name": "image_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "type": {
+          "autoincrement": false,
           "name": "type",
           "type": "tinyint",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "sort": {
+          "default": 0,
+          "autoincrement": false,
           "name": "sort",
           "type": "int",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
-        "pk_product_images": {
-          "name": "pk_product_images",
+        "product_images_product_id_image_id_type": {
+          "name": "product_images_product_id_image_id_type",
           "columns": [
             "product_id",
             "image_id",
@@ -1076,6 +1203,8 @@
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -1083,63 +1212,63 @@
       "name": "product_ingredients",
       "columns": {
         "product_id": {
+          "autoincrement": false,
           "name": "product_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "ingredient_id": {
+          "autoincrement": false,
           "name": "ingredient_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "quantity": {
+          "autoincrement": false,
           "name": "quantity",
           "type": "double",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "sort": {
+          "default": 0,
+          "autoincrement": false,
           "name": "sort",
           "type": "int",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
-        "pk_product_ingredients": {
-          "name": "pk_product_ingredients",
+        "product_ingredients_product_id_ingredient_id": {
+          "name": "product_ingredients_product_id_ingredient_id",
           "columns": [
             "product_id",
             "ingredient_id"
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -1147,55 +1276,55 @@
       "name": "product_store_status",
       "columns": {
         "product_id": {
+          "autoincrement": false,
           "name": "product_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "store_id": {
+          "autoincrement": false,
           "name": "store_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "status": {
+          "autoincrement": false,
           "name": "status",
           "type": "tinyint",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
-        "pk_product_store_status": {
-          "name": "pk_product_store_status",
+        "product_store_status_product_id_store_id": {
+          "name": "product_store_status_product_id_store_id",
           "columns": [
             "product_id",
             "store_id"
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -1203,31 +1332,31 @@
       "name": "product_tag_map",
       "columns": {
         "product_id": {
+          "autoincrement": false,
           "name": "product_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "tag_id": {
+          "autoincrement": false,
           "name": "tag_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
-        "pk_product_tag_map": {
-          "name": "pk_product_tag_map",
+        "product_tag_map_product_id_tag_id": {
+          "name": "product_tag_map_product_id_tag_id",
           "columns": [
             "product_id",
             "tag_id"
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -1235,39 +1364,37 @@
       "name": "product_tags",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "name": {
+          "autoincrement": false,
           "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "product_tags_id": {
           "name": "product_tags_id",
@@ -1276,7 +1403,15 @@
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        },
         "product_tags_name_unique": {
           "name": "product_tags_name_unique",
           "columns": [
@@ -1290,67 +1425,65 @@
       "name": "products",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "name": {
+          "autoincrement": false,
           "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "brief": {
+          "autoincrement": false,
           "name": "brief",
           "type": "varchar(500)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "description": {
+          "autoincrement": false,
           "name": "description",
           "type": "varchar(2000)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "status": {
+          "autoincrement": false,
           "name": "status",
           "type": "tinyint",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "price": {
+          "autoincrement": false,
           "name": "price",
           "type": "double",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "products_id": {
           "name": "products_id",
@@ -1359,38 +1492,47 @@
           ]
         }
       },
-      "uniqueConstraints": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
       "checkConstraint": {}
     },
     "role_permissions": {
       "name": "role_permissions",
       "columns": {
         "role_id": {
+          "autoincrement": false,
           "name": "role_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "permission_id": {
+          "autoincrement": false,
           "name": "permission_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
-        "pk_role_permissions": {
-          "name": "pk_role_permissions",
+        "role_permissions_role_id_permission_id": {
+          "name": "role_permissions_role_id_permission_id",
           "columns": [
             "role_id",
             "permission_id"
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -1398,53 +1540,51 @@
       "name": "roles",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "name": {
+          "autoincrement": false,
           "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "note": {
+          "autoincrement": false,
           "name": "note",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "notNull": false
         },
         "status": {
+          "autoincrement": false,
           "name": "status",
           "type": "tinyint",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "roles_id": {
           "name": "roles_id",
@@ -1453,7 +1593,15 @@
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        },
         "roles_name_unique": {
           "name": "roles_name_unique",
           "columns": [
@@ -1467,55 +1615,55 @@
       "name": "store_ingredients",
       "columns": {
         "ingredient_id": {
+          "autoincrement": false,
           "name": "ingredient_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "store_id": {
+          "autoincrement": false,
           "name": "store_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "quantity": {
+          "autoincrement": false,
           "name": "quantity",
           "type": "double",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
-        "pk_store_ingredients": {
-          "name": "pk_store_ingredients",
+        "store_ingredients_ingredient_id_store_id": {
+          "name": "store_ingredients_ingredient_id_store_id",
           "columns": [
             "ingredient_id",
             "store_id"
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -1523,39 +1671,39 @@
       "name": "store_menus",
       "columns": {
         "store_id": {
+          "autoincrement": false,
           "name": "store_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "menu_id": {
+          "autoincrement": false,
           "name": "menu_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
-        "pk_store_menus": {
-          "name": "pk_store_menus",
+        "store_menus_store_id_menu_id": {
+          "name": "store_menus_store_id_menu_id",
           "columns": [
             "store_id",
             "menu_id"
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
@@ -1563,109 +1711,107 @@
       "name": "stores",
       "columns": {
         "id": {
+          "autoincrement": true,
           "name": "id",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
+          "notNull": true
         },
         "name": {
+          "autoincrement": false,
           "name": "name",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "region_code": {
+          "autoincrement": false,
           "name": "region_code",
           "type": "varchar(6)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "address": {
+          "autoincrement": false,
           "name": "address",
           "type": "varchar(500)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "status": {
+          "autoincrement": false,
           "name": "status",
           "type": "tinyint",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "business_hours": {
+          "autoincrement": false,
           "name": "business_hours",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "phone": {
+          "autoincrement": false,
           "name": "phone",
           "type": "varchar(50)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "longitude": {
+          "autoincrement": false,
           "name": "longitude",
           "type": "double",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "latitude": {
+          "autoincrement": false,
           "name": "latitude",
           "type": "double",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "account": {
+          "autoincrement": false,
           "name": "account",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "password": {
+          "autoincrement": false,
           "name": "password",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "email": {
+          "autoincrement": false,
           "name": "email",
           "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
+          "notNull": true
         },
         "created_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
+          "notNull": true
         },
         "updated_at": {
+          "default": "(now())",
+          "autoincrement": false,
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "onUpdate": true
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {
         "stores_id": {
           "name": "stores_id",
@@ -1674,7 +1820,15 @@
           ]
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
       "uniqueConstraints": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "id"
+          ]
+        },
         "stores_account_unique": {
           "name": "stores_account_unique",
           "columns": [
@@ -1692,7 +1846,232 @@
     "columns": {}
   },
   "internal": {
-    "tables": {},
+    "tables": {
+      "config": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "customers": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "customization_option_store_status": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "customization_options": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "customizations": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "employees": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "gallery": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "ingredients": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "menu_groups": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "menu_products": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "menus": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "order_items": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "orders": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "permissions": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "product_images": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "product_ingredients": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "product_store_status": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "product_tags": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "products": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "roles": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "store_ingredients": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "store_menus": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "stores": {
+        "columns": {
+          "created_at": {
+            "isDefaultAnExpression": true
+          },
+          "updated_at": {
+            "isDefaultAnExpression": true
+          }
+        }
+      }
+    },
     "indexes": {}
   }
 }

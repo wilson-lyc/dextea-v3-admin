@@ -2,14 +2,14 @@ import { sql } from 'drizzle-orm';
 import type { AnyMySqlTable } from 'drizzle-orm/mysql-core';
 import { db } from '@/plugins/db/mysql/index.js';
 import {
-  employeesTable,
-  storesTable,
-  productsTable,
-  menusTable,
-  ingredientsTable,
-  productTagsTable,
-  customizationsTable,
-  ordersTable,
+  employees,
+  stores,
+  products,
+  menus,
+  ingredients,
+  productTags,
+  customizations,
+  orders,
 } from '@/plugins/db/mysql/schema.js';
 import type { DashboardStats } from '@dextea-admin/contracts';
 
@@ -31,18 +31,18 @@ export const dashboardRepository = {
       orderCount,
       storeStatusDistribution,
     ] = await Promise.all([
-      count(employeesTable),
-      count(storesTable),
-      count(productsTable),
-      count(menusTable),
-      count(ingredientsTable),
-      count(productTagsTable),
-      count(customizationsTable),
-      count(ordersTable),
+      count(employees),
+      count(stores),
+      count(products),
+      count(menus),
+      count(ingredients),
+      count(productTags),
+      count(customizations),
+      count(orders),
       db
-        .select({ status: storesTable.status, count: sql<number>`count(*)` })
-        .from(storesTable)
-        .groupBy(storesTable.status)
+        .select({ status: stores.status, count: sql<number>`count(*)` })
+        .from(stores)
+        .groupBy(stores.status)
         .then((rows) =>
           rows.map((r) => ({ status: r.status, count: Number(r.count) })),
         ),

@@ -3,12 +3,12 @@ import { db } from '@/plugins/db/mysql/index.js';
 import { BizError } from '@/common/exceptions/index.js';
 import { InitErrorCodes } from './init.errorcode.js';
 import {
-  configTable,
-  employeesTable,
-  rolesTable,
-  permissionsTable,
-  rolePermissionsTable,
-  employeeRolesTable,
+  config,
+  employees,
+  roles,
+  permissions,
+  rolePermissions,
+  employeeRoles,
 } from '@/plugins/db/mysql/schema.js';
 import { PRESET_PERMISSIONS, PRESET_ROLES } from './init.presets.js';
 
@@ -29,8 +29,8 @@ export const initRepository = {
   async getInitStatus() {
     const rows = await db
       .select()
-      .from(configTable)
-      .where(eq(configTable.key, 'Initialized'))
+      .from(config)
+      .where(eq(config.key, 'Initialized'))
       .limit(1);
     return rows[0] ?? null;
   },
@@ -38,8 +38,8 @@ export const initRepository = {
   async getEmployeeByEmail(tx: DbTx, email: string) {
     const rows = await tx
       .select()
-      .from(employeesTable)
-      .where(eq(employeesTable.email, email))
+      .from(employees)
+      .where(eq(employees.email, email))
       .limit(1);
     return rows[0] ?? null;
   },
@@ -51,7 +51,7 @@ export const initRepository = {
    */
   async claimInitFlag(tx: DbTx) {
     try {
-      await tx.insert(configTable).values({
+      await tx.insert(config).values({
         key: 'Initialized',
         value: 'true',
       });
@@ -67,7 +67,7 @@ export const initRepository = {
     tx: DbTx,
     data: { email: string; password: string; displayName: string; status: number },
   ) {
-    const result = await tx.insert(employeesTable).values(data);
+    const result = await tx.insert(employees).values(data);
     return Number(result[0]?.insertId ?? 0);
   },
 
@@ -80,9 +80,9 @@ export const initRepository = {
 
     for (const p of PRESET_PERMISSIONS) {
       const existing = await tx
-        .select({ id: permissionsTable.id })
-        .from(permissionsTable)
-        .where(eq(permissionsTable.key, p.key))
+        .select({ id: permissions.id })
+        .from(permissions)
+        .where(eq(permissions.key, p.key))
         .limit(1);
 
       if (existing.length > 0) {
@@ -91,7 +91,7 @@ export const initRepository = {
       }
 
       const result = await tx
-        .insert(permissionsTable)
+        .insert(permissions)
         .values({ key: p.key, name: p.name, note: p.note });
       keyToId.set(p.key, Number(result[0]?.insertId ?? 0));
     }
@@ -108,9 +108,9 @@ export const initRepository = {
 
     for (const r of PRESET_ROLES) {
       const existing = await tx
-        .select({ id: rolesTable.id })
-        .from(rolesTable)
-        .where(eq(rolesTable.name, r.name))
+        .select({ id: roles.id })
+        .from(roles)
+        .where(eq(roles.name, r.name))
         .limit(1);
 
       let roleId: number;
@@ -118,7 +118,7 @@ export const initRepository = {
         roleId = existing[0]!.id;
       } else {
         const result = await tx
-          .insert(rolesTable)
+          .insert(roles)
           .values({ name: r.name, note: r.note, status: r.status });
         roleId = Number(result[0]?.insertId ?? 0);
       }
@@ -130,15 +130,15 @@ export const initRepository = {
       if (permissionIds.length === 0) continue;
 
       const bound = await tx
-        .select({ permissionId: rolePermissionsTable.permissionId })
-        .from(rolePermissionsTable)
-        .where(eq(rolePermissionsTable.roleId, roleId));
+        .select({ permissionId: rolePermissions.permissionId })
+        .from(rolePermissions)
+        .where(eq(rolePermissions.roleId, roleId));
       const existingIds = new Set(bound.map((b) => b.permissionId));
       const toAdd = permissionIds.filter((id) => !existingIds.has(id));
 
       if (toAdd.length > 0) {
         await tx
-          .insert(rolePermissionsTable)
+          .insert(rolePermissions)
           .values(toAdd.map((permissionId) => ({ roleId, permissionId })));
       }
     }
@@ -149,13 +149,13 @@ export const initRepository = {
   /** 将员工绑定到指定角色（幂等：已绑定则跳过，不覆盖） */
   async bindEmployeeRole(tx: DbTx, employeeId: number, roleId: number) {
     const bound = await tx
-      .select({ roleId: employeeRolesTable.roleId })
-      .from(employeeRolesTable)
-      .where(eq(employeeRolesTable.employeeId, employeeId))
+      .select({ roleId: employeeRoles.roleId })
+      .from(employeeRoles)
+      .where(eq(employeeRoles.employeeId, employeeId))
       .limit(1);
 
     if (bound.some((b) => b.roleId === roleId)) return;
 
-    await tx.insert(employeeRolesTable).values({ employeeId, roleId });
+    await tx.insert(employeeRoles).values({ employeeId, roleId });
   },
 };

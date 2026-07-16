@@ -1,11 +1,11 @@
 import { eq, sql } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
 import {
-  ingredientsTable,
-  productsTable,
-  productIngredientsTable,
-  customizationOptionsTable,
-  customizationsTable,
+  ingredients,
+  products,
+  productIngredients,
+  customizationOptions,
+  customizations,
 } from '@/plugins/db/mysql/schema.js';
 import { withPagination } from '@/utils';
 
@@ -21,26 +21,26 @@ export const ingredientRepository = {
 
     let query = db
       .select({
-        id: ingredientsTable.id,
-        name: ingredientsTable.name,
-        unit: ingredientsTable.unit,
-        status: ingredientsTable.status,
-        boundCount: sql<number>`(select count(*) from ${productIngredientsTable} where ${productIngredientsTable.ingredientId} = ${ingredientsTable.id})`,
-        optionCount: sql<number>`(select count(*) from ${customizationOptionsTable} where ${customizationOptionsTable.ingredientId} = ${ingredientsTable.id})`,
-        createdAt: ingredientsTable.createdAt,
-        updatedAt: ingredientsTable.updatedAt,
+        id: ingredients.id,
+        name: ingredients.name,
+        unit: ingredients.unit,
+        status: ingredients.status,
+        boundCount: sql<number>`(select count(*) from ${productIngredients} where ${productIngredients.ingredientId} = ${ingredients.id})`,
+        optionCount: sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.ingredientId} = ${ingredients.id})`,
+        createdAt: ingredients.createdAt,
+        updatedAt: ingredients.updatedAt,
       })
-      .from(ingredientsTable)
+      .from(ingredients)
       .$dynamic();
 
     let countQuery = db
       .select({ count: sql<number>`count(*)` })
-      .from(ingredientsTable)
+      .from(ingredients)
       .$dynamic();
 
     if (keyword) {
       const pattern = `%${keyword}%`;
-      const filter = sql`${ingredientsTable.name} like ${pattern}`;
+      const filter = sql`${ingredients.name} like ${pattern}`;
       query = query.where(filter);
       countQuery = countQuery.where(filter);
     }
@@ -48,7 +48,7 @@ export const ingredientRepository = {
     const items = await query
       .limit(pageSize)
       .offset(offset)
-      .orderBy(ingredientsTable.id);
+      .orderBy(ingredients.id);
 
     const countResult = await countQuery;
     const total = Number(countResult[0]?.count ?? 0);
@@ -59,17 +59,17 @@ export const ingredientRepository = {
   async getIngredientById(id: number) {
     const rows = await db
       .select({
-        id: ingredientsTable.id,
-        name: ingredientsTable.name,
-        unit: ingredientsTable.unit,
-        status: ingredientsTable.status,
-        boundCount: sql<number>`(select count(*) from ${productIngredientsTable} where ${productIngredientsTable.ingredientId} = ${ingredientsTable.id})`,
-        optionCount: sql<number>`(select count(*) from ${customizationOptionsTable} where ${customizationOptionsTable.ingredientId} = ${ingredientsTable.id})`,
-        createdAt: ingredientsTable.createdAt,
-        updatedAt: ingredientsTable.updatedAt,
+        id: ingredients.id,
+        name: ingredients.name,
+        unit: ingredients.unit,
+        status: ingredients.status,
+        boundCount: sql<number>`(select count(*) from ${productIngredients} where ${productIngredients.ingredientId} = ${ingredients.id})`,
+        optionCount: sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.ingredientId} = ${ingredients.id})`,
+        createdAt: ingredients.createdAt,
+        updatedAt: ingredients.updatedAt,
       })
-      .from(ingredientsTable)
-      .where(eq(ingredientsTable.id, id))
+      .from(ingredients)
+      .where(eq(ingredients.id, id))
       .limit(1);
     return rows[0] ?? null;
   },
@@ -77,22 +77,22 @@ export const ingredientRepository = {
   async getIngredientByName(name: string) {
     const rows = await db
       .select()
-      .from(ingredientsTable)
-      .where(eq(ingredientsTable.name, name))
+      .from(ingredients)
+      .where(eq(ingredients.name, name))
       .limit(1);
     return rows[0] ?? null;
   },
 
-  async createIngredient(data: typeof ingredientsTable.$inferInsert) {
-    const result = await db.insert(ingredientsTable).values(data);
+  async createIngredient(data: typeof ingredients.$inferInsert) {
+    const result = await db.insert(ingredients).values(data);
     return Number(result[0]?.insertId ?? 0);
   },
 
-  async updateIngredient(id: number, data: Partial<typeof ingredientsTable.$inferInsert>) {
+  async updateIngredient(id: number, data: Partial<typeof ingredients.$inferInsert>) {
     await db
-      .update(ingredientsTable)
+      .update(ingredients)
       .set(data)
-      .where(eq(ingredientsTable.id, id));
+      .where(eq(ingredients.id, id));
   },
 
   // ──── 绑定商品（只读查询） ────
@@ -103,21 +103,21 @@ export const ingredientRepository = {
 
     const baseQuery = db
       .select({
-        productId: productIngredientsTable.productId,
-        productName: productsTable.name,
-        quantity: productIngredientsTable.quantity,
-        sort: productIngredientsTable.sort,
+        productId: productIngredients.productId,
+        productName: products.name,
+        quantity: productIngredients.quantity,
+        sort: productIngredients.sort,
       })
-      .from(productIngredientsTable)
-      .innerJoin(productsTable, eq(productIngredientsTable.productId, productsTable.id))
-      .where(eq(productIngredientsTable.ingredientId, ingredientId))
-      .orderBy(productIngredientsTable.productId)
+      .from(productIngredients)
+      .innerJoin(products, eq(productIngredients.productId, products.id))
+      .where(eq(productIngredients.ingredientId, ingredientId))
+      .orderBy(productIngredients.productId)
       .$dynamic();
 
     const countQuery = db
       .select({ count: sql<number>`count(*)` })
-      .from(productIngredientsTable)
-      .where(eq(productIngredientsTable.ingredientId, ingredientId));
+      .from(productIngredients)
+      .where(eq(productIngredients.ingredientId, ingredientId));
 
     const [items, countResult] = await Promise.all([
       withPagination(baseQuery, page, pageSize),
@@ -136,21 +136,21 @@ export const ingredientRepository = {
 
     const baseQuery = db
       .select({
-        optionId: customizationOptionsTable.id,
-        optionName: customizationOptionsTable.name,
-        customizationName: customizationsTable.name,
-        quantity: customizationOptionsTable.ingredientQuantity,
+        optionId: customizationOptions.id,
+        optionName: customizationOptions.name,
+        customizationName: customizations.name,
+        quantity: customizationOptions.ingredientQuantity,
       })
-      .from(customizationOptionsTable)
-      .innerJoin(customizationsTable, eq(customizationOptionsTable.customizationId, customizationsTable.id))
-      .where(eq(customizationOptionsTable.ingredientId, ingredientId))
-      .orderBy(customizationOptionsTable.id)
+      .from(customizationOptions)
+      .innerJoin(customizations, eq(customizationOptions.customizationId, customizations.id))
+      .where(eq(customizationOptions.ingredientId, ingredientId))
+      .orderBy(customizationOptions.id)
       .$dynamic();
 
     const countQuery = db
       .select({ count: sql<number>`count(*)` })
-      .from(customizationOptionsTable)
-      .where(eq(customizationOptionsTable.ingredientId, ingredientId));
+      .from(customizationOptions)
+      .where(eq(customizationOptions.ingredientId, ingredientId));
 
     const [items, countResult] = await Promise.all([
       withPagination(baseQuery, page, pageSize),
@@ -166,11 +166,11 @@ export const ingredientRepository = {
   async getIngredientOptionSelectList() {
     return db
       .select({
-        label: ingredientsTable.name,
-        value: sql<string>`cast(${ingredientsTable.id} as char)`,
-        unit: ingredientsTable.unit,
+        label: ingredients.name,
+        value: sql<string>`cast(${ingredients.id} as char)`,
+        unit: ingredients.unit,
       })
-      .from(ingredientsTable)
-      .orderBy(ingredientsTable.id);
+      .from(ingredients)
+      .orderBy(ingredients.id);
   },
 };

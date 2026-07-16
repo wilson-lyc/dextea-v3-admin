@@ -1,16 +1,16 @@
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
-import { productTagsTable, productTagMapTable, productsTable } from '@/plugins/db/mysql/schema.js';
+import { productTags, productTagMap, products } from '@/plugins/db/mysql/schema.js';
 
 export const tagRepository = {
   async getTagOptions() {
     return db
       .select({
-        label: productTagsTable.name,
-        value: sql<string>`cast(${productTagsTable.id} as char)`,
+        label: productTags.name,
+        value: sql<string>`cast(${productTags.id} as char)`,
       })
-      .from(productTagsTable)
-      .orderBy(productTagsTable.id);
+      .from(productTags)
+      .orderBy(productTags.id);
   },
 
   async getTagList(page: number, pageSize: number) {
@@ -20,20 +20,20 @@ export const tagRepository = {
 
     const [countResult] = await db
       .select({ count: sql<number>`count(*)` })
-      .from(productTagsTable);
+      .from(productTags);
 
     const total = Number(countResult?.count ?? 0);
 
     const items = await db
       .select({
-        id: productTagsTable.id,
-        name: productTagsTable.name,
-        boundCount: sql<number>`(select count(*) from ${productTagMapTable} where ${productTagMapTable.tagId} = ${productTagsTable.id})`,
-        createdAt: productTagsTable.createdAt,
-        updatedAt: productTagsTable.updatedAt,
+        id: productTags.id,
+        name: productTags.name,
+        boundCount: sql<number>`(select count(*) from ${productTagMap} where ${productTagMap.tagId} = ${productTags.id})`,
+        createdAt: productTags.createdAt,
+        updatedAt: productTags.updatedAt,
       })
-      .from(productTagsTable)
-      .orderBy(productTagsTable.id)
+      .from(productTags)
+      .orderBy(productTags.id)
       .limit(safePageSize)
       .offset(offset);
 
@@ -43,8 +43,8 @@ export const tagRepository = {
   async getTagById(id: number) {
     const rows = await db
       .select()
-      .from(productTagsTable)
-      .where(eq(productTagsTable.id, id))
+      .from(productTags)
+      .where(eq(productTags.id, id))
       .limit(1);
     return rows[0] ?? null;
   },
@@ -52,28 +52,28 @@ export const tagRepository = {
   async getTagByName(name: string) {
     const rows = await db
       .select()
-      .from(productTagsTable)
-      .where(eq(productTagsTable.name, name))
+      .from(productTags)
+      .where(eq(productTags.name, name))
       .limit(1);
     return rows[0] ?? null;
   },
 
   async createTag(name: string) {
-    const result = await db.insert(productTagsTable).values({ name });
+    const result = await db.insert(productTags).values({ name });
     return Number(result[0]?.insertId ?? 0);
   },
 
   async updateTagById(id: number, name: string) {
     await db
-      .update(productTagsTable)
+      .update(productTags)
       .set({ name })
-      .where(eq(productTagsTable.id, id));
+      .where(eq(productTags.id, id));
   },
 
   async deleteTagById(id: number) {
     await db
-      .delete(productTagsTable)
-      .where(eq(productTagsTable.id, id));
+      .delete(productTags)
+      .where(eq(productTags.id, id));
   },
 
   async getTagProducts(tagId: number, page: number, pageSize: number) {
@@ -83,20 +83,20 @@ export const tagRepository = {
 
     const [countResult] = await db
       .select({ count: sql<number>`count(*)` })
-      .from(productTagMapTable)
-      .where(eq(productTagMapTable.tagId, tagId));
+      .from(productTagMap)
+      .where(eq(productTagMap.tagId, tagId));
 
     const total = Number(countResult?.count ?? 0);
 
     const items = await db
       .select({
-        id: productsTable.id,
-        name: productsTable.name,
+        id: products.id,
+        name: products.name,
       })
-      .from(productTagMapTable)
-      .innerJoin(productsTable, eq(productTagMapTable.productId, productsTable.id))
-      .where(eq(productTagMapTable.tagId, tagId))
-      .orderBy(productsTable.id)
+      .from(productTagMap)
+      .innerJoin(products, eq(productTagMap.productId, products.id))
+      .where(eq(productTagMap.tagId, tagId))
+      .orderBy(products.id)
       .limit(safePageSize)
       .offset(offset);
 
@@ -105,44 +105,44 @@ export const tagRepository = {
 
   async getExistingBindings(tagId: number, productIds: number[]) {
     return db
-      .select({ productId: productTagMapTable.productId })
-      .from(productTagMapTable)
+      .select({ productId: productTagMap.productId })
+      .from(productTagMap)
       .where(
         and(
-          eq(productTagMapTable.tagId, tagId),
-          inArray(productTagMapTable.productId, productIds),
+          eq(productTagMap.tagId, tagId),
+          inArray(productTagMap.productId, productIds),
         ),
       );
   },
 
   async bindProducts(tagId: number, productIds: number[]) {
-    await db.insert(productTagMapTable).values(
+    await db.insert(productTagMap).values(
       productIds.map(productId => ({ productId, tagId })),
     );
   },
 
   async unbindProducts(tagId: number, productIds: number[]) {
     await db
-      .delete(productTagMapTable)
+      .delete(productTagMap)
       .where(
         and(
-          eq(productTagMapTable.tagId, tagId),
-          inArray(productTagMapTable.productId, productIds),
+          eq(productTagMap.tagId, tagId),
+          inArray(productTagMap.productId, productIds),
         ),
       );
   },
 
   async deleteTagProductRelations(tagId: number) {
     await db
-      .delete(productTagMapTable)
-      .where(eq(productTagMapTable.tagId, tagId));
+      .delete(productTagMap)
+      .where(eq(productTagMap.tagId, tagId));
   },
 
   async getExistingProductIds(productIds: number[]) {
     const rows = await db
-      .select({ id: productsTable.id })
-      .from(productsTable)
-      .where(inArray(productsTable.id, productIds));
+      .select({ id: products.id })
+      .from(products)
+      .where(inArray(products.id, productIds));
     return rows.map(r => r.id);
   },
 };

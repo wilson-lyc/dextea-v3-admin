@@ -1,6 +1,6 @@
 import { inArray, sql } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
-import { permissionsTable } from '@/plugins/db/mysql/schema.js';
+import { permissions } from '@/plugins/db/mysql/schema.js';
 import { withPagination } from '@/utils';
 
 export const permissionRepository = {
@@ -11,22 +11,22 @@ export const permissionRepository = {
 
     const baseQuery = db
       .select({
-        id: permissionsTable.id,
-        key: permissionsTable.key,
-        name: permissionsTable.name,
-        note: permissionsTable.note,
-        createdAt: permissionsTable.createdAt,
-        updatedAt: permissionsTable.updatedAt,
+        id: permissions.id,
+        key: permissions.key,
+        name: permissions.name,
+        note: permissions.note,
+        createdAt: permissions.createdAt,
+        updatedAt: permissions.updatedAt,
       })
-      .from(permissionsTable)
-      .orderBy(permissionsTable.key)
+      .from(permissions)
+      .orderBy(permissions.key)
       .$dynamic();
 
-    const countQuery = db.select({ count: sql<number>`count(*)` }).from(permissionsTable);
+    const countQuery = db.select({ count: sql<number>`count(*)` }).from(permissions);
 
     if (keyword) {
       const pattern = `%${keyword}%`;
-      const filter = sql`(${permissionsTable.key} like ${pattern} or ${permissionsTable.name} like ${pattern})`;
+      const filter = sql`(${permissions.key} like ${pattern} or ${permissions.name} like ${pattern})`;
       baseQuery.where(filter);
       countQuery.where(filter);
     }
@@ -44,23 +44,23 @@ export const permissionRepository = {
   async getAllPermissionOptions() {
     return db
       .select({
-        id: permissionsTable.id,
-        key: permissionsTable.key,
-        name: permissionsTable.name,
+        id: permissions.id,
+        key: permissions.key,
+        name: permissions.name,
       })
-      .from(permissionsTable)
-      .orderBy(permissionsTable.key);
+      .from(permissions)
+      .orderBy(permissions.key);
   },
 
   async getPermissionsByIds(ids: number[]) {
     if (ids.length === 0) return [];
     return db
       .select({
-        id: permissionsTable.id,
-        key: permissionsTable.key,
-        name: permissionsTable.name,
+        id: permissions.id,
+        key: permissions.key,
+        name: permissions.name,
       })
-      .from(permissionsTable)
-      .where(inArray(permissionsTable.id, ids));
+      .from(permissions)
+      .where(inArray(permissions.id, ids));
   },
 };

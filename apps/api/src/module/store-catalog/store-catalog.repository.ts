@@ -1,22 +1,22 @@
 import { and, eq, sql, type SQL } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
 import {
-  storesTable,
-  productsTable,
-  productStoreStatusTable,
-  customizationsTable,
-  customizationOptionsTable,
-  customizationOptionStoreStatusTable,
-  ingredientsTable,
-  storeIngredientsTable,
+  stores,
+  products,
+  productStoreStatus,
+  customizations,
+  customizationOptions,
+  customizationOptionStoreStatus,
+  ingredients,
+  storeIngredients,
 } from '@/plugins/db/mysql/schema.js';
 
 export const storeCatalogRepository = {
   async getStoreById(id: number) {
     const rows = await db
       .select()
-      .from(storesTable)
-      .where(eq(storesTable.id, id))
+      .from(stores)
+      .where(eq(stores.id, id))
       .limit(1);
     return rows[0] ?? null;
   },
@@ -24,8 +24,8 @@ export const storeCatalogRepository = {
   /**
    * 门店商品列表（含门店上下架状态）
    *
-   * LEFT JOIN productStoreStatusTable，通过 COALESCE 获取门店级状态。
-   * 支持按全局状态 (productsTable.status) 和门店状态 (COALESCE(...)) 筛选，
+   * LEFT JOIN productStoreStatus，通过 COALESCE 获取门店级状态。
+   * 支持按全局状态 (products.status) 和门店状态 (COALESCE(...)) 筛选，
    * 列表与总数使用同一组 conditions，保证分页总数一致。
    */
   async listStoreProducts(
@@ -39,35 +39,35 @@ export const storeCatalogRepository = {
     const conditions: (SQL | undefined)[] = [];
 
     if (params.globalStatus !== undefined) {
-      conditions.push(eq(productsTable.status, params.globalStatus));
+      conditions.push(eq(products.status, params.globalStatus));
     }
 
     if (params.storeStatus !== undefined) {
       conditions.push(
-        eq(sql<number>`COALESCE(${productStoreStatusTable.status}, 0)`, params.storeStatus),
+        eq(sql<number>`COALESCE(${productStoreStatus.status}, 0)`, params.storeStatus),
       );
     }
 
     const storeStatusJoin = and(
-      eq(productStoreStatusTable.productId, productsTable.id),
-      eq(productStoreStatusTable.storeId, storeId),
+      eq(productStoreStatus.productId, products.id),
+      eq(productStoreStatus.storeId, storeId),
     );
 
     const baseQuery = db
       .select({
-        id: productsTable.id,
-        name: productsTable.name,
-        price: productsTable.price,
-        globalStatus: productsTable.status,
-        storeStatus: sql<number>`COALESCE(${productStoreStatusTable.status}, 0)`,
+        id: products.id,
+        name: products.name,
+        price: products.price,
+        globalStatus: products.status,
+        storeStatus: sql<number>`COALESCE(${productStoreStatus.status}, 0)`,
       })
-      .from(productsTable)
-      .leftJoin(productStoreStatusTable, storeStatusJoin);
+      .from(products)
+      .leftJoin(productStoreStatus, storeStatusJoin);
 
     const countQuery = db
       .select({ count: sql<number>`count(*)` })
-      .from(productsTable)
-      .leftJoin(productStoreStatusTable, storeStatusJoin);
+      .from(products)
+      .leftJoin(productStoreStatus, storeStatusJoin);
 
     if (conditions.length > 0) {
       const where = and(...conditions);
@@ -76,7 +76,7 @@ export const storeCatalogRepository = {
     }
 
     const [items, countResult] = await Promise.all([
-      baseQuery.limit(pageSize).offset(offset).orderBy(productsTable.id),
+      baseQuery.limit(pageSize).offset(offset).orderBy(products.id),
       countQuery,
     ]);
 
@@ -87,7 +87,7 @@ export const storeCatalogRepository = {
 
   async upsertProductStoreStatus(storeId: number, productId: number, status: number) {
     await db
-      .insert(productStoreStatusTable)
+      .insert(productStoreStatus)
       .values({ productId, storeId, status })
       .onDuplicateKeyUpdate({
         set: { status },
@@ -110,25 +110,25 @@ export const storeCatalogRepository = {
 
     const conditions: (SQL | undefined)[] = [];
     if (params.productId !== undefined) {
-      conditions.push(eq(customizationsTable.productId, params.productId));
+      conditions.push(eq(customizations.productId, params.productId));
     }
 
     const baseQuery = db
       .select({
-        id: customizationsTable.id,
-        name: customizationsTable.name,
-        globalStatus: customizationsTable.status,
+        id: customizations.id,
+        name: customizations.name,
+        globalStatus: customizations.status,
         optionCount: sql<number>`(
-          SELECT COUNT(*) FROM ${customizationOptionsTable}
-          WHERE ${customizationOptionsTable.customizationId} = ${customizationsTable.id}
+          SELECT COUNT(*) FROM ${customizationOptions}
+          WHERE ${customizationOptions.customizationId} = ${customizations.id}
         )`,
       })
-      .from(customizationsTable)
+      .from(customizations)
       .$dynamic();
 
     const countQuery = db
       .select({ count: sql<number>`count(*)` })
-      .from(customizationsTable)
+      .from(customizations)
       .$dynamic();
 
     if (conditions.length > 0) {
@@ -138,7 +138,7 @@ export const storeCatalogRepository = {
     }
 
     const [items, countResult] = await Promise.all([
-      baseQuery.limit(pageSize).offset(offset).orderBy(customizationsTable.id),
+      baseQuery.limit(pageSize).offset(offset).orderBy(customizations.id),
       countQuery,
     ]);
 
@@ -150,7 +150,7 @@ export const storeCatalogRepository = {
   /**
    * 门店客制化选项列表（含门店状态）
    *
-   * LEFT JOIN customizationOptionStoreStatusTable 查询门店级状态，
+   * LEFT JOIN customizationOptionStoreStatus 查询门店级状态，
    * 按 customizationId 筛选，按 sort / id 排序。
    */
   async listStoreCustomizationOptions(
@@ -165,28 +165,28 @@ export const storeCatalogRepository = {
     const [items, countResult] = await Promise.all([
       db
         .select({
-          id: customizationOptionsTable.id,
-          name: customizationOptionsTable.name,
-          price: customizationOptionsTable.price,
-          globalStatus: customizationOptionsTable.status,
-          storeStatus: sql<number>`COALESCE(${customizationOptionStoreStatusTable.status}, 0)`,
+          id: customizationOptions.id,
+          name: customizationOptions.name,
+          price: customizationOptions.price,
+          globalStatus: customizationOptions.status,
+          storeStatus: sql<number>`COALESCE(${customizationOptionStoreStatus.status}, 0)`,
         })
-        .from(customizationOptionsTable)
+        .from(customizationOptions)
         .leftJoin(
-          customizationOptionStoreStatusTable,
+          customizationOptionStoreStatus,
           and(
-            eq(customizationOptionStoreStatusTable.customizationOptionId, customizationOptionsTable.id),
-            eq(customizationOptionStoreStatusTable.storeId, storeId),
+            eq(customizationOptionStoreStatus.customizationOptionId, customizationOptions.id),
+            eq(customizationOptionStoreStatus.storeId, storeId),
           ),
         )
-        .where(eq(customizationOptionsTable.customizationId, customizationId))
+        .where(eq(customizationOptions.customizationId, customizationId))
         .limit(pageSize)
         .offset(offset)
-        .orderBy(customizationOptionsTable.sort, customizationOptionsTable.id),
+        .orderBy(customizationOptions.sort, customizationOptions.id),
       db
         .select({ count: sql<number>`count(*)` })
-        .from(customizationOptionsTable)
-        .where(eq(customizationOptionsTable.customizationId, customizationId)),
+        .from(customizationOptions)
+        .where(eq(customizationOptions.customizationId, customizationId)),
     ]);
 
     const total = Number(countResult[0]?.count ?? 0);
@@ -196,7 +196,7 @@ export const storeCatalogRepository = {
 
   async upsertCustomizationOptionStoreStatus(storeId: number, optionId: number, status: number) {
     await db
-      .insert(customizationOptionStoreStatusTable)
+      .insert(customizationOptionStoreStatus)
       .values({ customizationOptionId: optionId, storeId, status })
       .onDuplicateKeyUpdate({
         set: { status },
@@ -206,7 +206,7 @@ export const storeCatalogRepository = {
   /**
    * 门店原料库存列表
    *
-   * LEFT JOIN storeIngredientsTable 查询门店级库存数量（COALESCE 默认 0）。
+   * LEFT JOIN storeIngredients 查询门店级库存数量（COALESCE 默认 0）。
    */
   async listStoreIngredients(storeId: number, params: { page: number; pageSize: number }) {
     const page = Math.max(1, params.page);
@@ -216,25 +216,25 @@ export const storeCatalogRepository = {
     const [items, countResult] = await Promise.all([
       db
         .select({
-          id: ingredientsTable.id,
-          name: ingredientsTable.name,
-          unit: ingredientsTable.unit,
-          quantity: sql<number>`COALESCE(${storeIngredientsTable.quantity}, 0)`,
+          id: ingredients.id,
+          name: ingredients.name,
+          unit: ingredients.unit,
+          quantity: sql<number>`COALESCE(${storeIngredients.quantity}, 0)`,
         })
-        .from(ingredientsTable)
+        .from(ingredients)
         .leftJoin(
-          storeIngredientsTable,
+          storeIngredients,
           and(
-            eq(storeIngredientsTable.ingredientId, ingredientsTable.id),
-            eq(storeIngredientsTable.storeId, storeId),
+            eq(storeIngredients.ingredientId, ingredients.id),
+            eq(storeIngredients.storeId, storeId),
           ),
         )
         .limit(pageSize)
         .offset(offset)
-        .orderBy(ingredientsTable.id),
+        .orderBy(ingredients.id),
       db
         .select({ count: sql<number>`count(*)` })
-        .from(ingredientsTable),
+        .from(ingredients),
     ]);
 
     const total = Number(countResult[0]?.count ?? 0);

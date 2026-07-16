@@ -1,9 +1,9 @@
 import { and, eq, sql } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
 import {
-  storesTable,
-  menusTable,
-  storeMenusTable,
+  stores,
+  menus,
+  storeMenus,
 } from '@/plugins/db/mysql/schema.js';
 import { withPagination } from '@/utils';
 
@@ -15,18 +15,18 @@ export const storeRepository = {
 
     const baseQuery = db
       .select()
-      .from(storesTable)
-      .orderBy(storesTable.id)
+      .from(stores)
+      .orderBy(stores.id)
       .$dynamic();
 
     const countQuery = db
       .select({ count: sql<number>`count(*)` })
-      .from(storesTable)
+      .from(stores)
       .$dynamic();
 
     if (keyword) {
       const pattern = `%${keyword}%`;
-      const filter = sql`${storesTable.name} like ${pattern} or ${storesTable.phone} like ${pattern} or ${storesTable.address} like ${pattern}`;
+      const filter = sql`${stores.name} like ${pattern} or ${stores.phone} like ${pattern} or ${stores.address} like ${pattern}`;
       baseQuery.where(filter);
       countQuery.where(filter);
     }
@@ -43,8 +43,8 @@ export const storeRepository = {
   async getStoreById(id: number) {
     const rows = await db
       .select()
-      .from(storesTable)
-      .where(eq(storesTable.id, id))
+      .from(stores)
+      .where(eq(stores.id, id))
       .limit(1);
     return rows[0] ?? null;
   },
@@ -52,48 +52,48 @@ export const storeRepository = {
   async getStoreByAccount(account: string) {
     const rows = await db
       .select()
-      .from(storesTable)
-      .where(eq(storesTable.account, account))
+      .from(stores)
+      .where(eq(stores.account, account))
       .limit(1);
     return rows[0] ?? null;
   },
 
-  async createStore(data: typeof storesTable.$inferInsert) {
-    const result = await db.insert(storesTable).values(data);
+  async createStore(data: typeof stores.$inferInsert) {
+    const result = await db.insert(stores).values(data);
     return Number(result[0]?.insertId ?? 0);
   },
 
-  async updateStoreById(id: number, data: Partial<typeof storesTable.$inferInsert>) {
+  async updateStoreById(id: number, data: Partial<typeof stores.$inferInsert>) {
     await db
-      .update(storesTable)
+      .update(stores)
       .set(data)
-      .where(eq(storesTable.id, id));
+      .where(eq(stores.id, id));
   },
 
   async deleteStoreMenuRelations(storeId: number) {
     await db
-      .delete(storeMenusTable)
-      .where(eq(storeMenusTable.storeId, storeId));
+      .delete(storeMenus)
+      .where(eq(storeMenus.storeId, storeId));
   },
 
   async insertStoreMenuRelation(storeId: number, menuId: number) {
     await db
-      .insert(storeMenusTable)
+      .insert(storeMenus)
       .values({ storeId, menuId });
   },
 
   async getMenuById(id: number) {
     const rows = await db
       .select()
-      .from(menusTable)
-      .where(eq(menusTable.id, id))
+      .from(menus)
+      .where(eq(menus.id, id))
       .limit(1);
     return rows[0] ?? null;
   },
 
   async getAllStoreLocations() {
     return db
-      .select({ id: storesTable.id, longitude: storesTable.longitude, latitude: storesTable.latitude })
-      .from(storesTable);
+      .select({ id: stores.id, longitude: stores.longitude, latitude: stores.latitude })
+      .from(stores);
   },
 };

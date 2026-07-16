@@ -1,10 +1,10 @@
 import { eq, sql } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
 import {
-  customizationsTable,
-  productsTable,
-  customizationOptionsTable,
-  ingredientsTable,
+  customizations,
+  products,
+  customizationOptions,
+  ingredients,
 } from '@/plugins/db/mysql/schema.js';
 import { withPagination } from '@/utils';
 
@@ -16,38 +16,38 @@ export const customizationRepository = {
     pageSize = Math.min(100, Math.max(1, pageSize));
     keyword = keyword?.trim();
 
-    const optionCountSubquery = sql<number>`(select count(*) from ${customizationOptionsTable} where ${customizationOptionsTable.customizationId} = ${customizationsTable.id})`;
+    const optionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.customizationId} = ${customizations.id})`;
 
     const baseQuery = db
       .select({
-        id: customizationsTable.id,
-        productId: customizationsTable.productId,
-        name: customizationsTable.name,
-        sort: customizationsTable.sort,
-        status: customizationsTable.status,
+        id: customizations.id,
+        productId: customizations.productId,
+        name: customizations.name,
+        sort: customizations.sort,
+        status: customizations.status,
         optionCount: optionCountSubquery,
-        createdAt: customizationsTable.createdAt,
-        updatedAt: customizationsTable.updatedAt,
+        createdAt: customizations.createdAt,
+        updatedAt: customizations.updatedAt,
       })
-      .from(customizationsTable)
-      .orderBy(customizationsTable.sort, customizationsTable.id)
+      .from(customizations)
+      .orderBy(customizations.sort, customizations.id)
       .$dynamic();
 
     const countQuery = db
       .select({ count: sql<number>`count(*)` })
-      .from(customizationsTable)
+      .from(customizations)
       .$dynamic();
 
     const conditions: ReturnType<typeof sql>[] = [];
     if (keyword) {
       const pattern = `%${keyword}%`;
-      conditions.push(sql`${customizationsTable.name} like ${pattern}`);
+      conditions.push(sql`${customizations.name} like ${pattern}`);
     }
     if (status !== undefined) {
-      conditions.push(eq(customizationsTable.status, status));
+      conditions.push(eq(customizations.status, status));
     }
     if (productId !== undefined) {
-      conditions.push(eq(customizationsTable.productId, productId));
+      conditions.push(eq(customizations.productId, productId));
     }
 
     if (conditions.length > 0) {
@@ -68,39 +68,39 @@ export const customizationRepository = {
   async getCustomizationById(id: number) {
     const rows = await db
       .select()
-      .from(customizationsTable)
-      .where(eq(customizationsTable.id, id))
+      .from(customizations)
+      .where(eq(customizations.id, id))
       .limit(1);
     return rows[0] ?? null;
   },
 
   async getMaxSortByProductId(productId: number) {
     const rows = await db
-      .select({ maxSort: sql<number>`coalesce(max(${customizationsTable.sort}), 0)` })
-      .from(customizationsTable)
-      .where(eq(customizationsTable.productId, productId));
+      .select({ maxSort: sql<number>`coalesce(max(${customizations.sort}), 0)` })
+      .from(customizations)
+      .where(eq(customizations.productId, productId));
     return Number(rows[0]?.maxSort ?? 0);
   },
 
   async getProductById(id: number) {
     const rows = await db
-      .select({ id: productsTable.id })
-      .from(productsTable)
-      .where(eq(productsTable.id, id))
+      .select({ id: products.id })
+      .from(products)
+      .where(eq(products.id, id))
       .limit(1);
     return rows[0] ?? null;
   },
 
-  async createCustomization(data: typeof customizationsTable.$inferInsert) {
-    const result = await db.insert(customizationsTable).values(data);
+  async createCustomization(data: typeof customizations.$inferInsert) {
+    const result = await db.insert(customizations).values(data);
     return Number(result[0]?.insertId ?? 0);
   },
 
-  async updateCustomizationById(id: number, data: Partial<typeof customizationsTable.$inferInsert>) {
+  async updateCustomizationById(id: number, data: Partial<typeof customizations.$inferInsert>) {
     await db
-      .update(customizationsTable)
+      .update(customizations)
       .set(data)
-      .where(eq(customizationsTable.id, id));
+      .where(eq(customizations.id, id));
   },
 
   // ─── Option CRUD ────────────────────────────────
@@ -108,29 +108,29 @@ export const customizationRepository = {
   async getOptionList(customizationId: number) {
     return db
       .select({
-        id: customizationOptionsTable.id,
-        customizationId: customizationOptionsTable.customizationId,
-        name: customizationOptionsTable.name,
-        price: customizationOptionsTable.price,
-        sort: customizationOptionsTable.sort,
-        status: customizationOptionsTable.status,
-        ingredientId: customizationOptionsTable.ingredientId,
-        ingredientName: sql<string>`coalesce(${ingredientsTable.name}, '')`,
-        quantity: customizationOptionsTable.ingredientQuantity,
-        createdAt: customizationOptionsTable.createdAt,
-        updatedAt: customizationOptionsTable.updatedAt,
+        id: customizationOptions.id,
+        customizationId: customizationOptions.customizationId,
+        name: customizationOptions.name,
+        price: customizationOptions.price,
+        sort: customizationOptions.sort,
+        status: customizationOptions.status,
+        ingredientId: customizationOptions.ingredientId,
+        ingredientName: sql<string>`coalesce(${ingredients.name}, '')`,
+        quantity: customizationOptions.ingredientQuantity,
+        createdAt: customizationOptions.createdAt,
+        updatedAt: customizationOptions.updatedAt,
       })
-      .from(customizationOptionsTable)
-      .leftJoin(ingredientsTable, eq(customizationOptionsTable.ingredientId, ingredientsTable.id))
-      .where(eq(customizationOptionsTable.customizationId, customizationId))
-      .orderBy(customizationOptionsTable.sort, customizationOptionsTable.id);
+      .from(customizationOptions)
+      .leftJoin(ingredients, eq(customizationOptions.ingredientId, ingredients.id))
+      .where(eq(customizationOptions.customizationId, customizationId))
+      .orderBy(customizationOptions.sort, customizationOptions.id);
   },
 
   async getOptionById(id: number) {
     const rows = await db
       .select()
-      .from(customizationOptionsTable)
-      .where(eq(customizationOptionsTable.id, id))
+      .from(customizationOptions)
+      .where(eq(customizationOptions.id, id))
       .limit(1);
     return rows[0] ?? null;
   },
@@ -138,42 +138,42 @@ export const customizationRepository = {
   async getOptionByIdWithIngredient(id: number) {
     const rows = await db
       .select({
-        id: customizationOptionsTable.id,
-        customizationId: customizationOptionsTable.customizationId,
-        name: customizationOptionsTable.name,
-        price: customizationOptionsTable.price,
-        sort: customizationOptionsTable.sort,
-        status: customizationOptionsTable.status,
-        ingredientId: customizationOptionsTable.ingredientId,
-        ingredientName: sql<string>`coalesce(${ingredientsTable.name}, '')`,
-        quantity: customizationOptionsTable.ingredientQuantity,
-        createdAt: customizationOptionsTable.createdAt,
-        updatedAt: customizationOptionsTable.updatedAt,
+        id: customizationOptions.id,
+        customizationId: customizationOptions.customizationId,
+        name: customizationOptions.name,
+        price: customizationOptions.price,
+        sort: customizationOptions.sort,
+        status: customizationOptions.status,
+        ingredientId: customizationOptions.ingredientId,
+        ingredientName: sql<string>`coalesce(${ingredients.name}, '')`,
+        quantity: customizationOptions.ingredientQuantity,
+        createdAt: customizationOptions.createdAt,
+        updatedAt: customizationOptions.updatedAt,
       })
-      .from(customizationOptionsTable)
-      .leftJoin(ingredientsTable, eq(customizationOptionsTable.ingredientId, ingredientsTable.id))
-      .where(eq(customizationOptionsTable.id, id))
+      .from(customizationOptions)
+      .leftJoin(ingredients, eq(customizationOptions.ingredientId, ingredients.id))
+      .where(eq(customizationOptions.id, id))
       .limit(1);
     return rows[0] ?? null;
   },
 
-  async createOption(data: typeof customizationOptionsTable.$inferInsert) {
-    const result = await db.insert(customizationOptionsTable).values(data);
+  async createOption(data: typeof customizationOptions.$inferInsert) {
+    const result = await db.insert(customizationOptions).values(data);
     return Number(result[0]?.insertId ?? 0);
   },
 
-  async updateOptionById(id: number, data: Partial<typeof customizationOptionsTable.$inferInsert>) {
+  async updateOptionById(id: number, data: Partial<typeof customizationOptions.$inferInsert>) {
     await db
-      .update(customizationOptionsTable)
+      .update(customizationOptions)
       .set(data)
-      .where(eq(customizationOptionsTable.id, id));
+      .where(eq(customizationOptions.id, id));
   },
 
   async getIngredientById(id: number) {
     const rows = await db
-      .select({ id: ingredientsTable.id })
-      .from(ingredientsTable)
-      .where(eq(ingredientsTable.id, id))
+      .select({ id: ingredients.id })
+      .from(ingredients)
+      .where(eq(ingredients.id, id))
       .limit(1);
     return rows[0] ?? null;
   },

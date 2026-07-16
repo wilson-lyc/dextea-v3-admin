@@ -1,6 +1,6 @@
 import { and, eq, sql, type SQL } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
-import { customersTable } from '@/plugins/db/mysql/schema.js';
+import { customers } from '@/plugins/db/mysql/schema.js';
 import { withPagination } from '@/utils';
 
 export interface CustomerListFilters {
@@ -22,43 +22,43 @@ export const customerRepository = {
 
     const baseQuery = db
       .select({
-        id: customersTable.id,
-        name: customersTable.name,
-        email: customersTable.email,
-        phone: customersTable.phone,
-        platform: customersTable.platform,
-        weixinOpenId: customersTable.weixinOpenId,
-        alipayOpenId: customersTable.alipayOpenId,
-        status: customersTable.status,
-        createdAt: customersTable.createdAt,
-        updatedAt: customersTable.updatedAt,
+        id: customers.id,
+        name: customers.name,
+        email: customers.email,
+        phone: customers.phone,
+        platform: customers.platform,
+        weixinOpenId: customers.weixinOpenId,
+        alipayOpenId: customers.alipayOpenId,
+        status: customers.status,
+        createdAt: customers.createdAt,
+        updatedAt: customers.updatedAt,
       })
-      .from(customersTable)
-      .orderBy(customersTable.id)
+      .from(customers)
+      .orderBy(customers.id)
       .$dynamic();
 
     const countQuery = db
       .select({ count: sql<number>`count(*)` })
-      .from(customersTable)
+      .from(customers)
       .$dynamic();
 
     const conditions: SQL[] = [];
     const { id, status, name, email, phone } = filters;
 
     if (id !== undefined) {
-      conditions.push(eq(customersTable.id, id));
+      conditions.push(eq(customers.id, id));
     }
     if (status !== undefined) {
-      conditions.push(eq(customersTable.status, status));
+      conditions.push(eq(customers.status, status));
     }
     if (name?.trim()) {
-      conditions.push(sql`${customersTable.name} like ${`%${name.trim()}%`}`);
+      conditions.push(sql`${customers.name} like ${`%${name.trim()}%`}`);
     }
     if (email?.trim()) {
-      conditions.push(sql`${customersTable.email} like ${`%${email.trim()}%`}`);
+      conditions.push(sql`${customers.email} like ${`%${email.trim()}%`}`);
     }
     if (phone?.trim()) {
-      conditions.push(sql`${customersTable.phone} like ${`%${phone.trim()}%`}`);
+      conditions.push(sql`${customers.phone} like ${`%${phone.trim()}%`}`);
     }
 
     if (conditions.length > 0) {

@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1784108086814,
-      "tag": "0000_worried_pyro",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1784108086814,
-      "tag": "0001_add_gallery_image_name",
+      "when": 1784186768360,
+      "tag": "0000_smiling_mac_gargan",
       "breakpoints": true
     }
   ]
