@@ -38,7 +38,7 @@ class AmapGeocoder implements Geocoder {
     district: string,
     address: string,
   ): Promise<GeocodeResult | null> {
-    const key = config.amapKey;
+    const key = config.amap.key;
     if (!key) {
       return null;
     }

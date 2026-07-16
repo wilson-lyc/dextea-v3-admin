@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { resolve as resolvePath, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
@@ -6,87 +5,57 @@ import dotenv from 'dotenv';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// 单独解析 .env，不污染 process.env，以便独立判断优先级
-function parseEnvFile(path: string): Record<string, string> {
-  try {
-    return dotenv.parse(readFileSync(path, 'utf-8'));
-  } catch {
-    return {};
-  }
-}
-
-const envFile = parseEnvFile(resolvePath(__dirname, '../.env'));
-
-// 解析单项配置，优先级：.env > 环境变量 > 兜底
-function coerce<T>(raw: string, fallback: T): T {
-  if (typeof fallback === 'number') {
-    const n = Number(raw);
-    return (Number.isNaN(n) ? fallback : n) as T;
-  }
-  if (typeof fallback === 'boolean') {
-    if (raw === 'true') return true as T;
-    if (raw === 'false') return false as T;
-    return fallback;
-  }
-  return raw as T;
-}
-
-function resolveValue<T>(key: string, fallback: T): T {
-  if (envFile[key] !== undefined) return coerce(envFile[key], fallback);
-  if (process.env[key] !== undefined) return coerce(process.env[key] as string, fallback);
-  return fallback;
-}
+dotenv.config({ path: resolvePath(__dirname, '../.env') });
 
 function buildConfig() {
+  const env = process.env;
+
   return {
-    port: resolveValue('PORT', 3001),
-    host: resolveValue('HOST', '0.0.0.0'),
-    corsOrigin: resolveValue('CORS_ORIGIN', 'http://localhost:5173'),
-    nodeEnv: resolveValue('NODE_ENV', 'development'),
-    isDev: resolveValue('NODE_ENV', 'development') === 'development',
-    logLevel: resolveValue('LOG_LEVEL', 'info'),
+    port: Number(env.PORT) || 3001,
+    host: env.HOST || '0.0.0.0',
+    corsOrigin: env.CORS_ORIGIN || 'http://localhost:5173',
+    nodeEnv: env.NODE_ENV || 'development',
+    logLevel: env.LOG_LEVEL || 'info',
 
     db: {
-      type: resolveValue('DB_TYPE', 'mysql'),
-      host: resolveValue('DB_HOST', 'localhost'),
-      port: resolveValue('DB_PORT', 3306),
-      user: resolveValue('DB_USER', 'root'),
-      password: resolveValue('DB_PASSWORD', ''),
-      name: resolveValue('DB_NAME', 'dextea_admin'),
+      type: env.DB_TYPE || 'mysql',
+      host: env.DB_HOST || 'localhost',
+      port: Number(env.DB_PORT) || 3306,
+      user: env.DB_USER || 'root',
+      password: env.DB_PASSWORD || '',
+      name: env.DB_NAME || 'dextea_admin',
     },
 
     redis: {
-      host: resolveValue('REDIS_HOST', 'localhost'),
-      port: resolveValue('REDIS_PORT', 6379),
-      password: resolveValue('REDIS_PASSWORD', ''),
-      db: resolveValue('REDIS_DB', 0),
+      host: env.REDIS_HOST || 'localhost',
+      port: Number(env.REDIS_PORT) || 6379,
+      password: env.REDIS_PASSWORD || '',
+      db: Number(env.REDIS_DB) || 0,
     },
 
     mail: {
-      host: resolveValue('MAIL_HOST', ''),
-      port: resolveValue('MAIL_PORT', 587),
-      secure: resolveValue('MAIL_SECURE', false),
-      user: resolveValue('MAIL_USER', ''),
-      pass: resolveValue('MAIL_PASS', ''),
-      from: resolveValue('MAIL_FROM', ''),
+      host: env.MAIL_HOST || '',
+      port: Number(env.MAIL_PORT) || 587,
+      secure: env.MAIL_SECURE === 'true',
+      user: env.MAIL_USER || '',
+      pass: env.MAIL_PASS || '',
+      from: env.MAIL_FROM || '',
     },
 
-    amapKey: resolveValue('AMAP_KEY', ''),
-    amapJsKey: resolveValue('AMAP_JS_KEY', ''),
-    amapJsSecurityCode: resolveValue('AMAP_JS_SECURITY_CODE', ''),
+    amap: {
+      key: env.AMAP_KEY || '',
+      jsKey: env.AMAP_JS_KEY || '',
+      jsSecurityCode: env.AMAP_JS_SECURITY_CODE || '',
+    },
 
-    /**
-     * 全局唯一的 S3 对象存储连接配置（通过环境变量配置，进程内单例）。
-     * 不再支持多存储位置，所有上传/删除均使用这一份配置。
-     */
     s3: {
-      region: resolveValue('S3_REGION', ''),
-      endpoint: resolveValue('S3_ENDPOINT', ''),
-      bucket: resolveValue('S3_BUCKET', ''),
-      accessKeyId: resolveValue('S3_ACCESS_KEY_ID', ''),
-      secretAccessKey: resolveValue('S3_SECRET_ACCESS_KEY', ''),
-      forcePathStyle: resolveValue('S3_FORCE_PATH_STYLE', false),
-      publicBaseUrl: resolveValue('S3_PUBLIC_BASE_URL', ''),
+      region: env.S3_REGION || '',
+      endpoint: env.S3_ENDPOINT || '',
+      bucket: env.S3_BUCKET || '',
+      accessKeyId: env.S3_ACCESS_KEY_ID || '',
+      secretAccessKey: env.S3_SECRET_ACCESS_KEY || '',
+      forcePathStyle: env.S3_FORCE_PATH_STYLE === 'true',
+      publicBaseUrl: env.S3_PUBLIC_BASE_URL || '',
     },
   };
 }
