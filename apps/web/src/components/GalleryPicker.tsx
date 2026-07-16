@@ -1,13 +1,12 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { CheckIcon, ImageIcon, SearchIcon } from "lucide-react"
+import { CheckIcon, ImageIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { GalleryImage } from "@/api"
 import { getGalleryImages } from "@/api"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
@@ -52,8 +51,6 @@ export default function GalleryPicker({
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
-  const [keyword, setKeyword] = useState("")
-  const [searchKeyword, setSearchKeyword] = useState("")
   const [picked, setPicked] = useState<Record<number, GalleryImage>>({})
 
   const disabledSet = new Set(disabledIds)
@@ -62,11 +59,10 @@ export default function GalleryPicker({
     async (targetPage: number) => {
       setLoading(true)
       try {
-        const params: { page: number; pageSize: number; keyword?: string } = {
+        const params: { page: number; pageSize: number } = {
           page: targetPage,
           pageSize: PAGE_SIZE,
         }
-        if (searchKeyword.trim()) params.keyword = searchKeyword.trim()
         const res = await getGalleryImages(params)
         if (res.code === 0) {
           setImages(res.data.items)
@@ -81,15 +77,13 @@ export default function GalleryPicker({
         setLoading(false)
       }
     },
-    [searchKeyword],
+    [],
   )
 
   // 每次打开时重置选择、搜索与分页
   useEffect(() => {
     if (open) {
       setPicked({})
-      setKeyword("")
-      setSearchKeyword("")
       void fetchImages(1)
     }
   }, [open, fetchImages])
@@ -119,11 +113,6 @@ export default function GalleryPicker({
     }
   }
 
-  const handleSearch = () => {
-    setSearchKeyword(keyword)
-    void fetchImages(1)
-  }
-
   const handleConfirm = () => {
     onConfirm(pickedList)
     onOpenChange(false)
@@ -135,25 +124,6 @@ export default function GalleryPicker({
         <DialogHeader>
           <DialogTitle>{title ?? (multiple ? "从图库选择图片" : "从图库选择封面")}</DialogTitle>
         </DialogHeader>
-
-        {/* 搜索 */}
-        <div className="flex items-center gap-2">
-          <div className="relative max-w-sm flex-1">
-            <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="搜索图片"
-              className="pl-8"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSearch()
-              }}
-            />
-          </div>
-          <Button variant="secondary" onClick={handleSearch}>
-            搜索
-          </Button>
-        </div>
 
         {/* 图片网格 */}
         <div className="min-h-40 flex-1 overflow-y-auto">
