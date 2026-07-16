@@ -63,4 +63,8 @@ export const galleryRepository = {
   async deleteGalleryImageById(id: number) {
     await db.delete(galleryTable).where(eq(galleryTable.id, id));
   },
+
+  async updateGalleryImageNameById(id: number, name: string) {
+    await db.update(galleryTable).set({ name }).where(eq(galleryTable.id, id));
+  },
 };

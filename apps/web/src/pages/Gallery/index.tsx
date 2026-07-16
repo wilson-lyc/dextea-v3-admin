@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   ImageIcon,
+  PencilIcon,
   PlusIcon,
   SearchIcon,
   Trash2Icon,
@@ -13,6 +14,7 @@ import type { GalleryImage } from "@/api"
 import {
   deleteGalleryImage,
   getGalleryImages,
+  updateGalleryImageName,
   uploadGalleryImage,
 } from "@/api"
 import { Button } from "@/components/ui/button"
@@ -65,6 +67,11 @@ export default function GalleryPage() {
 
   // 大图预览
   const [previewImage, setPreviewImage] = useState<GalleryImage | null>(null)
+
+  // 编辑名称弹窗
+  const [editTarget, setEditTarget] = useState<GalleryImage | null>(null)
+  const [editName, setEditName] = useState("")
+  const [editLoading, setEditLoading] = useState(false)
 
   // 上传弹窗
   const [uploadOpen, setUploadOpen] = useState(false)
@@ -217,6 +224,41 @@ export default function GalleryPage() {
     }
   }
 
+  const openEdit = (img: GalleryImage) => {
+    setEditTarget(img)
+    setEditName(img.name)
+  }
+
+  const closeEdit = () => {
+    setEditTarget(null)
+    setEditName("")
+    setEditLoading(false)
+  }
+
+  const handleEdit = async () => {
+    if (!editTarget) return
+    const name = editName.trim()
+    if (!name) {
+      toast.error("请填写图片名称")
+      return
+    }
+    setEditLoading(true)
+    try {
+      const res = await updateGalleryImageName(editTarget.id, name)
+      if (res.code === 0) {
+        toast.success(res.message || "更新成功")
+        closeEdit()
+        await fetchImages(page)
+      } else {
+        toast.error(res.message)
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "更新失败")
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
   return (
     <>
       <DataTable
@@ -289,6 +331,10 @@ export default function GalleryPage() {
             <TableCell className="whitespace-nowrap">{new Date(img.createdAt).toLocaleString("zh-CN")}</TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1">
+                <Button variant="outline" size="sm" onClick={() => openEdit(img)}>
+                  <PencilIcon data-icon="inline-start" />
+                  编辑
+                </Button>
                 <Button variant="outline-destructive" size="sm" onClick={() => openDelete(img)}>
                   删除
                 </Button>
@@ -437,6 +483,46 @@ export default function GalleryPage() {
               />
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* 编辑名称弹窗 */}
+      <Dialog open={editTarget !== null} onOpenChange={(open) => { if (!open) closeEdit() }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑图片名称</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-name">
+              图片名称 <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="edit-name"
+              placeholder="请输入图片名称"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !editLoading) handleEdit()
+              }}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={closeEdit}>
+              取消
+            </Button>
+            <Button onClick={handleEdit} disabled={editLoading}>
+              {editLoading ? (
+                <>
+                  <Spinner className="size-4" />
+                  保存中...
+                </>
+              ) : (
+                "保存"
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

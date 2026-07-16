@@ -5,7 +5,7 @@ import { createStorageAdapter, getGlobalStorageConfig } from '@/plugins/storage/
 import type { StorageAdapter } from '@/plugins/storage/index.js';
 import { GalleryErrorCodes } from './gallery.errorcode.js';
 import { galleryRepository } from './gallery.repository.js';
-import type { GetGalleryImageListRequest } from '@dextea-admin/contracts';
+import type { GetGalleryImageListRequest, UpdateGalleryImageRequest } from '@dextea-admin/contracts';
 
 const MIME_TO_EXT: Record<string, string> = {
   'image/jpeg': '.jpg',
@@ -82,5 +82,18 @@ export const galleryService = {
     await galleryRepository.deleteGalleryImageById(id);
 
     return { id };
+  },
+
+  async updateGalleryImageName(id: number, input: UpdateGalleryImageRequest) {
+    const { name } = input;
+
+    const record = await galleryRepository.getGalleryImageById(id);
+    if (!record) {
+      throw new BizError(GalleryErrorCodes.NOT_FOUND);
+    }
+
+    await galleryRepository.updateGalleryImageNameById(id, name);
+
+    return { id, name };
   },
 };

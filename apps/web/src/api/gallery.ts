@@ -4,6 +4,8 @@ import type {
   GetGalleryImageListRequest,
   UploadGalleryImageResponse,
   DeleteGalleryImageResponse,
+  UpdateGalleryImageRequest,
+  UpdateGalleryImageResponse,
 } from "@dextea-admin/contracts"
 
 // ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
@@ -12,6 +14,8 @@ export type {
   GetGalleryImageListRequest,
   UploadGalleryImageResponse,
   DeleteGalleryImageResponse,
+  UpdateGalleryImageRequest,
+  UpdateGalleryImageResponse,
 } from "@dextea-admin/contracts"
 
 const http = createModuleClient("gallery")
@@ -62,5 +66,17 @@ export function uploadGalleryImage(
 export function deleteGalleryImage(id: number) {
   return http
     .delete<ApiResponse<DeleteGalleryImageResponse>>(`/gallery/images/${id}`)
+    .then((res) => res.data)
+}
+
+/**
+ * 更新图片名称
+ * PATCH /gallery/images/:id
+ */
+export function updateGalleryImageName(id: number, name: string) {
+  return http
+    .patch<ApiResponse<UpdateGalleryImageResponse>>(`/gallery/images/${id}`, {
+      name,
+    } satisfies UpdateGalleryImageRequest)
     .then((res) => res.data)
 }

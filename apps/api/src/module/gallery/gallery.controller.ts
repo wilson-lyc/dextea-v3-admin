@@ -10,6 +10,8 @@ import {
   GetGalleryImageListResponseSchema,
   UploadGalleryImageResponseSchema,
   DeleteGalleryImageResponseSchema,
+  UpdateGalleryImageRequestSchema,
+  UpdateGalleryImageResponseSchema,
 } from '@dextea-admin/contracts';
 
 /** 从 multipart 字段中安全提取字符串值（兼容 string / string[] / { value } 形态） */
@@ -100,6 +102,26 @@ export const registerGalleryRoutes: FastifyPluginAsyncZod = async (app) => {
     async (request, _reply) => {
       const data = await galleryService.deleteGalleryImage(request.params.id);
       return ApiResponse.success(data, '删除成功');
+    },
+  );
+
+  // 更新图片名称
+  app.patch(
+    '/gallery/images/:id',
+    {
+      schema: {
+        tags: ['Gallery'],
+        description: '更新图片名称',
+        params: z.object({ id: z.coerce.number().int().positive('ID 必须为正整数') }),
+        body: UpdateGalleryImageRequestSchema,
+        response: {
+          200: ApiResponseSchema(UpdateGalleryImageResponseSchema).describe('更新成功'),
+        },
+      },
+    },
+    async (request, _reply) => {
+      const data = await galleryService.updateGalleryImageName(request.params.id, request.body);
+      return ApiResponse.success(data, '更新成功');
     },
   );
 };

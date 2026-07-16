@@ -38,3 +38,16 @@ export const DeleteGalleryImageResponseSchema = z.object({
   id: z.number(),
 });
 export type DeleteGalleryImageResponse = z.infer<typeof DeleteGalleryImageResponseSchema>;
+
+/** 更新图片名称请求体 */
+export const UpdateGalleryImageRequestSchema = z.object({
+  name: z.string().min(1, '名称不能为空'),
+});
+export type UpdateGalleryImageRequest = z.infer<typeof UpdateGalleryImageRequestSchema>;
+
+/** 更新图片名称响应 */
+export const UpdateGalleryImageResponseSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+export type UpdateGalleryImageResponse = z.infer<typeof UpdateGalleryImageResponseSchema>;
