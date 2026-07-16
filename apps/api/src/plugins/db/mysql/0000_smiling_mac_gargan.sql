@@ -278,6 +278,7 @@ CREATE TABLE `stores` (
 	`id` serial AUTO_INCREMENT NOT NULL,
 	`name` varchar(255) NOT NULL,
 	`region_code` varchar(6) NOT NULL,
+	`region_name` varchar(255) NOT NULL DEFAULT '[]',
 	`address` varchar(500) NOT NULL,
 	`status` tinyint NOT NULL,
 	`business_hours` varchar(255) NOT NULL,

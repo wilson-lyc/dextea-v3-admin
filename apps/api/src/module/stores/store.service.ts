@@ -10,12 +10,35 @@ import { hashPassword } from '@/plugins/password/index.js';
 import { STORE_STATUS } from '@dextea-admin/contracts';
 import type { StoreListRequest, CreateStoreRequest, UpdateStoreRequest, UpdateStoreBasicInfoRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest, BindStoreMenuRequest } from '@dextea-admin/contracts';
 
+/** 将区域码反查得到的省/市/区拼成 JSON 数组字符串，如 ["广东省","广州市","番禺区"] */
+function buildRegionName(regionCode?: string): string {
+  const { province, city, district } = codeToNames(regionCode ?? '');
+  return JSON.stringify([province, city, district].filter(Boolean));
+}
+
+/** 将库中存储的 JSON 字符串安全解析为名称数组 */
+function parseRegionName(regionName?: string | null): string[] {
+  if (!regionName) return [];
+  try {
+    const parsed = JSON.parse(regionName);
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
 export const storeService = {
   async getStoreList(params: StoreListRequest) {
     const result = await storeRepository.getStoreList(params.page, params.pageSize, params.keyword);
     const items = result.items.map((store) => {
       const names = codeToNames(store.regionCode ?? '');
-      return { ...store, province: names.province, city: names.city, district: names.district };
+      return {
+        ...store,
+        regionName: parseRegionName(store.regionName),
+        province: names.province,
+        city: names.city,
+        district: names.district,
+      };
     });
     return { ...result, items };
   },
@@ -25,7 +48,7 @@ export const storeService = {
     if (!store) {
       throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
-    return store;
+    return { ...store, regionName: parseRegionName(store.regionName) };
   },
 
   async createStore(input: CreateStoreRequest) {
@@ -51,6 +74,7 @@ export const storeService = {
     const id = await storeRepository.createStore({
       name,
       regionCode: regionCode ?? '',
+      regionName: buildRegionName(regionCode),
       address: address ?? '',
       status: STORE_STATUS.PREPARING.value,
       businessHours: businessHours ?? '',
@@ -77,7 +101,10 @@ export const storeService = {
 
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name;
-    if (regionCode !== undefined) updateData.regionCode = regionCode;
+    if (regionCode !== undefined) {
+      updateData.regionCode = regionCode;
+      updateData.regionName = buildRegionName(regionCode);
+    }
     if (address !== undefined) updateData.address = address;
     if (status !== undefined) updateData.status = status;
     if (businessHours !== undefined) updateData.businessHours = businessHours;
@@ -118,6 +145,7 @@ export const storeService = {
 
     await storeRepository.updateStoreById(id, {
       regionCode: regionCode ?? '',
+      regionName: buildRegionName(regionCode),
       address: address ?? '',
       longitude,
       latitude,

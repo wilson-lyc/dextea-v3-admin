@@ -339,6 +339,7 @@ export const stores = mysqlTable("stores", {
 	email: varchar({ length: 255 }).notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`(now())`).notNull(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).default(sql`(now())`).onUpdateNow().notNull(),
+	regionName: varchar("region_name", { length: 255 }).default('[]').notNull(),
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "stores_id"}),
