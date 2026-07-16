@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Trash2Icon, Settings, ClipboardListIcon, PlusIcon } from "lucide-react"
+import { Trash2Icon, ClipboardListIcon, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Menu } from "@/api"
@@ -162,11 +162,9 @@ export default function MenusPage() {
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1">
                 <Button variant="outline" size="sm" onClick={() => navigate(`/menus/${item.id}`)}>
-                  <Settings data-icon="inline-start" />
                   管理
                 </Button>
                 <Button variant="outline-destructive" size="sm" onClick={() => { setSelectedIds(new Set([item.id])); setDeleteError(null); setDeleteDialogOpen(true) }}>
-                  <Trash2Icon data-icon="inline-start" />
                   删除
                 </Button>
               </div>

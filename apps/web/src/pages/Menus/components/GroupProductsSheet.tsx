@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { PackageIcon, GripVerticalIcon, LinkIcon, PencilIcon, ExternalLinkIcon, Trash2Icon } from "lucide-react"
+import { PackageIcon, GripVerticalIcon, LinkIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 
@@ -355,7 +355,6 @@ export default function GroupProductsSheet({
                       size="sm"
                       onClick={() => navigate(`/products/${p.productId}`)}
                     >
-                      <ExternalLinkIcon data-icon="inline-start" />
                       查看商品
                     </Button>
                     <Button
@@ -363,7 +362,6 @@ export default function GroupProductsSheet({
                       size="sm"
                       onClick={() => openEditSort(p)}
                     >
-                      <PencilIcon className="size-4" />
                       修改排序
                     </Button>
                     <Button
@@ -371,7 +369,6 @@ export default function GroupProductsSheet({
                       size="sm"
                       onClick={() => openDeleteConfirm(p)}
                     >
-                      <Trash2Icon data-icon="inline-start" />
                       解绑
                     </Button>
                   </div>
