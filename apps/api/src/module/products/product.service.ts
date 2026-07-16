@@ -3,6 +3,7 @@ import { ProductErrorCodes } from './product.errorcode.js';
 import { TagErrorCodes } from '@/module/tags/tag.errorcode.js';
 import { productRepository } from './product.repository.js';
 import { PRODUCT_STATUS_VALUES } from '@dextea-admin/contracts';
+import { withDistributedLock } from '@/plugins/lock/index.js';
 import {
   validateMaxLength,
   validatePrice,
@@ -112,67 +113,80 @@ export const productService = {
   // ─── 更新商品 ─────────────────────────────────────
 
   async updateProduct(id: number, input: UpdateProductRequest) {
+    const { name, brief, description, price, status } = input;
+
+    if (status !== undefined) {
+      validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
+    }
+
     return withMutation(async () => {
-      const { name, brief, description, price, status } = input;
+      // 当本次更新包含全局状态字段时，需与其他状态写入抢同一把商品锁，
+      // 避免 updateProduct 与 updateProductStatus 并发写导致状态覆盖。
+      const runMutation = async () => {
+        const product = await productRepository.getProductById(id);
+        if (!product) {
+          throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
+        }
 
-      const product = await productRepository.getProductById(id);
-      if (!product) {
-        throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
-      }
+        if (name !== undefined) {
+          if (!name) throw new BizError(ProductErrorCodes.NAME_REQUIRED);
+          validateMaxLength(name, 255, '商品名称');
+        }
+        if (brief !== undefined) {
+          validateMaxLength(brief, 500, '简介');
+        }
+        if (description !== undefined) {
+          validateMaxLength(description, 2000, '描述');
+        }
+        if (price !== undefined) {
+          validatePrice(price);
+        }
 
-      if (name !== undefined) {
-        if (!name) throw new BizError(ProductErrorCodes.NAME_REQUIRED);
-        validateMaxLength(name, 255, '商品名称');
-      }
-      if (brief !== undefined) {
-        validateMaxLength(brief, 500, '简介');
-      }
-      if (description !== undefined) {
-        validateMaxLength(description, 2000, '描述');
-      }
-      if (price !== undefined) {
-        validatePrice(price);
-      }
-      if (status !== undefined) {
-        validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
-      }
+        const updateData: Partial<typeof product> = {};
+        if (name !== undefined) updateData.name = name;
+        if (brief !== undefined) updateData.brief = brief;
+        if (description !== undefined) updateData.description = description;
+        if (price !== undefined) updateData.price = price;
+        if (status !== undefined) updateData.status = status;
 
-      const updateData: Partial<typeof product> = {};
-      if (name !== undefined) updateData.name = name;
-      if (brief !== undefined) updateData.brief = brief;
-      if (description !== undefined) updateData.description = description;
-      if (price !== undefined) updateData.price = price;
-      if (status !== undefined) updateData.status = status;
+        if (Object.keys(updateData).length > 0) {
+          await productRepository.updateProductById(id, updateData);
+        }
 
-      if (Object.keys(updateData).length > 0) {
-        await productRepository.updateProductById(id, updateData);
-      }
+        const updated = await productRepository.getProductById(id);
+        const tags = await productRepository.getProductTagsById(id);
 
-      const updated = await productRepository.getProductById(id);
-      const tags = await productRepository.getProductTagsById(id);
+        return { ...updated, tags };
+      };
 
-      return { ...updated, tags };
+      return status !== undefined
+        ? withDistributedLock(`product:status:${id}`, runMutation)
+        : runMutation();
     }, ProductErrorCodes.UPDATE_FAILED);
   },
 
   // ─── 上下架商品 ───────────────────────────────────
 
   async updateProductStatus(id: number, input: UpdateProductStatusRequest) {
+    const { status } = input;
+
+    validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
+
     return withMutation(async () => {
-      const { status } = input;
+      // 商品全局状态更新需抢占分布式锁，避免同一商品在分布式部署下并发写导致状态错乱。
+      // 锁键精确到商品维度，不同商品的更新互不影响。
+      return withDistributedLock(`product:status:${id}`, async () => {
+        const product = await productRepository.getProductById(id);
+        if (!product) {
+          throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
+        }
 
-      validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
+        await productRepository.updateProductById(id, { status });
 
-      const product = await productRepository.getProductById(id);
-      if (!product) {
-        throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
-      }
+        const updated = await productRepository.getProductById(id);
 
-      await productRepository.updateProductById(id, { status });
-
-      const updated = await productRepository.getProductById(id);
-
-      return updated!;
+        return updated!;
+      });
     }, ProductErrorCodes.STATUS_UPDATE_FAILED);
   },
 
