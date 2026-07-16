@@ -21,6 +21,7 @@ export type ModuleKey =
   | "permission"
   | "gallery"
   | "health"
+  | "customer"
 
 // 各模块独立的环境变量键（集中在 .env 管理）
 const MODULE_ENV_KEYS: Record<ModuleKey, keyof ImportMetaEnv> = {
@@ -40,6 +41,7 @@ const MODULE_ENV_KEYS: Record<ModuleKey, keyof ImportMetaEnv> = {
   permission: "VITE_API_PERMISSION_BASE_URL",
   gallery: "VITE_API_GALLERY_BASE_URL",
   health: "VITE_API_HEALTH_BASE_URL",
+  customer: "VITE_API_CUSTOMER_BASE_URL",
 }
 
 // 无 /api/v2 前缀的模块使用独立默认地址

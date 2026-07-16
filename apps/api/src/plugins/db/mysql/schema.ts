@@ -325,15 +325,23 @@ export const customersTable = mysqlTable(
   'customers',
   {
     id: serial().primaryKey(),
-    source: tinyint().notNull(),
-    openId: varchar('open_id', { length: 255 }).notNull(),
-    nickname: varchar({ length: 255 }).notNull(),
+    name: varchar({ length: 255 }),
+    email: varchar({ length: 255 }),
+    phone: varchar({ length: 50 }),
+    password: varchar({ length: 255 }),
+    platform: tinyint().notNull(),
+    weixinOpenId: varchar('weixin_open_id', { length: 255 }),
+    alipayOpenId: varchar('alipay_open_id', { length: 255 }),
+    /** 状态：1=激活 0=禁用（见 @dextea-admin/contracts CUSTOMER_STATUS） */
+    status: tinyint().notNull(),
     createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
   },
   (table) => ({
-    uniqueOpenIdPerSource: uniqueIndex('uq_customers_source_openid').on(table.source, table.openId),
-    uniqueOpenId: uniqueIndex('uq_customers_openid').on(table.openId),
+    uniqueEmail: uniqueIndex('uq_customers_email').on(table.email),
+    uniquePhone: uniqueIndex('uq_customers_phone').on(table.phone),
+    uniqueWeixinOpenId: uniqueIndex('uq_customers_weixin_open_id').on(table.weixinOpenId),
+    uniqueAlipayOpenId: uniqueIndex('uq_customers_alipay_open_id').on(table.alipayOpenId),
   }),
 );
 

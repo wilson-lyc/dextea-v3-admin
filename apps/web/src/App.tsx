@@ -13,6 +13,7 @@ import MenusPage from "@/pages/Menus"
 import MenuDetailPage from "@/pages/Menus/detail"
 import StoresPage from "@/pages/Stores"
 import StoreDetailPage from "@/pages/Stores/detail"
+import CustomersPage from "@/pages/Customers"
 import ProductsPage from "@/pages/Products"
 import ProductDetailPage from "@/pages/Products/detail"
 import TagListPage from "@/pages/ProductTags"
@@ -50,6 +51,7 @@ function App() {
             <Route path="menus/:id" element={<MenuDetailPage />} />
             <Route path="stores" element={<StoresPage />} />
             <Route path="stores/:id" element={<StoreDetailPage />} />
+            <Route path="customers" element={<CustomersPage />} />
             <Route path="products" element={<ProductsPage />} />
             <Route path="products/:id" element={<ProductDetailPage />} />
             <Route path="products/tags" element={<TagListPage />} />

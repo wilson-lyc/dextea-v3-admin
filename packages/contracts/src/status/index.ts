@@ -1,4 +1,5 @@
 export * from './employee.js';
+export * from './customer.js';
 export * from './role.js';
 export * from './store.js';
 export * from './product.js';

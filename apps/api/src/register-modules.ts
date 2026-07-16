@@ -4,6 +4,7 @@ import { registerStoreModule } from './module/stores/store.module.js';
 import { registerStoreCatalogModule } from './module/store-catalog/store-catalog.module.js';
 import { registerInitModule } from './module/init/init.module.js';
 import { registerConfigModule } from './module/config/config.module.js';
+import { registerCustomerModule } from './module/customers/customers.module.js';
 import { registerAreaModule } from './module/areas/area.module.js';
 import { registerAuthModule } from './module/auth/auth.module.js';
 import { registerTagModule } from './module/tags/tag.module.js';
@@ -22,6 +23,7 @@ export async function registerModules(app: FastifyInstance) {
   await app.register(registerStoreCatalogModule);
   await app.register(registerInitModule);
   await app.register(registerConfigModule);
+  await app.register(registerCustomerModule);
   await app.register(registerAreaModule);
   await app.register(registerAuthModule);
   await app.register(registerTagModule);

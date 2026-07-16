@@ -1,6 +1,7 @@
 export * from './area.js';
 export * from './auth.js';
 export * from './config.js';
+export * from './customer.js';
 export * from './dashboard.js';
 export * from './customization.js';
 export * from './employee.js';
