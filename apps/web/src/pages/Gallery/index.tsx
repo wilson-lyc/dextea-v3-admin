@@ -255,9 +255,9 @@ export default function GalleryPage() {
           <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
               <TableHead className="w-20">ID</TableHead>
-              <TableHead>名称</TableHead>
               <TableHead className="w-24">缩略图</TableHead>
-              <TableHead>创建时间</TableHead>
+              <TableHead>名称</TableHead>
+              <TableHead className="w-44">创建时间</TableHead>
               <TableHead className="w-36 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
@@ -265,9 +265,6 @@ export default function GalleryPage() {
         body={images.map((img) => (
           <TableRow key={img.id}>
             <TableCell className="font-mono text-xs">{img.id}</TableCell>
-            <TableCell className="max-w-xs truncate" title={img.name}>
-              {img.name}
-            </TableCell>
             <TableCell>
               <button
                 type="button"
@@ -286,7 +283,10 @@ export default function GalleryPage() {
                 </span>
               </button>
             </TableCell>
-            <TableCell>{new Date(img.createdAt).toLocaleString("zh-CN")}</TableCell>
+            <TableCell className="truncate" title={img.name}>
+              {img.name}
+            </TableCell>
+            <TableCell className="whitespace-nowrap">{new Date(img.createdAt).toLocaleString("zh-CN")}</TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1">
                 <Button variant="outline-destructive" size="sm" onClick={() => openDelete(img)}>
