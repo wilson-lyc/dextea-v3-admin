@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   ImageIcon,
-  PencilIcon,
   PlusIcon,
   SearchIcon,
   Trash2Icon,
@@ -296,7 +295,7 @@ export default function GalleryPage() {
         header={
           <TableHeader className="sticky top-0 z-50 bg-background">
             <TableRow>
-              <TableHead className="w-20">ID</TableHead>
+              <TableHead className="w-20">图片ID</TableHead>
               <TableHead className="w-24">缩略图</TableHead>
               <TableHead>名称</TableHead>
               <TableHead className="w-44">创建时间</TableHead>
@@ -332,7 +331,6 @@ export default function GalleryPage() {
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1">
                 <Button variant="outline" size="sm" onClick={() => openEdit(img)}>
-                  <PencilIcon data-icon="inline-start" />
                   编辑
                 </Button>
                 <Button variant="outline-destructive" size="sm" onClick={() => openDelete(img)}>
