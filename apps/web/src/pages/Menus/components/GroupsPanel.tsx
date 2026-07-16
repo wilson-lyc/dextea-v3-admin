@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { PlusIcon, Trash2Icon, LayersIcon, ListIcon } from "lucide-react"
+import { PlusIcon, Trash2Icon, LayersIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { MenuGroup } from "@/api"
@@ -229,7 +229,6 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
                   size="sm"
                   onClick={() => openProductsSheet(group)}
                 >
-                  <ListIcon data-icon="inline-start" />
                   查看商品
                 </Button>
                 <Button
@@ -237,7 +236,6 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
                   size="sm"
                   onClick={() => openDeleteDialog(group)}
                 >
-                  <Trash2Icon data-icon="inline-start" />
                   删除
                 </Button>
               </div>

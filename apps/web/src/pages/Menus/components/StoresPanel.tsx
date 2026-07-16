@@ -3,10 +3,8 @@ import { useNavigate } from "react-router-dom"
 import {
   ChevronDownIcon,
   ClipboardListIcon,
-  ExternalLinkIcon,
   MapPinIcon,
   PlusIcon,
-  UnlinkIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -172,7 +170,6 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
                   size="sm"
                   onClick={() => navigate(`/stores/${store.id}`)}
                 >
-                  <ExternalLinkIcon data-icon="inline-start" />
                   查看门店
                 </Button>
                 <Button
@@ -180,7 +177,6 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
                   size="sm"
                   onClick={() => handleUnbindClick(store)}
                 >
-                  <UnlinkIcon data-icon="inline-start" />
                   解绑
                 </Button>
               </div>

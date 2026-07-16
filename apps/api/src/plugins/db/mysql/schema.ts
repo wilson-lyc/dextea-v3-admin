@@ -1,4 +1,4 @@
-import { mysqlTable, mysqlSchema, AnyMySqlColumn, primaryKey, unique, serial, varchar, text, timestamp, tinyint, bigint, double, int } from "drizzle-orm/mysql-core"
+import { mysqlTable, mysqlSchema, AnyMySqlColumn, primaryKey, unique, serial, varchar, text, timestamp, tinyint, bigint, double, int, json } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 
 export const config = mysqlTable("config", {
@@ -328,6 +328,7 @@ export const stores = mysqlTable("stores", {
 	id: serial().notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	regionCode: varchar("region_code", { length: 6 }).notNull(),
+	regionNames: json("region_names").$type<string[]>().default(sql`('[]')`).notNull(),
 	address: varchar({ length: 500 }).notNull(),
 	status: tinyint().notNull(),
 	businessHours: varchar("business_hours", { length: 255 }).notNull(),

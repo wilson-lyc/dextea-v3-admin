@@ -19,7 +19,7 @@ async function main() {
   const app = Fastify({
     logger: {
       level: config.logLevel,
-      transport: config.isDev
+      transport: config.nodeEnv === 'development'
         ? { target: 'pino-pretty', options: { colorize: true } }
         : undefined,
     },
