@@ -145,7 +145,7 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
                 onClick={() => openPicker("cover")}
               >
                 <ImagesIcon data-icon="inline-start" />
-                {cover ? "更换封面" : "选择封面"}
+                从图库添加
               </Button>
               {cover && (
                 <Button
@@ -174,7 +174,7 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
       {/* 图库 */}
       <Card>
         <CardHeader>
-          <CardTitle>图库</CardTitle>
+          <CardTitle>详情页图册</CardTitle>
           <CardAction>
             <Button
               variant="outline"
@@ -190,7 +190,7 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
           {gallery.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-12 text-center">
               <ImageIcon className="size-6 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">暂无图库图片</span>
+              <span className="text-sm text-muted-foreground">暂无详情页图册</span>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
@@ -240,7 +240,7 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
         multiple={pickerMode === "gallery"}
         disabledIds={pickerMode === "gallery" ? gallery.map((i) => i.id) : []}
         maxSelect={pickerMode === "gallery" ? MAX_GALLERY - gallery.length : undefined}
-        title={pickerMode === "gallery" ? "从图库选择图片" : "从图库选择封面"}
+        title={pickerMode === "gallery" ? "选择详情页图册图片" : "从图库选择封面"}
         onConfirm={handlePickerConfirm}
       />
 
