@@ -5,10 +5,16 @@ import { storeRepository } from './store.repository.js';
 import { redis } from '@/plugins/db/redis/index.js';
 import { withDistributedLock } from '@/plugins/lock/index.js';
 import { geocode } from '@/plugins/geocode/index.js';
-import { codeToNames } from '@/utils';
+import { codeToNames, getDivisionPath } from '@/utils';
 import { hashPassword } from '@/plugins/password/index.js';
 import { STORE_STATUS } from '@dextea-admin/contracts';
 import type { StoreListRequest, CreateStoreRequest, UpdateStoreRequest, UpdateStoreBasicInfoRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest, BindStoreMenuRequest } from '@dextea-admin/contracts';
+
+function computeRegionNames(regionCode?: string): string[] {
+  if (!regionCode) return [];
+  const path = getDivisionPath(regionCode);
+  return path.map((d) => d.name).filter(Boolean);
+}
 
 export const storeService = {
   async getStoreList(params: StoreListRequest) {
@@ -51,6 +57,7 @@ export const storeService = {
     const id = await storeRepository.createStore({
       name,
       regionCode: regionCode ?? '',
+      regionNames: computeRegionNames(regionCode),
       address: address ?? '',
       status: STORE_STATUS.PREPARING.value,
       businessHours: businessHours ?? '',
@@ -77,7 +84,10 @@ export const storeService = {
 
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name;
-    if (regionCode !== undefined) updateData.regionCode = regionCode;
+    if (regionCode !== undefined) {
+      updateData.regionCode = regionCode;
+      updateData.regionNames = computeRegionNames(regionCode);
+    }
     if (address !== undefined) updateData.address = address;
     if (status !== undefined) updateData.status = status;
     if (businessHours !== undefined) updateData.businessHours = businessHours;
@@ -118,6 +128,7 @@ export const storeService = {
 
     await storeRepository.updateStoreById(id, {
       regionCode: regionCode ?? '',
+      regionNames: computeRegionNames(regionCode),
       address: address ?? '',
       longitude,
       latitude,

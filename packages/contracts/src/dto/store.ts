@@ -8,6 +8,8 @@ export const StoreSchema = z.object({
   name: z.string(),
   /** 行政区划代码（6 位，最细一级） */
   regionCode: z.string(),
+  /** 省市区名称数组，如 ["广东省","广州市","番禺区"]，便于外部系统直接使用 */
+  regionNames: z.array(z.string()),
   /** 以下为根据 regionCode 反查得到的展示用名称（可选） */
   province: z.string().optional(),
   city: z.string().optional(),
