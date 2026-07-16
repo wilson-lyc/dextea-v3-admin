@@ -372,7 +372,7 @@ export const orderItemsTable = mysqlTable(
 );
 
 /** 图片资源表 */
-export const galleryImagesTable = mysqlTable('gallery_images', {
+export const galleryTable = mysqlTable('gallery', {
   id: serial().primaryKey(),
   name: varchar('name', { length: 255 }).notNull().default(''),
   url: varchar('url', { length: 1024 }).notNull(),

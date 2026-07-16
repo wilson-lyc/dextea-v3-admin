@@ -7,7 +7,7 @@ import {
   productIngredientsTable,
   ingredientsTable,
   productImagesTable,
-  galleryImagesTable,
+  galleryTable,
 } from '@/plugins/db/mysql/schema.js';
 import { PRODUCT_IMAGE_TYPE } from '@dextea-admin/contracts';
 import { withPagination } from '@/utils';
@@ -344,15 +344,15 @@ export const productRepository = {
   /** 查询商品图片：封面（最多 1 张）+ 图库（按 sort 升序） */
   async getProductImages(productId: number) {
     const coverCols = {
-      id: galleryImagesTable.id,
-      url: galleryImagesTable.url,
-      createdAt: galleryImagesTable.createdAt,
+      id: galleryTable.id,
+      url: galleryTable.url,
+      createdAt: galleryTable.createdAt,
     };
 
     const coverRows = await db
       .select(coverCols)
       .from(productImagesTable)
-      .innerJoin(galleryImagesTable, eq(productImagesTable.imageId, galleryImagesTable.id))
+      .innerJoin(galleryTable, eq(productImagesTable.imageId, galleryTable.id))
       .where(
         and(
           eq(productImagesTable.productId, productId),
@@ -364,14 +364,14 @@ export const productRepository = {
     const galleryRows = await db
       .select(coverCols)
       .from(productImagesTable)
-      .innerJoin(galleryImagesTable, eq(productImagesTable.imageId, galleryImagesTable.id))
+      .innerJoin(galleryTable, eq(productImagesTable.imageId, galleryTable.id))
       .where(
         and(
           eq(productImagesTable.productId, productId),
           eq(productImagesTable.type, PRODUCT_IMAGE_TYPE.GALLERY.value),
         ),
       )
-      .orderBy(productImagesTable.sort, galleryImagesTable.id);
+      .orderBy(productImagesTable.sort, galleryTable.id);
 
     return {
       cover: coverRows[0] ?? null,
@@ -383,9 +383,9 @@ export const productRepository = {
   async getGalleryImagesByIds(ids: number[]) {
     if (ids.length === 0) return [];
     return db
-      .select({ id: galleryImagesTable.id })
-      .from(galleryImagesTable)
-      .where(inArray(galleryImagesTable.id, ids));
+      .select({ id: galleryTable.id })
+      .from(galleryTable)
+      .where(inArray(galleryTable.id, ids));
   },
 
   /** 全量替换商品图片：先删后插，封面与图库各自写入 */

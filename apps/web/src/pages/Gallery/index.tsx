@@ -5,6 +5,7 @@ import {
   SearchIcon,
   Trash2Icon,
   UploadIcon,
+  ZoomInIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -61,6 +62,9 @@ export default function GalleryPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<GalleryImage | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+
+  // 大图预览
+  const [previewImage, setPreviewImage] = useState<GalleryImage | null>(null)
 
   // 上传弹窗
   const [uploadOpen, setUploadOpen] = useState(false)
@@ -265,14 +269,22 @@ export default function GalleryPage() {
               {img.name}
             </TableCell>
             <TableCell>
-              <div className="size-12 overflow-hidden rounded bg-muted">
+              <button
+                type="button"
+                onClick={() => setPreviewImage(img)}
+                className="group relative size-12 overflow-hidden rounded bg-muted outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-label="查看大图"
+              >
                 <img
                   src={img.url}
                   alt={img.name}
                   loading="lazy"
-                  className="size-full object-cover"
+                  className="size-full object-cover transition-transform group-hover:scale-105"
                 />
-              </div>
+                <span className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                  <ZoomInIcon className="size-4 text-white" />
+                </span>
+              </button>
             </TableCell>
             <TableCell>{new Date(img.createdAt).toLocaleString("zh-CN")}</TableCell>
             <TableCell className="text-right">
@@ -400,6 +412,31 @@ export default function GalleryPage() {
               )}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 大图预览弹窗 */}
+      <Dialog
+        open={previewImage !== null}
+        onOpenChange={(open) => {
+          if (!open) setPreviewImage(null)
+        }}
+      >
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="max-w-[calc(100%-2rem)] truncate" title={previewImage?.name}>
+              {previewImage?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {previewImage && (
+            <div className="flex max-h-[70vh] items-center justify-center overflow-auto rounded-lg bg-muted">
+              <img
+                src={previewImage.url}
+                alt={previewImage.name}
+                className="max-h-[70vh] w-auto object-contain"
+              />
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

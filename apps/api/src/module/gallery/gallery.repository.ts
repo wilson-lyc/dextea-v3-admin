@@ -1,6 +1,6 @@
 import { and, desc, eq, like, or, sql, type SQL } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
-import { galleryImagesTable } from '@/plugins/db/mysql/schema.js';
+import { galleryTable } from '@/plugins/db/mysql/schema.js';
 import { withPagination } from '@/utils';
 
 export const galleryRepository = {
@@ -15,25 +15,25 @@ export const galleryRepository = {
     const conditions: SQL[] = [];
     if (filters.keyword) {
       const kw = `%${filters.keyword}%`;
-      conditions.push(or(like(galleryImagesTable.name, kw), like(galleryImagesTable.url, kw)));
+      conditions.push(or(like(galleryTable.name, kw), like(galleryTable.url, kw)));
     }
     const where = conditions.length > 0 ? and(...conditions) : undefined;
 
     const baseQuery = db
       .select({
-        id: galleryImagesTable.id,
-        name: galleryImagesTable.name,
-        url: galleryImagesTable.url,
-        createdAt: galleryImagesTable.createdAt,
+        id: galleryTable.id,
+        name: galleryTable.name,
+        url: galleryTable.url,
+        createdAt: galleryTable.createdAt,
       })
-      .from(galleryImagesTable)
+      .from(galleryTable)
       .where(where)
-      .orderBy(desc(galleryImagesTable.id))
+      .orderBy(desc(galleryTable.id))
       .$dynamic();
 
     const countQuery = db
       .select({ count: sql<number>`count(*)` })
-      .from(galleryImagesTable)
+      .from(galleryTable)
       .where(where);
 
     const [items, countResult] = await Promise.all([
@@ -49,18 +49,18 @@ export const galleryRepository = {
   async getGalleryImageById(id: number) {
     const rows = await db
       .select()
-      .from(galleryImagesTable)
-      .where(eq(galleryImagesTable.id, id))
+      .from(galleryTable)
+      .where(eq(galleryTable.id, id))
       .limit(1);
     return rows[0] ?? null;
   },
 
-  async createGalleryImage(data: typeof galleryImagesTable.$inferInsert) {
-    const result = await db.insert(galleryImagesTable).values(data);
+  async createGalleryImage(data: typeof galleryTable.$inferInsert) {
+    const result = await db.insert(galleryTable).values(data);
     return Number(result[0]?.insertId ?? 0);
   },
 
   async deleteGalleryImageById(id: number) {
-    await db.delete(galleryImagesTable).where(eq(galleryImagesTable.id, id));
+    await db.delete(galleryTable).where(eq(galleryTable.id, id));
   },
 };
