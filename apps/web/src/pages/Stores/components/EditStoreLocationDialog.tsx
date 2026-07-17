@@ -25,6 +25,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip"
 import { updateStoreLocation, resolveMessage } from "@/api"
+import { toAreaSelectorValue } from "@/lib/region"
 import AmapMapPicker from "@/components/amap/amap-map-picker"
 
 interface EditStoreLocationDialogProps {
@@ -107,7 +108,7 @@ export function EditStoreLocationDialog({ open, onOpenChange, store, onUpdated }
             </FieldLabel>
             <AreaSelector
               key={`edit-location-${store.id}-${open}`}
-              value={{ province: store.province, city: store.city, district: store.district }}
+              value={toAreaSelectorValue({ province: store.province, city: store.city, district: store.district })}
               onChange={handleAreaChange}
             />
           </Field>

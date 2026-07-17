@@ -82,7 +82,10 @@ export const storeService = {
     if (city !== undefined || (province !== undefined && isMunicipality(province))) {
       updateData.city = region.city;
     }
-    if (district !== undefined) updateData.district = region.district;
+    // 直辖市省市区三列联动，避免区列残留旧值
+    if (district !== undefined || (province !== undefined && isMunicipality(province))) {
+      updateData.district = region.district;
+    }
     if (address !== undefined) updateData.address = address;
     if (status !== undefined) updateData.status = status;
     if (businessHours !== undefined) updateData.businessHours = businessHours;

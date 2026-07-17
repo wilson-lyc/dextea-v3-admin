@@ -237,11 +237,11 @@ export function AreaSelector({
           {selectedProvince ? (
             selectedProvince.name
           ) : (
-            <span className="text-muted-foreground">选择省</span>
+            <span className="text-muted-foreground">选择一级行政区</span>
           )}
         </ComboboxTrigger>
         <ComboboxContent>
-          <ComboboxInput showTrigger={false} placeholder="搜索省..." />
+          <ComboboxInput showTrigger={false} placeholder="搜索一级行政区..." />
           <ComboboxEmpty>未找到</ComboboxEmpty>
           <ComboboxList>
             {(item: Division) => (
@@ -272,11 +272,11 @@ export function AreaSelector({
           {selectedCity ? (
             selectedCity.name
           ) : (
-            <span className="text-muted-foreground">选择市</span>
+            <span className="text-muted-foreground">选择二级行政区</span>
           )}
         </ComboboxTrigger>
         <ComboboxContent>
-          <ComboboxInput showTrigger={false} placeholder="搜索市..." />
+          <ComboboxInput showTrigger={false} placeholder="搜索二级行政区..." />
           <ComboboxEmpty>未找到</ComboboxEmpty>
           <ComboboxList>
             {(item: Division) => (
@@ -307,11 +307,11 @@ export function AreaSelector({
           {selectedDistrict ? (
             selectedDistrict.name
           ) : (
-            <span className="text-muted-foreground">选择区</span>
+            <span className="text-muted-foreground">选择三级行政区</span>
           )}
         </ComboboxTrigger>
         <ComboboxContent>
-          <ComboboxInput showTrigger={false} placeholder="搜索区..." />
+          <ComboboxInput showTrigger={false} placeholder="搜索三级行政区..." />
           <ComboboxEmpty>未找到</ComboboxEmpty>
           <ComboboxList>
             {(item: Division) => (

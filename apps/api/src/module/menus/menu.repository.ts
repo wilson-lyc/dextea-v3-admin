@@ -8,21 +8,19 @@ import {
   storeMenus,
   stores,
 } from '@/plugins/db/mysql/schema.js';
-import { withPagination, isMunicipality } from '@/utils';
+import { withPagination } from '@/utils';
 
-/** 按 省[/市[/区]] 层级构建门店筛选条件（仅匹配已提供的层级） */
+/**
+ * 按 省 / 市 / 区 构建门店筛选条件（仅匹配非空层级）。
+ * 传入的 area 必须已经过 normalizeStoreRegion 归一化为门店存储格式，
+ * 因此这里直接按数据库列逐级匹配即可（直辖市省列为空，会自动从 city 列开始匹配）。
+ */
 function buildAreaFilter(area: { province: string; city: string; district: string }) {
   const conditions: ReturnType<typeof eq>[] = [];
 
-  if (isMunicipality(area.province)) {
-    // 直辖市：门店 province 列置空、直辖市名落在 city 列，故改用 city 列匹配
-    conditions.push(eq(stores.city, area.province));
-    if (area.district) conditions.push(eq(stores.district, area.district));
-  } else {
-    conditions.push(eq(stores.province, area.province));
-    if (area.city) conditions.push(eq(stores.city, area.city));
-    if (area.district) conditions.push(eq(stores.district, area.district));
-  }
+  if (area.province) conditions.push(eq(stores.province, area.province));
+  if (area.city) conditions.push(eq(stores.city, area.city));
+  if (area.district) conditions.push(eq(stores.district, area.district));
 
   return and(...conditions);
 }

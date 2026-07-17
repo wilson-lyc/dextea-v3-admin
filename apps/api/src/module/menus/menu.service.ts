@@ -1,7 +1,7 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { MenuErrorCodes } from './menu.errorcode.js';
 import { menuRepository } from './menu.repository.js';
-import { isMunicipality } from '@/utils';
+import { normalizeStoreRegion } from '@/utils';
 import type {
   MenuListRequest,
   CreateMenuRequest,
@@ -202,12 +202,10 @@ export const menuService = {
       throw new BizError(MenuErrorCodes.INVALID_REGION_CODE);
     }
 
-    // 按 省[/市[/区]] 层级文本匹配其下所有门店
-    const area = { province, city: city ?? '', district: district ?? '' };
-    // 直辖市省/市同名，拼接区域名时跳过重复的 city 列
-    const regionName = isMunicipality(province)
-      ? [province, district].filter(Boolean).join('')
-      : [province, city, district].filter(Boolean).join('');
+    // 归一化为门店存储格式后再匹配（直辖市整体后移一位，与门店入库口径一致）
+    const area = normalizeStoreRegion({ province, city: city ?? '', district: district ?? '' });
+    // 展示名称按用户实际选择的层级拼接（选择器对直辖市把区放在 city 位）
+    const regionName = [province, city, district].filter(Boolean).join('');
 
     const matched = await menuRepository.countStoresByArea(area);
 
