@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
-import GalleryPicker from "@/components/ui/GalleryPicker"
+import GalleryPicker from "@/components/ui/gallery-picker"
 
 const MAX_GALLERY = 10
 
