@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import { AreaSelector } from "@/components/area"
-import type { AreaValue } from "@/components/area"
+import { AreaSelector } from "@/components/ui/area-selector"
+import type { AreaValue } from "@/components/ui/area-selector"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
