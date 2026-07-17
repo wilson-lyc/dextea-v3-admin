@@ -1,7 +1,7 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { MenuErrorCodes } from './menu.errorcode.js';
 import { menuRepository } from './menu.repository.js';
-import { codeToNames, isValidRegionCode, regionCodeToPrefix } from '@/utils';
+import { isMunicipality } from '@/utils';
 import type {
   MenuListRequest,
   CreateMenuRequest,
@@ -197,25 +197,25 @@ export const menuService = {
       throw new BizError(MenuErrorCodes.MENU_NOT_FOUND);
     }
 
-    const { regionCode } = input;
-    if (!isValidRegionCode(regionCode)) {
+    const { province, city, district } = input;
+    if (!province) {
       throw new BizError(MenuErrorCodes.INVALID_REGION_CODE);
     }
 
-    // 由区域模块将区域码转为前缀匹配串（去尾零），实现 省/市/区 层级分发
-    const regionPrefix = regionCodeToPrefix(regionCode);
-    const regionName = (() => {
-      const { province, city, district } = codeToNames(regionCode);
-      return [province, city, district].filter(Boolean).join('');
-    })();
+    // 按 省[/市[/区]] 层级文本匹配其下所有门店
+    const area = { province, city: city ?? '', district: district ?? '' };
+    // 直辖市省/市同名，拼接区域名时跳过重复的 city 列
+    const regionName = isMunicipality(province)
+      ? [province, district].filter(Boolean).join('')
+      : [province, city, district].filter(Boolean).join('');
 
-    const matched = await menuRepository.countStoresByArea(regionPrefix);
+    const matched = await menuRepository.countStoresByArea(area);
 
     if (matched === 0) {
       throw new BizError(MenuErrorCodes.NO_MATCHED_STORES);
     }
 
-    const unboundStores = await menuRepository.getUnboundStoreIdsByArea(menuId, regionPrefix);
+    const unboundStores = await menuRepository.getUnboundStoreIdsByArea(menuId, area);
 
     if (unboundStores.length === 0) {
       return { matched, dispatched: 0, regionName };

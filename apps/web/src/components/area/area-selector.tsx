@@ -102,12 +102,15 @@ export function AreaSelector({
 
   // ── 回显（兼容）：按名称匹配初始省份 ─────────────────
   useEffect(() => {
-    if (!value?.province || !provinces.length || value?.code) return
-    const matched = provinces.find((p) => p.name === value.province)
+    if (!provinces.length || value?.code) return
+    // 直辖市场景：province 为空，用 city 名匹配省级（直辖市市/省同名）
+    const targetProvince = (value?.province || value?.city || '').trim()
+    if (!targetProvince) return
+    const matched = provinces.find((p) => p.name === targetProvince)
     if (matched && (!selectedProvince || selectedProvince.code !== matched.code)) {
       setSelectedProvince(matched)
     }
-  }, [provinces, value?.province, value?.code])
+  }, [provinces, value?.province, value?.city, value?.code])
 
   // ── 省份变化 → 清空下级并加载城市列表 ────────────────
   useEffect(() => {

@@ -1,5 +1,4 @@
 import { createModuleClient, type ApiResponse, type PaginatedData } from "./client"
-import type { Store } from "./store"
 import type {
   Menu,
   MenuGroup,
@@ -21,6 +20,7 @@ export type {
   Menu,
   MenuGroup,
   MenuProduct,
+  MenuStore,
   CreateMenuRequest,
   UpdateMenuRequest,
   CreateMenuResponse,
@@ -121,7 +121,7 @@ export function updateMenuProductSort(groupId: number, productId: number, sortOr
  */
 export function getStoresByMenuId(menuId: number, params?: { page?: number; pageSize?: number }) {
   return http
-    .get<ApiResponse<PaginatedData<Store>>>(`/menus/${menuId}/stores`, { params })
+    .get<ApiResponse<PaginatedData<MenuStore>>>(`/menus/${menuId}/stores`, { params })
     .then((res) => res.data)
 }
 

@@ -13,20 +13,11 @@ import {
  * 县级市/县，没有以 00 结尾的市辖区代码）无法正常匹配，导致链路缺失一级。
  *
  * 本工具统一提供：
- * - codeToNames：区域码 → 省 / 市 / 区 文本
  * - namesToCode：省 / 市 / 区 文本 → 区域码（精确 / 市 / 省 三级回退）
  * - getDivisionPath：区域码 → 从顶级到自身的完整链路
- * - isValidRegionCode：区域码合法性校验
+ *
+ * 仅用于 areas 模块的行政区划树浏览；门店本身已直接存储省/市/区文本。
  */
-
-/** 省 / 市 / 区 三级文本 */
-export interface DivisionNames {
-  province: string;
-  city: string;
-  district: string;
-}
-
-const EMPTY_NAMES: DivisionNames = { province: '', city: '', district: '' };
 
 /**
  * 区域码 → 从顶级到自身的完整链路（如 440203 → [广东省, 韶关市, 武江区]）。
@@ -68,19 +59,6 @@ export function getDivisionPath(code: string): Division[] {
   const cityChildren = getDivisionChildren(city.code);
   const district = cityChildren.find((d) => d.code === normalized);
   return district ? [top, city, district] : [top, city];
-}
-
-/**
- * 区域码 → 省 / 市 / 区 文本（缺失层级为空字符串）。
- */
-export function codeToNames(code: string): DivisionNames {
-  const path = getDivisionPath(code);
-  if (path.length === 0) return { ...EMPTY_NAMES };
-  return {
-    province: path[0]?.name ?? '',
-    city: path[1]?.name ?? '',
-    district: path[2]?.name ?? '',
-  };
 }
 
 /**
@@ -130,27 +108,6 @@ export function namesToCode(
   }
 
   return result.code;
-}
-
-/** 校验是否为合法的 6 位行政区划代码 */
-export function isValidRegionCode(code: string): boolean {
-  return /^\d{6}$/.test(code ?? '') && isExistingCode(code ?? '');
-}
-
-/**
- * 区域码 → 前缀匹配串，用于按地域层级做 `region_code LIKE 'prefix%'` 分发。
- *
- * 去掉末尾的 0，使省级 / 市级代码能匹配到其下所有门店：
- * - 440000 (广东省) → "44"     → 匹配 44____ 全部广东门店
- * - 440200 (韶关市) → "4402"   → 匹配 4402__ 全部韶关门店
- * - 440204 (武江区) → "440204" → 匹配 440204 精确门店
- *
- * 入参非法（如全 0）时回退为原始串，避免产生空前缀导致全表命中。
- */
-export function regionCodeToPrefix(code: string): string {
-  const normalized = (code ?? '').trim();
-  const stripped = normalized.replace(/0+$/, '');
-  return stripped.length > 0 ? stripped : normalized;
 }
 
 export { getTopDivisions, getDivisionChildren };

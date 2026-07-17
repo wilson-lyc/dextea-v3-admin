@@ -1,4 +1,4 @@
-import { eq, sql, and, inArray, like } from 'drizzle-orm';
+import { eq, sql, and, inArray } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
 import {
   menus,
@@ -8,7 +8,24 @@ import {
   storeMenus,
   stores,
 } from '@/plugins/db/mysql/schema.js';
-import { withPagination } from '@/utils';
+import { withPagination, isMunicipality } from '@/utils';
+
+/** 按 省[/市[/区]] 层级构建门店筛选条件（仅匹配已提供的层级） */
+function buildAreaFilter(area: { province: string; city: string; district: string }) {
+  const conditions: ReturnType<typeof eq>[] = [];
+
+  if (isMunicipality(area.province)) {
+    // 直辖市：门店 province 列置空、直辖市名落在 city 列，故改用 city 列匹配
+    conditions.push(eq(stores.city, area.province));
+    if (area.district) conditions.push(eq(stores.district, area.district));
+  } else {
+    conditions.push(eq(stores.province, area.province));
+    if (area.city) conditions.push(eq(stores.city, area.city));
+    if (area.district) conditions.push(eq(stores.district, area.district));
+  }
+
+  return and(...conditions);
+}
 
 export const menuRepository = {
   // ─── 菜单 ──────────────────────────────────────────
@@ -251,7 +268,9 @@ export const menuRepository = {
         .select({
           id: stores.id,
           name: stores.name,
-          regionCode: stores.regionCode,
+          province: stores.province,
+          city: stores.city,
+          district: stores.district,
           address: stores.address,
           status: stores.status,
           businessHours: stores.businessHours,
@@ -275,21 +294,21 @@ export const menuRepository = {
     return { items, total, page, pageSize };
   },
 
-  async countStoresByArea(regionPrefix: string) {
+  async countStoresByArea(area: { province: string; city: string; district: string }) {
     const [result] = await db
       .select({ count: sql<number>`count(*)` })
       .from(stores)
-      .where(like(stores.regionCode, `${regionPrefix}%`));
+      .where(buildAreaFilter(area));
     return Number(result?.count ?? 0);
   },
 
-  async getUnboundStoreIdsByArea(menuId: number, regionPrefix: string) {
+  async getUnboundStoreIdsByArea(menuId: number, area: { province: string; city: string; district: string }) {
     return db
       .select({ id: stores.id })
       .from(stores)
       .where(
         and(
-          like(stores.regionCode, `${regionPrefix}%`),
+          buildAreaFilter(area),
           sql`not exists (select 1 from ${storeMenus} where ${storeMenus.storeId} = ${stores.id} and ${storeMenus.menuId} = ${menuId})`,
         ),
       );

@@ -38,7 +38,9 @@ export type MenuProduct = z.infer<typeof MenuProductSchema>;
 export const MenuStoreSchema = z.object({
   id: z.number(),
   name: z.string(),
-  regionCode: z.string(),
+  province: z.string(),
+  city: z.string(),
+  district: z.string(),
   address: z.string(),
   status: z.number(),
   businessHours: z.string(),
@@ -151,18 +153,19 @@ export const MenuStoreListResponseSchema = PaginatedDataSchema(MenuStoreSchema);
 export type MenuStoreListResponse = z.infer<typeof MenuStoreListResponseSchema>;
 
 export const DispatchByAreaRequestSchema = z.object({
-  /** 6 位行政区划代码（省级以 00 结尾，如 440000=广东；市级 440200=韶关；区级 440204=武江） */
-  regionCode: z
-    .string()
-    .regex(/^\d{6}$/, '区域代码必须为 6 位数字')
-    .describe('行政区划代码，后端按前缀匹配其下所有门店'),
+  /** 省（必填），后端按 省[/市[/区]] 层级匹配其下所有门店 */
+  province: z.string().min(1, '省份不能为空'),
+  /** 市（可选） */
+  city: z.string().optional(),
+  /** 区/县（可选） */
+  district: z.string().optional(),
 });
 export type DispatchByAreaRequest = z.infer<typeof DispatchByAreaRequestSchema>;
 
 export const DispatchByAreaResponseSchema = z.object({
   matched: z.number(),
   dispatched: z.number(),
-  /** 解析出的区域文本（如「广东省韶关市」），由后端区域模块转换得到 */
+  /** 解析出的区域文本（如「广东省韶关市」） */
   regionName: z.string(),
 });
 export type DispatchByAreaResponse = z.infer<typeof DispatchByAreaResponseSchema>;

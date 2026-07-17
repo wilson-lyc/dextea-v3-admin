@@ -5,42 +5,14 @@ import { storeRepository } from './store.repository.js';
 import { redis } from '@/plugins/db/redis/index.js';
 import { withDistributedLock } from '@/plugins/lock/index.js';
 import { geocode } from '@/plugins/geocode/index.js';
-import { codeToNames, getDivisionPath } from '@/utils';
 import { hashPassword } from '@/plugins/password/index.js';
+import { normalizeStoreRegion, isMunicipality } from '@/utils';
 import { STORE_STATUS } from '@dextea-admin/contracts';
 import type { StoreListRequest, CreateStoreRequest, UpdateStoreRequest, UpdateStoreBasicInfoRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest, BindStoreMenuRequest } from '@dextea-admin/contracts';
 
-/** 将区域码反查得到的省/市/区拼成 JSON 数组字符串，如 ["广东省","广州市","番禺区"] */
-function buildRegionName(regionCode?: string): string {
-  const { province, city, district } = codeToNames(regionCode ?? '');
-  return JSON.stringify([province, city, district].filter(Boolean));
-}
-
-/** 将库中存储的 JSON 字符串安全解析为名称数组 */
-function parseRegionName(regionName?: string | null): string[] {
-  if (!regionName) return [];
-  try {
-    const parsed = JSON.parse(regionName);
-    return Array.isArray(parsed) ? parsed.map(String) : [];
-  } catch {
-    return [];
-  }
-}
-
 export const storeService = {
   async getStoreList(params: StoreListRequest) {
-    const result = await storeRepository.getStoreList(params.page, params.pageSize, params.keyword);
-    const items = result.items.map((store) => {
-      const names = codeToNames(store.regionCode ?? '');
-      return {
-        ...store,
-        regionName: parseRegionName(store.regionName),
-        province: names.province,
-        city: names.city,
-        district: names.district,
-      };
-    });
-    return { ...result, items };
+    return storeRepository.getStoreList(params.page, params.pageSize, params.keyword);
   },
 
   async getStoreById(id: number) {
@@ -48,24 +20,25 @@ export const storeService = {
     if (!store) {
       throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
-    return { ...store, regionName: parseRegionName(store.regionName) };
+    return store;
   },
 
   async createStore(input: CreateStoreRequest) {
-    const { name, regionCode, address, businessHours, phone, account, email } = input;
+    const { name, province, city, district, address, businessHours, phone, account, email } = input;
 
     const existing = await storeRepository.getStoreByAccount(account ?? '');
     if (existing) {
       throw new BizError(StoreErrorCodes.ACCOUNT_EXISTS);
     }
 
-    const areaNames = codeToNames(regionCode ?? '');
-    const coords = await geocode(areaNames.province, areaNames.city, areaNames.district, address ?? '');
+    const region = normalizeStoreRegion({ province, city, district });
+
+    const coords = await geocode(region.province, region.city, region.district, address ?? '');
     const longitude = coords?.longitude ?? 0;
     const latitude = coords?.latitude ?? 0;
 
     if (!coords) {
-      console.warn(`Geocoding failed for ${[areaNames.province, areaNames.city, areaNames.district, address].filter(Boolean).join('')}`);
+      console.warn(`Geocoding failed for ${[region.province, region.city, region.district, address].filter(Boolean).join('')}`);
     }
 
     const initialPassword = nanoid(12);
@@ -73,8 +46,9 @@ export const storeService = {
 
     const id = await storeRepository.createStore({
       name,
-      regionCode: regionCode ?? '',
-      regionName: buildRegionName(regionCode),
+      province: region.province,
+      city: region.city,
+      district: region.district,
       address: address ?? '',
       status: STORE_STATUS.PREPARING.value,
       businessHours: businessHours ?? '',
@@ -92,19 +66,23 @@ export const storeService = {
   },
 
   async updateStore(id: number, input: UpdateStoreRequest) {
-    const { name, regionCode, address, status, businessHours, phone, longitude, latitude } = input;
+    const { name, province, city, district, address, status, businessHours, phone, longitude, latitude } = input;
 
     const store = await storeRepository.getStoreById(id);
     if (!store) {
       throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
 
+    const region = normalizeStoreRegion({ province, city, district });
+
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name;
-    if (regionCode !== undefined) {
-      updateData.regionCode = regionCode;
-      updateData.regionName = buildRegionName(regionCode);
+    if (province !== undefined) updateData.province = region.province;
+    // 直辖市时即便仅传入省，也需把市名列补为直辖市名（省列置空）
+    if (city !== undefined || (province !== undefined && isMunicipality(province))) {
+      updateData.city = region.city;
     }
+    if (district !== undefined) updateData.district = region.district;
     if (address !== undefined) updateData.address = address;
     if (status !== undefined) updateData.status = status;
     if (businessHours !== undefined) updateData.businessHours = businessHours;
@@ -136,16 +114,19 @@ export const storeService = {
   },
 
   async updateStoreLocation(id: number, input: UpdateStoreLocationRequest) {
-    const { regionCode, address, longitude, latitude } = input;
+    const { province, city, district, address, longitude, latitude } = input;
 
     const store = await storeRepository.getStoreById(id);
     if (!store) {
       throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
 
+    const region = normalizeStoreRegion({ province, city, district });
+
     await storeRepository.updateStoreById(id, {
-      regionCode: regionCode ?? '',
-      regionName: buildRegionName(regionCode),
+      province: region.province,
+      city: region.city,
+      district: region.district,
       address: address ?? '',
       longitude,
       latitude,

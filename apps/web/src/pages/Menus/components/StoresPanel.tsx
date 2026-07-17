@@ -8,7 +8,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import type { Store } from "@/api"
+import type { MenuStore } from "@/api"
 import { STORE_STATUS_LABEL, STORE_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
 import { getStoresByMenuId, bindStoreMenu } from "@/api"
 import { Button } from "@/components/ui/button"
@@ -38,7 +38,7 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
   const navigate = useNavigate()
 
   // 列表数据与分页状态
-  const [stores, setStores] = useState<Store[]>([])
+  const [stores, setStores] = useState<MenuStore[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const pageSize = 20
@@ -50,7 +50,7 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
   const [unbindDialogOpen, setUnbindDialogOpen] = useState(false)
   const [unbinding, setUnbinding] = useState(false)
   const [unbindError, setUnbindError] = useState<string | null>(null)
-  const [unbindTarget, setUnbindTarget] = useState<Store | null>(null)
+  const [unbindTarget, setUnbindTarget] = useState<MenuStore | null>(null)
 
   // 按地域分发弹窗状态
   const [dispatchAreaOpen, setDispatchAreaOpen] = useState(false)
@@ -86,7 +86,7 @@ export default function StoresPanel({ menuId, menuName }: StoresPanelProps) {
   }, [fetchData])
 
   // 解绑确认
-  const handleUnbindClick = (store: Store) => {
+  const handleUnbindClick = (store: MenuStore) => {
     setUnbindTarget(store)
     setUnbindError(null)
     setUnbindDialogOpen(true)

@@ -30,7 +30,7 @@ export default function DispatchByAreaDialog({
   onDispatched,
 }: DispatchByAreaDialogProps) {
   // 选中的省市区
-  const [area, setArea] = useState<AreaValue>({ province: "", city: "", district: "" })
+  const [area, setArea] = useState<AreaValue>({ code: "", province: "", city: "", district: "" })
   // 是否处于确认步骤
   const [confirming, setConfirming] = useState(false)
   // 提交中
@@ -39,12 +39,12 @@ export default function DispatchByAreaDialog({
   // 拼接地域显示文本
   const areaLabel = [area.province, area.city, area.district].filter(Boolean).join("")
 
-  // 是否可以进入确认步骤（至少选中省级区域，得到区域代码）
-  const canProceed = area.code.length > 0
+  // 是否可以进入确认步骤（至少选中省级区域）
+  const canProceed = area.province.length > 0
 
   // 重置状态
   const reset = () => {
-    setArea({ province: "", city: "", district: "" })
+    setArea({ code: "", province: "", city: "", district: "" })
     setConfirming(false)
     setSubmitting(false)
   }
@@ -69,7 +69,11 @@ export default function DispatchByAreaDialog({
   const handleConfirm = async () => {
     setSubmitting(true)
     try {
-      const res = await dispatchMenuByArea(menuId, { regionCode: area.code })
+      const res = await dispatchMenuByArea(menuId, {
+        province: area.province,
+        city: area.city,
+        district: area.district,
+      })
       if (res.code === 0) {
         const label = res.data?.regionName || areaLabel
         toast.success(`已向「${label}」区域内的门店分发菜单`)

@@ -327,8 +327,9 @@ export const storeMenus = mysqlTable("store_menus", {
 export const stores = mysqlTable("stores", {
 	id: serial().notNull(),
 	name: varchar({ length: 255 }).notNull(),
-	regionCode: varchar("region_code", { length: 6 }).notNull(),
-	regionNames: json("region_names").$type<string[]>().default(sql`('[]')`).notNull(),
+	province: varchar({ length: 50 }).default('').notNull(),
+	city: varchar({ length: 50 }).default('').notNull(),
+	district: varchar({ length: 50 }).default('').notNull(),
 	address: varchar({ length: 500 }).notNull(),
 	status: tinyint().notNull(),
 	businessHours: varchar("business_hours", { length: 255 }).notNull(),
@@ -340,7 +341,6 @@ export const stores = mysqlTable("stores", {
 	email: varchar({ length: 255 }).notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`(now())`).notNull(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).default(sql`(now())`).onUpdateNow().notNull(),
-	regionName: varchar("region_name", { length: 255 }).default('[]').notNull(),
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "stores_id"}),

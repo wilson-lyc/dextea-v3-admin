@@ -24,7 +24,7 @@ export const MenuErrorCodes = {
   PRODUCT_BATCH_UNBIND_FAILED: { code: 11117, message: '批量解绑商品失败' },
   GROUP_BATCH_DELETE_FAILED: { code: 11118, message: '批量删除分组失败' },
   MENU_IN_USE: { code: 11119, message: '该菜单已被门店绑定，无法删除' },
-  INVALID_REGION_CODE: { code: 11120, message: '无效的区域代码' },
+  INVALID_REGION_CODE: { code: 11120, message: '请选择分发地域（至少选择省份）' },
   DISPATCH_AREA_FAILED: { code: 11121, message: '按地域分发菜单失败' },
   NO_MATCHED_STORES: { code: 11122, message: '指定区域内没有找到门店' },
   DISPATCH_ID_FAILED: { code: 11123, message: '按ID分发菜单失败' },

@@ -6,14 +6,12 @@ import { STORE_STATUS_VALUES, type StoreStatus } from '../status/store.js';
 export const StoreSchema = z.object({
   id: z.number(),
   name: z.string(),
-  /** 行政区划代码（6 位，最细一级） */
-  regionCode: z.string(),
-  /** 根据 regionCode 反查得到的完整地区名称，JSON 数组格式，如 ["广东省","广州市","番禺区"] */
-  regionName: z.array(z.string()).optional(),
-  /** 以下为根据 regionCode 反查得到的展示用名称（可选） */
-  province: z.string().optional(),
-  city: z.string().optional(),
-  district: z.string().optional(),
+  /** 省 */
+  province: z.string(),
+  /** 市 */
+  city: z.string(),
+  /** 区/县 */
+  district: z.string(),
   address: z.string(),
   status: z.number(),
   businessHours: z.string(),
@@ -57,7 +55,9 @@ export type StoreGetResponse = Store;
 /** 新增门店 */
 export const CreateStoreRequestSchema = z.object({
   name: z.string().min(1, '门店名称不能为空'),
-  regionCode: z.string().optional(),
+  province: z.string().optional(),
+  city: z.string().optional(),
+  district: z.string().optional(),
   address: z.string().optional(),
   businessHours: z.string().optional(),
   phone: z.string().min(1, '联系电话不能为空'),
@@ -77,7 +77,9 @@ export type CreateStoreResponse = z.infer<typeof CreateStoreResponseSchema>;
 /** 更新门店 */
 export const UpdateStoreRequestSchema = z.object({
   name: z.string().min(1, '门店名称不能为空'),
-  regionCode: z.string().optional(),
+  province: z.string().optional(),
+  city: z.string().optional(),
+  district: z.string().optional(),
   address: z.string().optional(),
   status: StoreStatusSchema.optional(),
   businessHours: z.string().optional(),
@@ -108,7 +110,9 @@ export type UpdateStoreBasicInfoResponse = z.infer<typeof UpdateStoreBasicInfoRe
 
 /** 更新门店位置 */
 export const UpdateStoreLocationRequestSchema = z.object({
-  regionCode: z.string().optional(),
+  province: z.string().optional(),
+  city: z.string().optional(),
+  district: z.string().optional(),
   address: z.string().optional(),
   longitude: z.number(),
   latitude: z.number(),

@@ -35,7 +35,6 @@ interface EditStoreLocationDialogProps {
 }
 
 export function EditStoreLocationDialog({ open, onOpenChange, store, onUpdated }: EditStoreLocationDialogProps) {
-  const [regionCode, setRegionCode] = useState(store.regionCode)
   const [province, setProvince] = useState(store.province)
   const [city, setCity] = useState(store.city)
   const [district, setDistrict] = useState(store.district)
@@ -48,17 +47,15 @@ export function EditStoreLocationDialog({ open, onOpenChange, store, onUpdated }
   useEffect(() => {
     if (!open) return
 
-    setRegionCode(store.regionCode)
     setProvince(store.province)
     setCity(store.city)
     setDistrict(store.district)
     setAddress(store.address)
     setLongitude(store.longitude)
     setLatitude(store.latitude)
-  }, [open, store.regionCode, store.province, store.city, store.district, store.address, store.longitude, store.latitude])
+  }, [open, store.province, store.city, store.district, store.address, store.longitude, store.latitude])
 
   const handleAreaChange = useCallback((value: AreaValue) => {
-    setRegionCode(value.code ?? "")
     setProvince(value.province)
     setCity(value.city)
     setDistrict(value.district)
@@ -75,7 +72,9 @@ export function EditStoreLocationDialog({ open, onOpenChange, store, onUpdated }
     setSubmitting(true)
     try {
       const res = await updateStoreLocation(store.id, {
-        regionCode,
+        province,
+        city,
+        district,
         address,
         longitude,
         latitude,
@@ -108,7 +107,7 @@ export function EditStoreLocationDialog({ open, onOpenChange, store, onUpdated }
             </FieldLabel>
             <AreaSelector
               key={`edit-location-${store.id}-${open}`}
-              value={{ code: store.regionCode }}
+              value={{ province: store.province, city: store.city, district: store.district }}
               onChange={handleAreaChange}
             />
           </Field>
