@@ -98,13 +98,12 @@ export const CreateCustomizationOptionResponseSchema = CustomizationOptionSchema
 export type CreateCustomizationOptionResponse = CustomizationOption;
 
 // ─── 更新客制化选项基础信息 ───────────────────────
-// 仅处理名称/加价/排序/状态，绑定关系与用量由下方独立接口维护。
+// 仅处理名称/加价/排序，状态由下方独立接口维护。
 
 export const UpdateCustomizationOptionRequestSchema = z.object({
   name: z.string().min(1, '客制化选项名称不能为空').optional(),
   price: z.number().optional(),
   sort: z.number().int().optional(),
-  status: z.number().optional(),
 });
 export type UpdateCustomizationOptionRequest = z.infer<typeof UpdateCustomizationOptionRequestSchema>;
 

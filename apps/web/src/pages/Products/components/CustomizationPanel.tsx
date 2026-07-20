@@ -250,7 +250,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
               <Input
                 id="create-sort"
                 type="number"
-                placeholder="留空则自动排到末尾"
+                placeholder="手动设置，留空则默认为 0"
                 value={createSort}
                 onChange={(e) => setCreateSort(e.target.value)}
                 onKeyDown={(e) => {

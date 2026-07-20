@@ -153,7 +153,7 @@ export const customizationService = {
   },
 
   async updateOption(customizationId: number, optionId: number, input: UpdateCustomizationOptionRequest) {
-    const { name, price, sort, status } = input;
+    const { name, price, sort } = input;
 
     const option = await customizationRepository.getOptionById(optionId);
     if (!option || option.customizationId !== customizationId) {
@@ -170,11 +170,6 @@ export const customizationService = {
     if (sort !== undefined) {
       validateSort(sort, '客制化选项排序');
       updateData.sort = sort;
-    }
-    if (status !== undefined) {
-      if ((CUSTOMIZATION_OPTION_STATUS_VALUES as readonly number[]).includes(status)) {
-        updateData.status = status;
-      }
     }
 
     if (Object.keys(updateData).length > 0) {

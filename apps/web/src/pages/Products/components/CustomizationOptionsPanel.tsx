@@ -63,7 +63,6 @@ type EditForm = {
   name: string
   price: string
   sort: string
-  status: string
 }
 
 const UNBIND_VALUE = "__unbind__"
@@ -82,7 +81,6 @@ const emptyEditForm = (): EditForm => ({
   name: "",
   price: "0",
   sort: "0",
-  status: "0",
 })
 
 export default function CustomizationOptionsPanel({ customizationId }: CustomizationOptionsPanelProps) {
@@ -193,7 +191,6 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
       name: option.name,
       price: String(option.price),
       sort: String(option.sort),
-      status: String(option.status),
     })
   }
 
@@ -210,7 +207,6 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
         name: editForm.name.trim(),
         price: Number(editForm.price) || 0,
         sort: Number(editForm.sort) || 0,
-        status: Number(editForm.status) as CustomizationOption["status"],
       })
       if (res.code === 0) {
         toast.success(res.message)
@@ -547,16 +543,6 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
                 value={editForm.sort}
                 onChange={(e) => setEditForm((f) => ({ ...f, sort: e.target.value }))}
               />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="edit-option-status">状态</FieldLabel>
-              <StatusSelectPicker
-              statusEnum={CUSTOMIZATION_OPTION_STATUS}
-              labels={CUSTOMIZATION_OPTION_STATUS_LABEL}
-              value={editForm.status}
-              onValueChange={(v) => setEditForm((f) => ({ ...f, status: v }))}
-              placeholder="请选择状态"
-            />
             </Field>
           </FieldGroup>
 
