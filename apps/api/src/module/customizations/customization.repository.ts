@@ -6,6 +6,7 @@ import {
   customizationOptions,
   ingredients,
 } from '@/plugins/db/mysql/schema.js';
+import { CUSTOMIZATION_OPTION_STATUS } from '@dextea-admin/contracts/status';
 import { withPagination } from '@/utils';
 
 export const customizationRepository = {
@@ -17,6 +18,8 @@ export const customizationRepository = {
     keyword = keyword?.trim();
 
     const optionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.customizationId} = customizations.id)`;
+    const activeOptionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.customizationId} = customizations.id and ${customizationOptions.status} = ${CUSTOMIZATION_OPTION_STATUS.ACTIVE.value})`;
+    const disabledOptionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.customizationId} = customizations.id and ${customizationOptions.status} = ${CUSTOMIZATION_OPTION_STATUS.DISABLED.value})`;
 
     const baseQuery = db
       .select({
@@ -26,6 +29,8 @@ export const customizationRepository = {
         sort: customizations.sort,
         status: customizations.status,
         optionCount: optionCountSubquery,
+        activeOptionCount: activeOptionCountSubquery,
+        disabledOptionCount: disabledOptionCountSubquery,
         createdAt: customizations.createdAt,
         updatedAt: customizations.updatedAt,
       })

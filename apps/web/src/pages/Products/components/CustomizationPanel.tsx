@@ -179,7 +179,13 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                 {CUSTOMIZATION_STATUS_LABEL[item.status]}
               </span>
             </TableCell>
-            <TableCell className="font-mono text-xs">{item.optionCount ?? 0}</TableCell>
+            <TableCell className="font-mono text-xs">
+              {(item.optionCount ?? 0)}（
+              <span className="text-green-600 dark:text-green-400">{item.activeOptionCount ?? 0}</span>
+              {' / '}
+              <span className="text-destructive">{item.disabledOptionCount ?? 0}</span>
+              ）
+            </TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-1">
                 <Button

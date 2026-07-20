@@ -25,6 +25,8 @@ export const CustomizationSchema = z.object({
   sort: z.number(),
   status: z.number(),
   optionCount: z.number().optional(),
+  activeOptionCount: z.number().optional(),
+  disabledOptionCount: z.number().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
