@@ -2,14 +2,14 @@ import { z } from 'zod/v4';
 
 /** 行政区划实体 */
 export const DivisionSchema = z.object({
-  code: z.string(),
-  name: z.string(),
+  code: z.string().describe('状态码'),
+  name: z.string().describe('名称'),
 });
 export type Division = z.infer<typeof DivisionSchema>;
 
 /** 子级行政区划路径参数 */
 export const AreaChildrenParamsSchema = z.object({
-  code: z.string().min(1, '地区编码不能为空'),
+  code: z.string().min(1, '地区编码不能为空').describe('状态码'),
 });
 export type AreaChildrenParams = z.infer<typeof AreaChildrenParamsSchema>;
 
@@ -19,7 +19,7 @@ export type AreaListResponse = z.infer<typeof AreaListResponseSchema>;
 
 /** 解析地区名称请求 */
 export const ResolveAreaRequestSchema = z.object({
-  names: z.array(z.string()).min(1, '地区名称列表不能为空'),
+  names: z.array(z.string()).min(1, '地区名称列表不能为空').describe('地区名称列表'),
 });
 export type ResolveAreaRequest = z.infer<typeof ResolveAreaRequestSchema>;
 

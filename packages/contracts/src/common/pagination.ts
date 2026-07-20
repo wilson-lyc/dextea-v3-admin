@@ -11,9 +11,9 @@ export interface PaginatedData<T> {
 /** 分页结构校验 schema（后端 Fastify 响应体校验用） */
 export function PaginatedDataSchema<T extends z.ZodTypeAny>(itemSchema: T) {
   return z.object({
-    items: z.array(itemSchema),
-    total: z.number(),
-    page: z.number(),
-    pageSize: z.number(),
+    items: z.array(itemSchema).describe('数据列表'),
+    total: z.number().describe('总条数'),
+    page: z.number().describe('页码'),
+    pageSize: z.number().describe('每页条数'),
   });
 }
