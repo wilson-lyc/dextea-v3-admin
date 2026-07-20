@@ -16,7 +16,7 @@ export const customizationRepository = {
     pageSize = Math.min(100, Math.max(1, pageSize));
     keyword = keyword?.trim();
 
-    const optionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.customizationId} = ${customizations.id})`;
+    const optionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.customizationId} = customizations.id)`;
 
     const baseQuery = db
       .select({
