@@ -26,7 +26,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import DataTable from "@/components/ui/data-table"
-import { getMenuGroups, createMenuGroup, deleteMenuGroup } from "@/api"
+import { getMenuGroups, createMenuGroup, updateMenuGroup, deleteMenuGroup } from "@/api"
 import GroupProductsSheet from "./GroupProductsSheet"
 
 interface GroupsPanelProps {
@@ -39,7 +39,14 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [formName, setFormName] = useState("")
+  const [formSortOrder, setFormSortOrder] = useState("0")
   const [submitting, setSubmitting] = useState(false)
+
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [editId, setEditId] = useState<number | null>(null)
+  const [editName, setEditName] = useState("")
+  const [editSortOrder, setEditSortOrder] = useState("0")
+  const [editing, setEditing] = useState(false)
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deletingGroup, setDeletingGroup] = useState<MenuGroup | null>(null)
@@ -71,7 +78,15 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
 
   const openCreateDialog = () => {
     setFormName("")
+    setFormSortOrder("0")
     setCreateDialogOpen(true)
+  }
+
+  const openEditDialog = (group: MenuGroup) => {
+    setEditId(group.id)
+    setEditName(group.name)
+    setEditSortOrder(String(group.sortOrder ?? 0))
+    setEditDialogOpen(true)
   }
 
   const openDeleteDialog = (group: MenuGroup) => {
@@ -92,7 +107,10 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
 
     setSubmitting(true)
     try {
-      const res = await createMenuGroup(menuId, { name: formName.trim() })
+      const res = await createMenuGroup(menuId, {
+        name: formName.trim(),
+        sortOrder: formSortOrder === "" ? 0 : Number(formSortOrder),
+      })
       if (res.code === 0) {
         toast.success(res.message)
         setCreateDialogOpen(false)
@@ -104,6 +122,34 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
       toast.error(err instanceof Error ? err.message : "操作失败")
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleEditSubmit = async () => {
+    if (editId === null) return
+    if (!editName.trim()) {
+      toast.error("请输入分组名称")
+      return
+    }
+
+    setEditing(true)
+    try {
+      const res = await updateMenuGroup(editId, {
+        name: editName.trim(),
+        sortOrder: editSortOrder === "" ? 0 : Number(editSortOrder),
+      })
+      if (res.code === 0) {
+        toast.success(res.message)
+        setEditDialogOpen(false)
+        setEditId(null)
+        await fetchGroups()
+      } else {
+        toast.error(res.message)
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "操作失败")
+    } finally {
+      setEditing(false)
     }
   }
 
@@ -205,8 +251,9 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
               </TableHead>
               <TableHead className="w-16">分组ID</TableHead>
               <TableHead>分组名称</TableHead>
+              <TableHead className="w-20">排序</TableHead>
               <TableHead className="w-24">商品数量</TableHead>
-              <TableHead className="w-48 text-right">操作</TableHead>
+              <TableHead className="w-56 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
         }
@@ -221,6 +268,7 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
             </TableCell>
             <TableCell className="font-mono text-xs">{group.id}</TableCell>
             <TableCell>{group.name}</TableCell>
+            <TableCell>{group.sortOrder ?? 0}</TableCell>
             <TableCell>{group.productCount ?? 0}</TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-2">
@@ -230,6 +278,13 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
                   onClick={() => openProductsSheet(group)}
                 >
                   查看商品
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openEditDialog(group)}
+                >
+                  编辑
                 </Button>
                 <Button
                   variant="outline-destructive"
@@ -244,7 +299,7 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
         ))}
         loading={loading}
         isEmpty={groups.length === 0}
-        colSpan={5}
+        colSpan={6}
         onRefresh={fetchGroups}
         refreshDisabled={loading}
         emptyIcon={<LayersIcon className="size-4" />}
@@ -272,6 +327,19 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
                 }}
               />
             </Field>
+            <Field>
+              <FieldLabel htmlFor="group-sort">排序</FieldLabel>
+              <Input
+                id="group-sort"
+                type="number"
+                placeholder="请输入排序值"
+                value={formSortOrder}
+                onChange={(e) => setFormSortOrder(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSubmit()
+                }}
+              />
+            </Field>
           </FieldGroup>
 
           <DialogFooter>
@@ -280,6 +348,53 @@ export default function GroupsPanel({ menuId }: GroupsPanelProps) {
             </Button>
             <Button onClick={handleSubmit} disabled={submitting}>
               {submitting ? "提交中..." : "确定"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑分组</DialogTitle>
+          </DialogHeader>
+
+          <FieldGroup className="py-2">
+            <Field>
+              <FieldLabel htmlFor="edit-group-name">
+                分组名称 <span className="text-destructive">*</span>
+              </FieldLabel>
+              <Input
+                id="edit-group-name"
+                placeholder="请输入分组名称"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleEditSubmit()
+                }}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="edit-group-sort">排序</FieldLabel>
+              <Input
+                id="edit-group-sort"
+                type="number"
+                placeholder="请输入排序值"
+                value={editSortOrder}
+                onChange={(e) => setEditSortOrder(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleEditSubmit()
+                }}
+              />
+            </Field>
+          </FieldGroup>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handleEditSubmit} disabled={editing}>
+              {editing ? "提交中..." : "确定"}
             </Button>
           </DialogFooter>
         </DialogContent>

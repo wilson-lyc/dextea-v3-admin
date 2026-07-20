@@ -9,6 +9,8 @@ import type {
   UpdateMenuResponse,
   CreateMenuGroupRequest,
   CreateMenuGroupResponse,
+  UpdateMenuGroupRequest,
+  UpdateMenuGroupResponse,
   DispatchByAreaRequest,
   DispatchByAreaResponse,
   DispatchByIdRequest,
@@ -27,6 +29,8 @@ export type {
   UpdateMenuResponse,
   CreateMenuGroupRequest,
   CreateMenuGroupResponse,
+  UpdateMenuGroupRequest,
+  UpdateMenuGroupResponse,
   DispatchByAreaRequest,
   DispatchByAreaResponse,
   DispatchByIdRequest,
@@ -70,6 +74,12 @@ export function getMenuGroups(menuId: number) {
 export function createMenuGroup(menuId: number, data: Omit<CreateMenuGroupRequest, "menuId">) {
   return http
     .post<ApiResponse<CreateMenuGroupResponse>>(`/menus/${menuId}/groups`, data)
+    .then((res) => res.data)
+}
+
+export function updateMenuGroup(groupId: number, data: UpdateMenuGroupRequest) {
+  return http
+    .put<ApiResponse<UpdateMenuGroupResponse>>(`/menus/groups/${groupId}`, data)
     .then((res) => res.data)
 }
 
