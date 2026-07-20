@@ -47,14 +47,10 @@ export const customizationService = {
     const trimmedName = name.trim();
     validateMaxLength(trimmedName, 255, '客制化项目名称');
 
-    // 排序：未指定时自动排到该商品内末尾
-    let sort = input.sort ?? 0;
+    // 排序：用户手动设置，未指定时默认 0
+    const sort = input.sort ?? 0;
     if (input.sort !== undefined) {
       validateSort(input.sort, '客制化项目排序');
-    }
-    if (input.sort === undefined) {
-      const maxSort = await customizationRepository.getMaxSortByProductId(productId);
-      sort = maxSort + 1;
     }
 
     const insertId = await customizationRepository.createCustomization({

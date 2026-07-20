@@ -74,14 +74,6 @@ export const customizationRepository = {
     return rows[0] ?? null;
   },
 
-  async getMaxSortByProductId(productId: number) {
-    const rows = await db
-      .select({ maxSort: sql<number>`coalesce(max(${customizations.sort}), 0)` })
-      .from(customizations)
-      .where(eq(customizations.productId, productId));
-    return Number(rows[0]?.maxSort ?? 0);
-  },
-
   async getProductById(id: number) {
     const rows = await db
       .select({ id: products.id })
