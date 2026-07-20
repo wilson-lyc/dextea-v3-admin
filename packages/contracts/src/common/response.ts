@@ -14,8 +14,8 @@ export interface PaginatedResponse<T> extends ApiResponse<PaginatedData<T>> {}
 /** 统一响应体校验 schema（后端 Fastify 响应体校验用，data 允许为 null） */
 export function ApiResponseSchema<T extends z.ZodTypeAny>(dataSchema: T) {
   return z.object({
-    code: z.number(),
-    message: z.string(),
-    data: dataSchema.nullable(),
+    code: z.number().describe('状态码'),
+    message: z.string().describe('提示信息'),
+    data: dataSchema.nullable().describe('业务数据'),
   });
 }

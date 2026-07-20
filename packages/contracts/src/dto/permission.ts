@@ -13,20 +13,20 @@ import { PaginatedDataSchema } from '../common/pagination.js';
  * 权限数据为静态表，由工程师手动录入数据库，系统仅提供查询与绑定能力。
  */
 export const PermissionSchema = z.object({
-  id: z.number(),
-  key: z.string(),
-  name: z.string(),
-  note: z.string().nullable(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  id: z.number().describe('ID'),
+  key: z.string().describe('权限标识'),
+  name: z.string().describe('名称'),
+  note: z.string().nullable().describe('备注'),
+  createdAt: z.string().describe('创建时间'),
+  updatedAt: z.string().describe('更新时间'),
 });
 export type Permission = z.infer<typeof PermissionSchema>;
 
 /** 权限列表查询（分页 + 关键字） */
 export const PermissionListRequestSchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
-  pageSize: z.coerce.number().int().positive().max(100).default(20),
-  keyword: z.string().optional(),
+  page: z.coerce.number().int().positive().default(1).describe('页码'),
+  pageSize: z.coerce.number().int().positive().max(100).default(20).describe('每页条数'),
+  keyword: z.string().optional().describe('关键字'),
 });
 export type PermissionListRequest = z.infer<typeof PermissionListRequestSchema>;
 
@@ -35,13 +35,13 @@ export type PermissionListResponse = z.infer<typeof PermissionListResponseSchema
 
 /** 权限选项（供角色分配权限时选择使用，返回全部权限） */
 export const PermissionOptionSchema = z.object({
-  id: z.number(),
-  key: z.string(),
-  name: z.string(),
+  id: z.number().describe('ID'),
+  key: z.string().describe('权限标识'),
+  name: z.string().describe('名称'),
 });
 export type PermissionOption = z.infer<typeof PermissionOptionSchema>;
 
 export const PermissionOptionListResponseSchema = z.object({
-  items: z.array(PermissionOptionSchema),
+  items: z.array(PermissionOptionSchema).describe('数据列表'),
 });
 export type PermissionOptionListResponse = z.infer<typeof PermissionOptionListResponseSchema>;
