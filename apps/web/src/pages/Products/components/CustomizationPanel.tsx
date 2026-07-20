@@ -217,7 +217,8 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         loading={loading}
         isEmpty={data.length === 0}
         colSpan={6}
-        hideRefresh
+        onRefresh={() => fetchData(page)}
+        refreshDisabled={loading}
         emptyIcon={<ListIcon className="size-4" />}
         emptyText="暂无数据"
         pagination={{ page, pageSize, total, onPageChange: fetchData }}
