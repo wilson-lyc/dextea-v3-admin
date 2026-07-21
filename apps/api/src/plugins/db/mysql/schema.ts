@@ -175,6 +175,8 @@ export const orders = mysqlTable("orders", {
 	storeId: bigint("store_id", { mode: "number", unsigned: true }).notNull(),
 	status: tinyint().notNull(),
 	price: double().notNull(),
+	idempotencyKey: varchar("idempotency_key", { length: 64 }).notNull(),
+	quantity: int().notNull(),
 	payMethod: tinyint("pay_method"),
 	tradeNo: varchar("trade_no", { length: 64 }),
 	note: varchar({ length: 500 }),
