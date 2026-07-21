@@ -176,6 +176,7 @@ export const orders = mysqlTable("orders", {
 	status: tinyint().notNull(),
 	price: double().notNull(),
 	payMethod: tinyint("pay_method"),
+	tradeNo: varchar("trade_no", { length: 64 }),
 	remark: varchar({ length: 500 }).notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`(now())`).notNull(),
 	paidAt: timestamp("paid_at", { mode: 'string' }),
