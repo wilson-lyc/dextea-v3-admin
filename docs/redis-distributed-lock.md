@@ -1,5 +1,7 @@
 # 基于 Redis 的分布式锁分析与保障方案
 
+> [返回文档索引](./README.md) · [返回根目录](../README.md)
+
 本文档分析 `dextea-admin` 项目中基于 Redis 实现的分布式锁，并说明如何保障其正常运行。
 
 涉及的核心文件：
@@ -14,6 +16,23 @@
 ## 一、项目中共有哪些分布式锁
 
 本项目**只实现了一套统一的分布式锁能力**，对外暴露一个可插拔的 `DistributedLock` 接口与一个便捷函数 `withDistributedLock`。所有业务侧加锁都复用这一套机制，只是**锁键（key）按资源维度不同**而区分出多个“逻辑锁”。
+
+```mermaid
+flowchart LR
+    subgraph infra["统一锁能力（基础设施）"]
+        IF["DistributedLock 接口<br/>withLock(key, fn, ttlMs)"]
+        IM["RedisDistributedLock<br/>前缀 dextea:lock: · 默认 TTL 10s"]
+        FN["withDistributedLock() 便捷封装"]
+        IF --- IM --- FN
+    end
+    subgraph logical["按资源维度的逻辑锁（由 key 区分）"]
+        L1["store-catalog:product-status:<br/>{storeId}:{productId}"]
+        L2["store-catalog:option-status:<br/>{storeId}:{optionId}"]
+        L3["store:status:{id}"]
+        L4["product:status:{id}"]
+    end
+    infra --> logical
+```
 
 ### 1. 统一锁能力（基础设施）
 
@@ -46,6 +65,27 @@
 ---
 
 ## 二、锁的实现机制分析
+
+```mermaid
+sequenceDiagram
+    participant Caller as 业务调用方
+    participant Lock as RedisDistributedLock
+    participant Redis as Redis
+    Caller->>Lock: withLock(key, fn, ttlMs)
+    Lock->>Redis: SET dextea:lock:{key} token PX ttl NX
+    alt 返回 OK（抢锁成功）
+        Redis-->>Lock: OK
+        Lock->>Lock: try { 执行 fn() }
+        Lock->>Redis: Lua: 若 token 匹配则 DEL
+        Redis-->>Lock: 1（已删除）/ 0（非持有者）
+        Lock-->>Caller: 返回 fn 结果（finally 中必释放）
+    else 返回 null（已被占用）
+        Redis-->>Lock: null
+        Lock-->>Caller: throw LOCK_CONFLICT(10009)
+    end
+    Note over Lock,Redis: 通信异常抛 LOCK_ACQUIRE_FAILED(10010)
+    Note over Lock: TTL 兜底防死锁，进程崩溃后锁自动过期
+```
 
 ### 1. 获取锁：原子 SET + NX + PX
 
@@ -102,6 +142,15 @@ try {
 
 下面从**锁设计、Redis 客户端、部署架构、监控与运维**四个层面说明保障手段，并给出已知局限与改进建议。
 
+```mermaid
+flowchart TD
+    A["① 锁自身正确性<br/>原子抢锁 · 唯一 token · Lua 释放 · TTL · try/finally"]
+    B["② Redis 客户端保障<br/>指数退避重连 · 请求重试 · 错误日志 · 配置外部化"]
+    C["③ 部署架构<br/>主从+哨兵/Cluster · TTL 匹配业务耗时 · 关注主从切换锁失效"]
+    D["④ 运维监控<br/>连通性告警 · 冲突率 · 持有时间 · 优雅关闭"]
+    A --> B --> C --> D
+```
+
 ### 1. 锁自身的正确性保障（已实现）
 
 - **原子抢锁**：`SET ... NX PX` 单命令，避免“SET + EXPIRE”竞态死锁。
@@ -152,3 +201,7 @@ try {
 - 本项目**只有一套**基于 Redis 的分布式锁实现（`RedisDistributedLock`），通过 `dextea:lock:` 前缀 + 不同资源 key 衍生出“门店状态锁、商品状态锁、自定义项状态锁”三类逻辑锁。
 - 锁具备**原子抢锁、唯一 token、Lua 原子释放、TTL 防死锁、try/finally 必释放**等正确性保障。
 - 正常运行的保障依赖于：锁自身设计 + ioredis 重连/重试配置 + 外部化的 Redis 高可用部署 + 日志监控；在当前单实例/主从架构下需重点关注 **TTL 与业务耗时的匹配**以及**主从切换锁失效**两个风险点，必要时通过 Redlock 或换更强后端兜底。
+
+---
+
+返回 [文档索引](./README.md)。
