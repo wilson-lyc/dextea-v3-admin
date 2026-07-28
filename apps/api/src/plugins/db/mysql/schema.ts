@@ -160,6 +160,7 @@ export const orderItems = mysqlTable("order_items", {
 	skuId: varchar("sku_id", { length: 255 }).notNull(),
 	productName: varchar("product_name", { length: 255 }).notNull(),
 	coverId: bigint("cover_id", { mode: "number", unsigned: true }),
+	customizationText: text("customization_text"),
 	quantity: int().notNull(),
 	unitPrice: decimal("unit_price", { precision: 12, scale: 2 }).notNull(),
 	subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
@@ -176,12 +177,11 @@ export const orders = mysqlTable("orders", {
 	orderNo: varchar("order_no", { length: 64 }).notNull(),
 	tradeNo: varchar("trade_no", { length: 64 }),
 	idempotencyKey: varchar("idempotency_key", { length: 64 }).notNull(),
-	tradeNo: varchar("trade_no", { length: 64 }),
-	idempotencyKey: varchar("idempotency_key", { length: 64 }).notNull(),
 	customerId: bigint("customer_id", { mode: "number", unsigned: true }).notNull(),
 	storeId: bigint("store_id", { mode: "number", unsigned: true }).notNull(),
 	tradeStatus: int("trade_status").notNull(),
 	makingStatus: int("making_status").notNull(),
+	pickupCode: varchar("pickup_code", { length: 32 }),
 	version: int().notNull(),
 	totalPrice: decimal("total_price", { precision: 12, scale: 2 }).notNull(),
 	totalQuantity: int("total_quantity").notNull(),
@@ -202,7 +202,7 @@ export const orders = mysqlTable("orders", {
 
 export const orderStatusLog = mysqlTable("order_status_log", {
 	id: serial().notNull(),
-	orderNo: varchar("order_no", { length: 64 }).notNull(),
+	orderId: varchar("order_id", { length: 64 }).notNull(),
 	fromStatus: int("from_status"),
 	toStatus: int("to_status").notNull(),
 	event: varchar({ length: 64 }).notNull(),
@@ -212,7 +212,7 @@ export const orderStatusLog = mysqlTable("order_status_log", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "order_status_log_id"}),
-	index("idx_order_status_log_order_no").on(table.orderNo),
+	index("idx_order_status_log_order_id").on(table.orderId),
 ]);
 
 export const permissions = mysqlTable("permissions", {
