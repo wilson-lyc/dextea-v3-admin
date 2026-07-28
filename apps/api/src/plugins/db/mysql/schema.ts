@@ -1,4 +1,4 @@
-import { mysqlTable, mysqlSchema, AnyMySqlColumn, primaryKey, unique, serial, varchar, text, timestamp, tinyint, bigint, double, int, json } from "drizzle-orm/mysql-core"
+import { mysqlTable, mysqlSchema, AnyMySqlColumn, primaryKey, unique, index, serial, varchar, text, timestamp, tinyint, bigint, double, int, decimal, json } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 
 export const config = mysqlTable("config", {
@@ -158,28 +158,35 @@ export const orderItems = mysqlTable("order_items", {
 	orderId: bigint("order_id", { mode: "number", unsigned: true }).notNull(),
 	productId: bigint("product_id", { mode: "number", unsigned: true }).notNull(),
 	skuId: varchar("sku_id", { length: 255 }).notNull(),
-	unitPrice: double("unit_price").notNull(),
+	productName: varchar("product_name", { length: 255 }).notNull(),
+	coverId: bigint("cover_id", { mode: "number", unsigned: true }),
 	quantity: int().notNull(),
+	unitPrice: decimal("unit_price", { precision: 12, scale: 2 }).notNull(),
+	subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`(now())`).notNull(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).default(sql`(now())`).onUpdateNow().notNull(),
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "order_items_id"}),
-	unique("uq_order_items_order_sku").on(table.orderId, table.skuId),
+	// 注：原 (order_id, sku_id) 唯一约束已移除，Java 侧未做去重，保留会冲突
 ]);
 
 export const orders = mysqlTable("orders", {
 	id: serial().notNull(),
 	orderNo: varchar("order_no", { length: 64 }).notNull(),
+	tradeNo: varchar("trade_no", { length: 64 }),
+	idempotencyKey: varchar("idempotency_key", { length: 64 }).notNull(),
 	customerId: bigint("customer_id", { mode: "number", unsigned: true }).notNull(),
 	storeId: bigint("store_id", { mode: "number", unsigned: true }).notNull(),
-	status: tinyint().notNull(),
-	price: double().notNull(),
-	idempotencyKey: varchar("idempotency_key", { length: 64 }).notNull(),
-	quantity: int().notNull(),
-	payMethod: tinyint("pay_method"),
-	tradeNo: varchar("trade_no", { length: 64 }),
+	tradeStatus: int("trade_status").notNull(),
+	makingStatus: int("making_status").notNull(),
+	version: int().notNull(),
+	totalPrice: decimal("total_price", { precision: 12, scale: 2 }).notNull(),
+	totalQuantity: int("total_quantity").notNull(),
+	payMethod: int("pay_method"),
+	diningMethod: int("dining_method"),
 	note: varchar({ length: 500 }),
+	payExpireAt: timestamp("pay_expire_at", { mode: 'string' }).notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`(now())`).notNull(),
 	paidAt: timestamp("paid_at", { mode: 'string' }),
 	refundedAt: timestamp("refunded_at", { mode: 'string' }),
@@ -188,6 +195,22 @@ export const orders = mysqlTable("orders", {
 (table) => [
 	primaryKey({ columns: [table.id], name: "orders_id"}),
 	unique("orders_order_no_unique").on(table.orderNo),
+	unique("orders_idempotency_key_unique").on(table.idempotencyKey),
+]);
+
+export const orderStatusLog = mysqlTable("order_status_log", {
+	id: serial().notNull(),
+	orderNo: varchar("order_no", { length: 64 }).notNull(),
+	fromStatus: int("from_status"),
+	toStatus: int("to_status").notNull(),
+	event: varchar({ length: 64 }).notNull(),
+	operator: varchar({ length: 64 }),
+	version: int().notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`(now())`).notNull(),
+},
+(table) => [
+	primaryKey({ columns: [table.id], name: "order_status_log_id"}),
+	index("idx_order_status_log_order_no").on(table.orderNo),
 ]);
 
 export const permissions = mysqlTable("permissions", {
