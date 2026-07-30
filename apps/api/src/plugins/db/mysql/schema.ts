@@ -10,6 +10,7 @@ export const config = mysqlTable("config", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "config_id"}),
+	unique("id").on(table.id),
 	unique("config_key_unique").on(table.key),
 ]);
 
@@ -28,6 +29,7 @@ export const customers = mysqlTable("customers", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "customers_id"}),
+	unique("id").on(table.id),
 	unique("uq_customers_email").on(table.email),
 	unique("uq_customers_phone").on(table.phone),
 	unique("uq_customers_weixin_open_id").on(table.weixinOpenId),
@@ -42,7 +44,7 @@ export const customizationOptionStoreStatus = mysqlTable("customization_option_s
 	updatedAt: timestamp("updated_at", { mode: 'string' }).default(sql`(now())`).onUpdateNow().notNull(),
 },
 (table) => [
-	primaryKey({ columns: [table.customizationOptionId, table.storeId], name: "customization_option_store_status_pk"}),
+	primaryKey({ columns: [table.customizationOptionId, table.storeId], name: "customization_option_store_status_customization_option_id_store_id"}),
 ]);
 
 export const customizationOptions = mysqlTable("customization_options", {
@@ -59,6 +61,7 @@ export const customizationOptions = mysqlTable("customization_options", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "customization_options_id"}),
+	unique("id").on(table.id),
 ]);
 
 export const customizations = mysqlTable("customizations", {
@@ -72,6 +75,7 @@ export const customizations = mysqlTable("customizations", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "customizations_id"}),
+	unique("id").on(table.id),
 ]);
 
 export const employeeRoles = mysqlTable("employee_roles", {
@@ -93,6 +97,7 @@ export const employees = mysqlTable("employees", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "employees_id"}),
+	unique("id").on(table.id),
 	unique("employees_email_unique").on(table.email),
 ]);
 
@@ -105,6 +110,7 @@ export const gallery = mysqlTable("gallery", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "gallery_id"}),
+	unique("id").on(table.id),
 ]);
 
 export const ingredients = mysqlTable("ingredients", {
@@ -117,6 +123,7 @@ export const ingredients = mysqlTable("ingredients", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "ingredients_id"}),
+	unique("id").on(table.id),
 ]);
 
 export const menuGroups = mysqlTable("menu_groups", {
@@ -129,6 +136,7 @@ export const menuGroups = mysqlTable("menu_groups", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "menu_groups_id"}),
+	unique("id").on(table.id),
 ]);
 
 export const menuProducts = mysqlTable("menu_products", {
@@ -151,6 +159,7 @@ export const menus = mysqlTable("menus", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "menus_id"}),
+	unique("id").on(table.id),
 ]);
 
 export const orderItems = mysqlTable("order_items", {
@@ -169,6 +178,7 @@ export const orderItems = mysqlTable("order_items", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "order_items_id"}),
+	unique("id").on(table.id),
 ]);
 
 export const orderStatusLog = mysqlTable("order_status_log", {
@@ -184,32 +194,34 @@ export const orderStatusLog = mysqlTable("order_status_log", {
 (table) => [
 	index("idx_order_status_log_order_id").on(table.orderId),
 	primaryKey({ columns: [table.id], name: "order_status_log_id"}),
+	unique("id").on(table.id),
 ]);
 
 export const orders = mysqlTable("orders", {
 	id: serial().notNull(),
 	orderNo: varchar("order_no", { length: 64 }).notNull(),
-	tradeNo: varchar("trade_no", { length: 64 }),
+	tradeNo: varchar("trade_no", { length: 64 }).notNull(),
 	idempotencyKey: varchar("idempotency_key", { length: 64 }).notNull(),
 	customerId: bigint("customer_id", { mode: "number", unsigned: true }).notNull(),
 	storeId: bigint("store_id", { mode: "number", unsigned: true }).notNull(),
-	tradeStatus: int("trade_status").notNull(),
-	makingStatus: int("making_status").notNull(),
-	pickupCode: varchar("pickup_code", { length: 32 }),
-	version: int().notNull(),
 	totalPrice: decimal("total_price", { precision: 12, scale: 2 }).notNull(),
 	totalQuantity: int("total_quantity").notNull(),
-	payMethod: int("pay_method"),
-	diningMethod: int("dining_method"),
+	diningMethod: tinyint("dining_method").notNull(),
 	note: varchar({ length: 500 }),
-	payExpireAt: timestamp("pay_expire_at", { mode: 'string' }).notNull(),
+	pickupCode: varchar("pickup_code", { length: 10 }),
+	makingStatus: tinyint("making_status").notNull(),
+	paymentMethod: tinyint("payment_method").notNull(),
+	paymentStatus: int("payment_status").notNull(),
+	paymentExpiredAt: timestamp("payment_expired_at", { mode: 'string' }).notNull(),
+	paymentPaidAt: timestamp("payment_paid_at", { mode: 'string' }),
+	paymentRefundedAt: timestamp("payment_refunded_at", { mode: 'string' }),
 	createdAt: timestamp("created_at", { mode: 'string' }).default(sql`(now())`).notNull(),
-	paidAt: timestamp("paid_at", { mode: 'string' }),
-	refundedAt: timestamp("refunded_at", { mode: 'string' }),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).default(sql`(now())`).onUpdateNow().notNull(),
+	version: int().notNull(),
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "orders_id"}),
+	unique("id").on(table.id),
 	unique("orders_order_no_unique").on(table.orderNo),
 	unique("orders_idempotency_key_unique").on(table.idempotencyKey),
 ]);
@@ -224,6 +236,7 @@ export const permissions = mysqlTable("permissions", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "permissions_id"}),
+	unique("id").on(table.id),
 	unique("permissions_key_unique").on(table.key),
 ]);
 
@@ -278,6 +291,7 @@ export const productTags = mysqlTable("product_tags", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "product_tags_id"}),
+	unique("id").on(table.id),
 	unique("product_tags_name_unique").on(table.name),
 ]);
 
@@ -293,6 +307,7 @@ export const products = mysqlTable("products", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "products_id"}),
+	unique("id").on(table.id),
 ]);
 
 export const rolePermissions = mysqlTable("role_permissions", {
@@ -313,6 +328,7 @@ export const roles = mysqlTable("roles", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "roles_id"}),
+	unique("id").on(table.id),
 	unique("roles_name_unique").on(table.name),
 ]);
 
@@ -356,5 +372,6 @@ export const stores = mysqlTable("stores", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "stores_id"}),
+	unique("id").on(table.id),
 	unique("stores_account_unique").on(table.account),
 ]);
