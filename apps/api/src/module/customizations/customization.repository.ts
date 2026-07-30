@@ -18,8 +18,8 @@ export const customizationRepository = {
     keyword = keyword?.trim();
 
     const optionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.customizationId} = customizations.id)`;
-    const activeOptionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.customizationId} = customizations.id and ${customizationOptions.status} = ${CUSTOMIZATION_OPTION_STATUS.ACTIVE.value})`;
-    const disabledOptionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.customizationId} = customizations.id and ${customizationOptions.status} = ${CUSTOMIZATION_OPTION_STATUS.DISABLED.value})`;
+    const activeOptionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.customizationId} = customizations.id and ${customizationOptions.status} = ${CUSTOMIZATION_OPTION_STATUS.GLOBAL_ACTIVE.value})`;
+    const disabledOptionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.customizationId} = customizations.id and ${customizationOptions.status} = ${CUSTOMIZATION_OPTION_STATUS.GLOBAL_DISABLED.value})`;
 
     const baseQuery = db
       .select({

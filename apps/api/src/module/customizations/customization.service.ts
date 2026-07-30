@@ -143,7 +143,7 @@ export const customizationService = {
       name: trimmedName,
       price: price ?? 0,
       sort: sort ?? 0,
-      status: CUSTOMIZATION_OPTION_STATUS.DISABLED.value,
+      status: CUSTOMIZATION_OPTION_STATUS.GLOBAL_DISABLED.value,
       ingredientId: ingredientId ?? null,
       ingredientQuantity: quantity ?? 0,
     });

@@ -67,7 +67,7 @@ export function CreateIngredientDialog({ open, onOpenChange, onCreated }: Create
       const res = await createIngredient({
         name: formName,
         unit: formUnit,
-        status: INGREDIENT_STATUS.DISABLED.value,
+        status: INGREDIENT_STATUS.ACTIVE.value,
       })
       if (res.code === 0) {
         toast.success(res.message)

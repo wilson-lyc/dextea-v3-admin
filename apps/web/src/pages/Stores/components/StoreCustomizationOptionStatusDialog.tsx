@@ -88,9 +88,9 @@ export default function StoreCustomizationOptionStatusDialog({
   const handleToggle = useCallback(
     async (option: StoreCustomizationOptionItem) => {
       const target =
-        option.storeStatus === CUSTOMIZATION_OPTION_STORE_STATUS.ENABLED.value
-          ? CUSTOMIZATION_OPTION_STORE_STATUS.DISABLED.value
-          : CUSTOMIZATION_OPTION_STORE_STATUS.ENABLED.value
+        option.storeStatus === CUSTOMIZATION_OPTION_STORE_STATUS.STORE_ACTIVE.value
+          ? CUSTOMIZATION_OPTION_STORE_STATUS.STORE_DISABLED.value
+          : CUSTOMIZATION_OPTION_STORE_STATUS.STORE_ACTIVE.value
 
       // 乐观更新
       setData((prev) =>
@@ -177,7 +177,7 @@ export default function StoreCustomizationOptionStatusDialog({
                 <TableCell>
                   {(() => {
                     const finalDisabled =
-                      o.globalStatus === CUSTOMIZATION_OPTION_STATUS.DISABLED.value
+                      o.globalStatus === CUSTOMIZATION_OPTION_STATUS.GLOBAL_DISABLED.value
                     const finalValue = finalDisabled ? 0 : o.storeStatus
                     const finalLabel = finalDisabled
                       ? CUSTOMIZATION_OPTION_STATUS_LABEL[finalValue]
@@ -194,7 +194,7 @@ export default function StoreCustomizationOptionStatusDialog({
                   <div className="flex items-center justify-end gap-1">
                     <Button
                       variant={
-                        o.storeStatus === CUSTOMIZATION_OPTION_STORE_STATUS.ENABLED.value
+                        o.storeStatus === CUSTOMIZATION_OPTION_STORE_STATUS.STORE_ACTIVE.value
                           ? "outline-destructive"
                           : "outline-success"
                       }
