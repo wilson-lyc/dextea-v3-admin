@@ -280,7 +280,7 @@ export default function ProductsPage() {
                     size="sm"
                     onClick={() => openStatusConfirm(product, 1)}
                   >
-                    上架
+                    全局上架
                   </Button>
                 )}
                 {product.status === 1 && (
@@ -289,7 +289,7 @@ export default function ProductsPage() {
                     size="sm"
                     onClick={() => openStatusConfirm(product, 0)}
                   >
-                    下架
+                    全局下架
                   </Button>
                 )}
               </div>
@@ -318,7 +318,7 @@ export default function ProductsPage() {
         title="操作确认"
         description={
           <>
-            确定修改「{statusConfirmTarget?.name}」的全局状态为「{statusConfirmAction === 1 ? "上架" : "下架"}」吗？
+            确定修改「{statusConfirmTarget?.name}」的全局状态为「{statusConfirmAction === 1 ? "全局上架" : "全局下架"}」吗？
           </>
         }
         loading={statusToggling}

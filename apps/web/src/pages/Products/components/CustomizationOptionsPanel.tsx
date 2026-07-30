@@ -292,9 +292,9 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
 
   const handleToggleStatus = async (option: CustomizationOption) => {
     const targetStatus =
-      option.status === CUSTOMIZATION_OPTION_STATUS.ACTIVE.value
-        ? CUSTOMIZATION_OPTION_STATUS.DISABLED.value
-        : CUSTOMIZATION_OPTION_STATUS.ACTIVE.value
+      option.status === CUSTOMIZATION_OPTION_STATUS.GLOBAL_ACTIVE.value
+        ? CUSTOMIZATION_OPTION_STATUS.GLOBAL_DISABLED.value
+        : CUSTOMIZATION_OPTION_STATUS.GLOBAL_ACTIVE.value
 
     setTogglingId(option.id)
     try {
@@ -359,14 +359,14 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
             <TableCell className="text-right">
               <div className="grid ml-auto w-fit grid-cols-2 gap-1" dir="rtl">
                 <Button
-                  variant={o.status === CUSTOMIZATION_OPTION_STATUS.ACTIVE.value ? "outline-destructive" : "outline-success"}
+                  variant={o.status === CUSTOMIZATION_OPTION_STATUS.GLOBAL_ACTIVE.value ? "outline-destructive" : "outline-success"}
                   size="sm"
                   disabled={togglingId === o.id}
                   onClick={() => handleToggleStatus(o)}
                 >
                   {togglingId === o.id
                     ? "处理中..."
-                    : o.status === CUSTOMIZATION_OPTION_STATUS.ACTIVE.value
+                    : o.status === CUSTOMIZATION_OPTION_STATUS.GLOBAL_ACTIVE.value
                       ? "禁用"
                       : "激活"}
                 </Button>

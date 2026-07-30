@@ -66,7 +66,7 @@ export function EditIngredientStatusDialog({ open, onOpenChange, ingredientId, c
             <FieldLabel>状态</FieldLabel>
             <StatusSelectPicker
               statusEnum={INGREDIENT_STATUS}
-              labels={{ [INGREDIENT_STATUS.DISABLED.value]: "禁用", [INGREDIENT_STATUS.ENABLED.value]: "启用" }}
+              labels={{ [INGREDIENT_STATUS.ACTIVE.value]: "禁用", [INGREDIENT_STATUS.DISABLED.value]: "激活" }}
               value={selected}
               onValueChange={setSelected}
               placeholder="请选择状态"

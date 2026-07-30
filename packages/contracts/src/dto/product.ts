@@ -10,7 +10,7 @@ export const ProductSchema = z.object({
   name: z.string().describe('名称'),
   brief: z.string().describe('简介'),
   description: z.string().describe('描述'),
-  status: z.number().describe('状态（0=下架 1=上架）'),
+  status: z.number().describe('状态（0=全局下架 1=全局上架）'),
   price: z.number().describe('价格'),
   tags: z.array(TagSimpleSchema).optional().describe('标签列表'),
   createdAt: z.string().describe('创建时间'),
@@ -23,7 +23,7 @@ export const ProductBasicInfoSchema = z.object({
   name: z.string().describe('名称'),
   brief: z.string().describe('简介'),
   description: z.string().describe('描述'),
-  status: z.number().describe('状态（0=下架 1=上架）'),
+  status: z.number().describe('状态（0=全局下架 1=全局上架）'),
   price: z.number().describe('价格'),
   tags: z.array(TagSimpleSchema).optional().describe('标签列表'),
   createdAt: z.string().describe('创建时间'),
@@ -57,7 +57,7 @@ export const ProductListRequestSchema = z.object({
   page: z.coerce.number().int().positive().default(1).describe('页码'),
   pageSize: z.coerce.number().int().positive().max(100).default(20).describe('每页条数'),
   keyword: z.string().optional().describe('关键字'),
-  status: optionalCoerceNumber.describe('状态（0=下架 1=上架）'),
+  status: optionalCoerceNumber.describe('状态（0=全局下架 1=全局上架）'),
   priceMin: optionalCoerceNumber.describe('最低价'),
   priceMax: optionalCoerceNumber.describe('最高价'),
   tagIds: z.string().optional().describe('标签ID列表'),
@@ -77,7 +77,7 @@ export const CreateProductRequestSchema = z.object({
   brief: z.string().optional().describe('简介'),
   description: z.string().optional().describe('描述'),
   price: z.number().optional().describe('价格'),
-  status: z.number().optional().describe('状态（0=下架 1=上架）'),
+  status: z.number().optional().describe('状态（0=全局下架 1=全局上架）'),
 });
 export type CreateProductRequest = z.infer<typeof CreateProductRequestSchema>;
 
@@ -90,7 +90,7 @@ export const UpdateProductRequestSchema = z.object({
   brief: z.string().optional().describe('简介'),
   description: z.string().optional().describe('描述'),
   price: z.number().optional().describe('价格'),
-  status: z.number().optional().describe('状态（0=下架 1=上架）'),
+  status: z.number().optional().describe('状态（0=全局下架 1=全局上架）'),
 });
 export type UpdateProductRequest = z.infer<typeof UpdateProductRequestSchema>;
 

@@ -50,7 +50,7 @@ export const storeService = {
       city: region.city,
       district: region.district,
       address: address ?? '',
-      status: STORE_STATUS.PREPARING.value,
+      status: STORE_STATUS.PENDING.value,
       businessHours: businessHours ?? '',
       phone: phone ?? '',
       account,

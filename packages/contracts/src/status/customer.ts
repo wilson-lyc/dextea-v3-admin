@@ -8,8 +8,8 @@
  * - value: 数字值（数据库存储 / 接口传输）
  */
 export const CUSTOMER_STATUS = {
-  DISABLED: { key: 'disabled', label: '禁用', value: 0 },
-  ACTIVE: { key: 'active', label: '激活', value: 1 },
+  ACTIVE: { key: 'active', label: '禁用', value: 0 },
+  DISABLED: { key: 'disabled', label: '激活', value: 1 },
 } as const;
 
 /** 单个状态项类型 */
@@ -31,12 +31,12 @@ export const CUSTOMER_STATUS_LABEL: Record<number, string> = Object.fromEntries(
 // ──── 前端展示样式（视图层，按状态值映射到 Tailwind 类） ────
 
 export const CUSTOMER_STATUS_TEXT_CLASSES: Record<number, string> = {
-  [CUSTOMER_STATUS.DISABLED.value]: 'text-destructive',
-  [CUSTOMER_STATUS.ACTIVE.value]: 'text-green-600 dark:text-green-400',
+  [CUSTOMER_STATUS.ACTIVE.value]: 'text-destructive',
+  [CUSTOMER_STATUS.DISABLED.value]: 'text-green-600 dark:text-green-400',
 };
 
 export const CUSTOMER_STATUS_BADGE_CLASSES: Record<number, string> = {
-  [CUSTOMER_STATUS.DISABLED.value]: 'bg-muted text-muted-foreground ring-muted',
-  [CUSTOMER_STATUS.ACTIVE.value]:
+  [CUSTOMER_STATUS.ACTIVE.value]: 'bg-muted text-muted-foreground ring-muted',
+  [CUSTOMER_STATUS.DISABLED.value]:
     'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 ring-green-200 dark:ring-green-800/30',
 };

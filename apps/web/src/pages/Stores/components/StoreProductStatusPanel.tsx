@@ -49,12 +49,12 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
           pageSize,
         }
 
-        if (finalFilter === "下架") {
+        if (finalFilter === "全局下架") {
           params.globalStatus = "0"
-        } else if (finalFilter === "售罄") {
+        } else if (finalFilter === "门店售罄") {
           params.globalStatus = "1"
           params.storeStatus = "0"
-        } else if (finalFilter === "可售") {
+        } else if (finalFilter === "门店可售") {
           params.globalStatus = "1"
           params.storeStatus = "1"
         } else {
@@ -162,15 +162,15 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
         toolbarLeft={
           <div className="flex items-center gap-4 text-sm">
             <span>
-              可售 <strong className="text-green-700 dark:text-green-400">{stats.available}</strong>
+              门店可售 <strong className="text-green-700 dark:text-green-400">{stats.available}</strong>
             </span>
             <span className="text-muted-foreground">/</span>
             <span>
-              售罄 <strong className="text-red-700 dark:text-red-400">{stats.soldOut}</strong>
+              门店售罄 <strong className="text-red-700 dark:text-red-400">{stats.soldOut}</strong>
             </span>
             <span className="text-muted-foreground">/</span>
             <span>
-              下架 <strong className="text-red-700 dark:text-red-400">{stats.offShelf}</strong>
+              全局下架 <strong className="text-red-700 dark:text-red-400">{stats.offShelf}</strong>
             </span>
           </div>
         }
@@ -208,9 +208,9 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">全部</SelectItem>
-                <SelectItem value="下架">下架</SelectItem>
-                <SelectItem value="售罄">售罄</SelectItem>
-                <SelectItem value="可售">可售</SelectItem>
+                <SelectItem value="全局下架">全局下架</SelectItem>
+                <SelectItem value="门店售罄">门店售罄</SelectItem>
+                <SelectItem value="门店可售">门店可售</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -300,7 +300,7 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
           if (!open) setToggleTarget(null)
         }}
         title="操作确认"
-        description={`确认修改「${toggleTarget?.name}」的门店状态为「${toggleTarget?.currentStatus === 1 ? "售罄" : "可售"}」？`}
+        description={`确认修改「${toggleTarget?.name}」的门店状态为「${toggleTarget?.currentStatus === 1 ? "门店售罄" : "门店可售"}」？`}
         onConfirm={handleToggleConfirm}
       />
 

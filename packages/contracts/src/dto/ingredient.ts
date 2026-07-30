@@ -8,7 +8,7 @@ export const IngredientSchema = z.object({
   id: z.number().describe('ID'),
   name: z.string().describe('名称'),
   unit: z.string().describe('单位'),
-  status: z.number().describe('状态（0=禁用 1=启用）'),
+  status: z.number().describe('状态（0=禁用 1=激活）'),
   boundCount: z.number().describe('已绑定数量'),
   optionCount: z.number().describe('选项数量'),
   createdAt: z.string().describe('创建时间'),
@@ -35,7 +35,7 @@ export type IngredientDetailResponse = Ingredient;
 export const CreateIngredientRequestSchema = z.object({
   name: z.string().min(1, '原料名称不能为空').describe('名称'),
   unit: z.string().min(1, '单位不能为空').describe('单位'),
-  status: z.number().optional().describe('状态（0=禁用 1=启用）'),
+  status: z.number().optional().describe('状态（0=禁用 1=激活）'),
 });
 export type CreateIngredientRequest = z.infer<typeof CreateIngredientRequestSchema>;
 
@@ -46,7 +46,7 @@ export type CreateIngredientResponse = z.infer<typeof CreateIngredientResponseSc
 export const UpdateIngredientRequestSchema = z.object({
   name: z.string().min(1, '原料名称不能为空').optional().describe('名称'),
   unit: z.string().min(1, '单位不能为空').optional().describe('单位'),
-  status: z.number().optional().describe('状态（0=禁用 1=启用）'),
+  status: z.number().optional().describe('状态（0=禁用 1=激活）'),
 });
 export type UpdateIngredientRequest = z.infer<typeof UpdateIngredientRequestSchema>;
 
