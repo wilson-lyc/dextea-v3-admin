@@ -1,0 +1,35 @@
+类别,维度/实体,键(Key),状态码(数字),语义(Label),备注
+实体状态,门店(store),normal,1,正常,STORE_STATUS
+实体状态,门店(store),closed,2,已关闭,STORE_STATUS
+实体状态,门店(store),pending,3,待审核,STORE_STATUS
+实体状态,门店(store),suspended,4,已封禁,STORE_STATUS
+实体状态,客制化选项(customization-option),enabled,1,启用,CUSTOMIZATION_OPTION_STATUS
+实体状态,客制化选项(customization-option),disabled,2,禁用,CUSTOMIZATION_OPTION_STATUS
+实体状态,原料(ingredient),active,1,在售,INGREDIENT_STATUS
+实体状态,原料(ingredient),out_of_stock,2,缺货,INGREDIENT_STATUS
+实体状态,原料(ingredient),archived,3,已下架,INGREDIENT_STATUS
+实体状态,角色(role),active,1,启用,ROLE_STATUS
+实体状态,角色(role),disabled,2,禁用,ROLE_STATUS
+实体状态,员工(employee),active,1,在职,EMPLOYEE_STATUS
+实体状态,员工(employee),suspended,2,停职,EMPLOYEE_STATUS
+实体状态,员工(employee),resigned,3,离职,EMPLOYEE_STATUS
+实体状态,商品(product),on_sale,1,在售,PRODUCT_STATUS
+实体状态,商品(product),off_shelf,2,下架,PRODUCT_STATUS
+实体状态,商品(product),sold_out,3,售罄,PRODUCT_STATUS
+实体状态,客户(customer),normal,1,正常,CUSTOMER_STATUS
+实体状态,客户(customer),frozen,2,已冻结,CUSTOMER_STATUS
+实体状态,客制化(customization),active,1,启用,CUSTOMIZATION_STATUS
+实体状态,客制化(customization),disabled,2,禁用,CUSTOMIZATION_STATUS
+图片类型,商品图片(product_image),main,1,主图,PRODUCT_IMAGE_TYPE
+图片类型,商品图片(product_image),detail,2,详情图,PRODUCT_IMAGE_TYPE
+注册平台,客户(customer.platform),,1,微信,字段枚举，非状态枚举
+注册平台,客户(customer.platform),,2,支付宝,字段枚举，非状态枚举
+注册平台,客户(customer.platform),,3,Web,字段枚举，非状态枚举
+权限键,权限(permission),*, ,超级管理员通配权限,SUPER_PERMISSION_KEY，匹配任意 资源:动作
+权限键,权限(permission),employee:read, ,读取员工数据,格式：资源:动作
+权限键,权限(permission),employee:write, ,写入员工数据,格式：资源:动作
+权限键,权限(permission),role:read, ,读取角色数据,格式：资源:动作
+权限键,权限(permission),role:write, ,写入角色数据,格式：资源:动作
+权限键,权限(permission),permission:read, ,读取权限数据,格式：资源:动作
+配置键,配置(config),amap, ,高德地图配置,含 key / jsKey / securityCode
+配置键,配置(config),Initialized, ,初始化完成标记,唯一约束，用于幂等闸门
