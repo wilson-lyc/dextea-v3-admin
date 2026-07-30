@@ -1,6 +1,6 @@
 import { z } from 'zod/v4';
 import { PaginatedDataSchema } from '../common/pagination.js';
-import { STORE_STATUS_VALUES, type StoreStatus } from '../status/store.js';
+import { STORE_STATUS_VALUES, type StoreStatus } from '../enums/store.js';
 
 /** 门店实体 */
 export const StoreSchema = z.object({

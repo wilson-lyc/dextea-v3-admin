@@ -11,8 +11,8 @@
       "import": "./dist/index.js"
     },
     "./status": {
-      "types": "./dist/status/index.d.ts",
-      "import": "./dist/status/index.js"
+      "types": "./dist/enums/index.d.ts",
+      "import": "./dist/enums/index.js"
     },
     "./dto": {
       "types": "./dist/dto/index.d.ts",
