@@ -10,7 +10,6 @@ export const config = mysqlTable("config", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "config_id"}),
-	unique("id").on(table.id),
 	unique("config_key_unique").on(table.key),
 ]);
 
@@ -29,7 +28,6 @@ export const customers = mysqlTable("customers", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "customers_id"}),
-	unique("id").on(table.id),
 	unique("uq_customers_email").on(table.email),
 	unique("uq_customers_phone").on(table.phone),
 	unique("uq_customers_weixin_open_id").on(table.weixinOpenId),
@@ -44,7 +42,7 @@ export const customizationOptionStoreStatus = mysqlTable("customization_option_s
 	updatedAt: timestamp("updated_at", { mode: 'string' }).default(sql`(now())`).onUpdateNow().notNull(),
 },
 (table) => [
-	primaryKey({ columns: [table.customizationOptionId, table.storeId], name: "customization_option_store_status_customization_option_id_store_id"}),
+	primaryKey({ columns: [table.customizationOptionId, table.storeId], name: "customization_option_store_status_pk"}),
 ]);
 
 export const customizationOptions = mysqlTable("customization_options", {
@@ -61,7 +59,6 @@ export const customizationOptions = mysqlTable("customization_options", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "customization_options_id"}),
-	unique("id").on(table.id),
 ]);
 
 export const customizations = mysqlTable("customizations", {
@@ -75,7 +72,6 @@ export const customizations = mysqlTable("customizations", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "customizations_id"}),
-	unique("id").on(table.id),
 ]);
 
 export const employeeRoles = mysqlTable("employee_roles", {
@@ -97,7 +93,6 @@ export const employees = mysqlTable("employees", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "employees_id"}),
-	unique("id").on(table.id),
 	unique("employees_email_unique").on(table.email),
 ]);
 
@@ -110,7 +105,6 @@ export const gallery = mysqlTable("gallery", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "gallery_id"}),
-	unique("id").on(table.id),
 ]);
 
 export const ingredients = mysqlTable("ingredients", {
@@ -123,7 +117,6 @@ export const ingredients = mysqlTable("ingredients", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "ingredients_id"}),
-	unique("id").on(table.id),
 ]);
 
 export const menuGroups = mysqlTable("menu_groups", {
@@ -136,7 +129,6 @@ export const menuGroups = mysqlTable("menu_groups", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "menu_groups_id"}),
-	unique("id").on(table.id),
 ]);
 
 export const menuProducts = mysqlTable("menu_products", {
@@ -159,7 +151,6 @@ export const menus = mysqlTable("menus", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "menus_id"}),
-	unique("id").on(table.id),
 ]);
 
 export const orderItems = mysqlTable("order_items", {
@@ -178,7 +169,6 @@ export const orderItems = mysqlTable("order_items", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "order_items_id"}),
-	unique("id").on(table.id),
 ]);
 
 export const orderStatusLog = mysqlTable("order_status_log", {
@@ -194,7 +184,6 @@ export const orderStatusLog = mysqlTable("order_status_log", {
 (table) => [
 	index("idx_order_status_log_order_id").on(table.orderId),
 	primaryKey({ columns: [table.id], name: "order_status_log_id"}),
-	unique("id").on(table.id),
 ]);
 
 export const orders = mysqlTable("orders", {
@@ -221,7 +210,6 @@ export const orders = mysqlTable("orders", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "orders_id"}),
-	unique("id").on(table.id),
 	unique("orders_order_no_unique").on(table.orderNo),
 	unique("orders_idempotency_key_unique").on(table.idempotencyKey),
 ]);
@@ -236,7 +224,6 @@ export const permissions = mysqlTable("permissions", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "permissions_id"}),
-	unique("id").on(table.id),
 	unique("permissions_key_unique").on(table.key),
 ]);
 
@@ -291,7 +278,6 @@ export const productTags = mysqlTable("product_tags", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "product_tags_id"}),
-	unique("id").on(table.id),
 	unique("product_tags_name_unique").on(table.name),
 ]);
 
@@ -307,7 +293,6 @@ export const products = mysqlTable("products", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "products_id"}),
-	unique("id").on(table.id),
 ]);
 
 export const rolePermissions = mysqlTable("role_permissions", {
@@ -328,7 +313,6 @@ export const roles = mysqlTable("roles", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "roles_id"}),
-	unique("id").on(table.id),
 	unique("roles_name_unique").on(table.name),
 ]);
 
@@ -372,6 +356,5 @@ export const stores = mysqlTable("stores", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "stores_id"}),
-	unique("id").on(table.id),
 	unique("stores_account_unique").on(table.account),
 ]);
