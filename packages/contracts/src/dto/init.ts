@@ -13,6 +13,7 @@ export const InitRequestSchema = z.object({
   password: z.string().min(1, '密码不能为空').min(6, '密码长度不能少于 6 位').describe('密码'),
   displayName: z
     .string()
+    .trim()
     .min(1, '显示名称不能为空')
     .max(255, '显示名称长度不能超过 255 个字符'),
 });

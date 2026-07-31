@@ -1,7 +1,6 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { CustomizationErrorCodes } from './customization.errorcode.js';
 import { customizationRepository } from './customization.repository.js';
-import { validateSort } from '@/utils';
 import {
   CUSTOMIZATION_STATUS,
   CUSTOMIZATION_STATUS_VALUES,
@@ -49,9 +48,6 @@ export const customizationService = {
 
     // 排序：用户手动设置，未指定时默认 0
     const sort = input.sort ?? 0;
-    if (input.sort !== undefined) {
-      validateSort(input.sort, '客制化项目排序');
-    }
 
     const insertId = await customizationRepository.createCustomization({
       productId,
@@ -79,7 +75,6 @@ export const customizationService = {
       name: trimmedName,
     };
     if (sort !== undefined) {
-      validateSort(sort, '客制化项目排序');
       updateData.sort = sort;
     }
     if (status !== undefined) {
@@ -127,10 +122,6 @@ export const customizationService = {
     const trimmedName = name.trim();
     
 
-    if (sort !== undefined) {
-      validateSort(sort, '客制化选项排序');
-    }
-
     if (ingredientId != null) {
       const ingredient = await customizationRepository.getIngredientById(ingredientId);
       if (!ingredient) {
@@ -168,7 +159,6 @@ export const customizationService = {
     }
     if (price !== undefined) updateData.price = price;
     if (sort !== undefined) {
-      validateSort(sort, '客制化选项排序');
       updateData.sort = sort;
     }
 

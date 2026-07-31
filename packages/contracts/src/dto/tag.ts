@@ -40,7 +40,7 @@ export type TagListResponse = z.infer<typeof TagListResponseSchema>;
 
 /** 新增标签 */
 export const CreateTagRequestSchema = z.object({
-  name: z.string().min(1, '标签名称不能为空').max(32, '标签名称长度不能超过 32 个字符').describe('名称'),
+  name: z.string().trim().min(1, '标签名称不能为空').max(32, '标签名称长度不能超过 32 个字符').describe('名称'),
 });
 export type CreateTagRequest = z.infer<typeof CreateTagRequestSchema>;
 
@@ -49,7 +49,7 @@ export type CreateTagResponse = TagSimple;
 
 /** 更新标签 */
 export const UpdateTagRequestSchema = z.object({
-  name: z.string().min(1, '标签名称不能为空').max(32, '标签名称长度不能超过 32 个字符').describe('名称'),
+  name: z.string().trim().min(1, '标签名称不能为空').max(32, '标签名称长度不能超过 32 个字符').describe('名称'),
 });
 export type UpdateTagRequest = z.infer<typeof UpdateTagRequestSchema>;
 

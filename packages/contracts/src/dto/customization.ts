@@ -50,8 +50,8 @@ export type CustomizationListResponse = z.infer<typeof CustomizationListResponse
 
 export const CreateCustomizationRequestSchema = z.object({
   productId: z.number().int().positive('商品ID必须为正整数').describe('商品ID'),
-  name: z.string().min(1, '客制化项目名称不能为空').max(32, '客制化项目名称长度不能超过 32 个字符').describe('名称'),
-  sort: z.number().int().optional().describe('排序'),
+  name: z.string().trim().min(1, '客制化项目名称不能为空').max(32, '客制化项目名称长度不能超过 32 个字符').describe('名称'),
+  sort: z.number().int().min(0).max(127).optional().describe('排序'),
 });
 export type CreateCustomizationRequest = z.infer<typeof CreateCustomizationRequestSchema>;
 
@@ -61,8 +61,8 @@ export type CreateCustomizationResponse = Customization;
 // ─── 更新客制化项目基础信息 ───────────────────────
 
 export const UpdateCustomizationRequestSchema = z.object({
-  name: z.string().min(1, '客制化项目名称不能为空').max(32, '客制化项目名称长度不能超过 32 个字符').describe('名称'),
-  sort: z.number().int().optional().describe('排序'),
+  name: z.string().trim().min(1, '客制化项目名称不能为空').max(32, '客制化项目名称长度不能超过 32 个字符').describe('名称'),
+  sort: z.number().int().min(0).max(127).optional().describe('排序'),
   status: z.number().optional().describe('状态（0=禁用 1=激活）'),
 });
 export type UpdateCustomizationRequest = z.infer<typeof UpdateCustomizationRequestSchema>;
@@ -88,9 +88,9 @@ export type CustomizationOptionListResponse = CustomizationOption[];
 // ─── 创建客制化选项 ───────────────────────────────
 
 export const CreateCustomizationOptionRequestSchema = z.object({
-  name: z.string().min(1, '客制化选项名称不能为空').max(32, '客制化选项名称长度不能超过 32 个字符').describe('名称'),
+  name: z.string().trim().min(1, '客制化选项名称不能为空').max(32, '客制化选项名称长度不能超过 32 个字符').describe('名称'),
   price: z.number().optional().describe('加价'),
-  sort: z.number().int().optional().describe('排序'),
+  sort: z.number().int().min(0).max(127).optional().describe('排序'),
   ingredientId: z.number().int().positive().nullable().optional().describe('原料ID'),
   quantity: z.number().optional().describe('用量'),
 });
@@ -103,9 +103,9 @@ export type CreateCustomizationOptionResponse = CustomizationOption;
 // 仅处理名称/加价/排序，状态由下方独立接口维护。
 
 export const UpdateCustomizationOptionRequestSchema = z.object({
-  name: z.string().min(1, '客制化选项名称不能为空').max(32, '客制化选项名称长度不能超过 32 个字符').optional().describe('名称'),
+  name: z.string().trim().min(1, '客制化选项名称不能为空').max(32, '客制化选项名称长度不能超过 32 个字符').optional().describe('名称'),
   price: z.number().optional().describe('加价'),
-  sort: z.number().int().optional().describe('排序'),
+  sort: z.number().int().min(0).max(127).optional().describe('排序'),
 });
 export type UpdateCustomizationOptionRequest = z.infer<typeof UpdateCustomizationOptionRequestSchema>;
 

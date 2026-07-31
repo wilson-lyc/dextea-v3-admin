@@ -27,7 +27,7 @@ export type GetEmployeeListResponse = z.infer<typeof GetEmployeeListResponseSche
 /** 创建员工 */
 export const CreateEmployeeRequestSchema = z.object({
   email: z.string().min(1, '邮箱不能为空').describe('邮箱'),
-  displayName: z.string().min(1, '显示名称不能为空').max(32, '显示名称长度不能超过 32 个字符').describe('显示名称'),
+  displayName: z.string().trim().min(1, '显示名称不能为空').max(32, '显示名称长度不能超过 32 个字符').describe('显示名称'),
 });
 export type CreateEmployeeRequest = z.infer<typeof CreateEmployeeRequestSchema>;
 
@@ -45,7 +45,7 @@ export type CreateEmployeeResponse = z.infer<typeof CreateEmployeeResponseSchema
 /** 更新员工 */
 export const UpdateEmployeeRequestSchema = z.object({
   email: z.string().min(1, '邮箱不能为空').describe('邮箱'),
-  displayName: z.string().min(1, '显示名称不能为空').max(32, '显示名称长度不能超过 32 个字符').describe('显示名称'),
+  displayName: z.string().trim().min(1, '显示名称不能为空').max(32, '显示名称长度不能超过 32 个字符').describe('显示名称'),
 });
 export type UpdateEmployeeRequest = z.infer<typeof UpdateEmployeeRequestSchema>;
 

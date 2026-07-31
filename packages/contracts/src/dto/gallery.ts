@@ -41,13 +41,13 @@ export type DeleteGalleryImageResponse = z.infer<typeof DeleteGalleryImageRespon
 
 /** 更新图片名称请求体 */
 export const UpdateGalleryImageRequestSchema = z.object({
-  name: z.string().min(1, '名称不能为空').max(32, '图片名称长度不能超过 32 个字符').describe('名称'),
+  name: z.string().trim().min(1, '名称不能为空').max(32, '图片名称长度不能超过 32 个字符').describe('名称'),
 });
 export type UpdateGalleryImageRequest = z.infer<typeof UpdateGalleryImageRequestSchema>;
 
 /** 上传图片时的名称校验（multipart 字段，由路由解析后手动校验） */
 export const UploadGalleryImageRequestSchema = z.object({
-  name: z.string().min(1, '图片名称不能为空').max(32, '图片名称长度不能超过 32 个字符').describe('名称'),
+  name: z.string().trim().min(1, '图片名称不能为空').max(32, '图片名称长度不能超过 32 个字符').describe('名称'),
 });
 export type UploadGalleryImageRequest = z.infer<typeof UploadGalleryImageRequestSchema>;
 
