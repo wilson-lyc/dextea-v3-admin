@@ -5,7 +5,7 @@ import {
   products,
   productIngredients,
   customizationOptions,
-  customizations,
+  customizationItems,
 } from '@/plugins/db/mysql/schema.js';
 import { withPagination } from '@/utils';
 
@@ -138,11 +138,11 @@ export const ingredientRepository = {
       .select({
         optionId: customizationOptions.id,
         optionName: customizationOptions.name,
-        customizationName: customizations.name,
-        quantity: customizationOptions.ingredientQuantity,
+        customizationName: customizationItems.name,
+        quantity: sql<number>`coalesce(${customizationOptions.ingredientQuantity}, 0)`,
       })
       .from(customizationOptions)
-      .innerJoin(customizations, eq(customizationOptions.customizationId, customizations.id))
+      .innerJoin(customizationItems, eq(customizationOptions.itemId, customizationItems.id))
       .where(eq(customizationOptions.ingredientId, ingredientId))
       .orderBy(customizationOptions.id)
       .$dynamic();

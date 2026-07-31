@@ -2,7 +2,6 @@ import { BizError } from '@/common/exceptions/index.js';
 import { RoleErrorCodes } from './role.errorcode.js';
 import { roleRepository } from './role.repository.js';
 import { permissionRepository } from '@/module/permissions/permission.repository.js';
-import { validateMaxLength } from '@/utils';
 import { ROLE_STATUS, ROLE_STATUS_VALUES } from '@dextea-admin/contracts';
 import type {
   RoleListRequest,
@@ -25,7 +24,7 @@ export const roleService = {
     const name = input.name.trim();
     const note = input.note?.trim() ?? null;
 
-    validateMaxLength(name, 255, '角色名称');
+    
 
     const existing = await roleRepository.getRoleByName(name);
     if (existing) {
@@ -45,7 +44,7 @@ export const roleService = {
     const name = input.name.trim();
     const note = input.note?.trim() ?? null;
 
-    validateMaxLength(name, 255, '角色名称');
+    
 
     const role = await roleRepository.getRoleById(id);
     if (!role) {

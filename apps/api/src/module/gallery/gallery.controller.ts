@@ -12,6 +12,7 @@ import {
   DeleteGalleryImageResponseSchema,
   UpdateGalleryImageRequestSchema,
   UpdateGalleryImageResponseSchema,
+  UploadGalleryImageRequestSchema,
 } from '@dextea-admin/contracts';
 
 /** 从 multipart 字段中安全提取字符串值（兼容 string / string[] / { value } 形态） */
@@ -52,8 +53,9 @@ export const registerGalleryRoutes: FastifyPluginAsyncZod = async (app) => {
       const buffer = await data.toBuffer();
       // 文件流消费后，busboy 才会解析其后的表单字段
       const name = extractFieldValue(data.fields?.name).trim();
-      if (!name) {
-        throw new BizError(GalleryErrorCodes.INVALID_FILE, '请填写图片名称');
+      const parsed = UploadGalleryImageRequestSchema.safeParse({ name });
+      if (!parsed.success) {
+        throw new BizError(GalleryErrorCodes.INVALID_FILE, parsed.error.issues[0]?.message ?? '图片名称不合法');
       }
 
       const result = await galleryService.uploadImage({

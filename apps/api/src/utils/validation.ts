@@ -41,19 +41,6 @@ export function validatePassword(password: string, fieldName: string = '密码')
   }
 }
 
-export function validateMaxLength(value: string | undefined | null, max: number, fieldName: string): void {
-  if (value === null || value === undefined) return;
-  if (typeof value === 'string' && value.length > max) {
-    throw new BizError(SystemErrorCodes.VALIDATION_ERROR, `${fieldName} 长度不能超过 ${max} 个字符`);
-  }
-}
-
-export function validatePrice(price: number, fieldName: string = '价格'): void {
-  if (price < 0 || price > 999999) {
-    throw new BizError(SystemErrorCodes.VALIDATION_ERROR, `${fieldName} 必须在 0 ~ 999999 之间`);
-  }
-}
-
 export function validateLongitude(lng: number, fieldName: string = '经度'): void {
   if (lng < -180 || lng > 180) {
     throw new BizError(SystemErrorCodes.VALIDATION_ERROR, `${fieldName} 必须在 -180 ~ 180 之间`);

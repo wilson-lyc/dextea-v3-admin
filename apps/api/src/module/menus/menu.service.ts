@@ -35,9 +35,13 @@ export const menuService = {
 
   async createMenu(input: CreateMenuRequest) {
     const { name, description } = input;
+    const trimmedName = name.trim();
+    const trimmedDescription = (description ?? '').trim();
+    
+    
     const id = await menuRepository.createMenu({
-      name: name.trim(),
-      description: (description ?? '').trim(),
+      name: trimmedName,
+      description: trimmedDescription,
     });
     return { id };
   },
@@ -50,10 +54,14 @@ export const menuService = {
 
     const values: Record<string, string> = {};
     if (input.name !== undefined) {
-      values.name = input.name.trim();
+      const trimmedName = input.name.trim();
+      
+      values.name = trimmedName;
     }
     if (input.description !== undefined) {
-      values.description = input.description.trim();
+      const trimmedDescription = input.description.trim();
+      
+      values.description = trimmedDescription;
     }
 
     if (Object.keys(values).length > 0) {
@@ -92,9 +100,11 @@ export const menuService = {
     }
 
     const { name, sortOrder } = input;
+    const trimmedName = name.trim();
+    
     const id = await menuRepository.createMenuGroup({
       menuId,
-      name: name.trim(),
+      name: trimmedName,
       sortOrder: sortOrder ?? 0,
     });
     return { id };
@@ -108,7 +118,9 @@ export const menuService = {
 
     const values: Record<string, string | number> = {};
     if (input.name !== undefined) {
-      values.name = input.name.trim();
+      const trimmedName = input.name.trim();
+      
+      values.name = trimmedName;
     }
     if (input.sortOrder !== undefined) {
       values.sortOrder = input.sortOrder;

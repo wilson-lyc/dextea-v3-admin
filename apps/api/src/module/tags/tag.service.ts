@@ -29,6 +29,7 @@ export const tagService = {
 
   async createTag(input: CreateTagRequest) {
     const trimmedName = input.name.trim();
+    
 
     const existing = await tagRepository.getTagByName(trimmedName);
     if (existing) {
@@ -41,6 +42,7 @@ export const tagService = {
 
   async updateTag(id: number, input: UpdateTagRequest) {
     const trimmedName = input.name.trim();
+    
 
     const tag = await tagRepository.getTagById(id);
     if (!tag) {

@@ -26,7 +26,7 @@ export type RoleListResponse = z.infer<typeof RoleListResponseSchema>;
 
 /** 创建角色 */
 export const CreateRoleRequestSchema = z.object({
-  name: z.string().min(1, '角色名称不能为空').describe('名称'),
+  name: z.string().min(1, '角色名称不能为空').max(255, '角色名称长度不能超过 255 个字符').describe('名称'),
   note: z.string().optional().describe('备注'),
 });
 export type CreateRoleRequest = z.infer<typeof CreateRoleRequestSchema>;
@@ -39,7 +39,7 @@ export type CreateRoleResponse = z.infer<typeof CreateRoleResponseSchema>;
 
 /** 更新角色 */
 export const UpdateRoleRequestSchema = z.object({
-  name: z.string().min(1, '角色名称不能为空').describe('名称'),
+  name: z.string().min(1, '角色名称不能为空').max(255, '角色名称长度不能超过 255 个字符').describe('名称'),
   note: z.string().optional().describe('备注'),
 });
 export type UpdateRoleRequest = z.infer<typeof UpdateRoleRequestSchema>;

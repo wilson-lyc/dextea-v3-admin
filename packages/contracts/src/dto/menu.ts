@@ -69,8 +69,8 @@ export const MenuGetResponseSchema = MenuSchema;
 export type MenuGetResponse = Menu;
 
 export const CreateMenuRequestSchema = z.object({
-  name: z.string().min(1, '菜单名称不能为空').describe('名称'),
-  description: z.string().optional().describe('描述'),
+  name: z.string().min(1, '菜单名称不能为空').max(32, '菜单名称长度不能超过 32 个字符').describe('名称'),
+  description: z.string().max(255, '菜单描述长度不能超过 255 个字符').optional().describe('描述'),
 });
 export type CreateMenuRequest = z.infer<typeof CreateMenuRequestSchema>;
 
@@ -78,8 +78,8 @@ export const CreateMenuResponseSchema = z.object({ id: z.number() });
 export type CreateMenuResponse = z.infer<typeof CreateMenuResponseSchema>;
 
 export const UpdateMenuRequestSchema = z.object({
-  name: z.string().min(1, '菜单名称不能为空').optional().describe('名称'),
-  description: z.string().optional().describe('描述'),
+  name: z.string().min(1, '菜单名称不能为空').max(32, '菜单名称长度不能超过 32 个字符').optional().describe('名称'),
+  description: z.string().max(255, '菜单描述长度不能超过 255 个字符').optional().describe('描述'),
 });
 export type UpdateMenuRequest = z.infer<typeof UpdateMenuRequestSchema>;
 
@@ -97,7 +97,7 @@ export const MenuGroupListResponseSchema = z.array(MenuGroupSchema);
 export type MenuGroupListResponse = MenuGroup[];
 
 export const CreateMenuGroupRequestSchema = z.object({
-  name: z.string().min(1, '分组名称不能为空').describe('名称'),
+  name: z.string().min(1, '分组名称不能为空').max(32, '分组名称长度不能超过 32 个字符').describe('名称'),
   sortOrder: z.number().optional().describe('排序'),
 });
 export type CreateMenuGroupRequest = z.infer<typeof CreateMenuGroupRequestSchema>;
@@ -106,7 +106,7 @@ export const CreateMenuGroupResponseSchema = z.object({ id: z.number() });
 export type CreateMenuGroupResponse = z.infer<typeof CreateMenuGroupResponseSchema>;
 
 export const UpdateMenuGroupRequestSchema = z.object({
-  name: z.string().min(1, '分组名称不能为空').optional().describe('名称'),
+  name: z.string().min(1, '分组名称不能为空').max(32, '分组名称长度不能超过 32 个字符').optional().describe('名称'),
   sortOrder: z.number().optional().describe('排序'),
 });
 export type UpdateMenuGroupRequest = z.infer<typeof UpdateMenuGroupRequestSchema>;

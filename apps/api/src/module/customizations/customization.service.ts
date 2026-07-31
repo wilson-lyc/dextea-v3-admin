@@ -1,7 +1,7 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { CustomizationErrorCodes } from './customization.errorcode.js';
 import { customizationRepository } from './customization.repository.js';
-import { validateMaxLength, validateSort } from '@/utils';
+import { validateSort } from '@/utils';
 import {
   CUSTOMIZATION_STATUS,
   CUSTOMIZATION_STATUS_VALUES,
@@ -45,7 +45,7 @@ export const customizationService = {
     }
 
     const trimmedName = name.trim();
-    validateMaxLength(trimmedName, 255, '客制化项目名称');
+    
 
     // 排序：用户手动设置，未指定时默认 0
     const sort = input.sort ?? 0;
@@ -73,7 +73,7 @@ export const customizationService = {
     }
 
     const trimmedName = name.trim();
-    validateMaxLength(trimmedName, 255, '客制化项目名称');
+    
 
     const updateData: Record<string, unknown> = {
       name: trimmedName,
@@ -125,7 +125,7 @@ export const customizationService = {
     }
 
     const trimmedName = name.trim();
-    validateMaxLength(trimmedName, 255, '客制化选项名称');
+    
 
     if (sort !== undefined) {
       validateSort(sort, '客制化选项排序');
@@ -139,7 +139,7 @@ export const customizationService = {
     }
 
     const insertId = await customizationRepository.createOption({
-      customizationId,
+      itemId: customizationId,
       name: trimmedName,
       price: price ?? 0,
       sort: sort ?? 0,
@@ -156,14 +156,14 @@ export const customizationService = {
     const { name, price, sort } = input;
 
     const option = await customizationRepository.getOptionById(optionId);
-    if (!option || option.customizationId !== customizationId) {
+    if (!option || option.itemId !== customizationId) {
       throw new BizError(CustomizationErrorCodes.OPTION_NOT_FOUND);
     }
 
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) {
       const trimmedName = name.trim();
-      validateMaxLength(trimmedName, 255, '客制化选项名称');
+      
       updateData.name = trimmedName;
     }
     if (price !== undefined) updateData.price = price;
@@ -180,7 +180,7 @@ export const customizationService = {
 
   async updateOptionQuantity(customizationId: number, optionId: number, quantity: number) {
     const option = await customizationRepository.getOptionById(optionId);
-    if (!option || option.customizationId !== customizationId) {
+    if (!option || option.itemId !== customizationId) {
       throw new BizError(CustomizationErrorCodes.OPTION_NOT_FOUND);
     }
 
@@ -195,7 +195,7 @@ export const customizationService = {
     quantity: number,
   ) {
     const option = await customizationRepository.getOptionById(optionId);
-    if (!option || option.customizationId !== customizationId) {
+    if (!option || option.itemId !== customizationId) {
       throw new BizError(CustomizationErrorCodes.OPTION_NOT_FOUND);
     }
 
@@ -221,7 +221,7 @@ export const customizationService = {
     }
 
     const option = await customizationRepository.getOptionById(optionId);
-    if (!option || option.customizationId !== customizationId) {
+    if (!option || option.itemId !== customizationId) {
       throw new BizError(CustomizationErrorCodes.OPTION_NOT_FOUND);
     }
 

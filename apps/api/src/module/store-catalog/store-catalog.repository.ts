@@ -4,7 +4,7 @@ import {
   stores,
   products,
   productStoreStatus,
-  customizations,
+  customizationItems,
   customizationOptions,
   customizationOptionStoreStatus,
   ingredients,
@@ -110,25 +110,25 @@ export const storeCatalogRepository = {
 
     const conditions: (SQL | undefined)[] = [];
     if (params.productId !== undefined) {
-      conditions.push(eq(customizations.productId, params.productId));
+      conditions.push(eq(customizationItems.productId, params.productId));
     }
 
     const baseQuery = db
       .select({
-        id: customizations.id,
-        name: customizations.name,
-        globalStatus: customizations.status,
+        id: customizationItems.id,
+        name: customizationItems.name,
+        globalStatus: customizationItems.status,
         optionCount: sql<number>`(
           SELECT COUNT(*) FROM ${customizationOptions}
-          WHERE ${customizationOptions.customizationId} = ${customizations.id}
+          WHERE ${customizationOptions.itemId} = ${customizationItems.id}
         )`,
       })
-      .from(customizations)
+      .from(customizationItems)
       .$dynamic();
 
     const countQuery = db
       .select({ count: sql<number>`count(*)` })
-      .from(customizations)
+      .from(customizationItems)
       .$dynamic();
 
     if (conditions.length > 0) {
@@ -138,7 +138,7 @@ export const storeCatalogRepository = {
     }
 
     const [items, countResult] = await Promise.all([
-      baseQuery.limit(pageSize).offset(offset).orderBy(customizations.id),
+      baseQuery.limit(pageSize).offset(offset).orderBy(customizationItems.id),
       countQuery,
     ]);
 
@@ -175,18 +175,18 @@ export const storeCatalogRepository = {
         .leftJoin(
           customizationOptionStoreStatus,
           and(
-            eq(customizationOptionStoreStatus.customizationOptionId, customizationOptions.id),
+            eq(customizationOptionStoreStatus.optionId, customizationOptions.id),
             eq(customizationOptionStoreStatus.storeId, storeId),
           ),
         )
-        .where(eq(customizationOptions.customizationId, customizationId))
+        .where(eq(customizationOptions.itemId, customizationId))
         .limit(pageSize)
         .offset(offset)
         .orderBy(customizationOptions.sort, customizationOptions.id),
       db
         .select({ count: sql<number>`count(*)` })
         .from(customizationOptions)
-        .where(eq(customizationOptions.customizationId, customizationId)),
+        .where(eq(customizationOptions.itemId, customizationId)),
     ]);
 
     const total = Number(countResult[0]?.count ?? 0);
@@ -197,7 +197,7 @@ export const storeCatalogRepository = {
   async upsertCustomizationOptionStoreStatus(storeId: number, optionId: number, status: number) {
     await db
       .insert(customizationOptionStoreStatus)
-      .values({ customizationOptionId: optionId, storeId, status })
+      .values({ optionId, storeId, status })
       .onDuplicateKeyUpdate({
         set: { status },
       });

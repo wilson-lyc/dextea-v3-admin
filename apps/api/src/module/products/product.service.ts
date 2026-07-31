@@ -5,8 +5,6 @@ import { productRepository } from './product.repository.js';
 import { PRODUCT_STATUS_VALUES } from '@dextea-admin/contracts';
 import { withDistributedLock } from '@/plugins/lock/index.js';
 import {
-  validateMaxLength,
-  validatePrice,
   validateStatus,
   isDuplicateKeyError,
   isSystemError,
@@ -84,13 +82,6 @@ export const productService = {
     return withMutation(async () => {
       const { name, brief, description, price, status } = input;
 
-      validateMaxLength(name, 255, '商品名称');
-      validateMaxLength(brief, 500, '简介');
-      validateMaxLength(description, 2000, '描述');
-
-      if (price !== undefined) {
-        validatePrice(price);
-      }
       if (status !== undefined) {
         validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
       }
@@ -130,16 +121,6 @@ export const productService = {
 
         if (name !== undefined) {
           if (!name) throw new BizError(ProductErrorCodes.NAME_REQUIRED);
-          validateMaxLength(name, 255, '商品名称');
-        }
-        if (brief !== undefined) {
-          validateMaxLength(brief, 500, '简介');
-        }
-        if (description !== undefined) {
-          validateMaxLength(description, 2000, '描述');
-        }
-        if (price !== undefined) {
-          validatePrice(price);
         }
 
         const updateData: Partial<typeof product> = {};
@@ -355,6 +336,11 @@ export const productService = {
       // 图库图片去重
       const uniqueGallery = [...new Set(galleryImageIds)];
       if (uniqueGallery.length !== galleryImageIds.length) {
+        throw new BizError(ProductErrorCodes.IMAGE_DUPLICATED);
+      }
+
+      // product_images 主键为 (product_id, image_id)，同一张图片不能既作封面又入图库
+      if (coverImageId !== null && uniqueGallery.includes(coverImageId)) {
         throw new BizError(ProductErrorCodes.IMAGE_DUPLICATED);
       }
 

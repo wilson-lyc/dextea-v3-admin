@@ -73,10 +73,10 @@ export type ProductBasicInfoResponse = ProductBasicInfo;
 
 /** 新增商品 */
 export const CreateProductRequestSchema = z.object({
-  name: z.string().min(1, '商品名称不能为空').describe('名称'),
-  brief: z.string().optional().describe('简介'),
-  description: z.string().optional().describe('描述'),
-  price: z.number().optional().describe('价格'),
+  name: z.string().min(1, '商品名称不能为空').max(64, '商品名称长度不能超过 64 个字符').describe('名称'),
+  brief: z.string().max(64, '简介长度不能超过 64 个字符').optional().describe('简介'),
+  description: z.string().max(500, '描述长度不能超过 500 个字符').optional().describe('描述'),
+  price: z.number().min(0, '价格不能为负数').max(999999, '价格不能超过 999999').optional().describe('价格'),
   status: z.number().optional().describe('状态（0=全局下架 1=全局上架）'),
 });
 export type CreateProductRequest = z.infer<typeof CreateProductRequestSchema>;
@@ -86,10 +86,10 @@ export type CreateProductResponse = z.infer<typeof CreateProductResponseSchema>;
 
 /** 更新商品 */
 export const UpdateProductRequestSchema = z.object({
-  name: z.string().optional().describe('名称'),
-  brief: z.string().optional().describe('简介'),
-  description: z.string().optional().describe('描述'),
-  price: z.number().optional().describe('价格'),
+  name: z.string().max(64, '商品名称长度不能超过 64 个字符').optional().describe('名称'),
+  brief: z.string().max(64, '简介长度不能超过 64 个字符').optional().describe('简介'),
+  description: z.string().max(500, '描述长度不能超过 500 个字符').optional().describe('描述'),
+  price: z.number().min(0, '价格不能为负数').max(999999, '价格不能超过 999999').optional().describe('价格'),
   status: z.number().optional().describe('状态（0=全局下架 1=全局上架）'),
 });
 export type UpdateProductRequest = z.infer<typeof UpdateProductRequestSchema>;

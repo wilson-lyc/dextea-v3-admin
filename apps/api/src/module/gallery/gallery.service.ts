@@ -26,6 +26,8 @@ export const galleryService = {
   async uploadImage(input: { buffer: Buffer; filename: string; mimetype: string; name: string }) {
     const { buffer, filename, mimetype, name } = input;
 
+    
+
     if (!mimetype.startsWith('image/')) {
       throw new BizError(GalleryErrorCodes.INVALID_FILE);
     }
@@ -86,6 +88,7 @@ export const galleryService = {
 
   async updateGalleryImageName(id: number, input: UpdateGalleryImageRequest) {
     const { name } = input;
+    
 
     const record = await galleryRepository.getGalleryImageById(id);
     if (!record) {

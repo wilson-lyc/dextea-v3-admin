@@ -2,7 +2,7 @@ import { nanoid } from 'nanoid';
 import { BizError } from '@/common/exceptions/index.js';
 import { EmployeeErrorCodes } from './employees.errorcode.js';
 import { employeeRepository } from './employees.repository.js';
-import { validateEmail, validateMaxLength } from '@/utils';
+import { validateEmail } from '@/utils';
 import { hashPassword } from '@/plugins/password/index.js';
 import { EMPLOYEE_STATUS, EMPLOYEE_STATUS_VALUES } from '@dextea-admin/contracts';
 import type {
@@ -21,7 +21,7 @@ export const employeeService = {
     const { email, displayName } = input;
 
     validateEmail(email);
-    validateMaxLength(displayName, 255, '显示名称');
+    
 
     const existing = await employeeRepository.getEmployeeByEmail(email);
     if (existing) {
@@ -48,7 +48,7 @@ export const employeeService = {
     const { email, displayName } = input;
 
     validateEmail(email);
-    validateMaxLength(displayName, 255, '显示名称');
+    
 
     const employee = await employeeRepository.getEmployeeById(id);
     if (!employee) {

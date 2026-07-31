@@ -1,7 +1,7 @@
 import { eq, sql } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
 import {
-  customizations,
+  customizationItems,
   products,
   customizationOptions,
   ingredients,
@@ -17,42 +17,42 @@ export const customizationRepository = {
     pageSize = Math.min(100, Math.max(1, pageSize));
     keyword = keyword?.trim();
 
-    const optionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.customizationId} = customizations.id)`;
-    const activeOptionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.customizationId} = customizations.id and ${customizationOptions.status} = ${CUSTOMIZATION_OPTION_STATUS.GLOBAL_ACTIVE.value})`;
-    const disabledOptionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.customizationId} = customizations.id and ${customizationOptions.status} = ${CUSTOMIZATION_OPTION_STATUS.GLOBAL_DISABLED.value})`;
+    const optionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.itemId} = ${customizationItems.id})`;
+    const activeOptionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.itemId} = ${customizationItems.id} and ${customizationOptions.status} = ${CUSTOMIZATION_OPTION_STATUS.GLOBAL_ACTIVE.value})`;
+    const disabledOptionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.itemId} = ${customizationItems.id} and ${customizationOptions.status} = ${CUSTOMIZATION_OPTION_STATUS.GLOBAL_DISABLED.value})`;
 
     const baseQuery = db
       .select({
-        id: customizations.id,
-        productId: customizations.productId,
-        name: customizations.name,
-        sort: customizations.sort,
-        status: customizations.status,
+        id: customizationItems.id,
+        productId: customizationItems.productId,
+        name: customizationItems.name,
+        sort: customizationItems.sort,
+        status: customizationItems.status,
         optionCount: optionCountSubquery,
         activeOptionCount: activeOptionCountSubquery,
         disabledOptionCount: disabledOptionCountSubquery,
-        createdAt: customizations.createdAt,
-        updatedAt: customizations.updatedAt,
+        createdAt: customizationItems.createdAt,
+        updatedAt: customizationItems.updatedAt,
       })
-      .from(customizations)
-      .orderBy(customizations.sort, customizations.id)
+      .from(customizationItems)
+      .orderBy(customizationItems.sort, customizationItems.id)
       .$dynamic();
 
     const countQuery = db
       .select({ count: sql<number>`count(*)` })
-      .from(customizations)
+      .from(customizationItems)
       .$dynamic();
 
     const conditions: ReturnType<typeof sql>[] = [];
     if (keyword) {
       const pattern = `%${keyword}%`;
-      conditions.push(sql`${customizations.name} like ${pattern}`);
+      conditions.push(sql`${customizationItems.name} like ${pattern}`);
     }
     if (status !== undefined) {
-      conditions.push(eq(customizations.status, status));
+      conditions.push(eq(customizationItems.status, status));
     }
     if (productId !== undefined) {
-      conditions.push(eq(customizations.productId, productId));
+      conditions.push(eq(customizationItems.productId, productId));
     }
 
     if (conditions.length > 0) {
@@ -73,8 +73,8 @@ export const customizationRepository = {
   async getCustomizationById(id: number) {
     const rows = await db
       .select()
-      .from(customizations)
-      .where(eq(customizations.id, id))
+      .from(customizationItems)
+      .where(eq(customizationItems.id, id))
       .limit(1);
     return rows[0] ?? null;
   },
@@ -88,16 +88,16 @@ export const customizationRepository = {
     return rows[0] ?? null;
   },
 
-  async createCustomization(data: typeof customizations.$inferInsert) {
-    const result = await db.insert(customizations).values(data);
+  async createCustomization(data: typeof customizationItems.$inferInsert) {
+    const result = await db.insert(customizationItems).values(data);
     return Number(result[0]?.insertId ?? 0);
   },
 
-  async updateCustomizationById(id: number, data: Partial<typeof customizations.$inferInsert>) {
+  async updateCustomizationById(id: number, data: Partial<typeof customizationItems.$inferInsert>) {
     await db
-      .update(customizations)
+      .update(customizationItems)
       .set(data)
-      .where(eq(customizations.id, id));
+      .where(eq(customizationItems.id, id));
   },
 
   // ─── Option CRUD ────────────────────────────────
@@ -106,20 +106,20 @@ export const customizationRepository = {
     return db
       .select({
         id: customizationOptions.id,
-        customizationId: customizationOptions.customizationId,
+        customizationId: customizationOptions.itemId,
         name: customizationOptions.name,
         price: customizationOptions.price,
         sort: customizationOptions.sort,
         status: customizationOptions.status,
         ingredientId: customizationOptions.ingredientId,
         ingredientName: sql<string>`coalesce(${ingredients.name}, '')`,
-        quantity: customizationOptions.ingredientQuantity,
+        quantity: sql<number>`coalesce(${customizationOptions.ingredientQuantity}, 0)`,
         createdAt: customizationOptions.createdAt,
         updatedAt: customizationOptions.updatedAt,
       })
       .from(customizationOptions)
       .leftJoin(ingredients, eq(customizationOptions.ingredientId, ingredients.id))
-      .where(eq(customizationOptions.customizationId, customizationId))
+      .where(eq(customizationOptions.itemId, customizationId))
       .orderBy(customizationOptions.sort, customizationOptions.id);
   },
 
@@ -136,14 +136,14 @@ export const customizationRepository = {
     const rows = await db
       .select({
         id: customizationOptions.id,
-        customizationId: customizationOptions.customizationId,
+        customizationId: customizationOptions.itemId,
         name: customizationOptions.name,
         price: customizationOptions.price,
         sort: customizationOptions.sort,
         status: customizationOptions.status,
         ingredientId: customizationOptions.ingredientId,
         ingredientName: sql<string>`coalesce(${ingredients.name}, '')`,
-        quantity: customizationOptions.ingredientQuantity,
+        quantity: sql<number>`coalesce(${customizationOptions.ingredientQuantity}, 0)`,
         createdAt: customizationOptions.createdAt,
         updatedAt: customizationOptions.updatedAt,
       })

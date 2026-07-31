@@ -26,7 +26,7 @@ export const customerRepository = {
         name: customers.name,
         email: customers.email,
         phone: customers.phone,
-        platform: customers.platform,
+        platform: sql<number>`case when ${customers.weixinOpenId} is not null then 1 when ${customers.alipayOpenId} is not null then 2 else 3 end`,
         weixinOpenId: customers.weixinOpenId,
         alipayOpenId: customers.alipayOpenId,
         status: customers.status,

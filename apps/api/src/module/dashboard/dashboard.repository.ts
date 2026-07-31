@@ -8,7 +8,7 @@ import {
   menus,
   ingredients,
   productTags,
-  customizations,
+  customizationItems,
   orders,
 } from '@/plugins/db/mysql/schema.js';
 import type { DashboardStats } from '@dextea-admin/contracts';
@@ -37,7 +37,7 @@ export const dashboardRepository = {
       count(menus),
       count(ingredients),
       count(productTags),
-      count(customizations),
+      count(customizationItems),
       count(orders),
       db
         .select({ status: stores.status, count: sql<number>`count(*)` })
