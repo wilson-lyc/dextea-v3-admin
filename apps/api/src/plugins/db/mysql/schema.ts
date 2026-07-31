@@ -289,7 +289,7 @@ export const productTags = mysqlTable("product_tags", {
 
 export const products = mysqlTable("products", {
 	id: bigint({ mode: "number", unsigned: true }).autoincrement().notNull(),
-	name: varchar({ length: 32 }).notNull(),
+	name: varchar({ length: 64 }).notNull(),
 	brief: varchar({ length: 64 }).notNull(),
 	description: varchar({ length: 500 }).notNull(),
 	status: tinyint().notNull(),
