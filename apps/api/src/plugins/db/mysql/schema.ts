@@ -10,8 +10,8 @@ export const config = mysqlTable("config", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "config_id"}),
-	unique("config_key_unique").on(table.key),
 	unique("id").on(table.id),
+	unique("config_key_unique").on(table.key),
 ]);
 
 export const customers = mysqlTable("customers", {
@@ -28,8 +28,8 @@ export const customers = mysqlTable("customers", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "customers_id"}),
-	unique("uq_customers_alipay_open_id").on(table.alipayOpenId),
 	unique("uq_customers_weixin_open_id").on(table.weixinOpenId),
+	unique("uq_customers_alipay_open_id").on(table.alipayOpenId),
 ]);
 
 export const customizationItems = mysqlTable("customization_items", {
@@ -204,7 +204,7 @@ export const orders = mysqlTable("orders", {
 	pickupCode: varchar("pickup_code", { length: 10 }),
 	makingStatus: tinyint("making_status").notNull(),
 	paymentMethod: tinyint("payment_method").notNull(),
-	paymentStatus: int("payment_status").notNull(),
+	paymentStatus: tinyint("payment_status").notNull(),
 	paymentExpiredAt: timestamp("payment_expired_at", { mode: 'string' }).notNull(),
 	paymentPaidAt: timestamp("payment_paid_at", { mode: 'string' }),
 	paymentRefundedAt: timestamp("payment_refunded_at", { mode: 'string' }),
@@ -214,8 +214,8 @@ export const orders = mysqlTable("orders", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "orders_id"}),
-	unique("uq_orders_idempotency_key").on(table.idempotencyKey),
 	unique("uq_orders_order_no").on(table.orderNo),
+	unique("uq_orders_idempotency_key").on(table.idempotencyKey),
 	unique("uq_orders_trade_no").on(table.tradeNo),
 ]);
 
