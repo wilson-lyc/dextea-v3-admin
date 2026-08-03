@@ -201,6 +201,7 @@ export const orders = mysqlTable("orders", {
 	totalQuantity: int("total_quantity").notNull(),
 	diningMethod: tinyint("dining_method").notNull(),
 	note: varchar({ length: 500 }),
+	source: tinyint().notNull(),
 	pickupCode: varchar("pickup_code", { length: 10 }),
 	makingStatus: tinyint("making_status").notNull(),
 	paymentMethod: tinyint("payment_method").notNull(),
