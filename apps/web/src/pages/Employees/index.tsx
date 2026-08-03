@@ -136,8 +136,9 @@ export default function EmployeesPage() {
       if (res.code === 0) {
         setInitialPassword(res.data.initialPassword)
         setPasswordDialogTitle("密码重置成功")
-        setPasswordDialogDesc("已生成新的初始密码，此密码仅显示一次，关闭后将不再显示")
+        setPasswordDialogDesc("已生成新的登录密码，此密码仅显示一次，关闭后将不再显示")
         setPasswordDialogOpen(true)
+        toast.success(res.message || "密码重置成功")
       } else {
         toast.error(res.message)
       }
@@ -321,7 +322,7 @@ export default function EmployeesPage() {
         open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}
         title={`${confirmEmployee?.status === EMPLOYEE_STATUS.ACTIVE.value ? "禁用" : "激活"}用户`}
-        description={`确定${confirmEmployee?.status === EMPLOYEE_STATUS.ACTIVE.value ? "禁用" : "激活"} ${confirmEmployee?.displayName} 吗？`}
+        description={`确定${confirmEmployee?.status === EMPLOYEE_STATUS.ACTIVE.value ? "禁用" : "激活"}「${confirmEmployee?.displayName}」吗？`}
         confirmText="确定"
         variant="default"
         onConfirm={handleConfirmToggleStatus}
@@ -332,7 +333,7 @@ export default function EmployeesPage() {
         open={resetConfirmOpen}
         onOpenChange={setResetConfirmOpen}
         title="重置密码"
-        description={`确定重置 ${resetEmployee?.displayName} 的密码吗？重置后将生成新的登录密码。`}
+        description={`确定重置 「${resetEmployee?.displayName}」 的密码吗？重置后将生成新的登录密码。`}
         variant="default"
         onConfirm={handleConfirmReset}
       />

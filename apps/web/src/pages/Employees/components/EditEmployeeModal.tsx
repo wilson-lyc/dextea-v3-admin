@@ -3,6 +3,7 @@ import { toast } from "sonner"
 
 import type { Employee } from "@/api"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { Input } from "@/components/ui/input"
 import {
   Field,
@@ -74,7 +75,7 @@ export default function EditEmployeeModal({ open, onOpenChange, employee, onUpda
     try {
       const res = await updateEmployee(employee.id, { email: formEmail, displayName: formDisplayName })
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "更新成功")
         onOpenChange(false)
         resetForm()
         onUpdated()
@@ -146,7 +147,7 @@ export default function EditEmployeeModal({ open, onOpenChange, employee, onUpda
             取消
           </Button>
           <Button onClick={handleSubmit} disabled={submitting}>
-            {submitting ? "提交中..." : "确定"}
+            {submitting ? <Spinner data-icon="inline-start" /> : "确定"}
           </Button>
         </DialogFooter>
       </DialogContent>

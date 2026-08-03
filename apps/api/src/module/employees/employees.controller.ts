@@ -8,8 +8,8 @@ import {
   GetEmployeeListResponseSchema,
   CreateEmployeeRequestSchema,
   CreateEmployeeResponseSchema,
-  UpdateEmployeeRequestSchema,
-  UpdateEmployeeResponseSchema,
+  UpdateEmployeeProfileRequestSchema,
+  UpdateEmployeeProfileResponseSchema,
   UpdateEmployeeStatusRequestSchema,
   ToggleEmployeeStatusResponseSchema,
   ResetEmployeePasswordResponseSchema,
@@ -32,7 +32,7 @@ export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await employeeService.getEmployeeListWithPage(request.query);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, "查询成功");
     },
   );
 
@@ -50,26 +50,26 @@ export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await employeeService.createEmployee(request.body);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, "创建成功");
     },
   );
 
   app.put(
-    '/employees/:id/info',
+    '/employees/:id/profile',
     {
       schema: {
         tags: ['Employees'],
-        description: '更新员工',
+        description: '更新员工基础信息',
         params: z.object({ id: z.coerce.number().int().positive('ID 必须为正整数') }),
-        body: UpdateEmployeeRequestSchema,
+        body: UpdateEmployeeProfileRequestSchema,
         response: {
-          200: ApiResponseSchema(UpdateEmployeeResponseSchema).describe('更新成功'),
+          200: ApiResponseSchema(UpdateEmployeeProfileResponseSchema).describe('更新成功'),
         },
       },
     },
     async (request, _reply) => {
       const data = await employeeService.updateEmployee(request.params.id, request.body);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, "更新成功");
     },
   );
 
@@ -88,7 +88,7 @@ export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await employeeService.updateEmployeeStatus(request.params.id, request.body.status);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, "操作成功");
     },
   );
 
@@ -106,7 +106,7 @@ export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await employeeService.resetEmployeePassword(request.params.id);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, "重置成功");
     },
   );
 
@@ -127,7 +127,7 @@ export const registerEmployeeRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await employeeService.getEmployeeRoles(request.params.id);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, "获取成功");
     },
   );
 

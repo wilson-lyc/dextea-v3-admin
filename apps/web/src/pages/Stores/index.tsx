@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dialog"
 import DataTable from "@/components/ui/data-table"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
-import { getStores, syncStoreLocations, resetStorePassword, resolveMessage } from "@/api"
+import { getStores, syncStoreLocations, resetStorePassword } from "@/api"
 import { CreateStoreDialog } from "./components/CreateStoreDialog"
 
 export default function StoresPage() {
@@ -99,7 +99,7 @@ export default function StoresPage() {
     let isError = false
     try {
       const res = await syncStoreLocations()
-      message = resolveMessage(res, "门店定位同步完成")
+      message = "门店定位同步完成"
     } catch (err) {
       message = err instanceof Error ? err.message : "同步门店定位数据失败"
       isError = true

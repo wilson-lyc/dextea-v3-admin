@@ -2,9 +2,9 @@ import { createModuleClient, type ApiResponse, type PaginatedData } from "./clie
 import type {
   Employee,
   CreateEmployeeRequest,
-  UpdateEmployeeRequest,
+  UpdateEmployeeProfileRequest,
   CreateEmployeeResponse,
-  UpdateEmployeeResponse,
+  UpdateEmployeeProfileResponse,
   ToggleEmployeeStatusResponse,
   ResetEmployeePasswordResponse,
   GetEmployeeListRequest,
@@ -16,9 +16,9 @@ import type {
 export type {
   Employee,
   CreateEmployeeRequest,
-  UpdateEmployeeRequest,
+  UpdateEmployeeProfileRequest,
   CreateEmployeeResponse,
-  UpdateEmployeeResponse,
+  UpdateEmployeeProfileResponse,
   ToggleEmployeeStatusResponse,
   ResetEmployeePasswordResponse,
   EmployeeRolesResponse,
@@ -48,12 +48,12 @@ export function createEmployee(data: CreateEmployeeRequest) {
 }
 
 /**
- * 更新员工信息
- * PUT /employees/:id/info
+ * 更新员工基础信息
+ * PUT /employees/:id/profile
  */
-export function updateEmployee(id: number, data: UpdateEmployeeRequest) {
+export function updateEmployee(id: number, data: UpdateEmployeeProfileRequest) {
   return http
-    .put<ApiResponse<UpdateEmployeeResponse>>(`/employees/${id}/info`, data)
+    .put<ApiResponse<UpdateEmployeeProfileResponse>>(`/employees/${id}/profile`, data)
     .then((res) => res.data)
 }
 

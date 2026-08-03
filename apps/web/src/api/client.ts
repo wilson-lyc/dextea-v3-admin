@@ -81,54 +81,51 @@ export function createModuleClient(moduleKey: ModuleKey): AxiosInstance {
 
   instance.interceptors.response.use(
     (response) => {
-      // 后端在 HTTP 200 上返回业务错误，我们用 reject 让页面 catch 块统一处理
+      // HTTP 200 但业务 code 不为 0：抛异常交由业务侧自行处理，不弹 toast
       if (
         response.data &&
         typeof response.data.code === "number" &&
         response.data.code !== 0
       ) {
-        return Promise.reject(new Error(response.data.message))
+        const err = new Error(response.data.message || "请求失败")
+        ;(err as Error & { businessCode?: number }).businessCode = response.data.code
+        return Promise.reject(err)
       }
       return response
     },
 
     (error) => {
-      if (error.response) {
-        const status = error.response.status
-        if (status === 401 || (status === 403 && error.response.data?.code === 10103)) {
-          toast.error("登录失效，请重新登录")
-          redirectToLogin()
-          return Promise.reject(error)
-        }
-        if (status === 403) {
-          redirectToForbidden()
-          return Promise.reject(error)
-        }
+      const status = error.response?.status
 
-        // 后端已返回规范化 message（如「服务器内部异常」），直接弹出
-        const message = error.response.data?.message ?? "系统繁忙，请稍后重试"
-        toast.error(message)
-        return Promise.reject(new Error(message))
+      // 401 或登录超时（403 + 特定业务码）：定制提示并跳登录
+      if (
+        status === 401 ||
+        (status === 403 && error.response?.data?.code === 10103)
+      ) {
+        toast.error("登录已失效，请重新登录")
+        redirectToLogin()
+        return Promise.reject(error)
       }
 
-      // 兜底：网络异常等无响应体的情况
+      // 其他 403：无访问权限，定制提示并跳 403 页
+      if (status === 403) {
+        toast.error("无访问权限")
+        redirectToForbidden()
+        return Promise.reject(error)
+      }
+
+      // 其余 HTTP 非 200：固定兜底提示，不信任后端 message
+      if (status) {
+        toast.error("服务异常，请稍后重试")
+        return Promise.reject(error)
+      }
+
+      // 无响应体（网络异常等）
       toast.error("网络异常，请稍后重试")
-      return Promise.reject(new Error("网络异常，请稍后重试"))
+      return Promise.reject(error)
     },
   )
 
   clientCache.set(moduleKey, instance)
   return instance
-}
-
-/**
- * 优先使用后端返回的 message；若后端漏传或为空，则回退到本地兜底文案。
- * 这样即使后端未给出消息，也不会把默认的 "success" 或空串展示给用户。
- */
-export function resolveMessage(
-  res: { message?: string } | undefined,
-  fallback: string,
-): string {
-  const msg = res?.message?.trim()
-  return msg ? msg : fallback
 }

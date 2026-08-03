@@ -2,6 +2,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { Input } from "@/components/ui/input"
 import {
   Field,
@@ -63,7 +64,7 @@ export default function CreateEmployeeModal({ open, onOpenChange, onCreated }: C
     try {
       const res = await createEmployee({ email: formEmail, displayName: formDisplayName })
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "创建成功")
         onOpenChange(false)
         resetForm()
         onCreated(res.data.initialPassword)
@@ -89,7 +90,7 @@ export default function CreateEmployeeModal({ open, onOpenChange, onCreated }: C
         <DialogHeader>
           <DialogTitle>创建员工</DialogTitle>
           <DialogDescription>
-            填写新员工的信息，创建后系统将自动生成初始密码
+            填写新员工的信息，创建后系统将自动生成密码
           </DialogDescription>
         </DialogHeader>
 
@@ -135,7 +136,7 @@ export default function CreateEmployeeModal({ open, onOpenChange, onCreated }: C
             取消
           </Button>
           <Button onClick={handleSubmit} disabled={submitting}>
-            {submitting ? "提交中..." : "确定"}
+            {submitting ? <Spinner data-icon="inline-start" /> : "确定"}
           </Button>
         </DialogFooter>
       </DialogContent>

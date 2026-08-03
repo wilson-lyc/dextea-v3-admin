@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 
 interface AssignRolesModalProps {
   open: boolean
@@ -91,7 +92,7 @@ export default function AssignRolesModal({
         <DialogHeader>
           <DialogTitle>分配角色</DialogTitle>
           <DialogDescription>
-            为「{employee?.displayName}」选择角色，提交后将全量覆盖已有绑定（{selectedIds.size} 项已选）
+            为「{employee?.displayName}」分配角色（{selectedIds.size} 项已选）
           </DialogDescription>
         </DialogHeader>
 
@@ -127,7 +128,7 @@ export default function AssignRolesModal({
             取消
           </Button>
           <Button onClick={handleSubmit} disabled={loading || submitting}>
-            {submitting ? "提交中..." : "保存"}
+            {submitting ? <Spinner data-icon="inline-start" /> : "保存"}
           </Button>
         </DialogFooter>
       </DialogContent>

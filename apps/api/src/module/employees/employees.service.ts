@@ -8,7 +8,7 @@ import { EMPLOYEE_STATUS, EMPLOYEE_STATUS_VALUES } from '@dextea-admin/contracts
 import type {
   GetEmployeeListRequest,
   CreateEmployeeRequest,
-  UpdateEmployeeRequest,
+  UpdateEmployeeProfileRequest,
   SetEmployeeRolesRequest,
 } from '@dextea-admin/contracts';
 
@@ -31,20 +31,17 @@ export const employeeService = {
     const initialPassword = nanoid(12);
     const hashedPassword = await hashPassword(initialPassword);
 
-    const id = await employeeRepository.createEmployee({
+    await employeeRepository.createEmployee({
       email,
       password: hashedPassword,
       displayName,
       status: EMPLOYEE_STATUS.DISABLED.value,
     });
 
-    return {
-      user: { id, email, displayName, status: EMPLOYEE_STATUS.DISABLED.value },
-      initialPassword,
-    };
+    return { initialPassword };
   },
 
-  async updateEmployee(id: number, input: UpdateEmployeeRequest) {
+  async updateEmployee(id: number, input: UpdateEmployeeProfileRequest) {
     const { email, displayName } = input;
 
     validateEmail(email);
@@ -77,7 +74,7 @@ export const employeeService = {
 
     await employeeRepository.updateEmployeeStatusById(id, status);
 
-    return { email: employee.email, status };
+    return { status };
   },
 
   async resetEmployeePassword(id: number) {
@@ -91,15 +88,7 @@ export const employeeService = {
 
     await employeeRepository.updateEmployeePasswordById(id, hashedPassword);
 
-    return {
-      user: {
-        id: employee.id,
-        email: employee.email,
-        displayName: employee.displayName,
-        status: employee.status,
-      },
-      initialPassword,
-    };
+    return { initialPassword };
   },
 
   async getEmployeeRoles(id: number) {

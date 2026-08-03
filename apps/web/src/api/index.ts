@@ -1,5 +1,5 @@
 // 共享的 axios 客户端工厂
-export { createModuleClient, resolveMessage } from "./client"
+export { createModuleClient } from "./client"
 
 // 跨模块共享类型
 export type {

@@ -7,7 +7,7 @@ export const EmployeeSchema = z.object({
   id: z.number().describe('ID'),
   email: z.string().describe('邮箱'),
   displayName: z.string().describe('显示名称'),
-  status: z.number().describe('状态（0=禁用 1=激活）'),
+  status: z.number().describe('状态'),
   createdAt: z.string().describe('创建时间'),
   updatedAt: z.string().describe('更新时间'),
 });
@@ -16,7 +16,7 @@ export type Employee = z.infer<typeof EmployeeSchema>;
 /** 员工列表查询 */
 export const GetEmployeeListRequestSchema = z.object({
   page: z.coerce.number().int().positive().default(1).describe('页码'),
-  pageSize: z.coerce.number().int().positive().max(100).default(20).describe('每页条数'),
+  pageSize: z.coerce.number().int().positive().max(100).default(20).describe('页大小'),
   keyword: z.string().optional().describe('关键字'),
 });
 export type GetEmployeeListRequest = z.infer<typeof GetEmployeeListRequestSchema>;
@@ -26,56 +26,43 @@ export type GetEmployeeListResponse = z.infer<typeof GetEmployeeListResponseSche
 
 /** 创建员工 */
 export const CreateEmployeeRequestSchema = z.object({
-  email: z.string().min(1, '邮箱不能为空').describe('邮箱'),
+  email: z.string().min(1, '邮箱不能为空').max(128, '邮箱长度不能超过 128 个字符').describe('邮箱'),
   displayName: z.string().trim().min(1, '显示名称不能为空').max(32, '显示名称长度不能超过 32 个字符').describe('显示名称'),
 });
 export type CreateEmployeeRequest = z.infer<typeof CreateEmployeeRequestSchema>;
 
 export const CreateEmployeeResponseSchema = z.object({
-  user: z.object({
-    id: z.number().describe('ID'),
-    email: z.string().describe('邮箱'),
-    displayName: z.string().describe('显示名称'),
-    status: z.number().describe('状态（0=禁用 1=激活）'),
-  }),
   initialPassword: z.string().describe('初始密码'),
 });
 export type CreateEmployeeResponse = z.infer<typeof CreateEmployeeResponseSchema>;
 
-/** 更新员工 */
-export const UpdateEmployeeRequestSchema = z.object({
-  email: z.string().min(1, '邮箱不能为空').describe('邮箱'),
+/** 更新员工基础信息 */
+export const UpdateEmployeeProfileRequestSchema = z.object({
+  email: z.string().min(1, '邮箱不能为空').max(128, '邮箱长度不能超过 128 个字符').describe('邮箱'),
   displayName: z.string().trim().min(1, '显示名称不能为空').max(32, '显示名称长度不能超过 32 个字符').describe('显示名称'),
 });
-export type UpdateEmployeeRequest = z.infer<typeof UpdateEmployeeRequestSchema>;
+export type UpdateEmployeeProfileRequest = z.infer<typeof UpdateEmployeeProfileRequestSchema>;
 
-export const UpdateEmployeeResponseSchema = z.object({
+export const UpdateEmployeeProfileResponseSchema = z.object({
   id: z.number().describe('ID'),
   email: z.string().describe('邮箱'),
   displayName: z.string().describe('显示名称'),
 });
-export type UpdateEmployeeResponse = z.infer<typeof UpdateEmployeeResponseSchema>;
+export type UpdateEmployeeProfileResponse = z.infer<typeof UpdateEmployeeProfileResponseSchema>;
 
-/** 启用/禁用员工（指定目标状态，后端按契约校验合法性） */
+/** 启用/禁用员工 */
 export const UpdateEmployeeStatusRequestSchema = z.object({
-  status: z.number().describe('状态（0=禁用 1=激活）'),
+  status: z.number().describe('状态'),
 });
 export type UpdateEmployeeStatusRequest = z.infer<typeof UpdateEmployeeStatusRequestSchema>;
 
 export const ToggleEmployeeStatusResponseSchema = z.object({
-  email: z.string().describe('邮箱'),
-  status: z.number().describe('状态（0=禁用 1=激活）'),
+  status: z.number().describe('状态'),
 });
 export type ToggleEmployeeStatusResponse = z.infer<typeof ToggleEmployeeStatusResponseSchema>;
 
 /** 重置密码 */
 export const ResetEmployeePasswordResponseSchema = z.object({
-  user: z.object({
-    id: z.number().describe('ID'),
-    email: z.string().describe('邮箱'),
-    displayName: z.string().describe('显示名称'),
-    status: z.number().describe('状态（0=禁用 1=激活）'),
-  }),
   initialPassword: z.string().describe('初始密码'),
 });
 export type ResetEmployeePasswordResponse = z.infer<typeof ResetEmployeePasswordResponseSchema>;
@@ -87,7 +74,7 @@ export const EmployeeRolesResponseSchema = z.object({
 });
 export type EmployeeRolesResponse = z.infer<typeof EmployeeRolesResponseSchema>;
 
-/** 设置员工角色（全量覆盖 = 绑定 + 解绑） */
+/** 设置员工角色 */
 export const SetEmployeeRolesRequestSchema = z.object({
   roleIds: z.array(z.number().int().positive()).describe('角色ID列表'),
 });
