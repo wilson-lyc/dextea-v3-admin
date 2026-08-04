@@ -21,6 +21,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import ConfirmDialog from "@/components/ui/confirm-dialog"
 import { getStore, resetStorePassword } from "@/api"
 import { logger, extractBackendMessage } from "@/lib/logger"
 import { BasicInfoPanel } from "./components/BasicInfoPanel"
@@ -33,6 +34,9 @@ export default function StoreDetailPage() {
   const [loading, setLoading] = useState(true)
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
   const [newPassword, setNewPassword] = useState("")
+
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
+  const [resetting, setResetting] = useState(false)
 
   const fetchStore = async () => {
     if (!id) return
@@ -53,11 +57,17 @@ export default function StoreDetailPage() {
     }
   }
 
-  const handleResetPassword = async () => {
+  const handleResetPassword = () => {
+    setResetConfirmOpen(true)
+  }
+
+  const handleConfirmReset = async () => {
     if (!id) return
+    setResetting(true)
     try {
       const res = await resetStorePassword(Number(id))
       if (res.code === 0) {
+        setResetConfirmOpen(false)
         setNewPassword(res.data.newPassword)
         setPasswordDialogOpen(true)
         fetchStore()
@@ -68,6 +78,8 @@ export default function StoreDetailPage() {
         label: "重置门店密码",
       })
       toast.error("重置密码失败，请稍后重试")
+    } finally {
+      setResetting(false)
     }
   }
 
@@ -133,17 +145,28 @@ export default function StoreDetailPage() {
               {newPassword}
             </div>
             <p className="text-xs text-destructive font-medium">
-              此密码仅显示一次，关闭后将不再显示
+              已生成新的登录密码，此密码仅显示一次，关闭后将不再显示
             </p>
           </div>
 
           <DialogFooter>
             <Button onClick={() => setPasswordDialogOpen(false)}>
-              我已保存，关闭
+              确定
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Reset Password Confirm Dialog */}
+      <ConfirmDialog
+        open={resetConfirmOpen}
+        onOpenChange={setResetConfirmOpen}
+        title="重置密码"
+        description={`确定重置门店「${store?.name}」的登录密码吗？重置后将生成新的登录密码。`}
+        variant="default"
+        loading={resetting}
+        onConfirm={handleConfirmReset}
+      />
     </DetailLayout>
   )
 }
