@@ -26,10 +26,8 @@ import {
   SetProductImagesRequestSchema,
   SetProductImagesResponseSchema,
 } from '@dextea-admin/contracts';
-import { ProductMessages } from './product.errorcode.js';
 
 export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
-  // ── 商品列表 ──────────────────────────────────────
   app.get(
     '/products',
     {
@@ -43,11 +41,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await productService.getProductList(request.query);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '查询商品列表成功');
     },
   );
 
-  // ── 新增商品 ──────────────────────────────────────
   app.post(
     '/products',
     {
@@ -61,11 +58,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await productService.createProduct(request.body);
-      return ApiResponse.success(data, ProductMessages.CREATE_SUCCESS);
+      return ApiResponse.success(data, '创建商品成功');
     },
   );
 
-  // ── 商品选项列表（供 SelectPicker 使用） ───────────
   app.get(
     '/products/options',
     {
@@ -78,11 +74,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (_request, _reply) => {
       const data = await productService.getProductOptionSelectList();
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '查询商品选项列表成功');
     },
   );
 
-  // ── 商品基础信息 ──────────────────────────────────
   app.get(
     '/products/:id/info',
     {
@@ -96,11 +91,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await productService.getProductBasicInfo(request.params.id);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '查询商品基础信息成功');
     },
   );
 
-  // ── 商品标签列表（分页） ──────────────────────────
   app.get(
     '/products/:id/tags',
     {
@@ -119,11 +113,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
         request.query.page,
         request.query.pageSize,
       );
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '查询商品标签列表成功');
     },
   );
 
-  // ── 更新商品 ──────────────────────────────────────
   app.put(
     '/products/:id/info',
     {
@@ -138,11 +131,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await productService.updateProduct(request.params.id, request.body);
-      return ApiResponse.success(data, ProductMessages.UPDATE_SUCCESS);
+      return ApiResponse.success(data, '更新商品成功');
     },
   );
 
-  // ── 上下架商品 ────────────────────────────────────
   app.patch(
     '/products/:id/status',
     {
@@ -157,11 +149,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await productService.updateProductStatus(request.params.id, request.body);
-      return ApiResponse.success(data, ProductMessages.STATUS_UPDATE_SUCCESS);
+      return ApiResponse.success(data, '更新商品状态成功');
     },
   );
 
-  // ── 批量绑定标签 ──────────────────────────────────
   app.post(
     '/products/:id/tags',
     {
@@ -176,11 +167,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       await productService.bindTagToProduct(request.params.id, request.body);
-      return ApiResponse.success(null, ProductMessages.TAG_BIND_SUCCESS);
+      return ApiResponse.success(null, '绑定标签成功');
     },
   );
 
-  // ── 批量解绑标签 ──────────────────────────────────
   app.delete(
     '/products/:id/tags',
     {
@@ -195,11 +185,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       await productService.unbindTagFromProduct(request.params.id, request.body);
-      return ApiResponse.success(null, ProductMessages.TAG_UNBIND_SUCCESS);
+      return ApiResponse.success(null, '解绑标签成功');
     },
   );
 
-  // ── 商品原料列表（分页） ──────────────────────────
   app.get(
     '/products/:id/ingredients',
     {
@@ -218,11 +207,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
         request.query.page,
         request.query.pageSize,
       );
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '查询商品原料列表成功');
     },
   );
 
-  // ── 绑定原料 ──────────────────────────────────────
   app.post(
     '/products/:id/ingredients',
     {
@@ -237,11 +225,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       await productService.bindIngredient(request.params.id, request.body);
-      return ApiResponse.success(null, ProductMessages.INGREDIENT_BIND_SUCCESS);
+      return ApiResponse.success(null, '绑定原料成功');
     },
   );
 
-  // ── 更新原料用量 ──────────────────────────────────
   app.patch(
     '/products/:id/ingredients/:ingredientId/quantity',
     {
@@ -263,11 +250,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
         request.params.ingredientId,
         request.body,
       );
-      return ApiResponse.success(null, ProductMessages.INGREDIENT_QUANTITY_UPDATE_SUCCESS);
+      return ApiResponse.success(null, '更新原料用量成功');
     },
   );
 
-  // ── 更新原料排序 ──────────────────────────────────
   app.patch(
     '/products/:id/ingredients/:ingredientId/sort',
     {
@@ -289,11 +275,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
         request.params.ingredientId,
         request.body,
       );
-      return ApiResponse.success(null, ProductMessages.INGREDIENT_SORT_UPDATE_SUCCESS);
+      return ApiResponse.success(null, '更新原料排序成功');
     },
   );
 
-  // ── 解绑原料 ──────────────────────────────────────
   app.delete(
     '/products/:id/ingredients/:ingredientId',
     {
@@ -310,11 +295,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       await productService.unbindIngredient(request.params.id, request.params.ingredientId);
-      return ApiResponse.success(null, ProductMessages.INGREDIENT_UNBIND_SUCCESS);
+      return ApiResponse.success(null, '解绑原料成功');
     },
   );
 
-  // ── 获取商品图片（封面图 + 图库） ─────────────────
   app.get(
     '/products/:id/images',
     {
@@ -328,11 +312,10 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await productService.getProductImages(request.params.id);
-      return ApiResponse.success(data);
+      return ApiResponse.success(data, '查询商品图片成功');
     },
   );
 
-  // ── 设置商品图片（全量替换封面图 + 图库） ─────────
   app.put(
     '/products/:id/images',
     {
@@ -347,7 +330,7 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, _reply) => {
       const data = await productService.setProductImages(request.params.id, request.body);
-      return ApiResponse.success(data, ProductMessages.IMAGE_BIND_SUCCESS);
+      return ApiResponse.success(data, '保存商品图片成功');
     },
   );
 };

@@ -1,8 +1,5 @@
 import type { BizErrorCode } from '@/common/types';
 
-/**
- * 商品管理错误码 (10800-10899)
- */
 export const ProductErrorCodes = {
   NAME_REQUIRED: { code: 10800, message: '商品名称不能为空' },
   PRODUCT_NOT_FOUND: { code: 10801, message: '商品不存在' },
@@ -25,19 +22,3 @@ export const ProductErrorCodes = {
   IMAGE_DUPLICATED: { code: 10827, message: '图库图片不能重复' },
   IMAGE_BIND_FAILED: { code: 10828, message: '保存商品图片失败' },
 } as const satisfies Record<string, BizErrorCode>;
-
-/**
- * 商品操作成功提示（直接用于前端 toast）
- */
-export const ProductMessages = {
-  CREATE_SUCCESS: '创建成功',
-  UPDATE_SUCCESS: '更新成功',
-  STATUS_UPDATE_SUCCESS: '更新状态成功',
-  TAG_BIND_SUCCESS: '绑定标签成功',
-  TAG_UNBIND_SUCCESS: '解绑标签成功',
-  INGREDIENT_BIND_SUCCESS: '绑定原料成功',
-  INGREDIENT_UNBIND_SUCCESS: '解绑原料成功',
-  INGREDIENT_QUANTITY_UPDATE_SUCCESS: '更新用量成功',
-  INGREDIENT_SORT_UPDATE_SUCCESS: '更新排序成功',
-  IMAGE_BIND_SUCCESS: '保存成功',
-} as const;
