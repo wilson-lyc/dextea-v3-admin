@@ -13,6 +13,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog"
 import { updateCustomization } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 
 interface EditCustomizationDialogProps {
   open: boolean
@@ -45,14 +46,16 @@ export function EditCustomizationDialog({ open, onOpenChange, item, onUpdated }:
         sort: Number(sort),
       })
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "更新客制化项目成功")
         onOpenChange(false)
         onUpdated()
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "更新失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "更新客制化项目",
+      })
+      toast.error("更新客制化项目失败，请稍后重试")
     } finally {
       setSaving(false)
     }

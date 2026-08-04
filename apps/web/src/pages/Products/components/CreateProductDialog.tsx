@@ -20,6 +20,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { createProduct } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 
 interface CreateProductDialogProps {
   open: boolean
@@ -78,14 +79,16 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
         status: 0 as ProductStatus,
       })
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "创建商品成功")
         onOpenChange(false)
         onCreated()
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "操作失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "创建商品",
+      })
+      toast.error("创建商品失败，请稍后重试")
     } finally {
       setSubmitting(false)
     }

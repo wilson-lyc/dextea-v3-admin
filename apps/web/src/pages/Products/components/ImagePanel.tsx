@@ -8,6 +8,7 @@ import type {
   SetProductImagesRequest,
 } from "@/api"
 import { getProductImages, setProductImages } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -53,11 +54,13 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
       if (res.code === 0) {
         setCover(res.data.cover)
         setGallery(res.data.gallery)
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "获取商品图片失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "获取商品图片",
+      })
+      toast.error("数据加载异常，请稍后重试")
     } finally {
       setLoading(false)
     }
@@ -77,6 +80,7 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
     nextCover: ProductImage | null,
     nextGallery: ProductImage[],
     successMsg = "已保存",
+    errorMsg = "保存商品图片失败，请稍后重试",
   ) => {
     setSaving(true)
     try {
@@ -89,11 +93,13 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
         setCover(res.data.cover)
         setGallery(res.data.gallery)
         toast.success(res.message || successMsg)
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "保存失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "保存商品图片",
+      })
+      toast.error(errorMsg)
     } finally {
       setSaving(false)
     }
@@ -102,11 +108,11 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
   const handlePickerConfirm = (images: GalleryImage[]) => {
     if (pickerMode === "cover") {
       const img = images[0]
-      if (img) void persist(img, gallery, "封面已设置")
+      if (img) void persist(img, gallery, "封面已设置", "设置封面失败，请稍后重试")
     } else if (pickerMode === "gallery") {
       const existing = new Set(gallery.map((i) => i.id))
       const added = images.filter((i) => !existing.has(i.id))
-      if (added.length > 0) void persist(cover, [...gallery, ...added], "图片已添加")
+      if (added.length > 0) void persist(cover, [...gallery, ...added], "图片已添加", "添加图片失败，请稍后重试")
     }
   }
 
@@ -116,12 +122,12 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
     const next = [...gallery]
     const [item] = next.splice(index, 1)
     next.splice(target, 0, item)
-    void persist(cover, next, "顺序已更新")
+    void persist(cover, next, "顺序已更新", "更新顺序失败，请稍后重试")
   }
 
   const removeGallery = (index: number) => {
     const next = gallery.filter((_, i) => i !== index)
-    void persist(cover, next, "图片已移除")
+    void persist(cover, next, "图片已移除", "移除图片失败，请稍后重试")
   }
 
   if (loading) {
@@ -253,7 +259,7 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
         confirmText="确认移除"
         onConfirm={() => {
           setRemoveCoverOpen(false)
-          void persist(null, gallery, "封面已移除")
+          void persist(null, gallery, "封面已移除", "移除封面失败，请稍后重试")
         }}
       />
     </div>

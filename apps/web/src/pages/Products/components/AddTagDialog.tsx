@@ -23,6 +23,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { getTags, addProductTag } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 
 interface AddTagDialogProps {
   open: boolean
@@ -48,7 +49,11 @@ export function AddTagDialog({ open, onOpenChange, productId, onAdded }: AddTagD
       const res = await getTags()
       setAllTags(res.data.items)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "获取标签列表失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "获取标签列表",
+      })
+      toast.error("数据加载异常，请稍后重试")
     }
   }
 
@@ -62,14 +67,16 @@ export function AddTagDialog({ open, onOpenChange, productId, onAdded }: AddTagD
     try {
       const res = await addProductTag(productId, Number(selectedTagId))
       if (res.code === 0) {
-        toast.success("绑定成功")
+        toast.success(res.message || "绑定标签成功")
         onOpenChange(false)
         onAdded()
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "绑定标签失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "绑定商品标签",
+      })
+      toast.error("绑定标签失败，请稍后重试")
     } finally {
       setSubmitting(false)
     }

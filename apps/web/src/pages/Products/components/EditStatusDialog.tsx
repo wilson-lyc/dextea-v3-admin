@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog"
 import { StatusSelectPicker } from "@/components/ui/status-select-picker"
 import { toggleProductStatus } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 
 interface EditStatusDialogProps {
   open: boolean
@@ -41,14 +42,16 @@ export function EditStatusDialog({ open, onOpenChange, productId, currentStatus,
     try {
       const res = await toggleProductStatus(productId, Number(selected) as ProductStatus)
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "更新商品状态成功")
         onOpenChange(false)
         onUpdated()
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "更新状态失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "更新商品状态",
+      })
+      toast.error("更新商品状态失败，请稍后重试")
     } finally {
       setSubmitting(false)
     }

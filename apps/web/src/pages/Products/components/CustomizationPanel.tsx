@@ -29,6 +29,7 @@ import {
   createCustomization,
   updateCustomizationStatus,
 } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 import { EditCustomizationDialog } from "./EditCustomizationDialog"
 import ManageOptionsSheet from "./ManageOptionsSheet"
 
@@ -72,11 +73,13 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         setPage(targetPage)
         setManageSheetOpen(false)
         setManagingItem(null)
-      } else {
-        toast.error(res.message)
       }
-    } catch {
-      toast.error("获取客制化项目列表失败")
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "获取客制化项目列表",
+      })
+      toast.error("数据加载异常，请稍后重试")
     } finally {
       setLoading(false)
     }
@@ -100,16 +103,18 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         sort: createSort.trim() === "" ? undefined : Number(createSort),
       })
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "创建客制化项目成功")
         setCreateOpen(false)
         setCreateName("")
         setCreateSort("")
         await fetchData(1)
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "创建失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "创建客制化项目",
+      })
+      toast.error("创建客制化项目失败，请稍后重试")
     } finally {
       setCreating(false)
     }
@@ -136,13 +141,15 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         : CUSTOMIZATION_STATUS.DISABLED.value
       const res = await updateCustomizationStatus(item.id, newStatus)
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "更新客制化项目状态成功")
         await fetchData(page)
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "更新状态失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "更新客制化项目状态",
+      })
+      toast.error("更新客制化项目状态失败，请稍后重试")
     } finally {
       setTogglingId(null)
     }

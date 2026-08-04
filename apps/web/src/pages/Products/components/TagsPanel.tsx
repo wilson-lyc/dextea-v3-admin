@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table"
 import DataTable from "@/components/ui/data-table"
 import { getProductTags, removeProductTag } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 import { AddTagDialog } from "./AddTagDialog"
 
 interface TagsPanelProps {
@@ -41,11 +42,13 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
         setTags(res.data.items)
         setTotal(res.data.total)
         setPage(targetPage)
-      } else {
-        toast.error(res.message)
       }
-    } catch {
-      toast.error("获取标签失败")
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "获取商品标签列表",
+      })
+      toast.error("数据加载异常，请稍后重试")
     } finally {
       setLoading(false)
     }
@@ -68,15 +71,17 @@ export default function TagsPanel({ productId }: TagsPanelProps) {
     try {
       const res = await removeProductTag(productId, deletingTag.id)
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "解绑标签成功")
         setDeleteConfirmOpen(false)
         setDeletingTag(null)
         await fetchTags(page)
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "解绑失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "解绑商品标签",
+      })
+      toast.error("解绑标签失败，请稍后重试")
     }
   }
 

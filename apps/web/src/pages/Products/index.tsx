@@ -20,6 +20,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { getProducts, getTagOptions, toggleProductStatus } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 import { SelectPicker } from "@/components/ui/select-picker"
 import { CreateProductDialog } from "./components/CreateProductDialog"
 import DataTable from "@/components/ui/data-table"
@@ -59,7 +60,12 @@ export default function ProductsPage() {
       .then((res) => {
         if (res.code === 0) setTagOptions(res.data)
       })
-      .catch(() => { })
+      .catch((err) => {
+        logger.error(extractBackendMessage(err) ?? "未知错误", {
+          module: "商品",
+          label: "获取标签选项",
+        })
+      })
   }, [])
 
   const hasFilters = !!(keyword || filterStatus || priceMin || priceMax || selectedTag)
@@ -96,7 +102,11 @@ export default function ProductsPage() {
       setTotal(res.data.total)
       setPage(targetPage)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "获取商品列表失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "获取商品列表",
+      })
+      toast.error("数据加载异常，请稍后重试")
     } finally {
       setLoading(false)
     }
@@ -143,15 +153,17 @@ export default function ProductsPage() {
     try {
       const res = await toggleProductStatus(statusConfirmTarget.id, statusConfirmAction)
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "更新商品状态成功")
         setStatusConfirmOpen(false)
         setStatusConfirmTarget(null)
         await fetchProducts(page)
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "操作失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "更新商品状态",
+      })
+      toast.error("更新商品状态失败，请稍后重试")
     } finally {
       setStatusToggling(false)
     }

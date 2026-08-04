@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { TabsContent } from "@/components/ui/tabs"
 import { getProductBasicInfo } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 import DetailLayout from "@/components/layout/DetailLayout"
 import BasicInfoPanel from "./components/BasicInfoPanel"
 import TagsPanel from "./components/TagsPanel"
@@ -36,7 +37,13 @@ export default function ProductDetailPage() {
           setNotFound(true)
         }
       })
-      .catch(() => setNotFound(true))
+      .catch((err) => {
+        logger.error(extractBackendMessage(err) ?? "未知错误", {
+          module: "商品",
+          label: "获取商品基础信息",
+        })
+        setNotFound(true)
+      })
       .finally(() => setLoading(false))
   }, [productId])
 

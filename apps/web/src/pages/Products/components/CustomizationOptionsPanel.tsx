@@ -44,6 +44,7 @@ import {
   rebindCustomizationOptionIngredient,
   getIngredientOptions,
 } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 
 interface CustomizationOptionsPanelProps {
   customizationId: number
@@ -135,11 +136,13 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
       const res = await getCustomizationOptions(customizationId)
       if (res.code === 0) {
         setOptions(res.data)
-      } else {
-        toast.error(res.message)
       }
-    } catch {
-      toast.error("获取客制化选项列表失败")
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "获取客制化选项列表",
+      })
+      toast.error("数据加载异常，请稍后重试")
     } finally {
       setLoading(false)
     }
@@ -152,7 +155,12 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
   useEffect(() => {
     getIngredientOptions().then((res) => {
       if (res.code === 0) setIngredientOptions(res.data)
-    }).catch(() => {})
+    }).catch((err) => {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "获取原料选项",
+      })
+    })
   }, [])
 
   const handleCreate = async () => {
@@ -171,15 +179,17 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
         quantity: createForm.bindIngredient ? (Number(createForm.quantity) || 0) : 0,
       })
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "创建客制化选项成功")
         setCreateOpen(false)
         setCreateForm(emptyCreateForm())
         await fetchOptions()
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "创建失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "创建客制化选项",
+      })
+      toast.error("创建客制化选项失败，请稍后重试")
     } finally {
       setCreating(false)
     }
@@ -209,14 +219,16 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
         sort: Number(editForm.sort) || 0,
       })
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "更新客制化选项成功")
         setEditingOption(null)
         await fetchOptions()
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "更新失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "更新客制化选项",
+      })
+      toast.error("更新客制化选项失败，请稍后重试")
     } finally {
       setSaving(false)
     }
@@ -239,14 +251,16 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
     try {
       const res = await updateCustomizationOptionQuantity(customizationId, quantityOption.id, quantity)
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "更新用量成功")
         setQuantityOption(null)
         await fetchOptions()
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "更新用量失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "更新客制化选项用量",
+      })
+      toast.error("更新用量失败，请稍后重试")
     } finally {
       setSavingQuantity(false)
     }
@@ -277,14 +291,16 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
     try {
       const res = await rebindCustomizationOptionIngredient(customizationId, rebindOption.id, payload)
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "换绑原料成功")
         setRebindOption(null)
         await fetchOptions()
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "换绑失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "换绑客制化选项原料",
+      })
+      toast.error("换绑原料失败，请稍后重试")
     } finally {
       setSavingRebind(false)
     }
@@ -300,13 +316,15 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
     try {
       const res = await updateCustomizationOptionStatus(customizationId, option.id, targetStatus)
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "更新客制化选项状态成功")
         await fetchOptions()
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "状态更新失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "更新客制化选项状态",
+      })
+      toast.error("更新客制化选项状态失败，请稍后重试")
     } finally {
       setTogglingId(null)
     }

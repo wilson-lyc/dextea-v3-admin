@@ -14,6 +14,7 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import DetailInfoGrid, { InfoField } from "@/components/layout/DetailInfoGrid"
 import { getProductBasicInfo } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 import { EditStatusDialog } from "./EditStatusDialog"
 import { EditBasicInfoDialog } from "./EditBasicInfoDialog"
 
@@ -50,7 +51,11 @@ export default function BasicInfoPanel({ productId }: BasicInfoPanelProps) {
       } else {
         setError(true)
       }
-    } catch {
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "获取商品基础信息",
+      })
       setError(true)
     } finally {
       setLoading(false)

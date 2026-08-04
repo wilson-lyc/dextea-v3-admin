@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/table"
 import DataTable from "@/components/ui/data-table"
 import { getProductBoundIngredients, bindIngredientToProduct, updateProductIngredientQuantity, updateProductIngredientSort, unbindIngredientFromProduct, getIngredientOptions } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 
 interface BoundIngredient {
   ingredientId: number
@@ -81,11 +82,13 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
         setIngredients(data.items)
         setTotal(data.total)
         setPage(targetPage)
-      } else {
-        toast.error(res.message)
       }
-    } catch {
-      toast.error("获取绑定的原料列表失败")
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "获取商品原料列表",
+      })
+      toast.error("数据加载异常，请稍后重试")
     } finally {
       setLoading(false)
     }
@@ -98,7 +101,12 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
   useEffect(() => {
     getIngredientOptions().then((res) => {
       if (res.code === 0) setIngredientOptions(res.data)
-    }).catch(() => {})
+    }).catch((err) => {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "获取原料选项",
+      })
+    })
   }, [])
 
   const handleBind = async () => {
@@ -124,19 +132,20 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
     try {
       const res = await bindIngredientToProduct(productId, ingredientId, quantity, sort)
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "绑定原料成功")
         setBindOpen(false)
         setBindIngredientId("")
         setBindQuantity("0")
         setBindSort("0")
         setBindUnit("")
         await fetchIngredients(1)
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg ?? (err instanceof Error ? err.message : "绑定失败"))
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "绑定商品原料",
+      })
+      toast.error("绑定原料失败，请稍后重试")
     } finally {
       setBinding(false)
     }
@@ -147,14 +156,15 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
     try {
       const res = await unbindIngredientFromProduct(productId, ingredientId)
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "解绑原料成功")
         await fetchIngredients(page)
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg ?? (err instanceof Error ? err.message : "解绑失败"))
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "解绑商品原料",
+      })
+      toast.error("解绑原料失败，请稍后重试")
     } finally {
       setUnbinding(false)
     }
@@ -190,26 +200,21 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
     setEditing(true)
     try {
       if (quantity !== editIngredient.quantity) {
-        const res = await updateProductIngredientQuantity(productId, editIngredient.ingredientId, quantity)
-        if (res.code !== 0) {
-          toast.error(res.message)
-          return
-        }
+        await updateProductIngredientQuantity(productId, editIngredient.ingredientId, quantity)
       }
       if (sort !== editIngredient.sort) {
-        const res = await updateProductIngredientSort(productId, editIngredient.ingredientId, sort)
-        if (res.code !== 0) {
-          toast.error(res.message)
-          return
-        }
+        await updateProductIngredientSort(productId, editIngredient.ingredientId, sort)
       }
-      toast.success("保存成功")
+      toast.success("保存原料设置成功")
       setEditOpen(false)
       setEditIngredient(null)
       await fetchIngredients(page)
     } catch (err) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg ?? (err instanceof Error ? err.message : "保存失败"))
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "保存商品原料设置",
+      })
+      toast.error("保存原料设置失败，请稍后重试")
     } finally {
       setEditing(false)
     }

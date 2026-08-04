@@ -20,6 +20,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { updateProduct } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 
 interface EditBasicInfoDialogProps {
   open: boolean
@@ -70,14 +71,16 @@ export function EditBasicInfoDialog({ open, onOpenChange, productId, product, on
         price: priceNum,
       })
       if (res.code === 0) {
-        toast.success(res.message)
+        toast.success(res.message || "更新商品成功")
         onOpenChange(false)
         onUpdated()
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "更新信息失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "更新商品基础信息",
+      })
+      toast.error("更新商品失败，请稍后重试")
     } finally {
       setSubmitting(false)
     }
