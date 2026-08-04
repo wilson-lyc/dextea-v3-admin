@@ -8,17 +8,13 @@ import {
   StoreGetResponseSchema,
   CreateStoreRequestSchema,
   CreateStoreResponseSchema,
-  UpdateStoreRequestSchema,
-  UpdateStoreResponseSchema,
-  UpdateStoreBasicInfoRequestSchema,
-  UpdateStoreBasicInfoResponseSchema,
+  UpdateStoreProfileRequestSchema,
+  UpdateStoreProfileResponseSchema,
   UpdateStoreLocationRequestSchema,
   UpdateStoreLocationResponseSchema,
   UpdateStoreStatusRequestSchema,
   UpdateStoreStatusResponseSchema,
   ResetStorePasswordResponseSchema,
-  BindStoreMenuRequestSchema,
-  BindStoreMenuResponseSchema,
   SyncLocationsResponseSchema,
 } from '@dextea-admin/contracts';
 
@@ -77,35 +73,16 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
     },
   );
 
-  // 更新门店
-  app.put(
-    '/stores/:id/info',
-    {
-      schema: {
-        tags: ['Stores'],
-        description: '更新门店',
-        params: z.object({ id: z.coerce.number().int().positive('ID 必须为正整数') }),
-        body: UpdateStoreRequestSchema,
-        response: { 200: ApiResponseSchema(UpdateStoreResponseSchema).describe('更新成功') },
-        security: [{ bearerAuth: [] }],
-      },
-    },
-    async (request, _reply) => {
-      const data = await storeService.updateStore(request.params.id, request.body);
-      return ApiResponse.success(data, '更新成功');
-    },
-  );
-
   // 更新门店基础信息
   app.patch(
-    '/stores/:id/basic-info',
+    '/stores/:id/profile',
     {
       schema: {
         tags: ['Stores'],
         description: '更新门店基础信息',
         params: z.object({ id: z.coerce.number().int().positive('ID 必须为正整数') }),
-        body: UpdateStoreBasicInfoRequestSchema,
-        response: { 200: ApiResponseSchema(UpdateStoreBasicInfoResponseSchema).describe('基础信息更新成功') },
+        body: UpdateStoreProfileRequestSchema,
+        response: { 200: ApiResponseSchema(UpdateStoreProfileResponseSchema).describe('基础信息更新成功') },
         security: [{ bearerAuth: [] }],
       },
     },
@@ -185,25 +162,6 @@ export const registerStoreRoutes: FastifyPluginAsyncZod = async (app) => {
     async (request, _reply) => {
       const data = await storeService.resetStorePassword(request.params.id);
       return ApiResponse.success(data, '密码重置成功');
-    },
-  );
-
-  // 绑定门店菜单
-  app.patch(
-    '/stores/:id/menu',
-    {
-      schema: {
-        tags: ['Stores'],
-        description: '绑定门店菜单',
-        params: z.object({ id: z.coerce.number().int().positive('ID 必须为正整数') }),
-        body: BindStoreMenuRequestSchema,
-        response: { 200: ApiResponseSchema(BindStoreMenuResponseSchema).describe('菜单绑定成功') },
-        security: [{ bearerAuth: [] }],
-      },
-    },
-    async (request, _reply) => {
-      const data = await storeService.bindStoreMenu(request.params.id, request.body);
-      return ApiResponse.success(data, '菜单绑定成功');
     },
   );
 

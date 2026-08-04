@@ -1,6 +1,6 @@
 @import "tailwindcss";
 /* 扫描共享契约包中的状态展示类名（如 text-blue-600），否则 node_modules 软链内的类不会被生成 */
-@source "../../../packages/contracts/src/status";
+@source "../../../packages/contracts/src/enums";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";

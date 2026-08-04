@@ -2,8 +2,6 @@ import { and, eq, sql } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
 import {
   stores,
-  menus,
-  storeMenus,
 } from '@/plugins/db/mysql/schema.js';
 import { withPagination } from '@/utils';
 
@@ -68,27 +66,6 @@ export const storeRepository = {
       .update(stores)
       .set(data)
       .where(eq(stores.id, id));
-  },
-
-  async deleteStoreMenuRelations(storeId: number) {
-    await db
-      .delete(storeMenus)
-      .where(eq(storeMenus.storeId, storeId));
-  },
-
-  async insertStoreMenuRelation(storeId: number, menuId: number) {
-    await db
-      .insert(storeMenus)
-      .values({ storeId, menuId });
-  },
-
-  async getMenuById(id: number) {
-    const rows = await db
-      .select()
-      .from(menus)
-      .where(eq(menus.id, id))
-      .limit(1);
-    return rows[0] ?? null;
   },
 
   async getAllStoreLocations() {

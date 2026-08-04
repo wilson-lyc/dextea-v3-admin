@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { updateStoreBasicInfo } from "@/api"
+import { updateStoreProfile } from "@/api"
 
 interface EditStoreBasicInfoDialogProps {
   open: boolean
@@ -54,7 +54,7 @@ export function EditStoreBasicInfoDialog({ open, onOpenChange, store, onUpdated 
 
     setSubmitting(true)
     try {
-      const res = await updateStoreBasicInfo(store.id, { name, phone, businessHours, email })
+      const res = await updateStoreProfile(store.id, { name, phone, businessHours, email })
       if (res.code === 0) {
         toast.success("基础信息更新成功")
         onOpenChange(false)

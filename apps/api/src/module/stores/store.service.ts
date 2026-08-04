@@ -8,7 +8,7 @@ import { geocode } from '@/plugins/geocode/index.js';
 import { hashPassword } from '@/plugins/password/index.js';
 import { normalizeStoreRegion, isMunicipality } from '@/utils';
 import { STORE_STATUS } from '@dextea-admin/contracts';
-import type { StoreListRequest, CreateStoreRequest, UpdateStoreRequest, UpdateStoreBasicInfoRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest, BindStoreMenuRequest } from '@dextea-admin/contracts';
+import type { StoreListRequest, CreateStoreRequest, UpdateStoreProfileRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest } from '@dextea-admin/contracts';
 
 export const storeService = {
   async getStoreList(params: StoreListRequest) {
@@ -62,43 +62,10 @@ export const storeService = {
 
     await redis.geoadd('dextea:store:location', longitude, latitude, String(id));
 
-    return { id, initialPassword };
+    return { initialPassword };
   },
 
-  async updateStore(id: number, input: UpdateStoreRequest) {
-    const { name, province, city, district, address, status, businessHours, phone, longitude, latitude } = input;
-
-    const store = await storeRepository.getStoreById(id);
-    if (!store) {
-      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
-    }
-
-    const region = normalizeStoreRegion({ province, city, district });
-
-    const updateData: Record<string, unknown> = {};
-    if (name !== undefined) updateData.name = name;
-    if (province !== undefined) updateData.province = region.province;
-    // 直辖市时即便仅传入省，也需把市名列补为直辖市名（省列置空）
-    if (city !== undefined || (province !== undefined && isMunicipality(province))) {
-      updateData.city = region.city;
-    }
-    // 直辖市省市区三列联动，避免区列残留旧值
-    if (district !== undefined || (province !== undefined && isMunicipality(province))) {
-      updateData.district = region.district;
-    }
-    if (address !== undefined) updateData.address = address;
-    if (status !== undefined) updateData.status = status;
-    if (businessHours !== undefined) updateData.businessHours = businessHours;
-    if (phone !== undefined) updateData.phone = phone;
-    if (longitude !== undefined) updateData.longitude = longitude;
-    if (latitude !== undefined) updateData.latitude = latitude;
-
-    await storeRepository.updateStoreById(id, updateData);
-
-    return { id };
-  },
-
-  async updateStoreBasicInfo(id: number, input: UpdateStoreBasicInfoRequest) {
+  async updateStoreBasicInfo(id: number, input: UpdateStoreProfileRequest) {
     const { name, phone, businessHours, email } = input;
 
     const store = await storeRepository.getStoreById(id);
@@ -185,30 +152,6 @@ export const storeService = {
     }
 
     return { synced };
-  },
-
-  async bindStoreMenu(storeId: number, input: BindStoreMenuRequest) {
-    const { menuId } = input;
-
-    const store = await storeRepository.getStoreById(storeId);
-    if (!store) {
-      throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
-    }
-
-    if (menuId !== null) {
-      const menu = await storeRepository.getMenuById(menuId);
-      if (!menu) {
-        throw new BizError(StoreErrorCodes.MENU_NOT_FOUND);
-      }
-    }
-
-    await storeRepository.deleteStoreMenuRelations(storeId);
-
-    if (menuId !== null) {
-      await storeRepository.insertStoreMenuRelation(storeId, menuId);
-    }
-
-    return { id: storeId };
   },
 
 };

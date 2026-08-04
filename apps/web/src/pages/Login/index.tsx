@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { EyeIcon, EyeOffIcon, LogInIcon } from "lucide-react"
+import { EyeIcon, EyeOffIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -122,7 +122,6 @@ export default function Login() {
         </CardContent>
         <CardFooter>
           <Button type="submit" className="w-full" onClick={handleLogin} disabled={loading}>
-            <LogInIcon data-icon="inline-start" />
             {loading ? "登录中..." : "登 录"}
           </Button>
         </CardFooter>

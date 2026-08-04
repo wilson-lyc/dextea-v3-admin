@@ -14,7 +14,6 @@ import { getMenu } from "@/api"
 import DetailLayout from "@/components/layout/DetailLayout"
 import BasicInfoPanel from "./components/BasicInfoPanel"
 import GroupsPanel from "./components/GroupsPanel"
-import StoresPanel from "./components/StoresPanel"
 
 export default function MenuDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -64,7 +63,6 @@ export default function MenuDetailPage() {
       tabs={[
         { value: "basic", label: "基础信息", scrollable: true },
         { value: "groups", label: "菜单分组" },
-        { value: "stores", label: "关联门店" },
       ]}
     >
       <TabsContent value="basic">
@@ -73,10 +71,6 @@ export default function MenuDetailPage() {
 
       <TabsContent value="groups">
         {menuId && <GroupsPanel menuId={menuId} />}
-      </TabsContent>
-
-      <TabsContent value="stores">
-        {menuId && <StoresPanel menuId={menuId} menuName={menuName ?? ""} />}
       </TabsContent>
     </DetailLayout>
   )

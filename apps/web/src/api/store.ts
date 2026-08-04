@@ -3,17 +3,13 @@ import type {
   Store,
   CreateStoreRequest,
   CreateStoreResponse,
-  UpdateStoreRequest,
-  UpdateStoreResponse,
   UpdateStoreStatusRequest,
   UpdateStoreStatusResponse,
-  UpdateStoreBasicInfoRequest,
-  UpdateStoreBasicInfoResponse,
+  UpdateStoreProfileRequest,
+  UpdateStoreProfileResponse,
   UpdateStoreLocationRequest,
   UpdateStoreLocationResponse,
   ResetStorePasswordResponse,
-  BindStoreMenuRequest,
-  BindStoreMenuResponse,
 } from "@dextea-admin/contracts"
 
 // ──── DTO 类型（统一来自 @dextea-admin/contracts） ────
@@ -21,17 +17,13 @@ export type {
   Store,
   CreateStoreRequest,
   CreateStoreResponse,
-  UpdateStoreRequest,
-  UpdateStoreResponse,
   UpdateStoreStatusRequest,
   UpdateStoreStatusResponse,
-  UpdateStoreBasicInfoRequest,
-  UpdateStoreBasicInfoResponse,
+  UpdateStoreProfileRequest,
+  UpdateStoreProfileResponse,
   UpdateStoreLocationRequest,
   UpdateStoreLocationResponse,
   ResetStorePasswordResponse,
-  BindStoreMenuRequest,
-  BindStoreMenuResponse,
 } from "@dextea-admin/contracts"
 import type {
   StoreProductItem,
@@ -85,16 +77,6 @@ export function createStore(data: CreateStoreRequest) {
 }
 
 /**
- * 更新门店信息
- * PUT /stores/:id/info
- */
-export function updateStore(id: number, data: UpdateStoreRequest) {
-  return http
-    .put<ApiResponse<UpdateStoreResponse>>(`/stores/${id}/info`, data)
-    .then((res) => res.data)
-}
-
-/**
  * 更新门店状态
  * PATCH /stores/:id/status
  */
@@ -106,11 +88,11 @@ export function updateStoreStatus(id: number, data: UpdateStoreStatusRequest) {
 
 /**
  * 更新门店基本信息
- * PATCH /stores/:id/basic-info
+ * PATCH /stores/:id/profile
  */
-export function updateStoreBasicInfo(id: number, data: UpdateStoreBasicInfoRequest) {
+export function updateStoreProfile(id: number, data: UpdateStoreProfileRequest) {
   return http
-    .patch<ApiResponse<UpdateStoreBasicInfoResponse>>(`/stores/${id}/basic-info`, data)
+    .patch<ApiResponse<UpdateStoreProfileResponse>>(`/stores/${id}/profile`, data)
     .then((res) => res.data)
 }
 
@@ -141,17 +123,6 @@ export function resetStorePassword(id: number) {
 export function syncStoreLocations() {
   return http
     .post<ApiResponse<{ synced: number }>>("/stores/sync-locations")
-    .then((res) => res.data)
-}
-
-/**
- * 绑定/解绑门店菜单
- * PATCH /stores/:id/menu
- * menuId 传入具体菜单 ID 为绑定，传入 null 为解绑
- */
-export function bindStoreMenu(id: number, data: BindStoreMenuRequest) {
-  return http
-    .patch<ApiResponse<BindStoreMenuResponse>>(`/stores/${id}/menu`, data)
     .then((res) => res.data)
 }
 
