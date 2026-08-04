@@ -87,9 +87,11 @@ export function createModuleClient(moduleKey: ModuleKey): AxiosInstance {
         typeof response.data.code === "number" &&
         response.data.code !== 0
       ) {
-        const err = new Error(response.data.message || "请求失败")
-        ;(err as Error & { businessCode?: number }).businessCode = response.data.code
-        return Promise.reject(err)
+        const err = new Error("请求失败")
+        const e = err as Error & { businessCode?: number; businessMessage?: string }
+        e.businessCode = response.data.code
+        e.businessMessage = response.data.message
+        return Promise.reject(e)
       }
       return response
     },
@@ -116,6 +118,8 @@ export function createModuleClient(moduleKey: ModuleKey): AxiosInstance {
 
       // 其余 HTTP 非 200：固定兜底提示，不信任后端 message
       if (status) {
+        ;(error as Error & { businessMessage?: string }).businessMessage =
+          error.response?.data?.message
         toast.error("服务异常，请稍后重试")
         return Promise.reject(error)
       }

@@ -22,6 +22,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { getStore, resetStorePassword } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 import { BasicInfoPanel } from "./components/BasicInfoPanel"
 import { StoreProductStatusPanel } from "./components/StoreProductStatusPanel"
 import { StoreIngredientPanel } from "./components/StoreIngredientPanel"
@@ -40,11 +41,13 @@ export default function StoreDetailPage() {
       const res = await getStore(Number(id))
       if (res.code === 0) {
         setStore(res.data)
-      } else {
-        toast.error(res.message)
       }
-    } catch {
-      toast.error("获取门店信息失败")
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "门店",
+        label: "获取门店详情",
+      })
+      toast.error("获取门店信息失败，请稍后重试")
     } finally {
       setLoading(false)
     }
@@ -58,11 +61,13 @@ export default function StoreDetailPage() {
         setNewPassword(res.data.newPassword)
         setPasswordDialogOpen(true)
         fetchStore()
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "重置密码失败")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "门店",
+        label: "重置门店密码",
+      })
+      toast.error("重置密码失败，请稍后重试")
     }
   }
 

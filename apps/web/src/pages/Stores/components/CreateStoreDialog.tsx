@@ -19,6 +19,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { createStore } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 
 interface CreateStoreDialogProps {
   open: boolean
@@ -105,14 +106,16 @@ export function CreateStoreDialog({ open, onOpenChange, onCreated }: CreateStore
         setInitialPassword(res.data.initialPassword)
         setPasswordDialogOpen(true)
         onCreated()
-      } else {
-        toast.error(res.message)
       }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "操作失败")
-    } finally {
-      setSubmitting(false)
-    }
+      } catch (err) {
+        logger.error(extractBackendMessage(err) ?? "未知错误", {
+          module: "门店",
+          label: "创建门店",
+        })
+        toast.error("创建门店失败，请稍后重试")
+      } finally {
+        setSubmitting(false)
+      }
   }
 
   return (

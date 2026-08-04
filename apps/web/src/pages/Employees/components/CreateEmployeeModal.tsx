@@ -19,6 +19,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { createEmployee } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 
 interface CreateEmployeeModalProps {
   open: boolean
@@ -68,11 +69,13 @@ export default function CreateEmployeeModal({ open, onOpenChange, onCreated }: C
         onOpenChange(false)
         resetForm()
         onCreated(res.data.initialPassword)
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "系统异常，稍后重试")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "员工",
+        label: "创建员工",
+      })
+      toast.error("创建员工失败，请稍后重试")
     } finally {
       setSubmitting(false)
     }

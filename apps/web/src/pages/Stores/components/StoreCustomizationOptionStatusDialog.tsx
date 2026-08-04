@@ -20,6 +20,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import DataTable from "@/components/ui/data-table"
+import { logger, extractBackendMessage } from "@/lib/logger"
 import {
   Dialog,
   DialogContent,
@@ -63,11 +64,13 @@ export default function StoreCustomizationOptionStatusDialog({
           setData(res.data.items)
           setTotal(res.data.total)
           setPage(targetPage)
-        } else {
-          toast.error(res.message)
-        }
-      } catch {
-        toast.error("获取客制化选项列表失败")
+      }
+      } catch (err) {
+        logger.error(extractBackendMessage(err) ?? "未知错误", {
+          module: "门店",
+          label: "获取客制化选项列表",
+        })
+        toast.error("获取客制化选项列表失败，请稍后重试")
       } finally {
         setLoading(false)
       }
@@ -102,22 +105,17 @@ export default function StoreCustomizationOptionStatusDialog({
         const res = await updateCustomizationOptionStoreStatus(storeId, option.id, {
           status: target,
         })
-        if (res.code !== 0) {
-          // 回滚
-          setData((prev) =>
-            prev.map((o) =>
-              o.id === option.id ? { ...o, storeStatus: option.storeStatus } : o,
-            ),
-          )
-          toast.error(res.message)
-        }
-      } catch {
+      } catch (err) {
         setData((prev) =>
           prev.map((o) =>
             o.id === option.id ? { ...o, storeStatus: option.storeStatus } : o,
           ),
         )
-        toast.error("更新选项门店状态失败")
+        logger.error(extractBackendMessage(err) ?? "未知错误", {
+          module: "门店",
+          label: "更新客制化选项状态",
+        })
+        toast.error("更新选项门店状态失败，请稍后重试")
       } finally {
         setTogglingId(null)
       }

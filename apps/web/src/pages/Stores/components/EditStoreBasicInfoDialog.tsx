@@ -18,6 +18,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { updateStoreProfile } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 
 interface EditStoreBasicInfoDialogProps {
   open: boolean
@@ -59,11 +60,13 @@ export function EditStoreBasicInfoDialog({ open, onOpenChange, store, onUpdated 
         toast.success("基础信息更新成功")
         onOpenChange(false)
         onUpdated()
-      } else {
-        toast.error(res.message)
       }
-    } catch {
-      toast.error("更新门店基础信息失败")
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "门店",
+        label: "更新基础信息",
+      })
+      toast.error("更新门店基础信息失败，请稍后重试")
     } finally {
       setSubmitting(false)
     }

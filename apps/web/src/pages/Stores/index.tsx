@@ -29,6 +29,7 @@ import {
 import DataTable from "@/components/ui/data-table"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 import { getStores, syncStoreLocations, resetStorePassword } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 import { CreateStoreDialog } from "./components/CreateStoreDialog"
 
 export default function StoresPage() {
@@ -65,12 +66,14 @@ export default function StoresPage() {
         setStores(res.data.items)
         setTotal(res.data.total)
         setPage(targetPage)
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
       console.error(err)
-      toast.error("数据加载异常")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "门店",
+        label: "获取门店列表",
+      })
+      toast.error("数据加载异常，请稍后重试")
     } finally {
       setLoading(false)
     }
@@ -99,9 +102,15 @@ export default function StoresPage() {
     let isError = false
     try {
       const res = await syncStoreLocations()
-      message = "门店定位同步完成"
+      if (res.code === 0) {
+        message = "门店定位同步完成"
+      }
     } catch (err) {
-      message = err instanceof Error ? err.message : "同步门店定位数据失败"
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "门店",
+        label: "同步门店定位",
+      })
+      message = "同步门店定位数据失败"
       isError = true
     } finally {
       const elapsed = Date.now() - startTime
@@ -135,11 +144,13 @@ export default function StoresPage() {
         setResetStore(null)
         setNewPassword(res.data.newPassword)
         setPasswordDialogOpen(true)
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "系统异常，稍后重试")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "门店",
+        label: "重置门店密码",
+      })
+      toast.error("重置密码失败，请稍后重试")
     } finally {
       setResetting(false)
     }

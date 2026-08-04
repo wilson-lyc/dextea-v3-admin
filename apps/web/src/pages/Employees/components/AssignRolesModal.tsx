@@ -4,6 +4,7 @@ import { Loader2Icon } from "lucide-react"
 
 import type { Employee, RoleOption } from "@/api"
 import { getEmployeeRoles, getRoleOptions, setEmployeeRoles } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
@@ -41,19 +42,15 @@ export default function AssignRolesModal({
     setSubmitting(false)
     Promise.all([getRoleOptions(), getEmployeeRoles(employee.id)])
       .then(([optionsRes, currentRes]) => {
-        if (optionsRes.code !== 0) {
-          toast.error(optionsRes.message)
-          return
-        }
-        if (currentRes.code !== 0) {
-          toast.error(currentRes.message)
-          return
-        }
         setAllRoles(optionsRes.data.items)
         setSelectedIds(new Set(currentRes.data.roleIds))
       })
       .catch((err) => {
-        toast.error(err instanceof Error ? err.message : "数据加载异常")
+        logger.error(extractBackendMessage(err) ?? "未知错误", {
+          module: "员工",
+          label: "加载分配角色数据",
+        })
+        toast.error("数据加载异常，请稍后重试")
       })
       .finally(() => setLoading(false))
   }, [open, employee])
@@ -76,11 +73,13 @@ export default function AssignRolesModal({
         toast.success(res.message || "角色已更新")
         onOpenChange(false)
         onAssigned()
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "系统异常，稍后重试")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "员工",
+        label: "分配角色",
+      })
+      toast.error("保存角色失败，请稍后重试")
     } finally {
       setSubmitting(false)
     }

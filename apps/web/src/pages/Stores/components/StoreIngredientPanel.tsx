@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import DataTable from "@/components/ui/data-table"
 import { getStoreIngredients, updateStoreIngredientStock } from "@/api/store"
+import { logger, extractBackendMessage } from "@/lib/logger"
 
 interface StoreIngredientPanelProps {
   storeId: number
@@ -38,11 +39,13 @@ export function StoreIngredientPanel({ storeId }: StoreIngredientPanelProps) {
         setData(res.data.items)
         setTotal(res.data.total)
         setPage(targetPage)
-      } else {
-        toast.error(res.message)
-      }
-    } catch {
-      toast.error("获取原料库存失败")
+    }
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "门店",
+        label: "获取原料库存",
+      })
+      toast.error("获取原料库存失败，请稍后重试")
     } finally {
       setLoading(false)
     }
@@ -81,11 +84,12 @@ export function StoreIngredientPanel({ storeId }: StoreIngredientPanelProps) {
         toast.success("库存已更新")
         setEditingId(null)
         setDraft("")
-      } else {
-        // 并发冲突时后端返回「请稍后重试」，这里原样提示
-        toast.error(res.message)
       }
-    } catch {
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "门店",
+        label: "保存原料库存",
+      })
       toast.error("更新库存失败，请稍后重试")
     } finally {
       setSavingId(null)

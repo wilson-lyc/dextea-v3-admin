@@ -23,6 +23,7 @@ import {
 import DataTable from "@/components/ui/data-table"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 import { getStoreProducts, updateProductStoreStatus } from "@/api/store"
+import { logger, extractBackendMessage } from "@/lib/logger"
 import StoreCustomizationSheet from "./StoreCustomizationSheet"
 
 interface StoreProductStatusPanelProps {
@@ -67,11 +68,13 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
           setData(res.data.items)
           setTotal(res.data.total)
           setPage(targetPage)
-        } else {
-          toast.error(res.message)
-        }
-      } catch {
-        toast.error("获取商品列表失败")
+      }
+      } catch (err) {
+        logger.error(extractBackendMessage(err) ?? "未知错误", {
+          module: "门店",
+          label: "获取商品状态列表",
+        })
+        toast.error("获取商品列表失败，请稍后重试")
       } finally {
         setLoading(false)
       }
@@ -114,7 +117,7 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
       const res = await updateProductStoreStatus(storeId, id, {
         status: newStatus,
       })
-      if (res.code !== 0) {
+      } catch (err) {
         setData((prev) =>
           prev.map((item) =>
             item.id === id
@@ -122,18 +125,12 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
               : item,
           ),
         )
-        toast.error(res.message)
+        logger.error(extractBackendMessage(err) ?? "未知错误", {
+          module: "门店",
+          label: "更新商品门店状态",
+        })
+        toast.error("更新商品门店状态失败，请稍后重试")
       }
-    } catch {
-      setData((prev) =>
-        prev.map((item) =>
-          item.id === id
-            ? { ...item, storeStatus: currentStatus }
-            : item,
-        ),
-      )
-      toast.error("更新商品门店状态失败")
-    }
   }, [storeId, toggleTarget])
 
   useEffect(() => {

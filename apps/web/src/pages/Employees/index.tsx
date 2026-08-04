@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/table"
 import DataTable from "@/components/ui/data-table"
 import { getEmployees, toggleEmployeeStatus, resetEmployeePassword } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 import CreateEmployeeModal from "./components/CreateEmployeeModal"
 import EditEmployeeModal from "./components/EditEmployeeModal"
 import AssignRolesModal from "./components/AssignRolesModal"
@@ -70,11 +71,13 @@ export default function EmployeesPage() {
         setEmployees(res.data.items)
         setTotal(res.data.total)
         setPage(targetPage)
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "系统异常，稍后重试")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "员工",
+        label: "获取员工列表",
+      })
+      toast.error("数据加载异常，请稍后重试")
     } finally {
       setLoading(false)
     }
@@ -139,11 +142,13 @@ export default function EmployeesPage() {
         setPasswordDialogDesc("已生成新的登录密码，此密码仅显示一次，关闭后将不再显示")
         setPasswordDialogOpen(true)
         toast.success(res.message || "密码重置成功")
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "系统异常，稍后重试")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "员工",
+        label: "重置员工密码",
+      })
+      toast.error("重置密码失败，请稍后重试")
     }
   }
 
@@ -164,11 +169,13 @@ export default function EmployeesPage() {
         setEmployees((prev) =>
           prev.map((e) => (e.id === employee.id ? { ...e, status: res.data.status } : e))
         )
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "系统异常，稍后重试")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "员工",
+        label: "切换员工状态",
+      })
+      toast.error("操作失败，请稍后重试")
     }
   }
 

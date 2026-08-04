@@ -18,6 +18,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { updateStoreStatus } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 
 interface EditStoreStatusDialogProps {
   open: boolean
@@ -45,11 +46,13 @@ export function EditStoreStatusDialog({ open, onOpenChange, storeId, currentStat
         toast.success("状态更新成功")
         onOpenChange(false)
         onUpdated()
-      } else {
-        toast.error(res.message)
       }
-    } catch {
-      toast.error("更新门店状态失败")
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "门店",
+        label: "更新门店状态",
+      })
+      toast.error("更新门店状态失败，请稍后重试")
     } finally {
       setSubmitting(false)
     }

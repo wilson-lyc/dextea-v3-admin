@@ -25,6 +25,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip"
 import { updateStoreLocation } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 import { toAreaSelectorValue } from "@/lib/region"
 import AmapMapPicker from "@/components/amap/amap-map-picker"
 
@@ -84,11 +85,13 @@ export function EditStoreLocationDialog({ open, onOpenChange, store, onUpdated }
         toast.success("位置信息更新成功")
         onOpenChange(false)
         onUpdated()
-      } else {
-        toast.error(res.message)
       }
-    } catch {
-      toast.error("更新门店位置失败")
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "门店",
+        label: "更新位置信息",
+      })
+      toast.error("更新门店位置失败，请稍后重试")
     } finally {
       setSubmitting(false)
     }

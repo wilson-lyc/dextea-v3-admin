@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table"
 import DataTable from "@/components/ui/data-table"
 import { getStoreCustomizations } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 import StoreCustomizationOptionStatusDialog from "./StoreCustomizationOptionStatusDialog"
 
 interface StoreCustomizationSheetProps {
@@ -71,11 +72,13 @@ export default function StoreCustomizationSheet({
           setData(res.data.items)
           setTotal(res.data.total)
           setPage(targetPage)
-        } else {
-          toast.error(res.message)
-        }
-      } catch {
-        toast.error("获取客制化项目列表失败")
+      }
+      } catch (err) {
+        logger.error(extractBackendMessage(err) ?? "未知错误", {
+          module: "门店",
+          label: "获取客制化项目列表",
+        })
+        toast.error("获取客制化项目列表失败，请稍后重试")
       } finally {
         setLoading(false)
       }

@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { scrollAreaClass } from "@/components/ui/scroll-area"
 
 /** 详情页 Tab 配置项 */
 export interface DetailTabItem {
@@ -122,7 +123,7 @@ export function DetailTabs({
     const panelClassName = cn(
       child.props.className,
       "min-h-0 min-w-0",
-      scrollable ? "overflow-y-auto p-1" : "flex flex-col pb-6",
+      scrollable ? cn(scrollAreaClass, "p-1") : "flex flex-col pb-6",
     )
     return cloneElement(
       child,

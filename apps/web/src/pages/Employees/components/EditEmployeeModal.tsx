@@ -19,6 +19,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { updateEmployee } from "@/api"
+import { logger, extractBackendMessage } from "@/lib/logger"
 
 interface EditEmployeeModalProps {
   open: boolean
@@ -79,11 +80,13 @@ export default function EditEmployeeModal({ open, onOpenChange, employee, onUpda
         onOpenChange(false)
         resetForm()
         onUpdated()
-      } else {
-        toast.error(res.message)
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "系统异常，稍后重试")
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "员工",
+        label: "编辑员工",
+      })
+      toast.error("更新员工失败，请稍后重试")
     } finally {
       setSubmitting(false)
     }
