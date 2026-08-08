@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ExternalLinkIcon, GripVerticalIcon, Trash2Icon, LinkIcon, PackageIcon } from "lucide-react"
+import { ExternalLinkIcon, GripVerticalIcon, Trash2Icon, PackageIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -212,7 +212,7 @@ export default function ProductBindingSheet({
       <SheetContent side="right" style={{ width: sheetWidth, maxWidth: "none" }}>
         <SheetHeader>
           <SheetTitle>
-            {tagName}的关联商品
+            {tagName} - 关联商品
           </SheetTitle>
         </SheetHeader>
 
@@ -227,9 +227,8 @@ export default function ProductBindingSheet({
 
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           {/* Bind button */}
-          <div className="flex items-center justify-end">
-            <Button size="sm" onClick={openBindDialog}>
-              <LinkIcon data-icon="inline-start" />
+          <div className="flex items-center justify-start">
+            <Button onClick={openBindDialog}>
               关联新商品
             </Button>
           </div>
@@ -375,7 +374,7 @@ export default function ProductBindingSheet({
                 取消
               </Button>
               <Button onClick={handleBind} disabled={binding}>
-                {binding ? "绑定中..." : "确定"}
+                {binding ? "处理中..." : "确定"}
               </Button>
             </DialogFooter>
           </DialogContent>
