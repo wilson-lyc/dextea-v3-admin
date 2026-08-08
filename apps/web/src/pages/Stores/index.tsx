@@ -216,8 +216,8 @@ export default function StoresPage() {
               <TableHead className="w-24">地址</TableHead>
               <TableHead className="w-24">联系电话</TableHead>
               <TableHead className="w-24">营业时间</TableHead>
-              <TableHead className="w-24">状态</TableHead>
-              <TableHead className="w-44 text-right">操作</TableHead>
+              <TableHead className="w-20">状态</TableHead>
+              <TableHead className="w-30 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
         }
