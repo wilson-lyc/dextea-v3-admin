@@ -233,12 +233,16 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         ids: Array.from(selectedIds),
       })
       if (res.code !== 0) return
-      const payload = JSON.stringify(res.data, null, 2)
+      const payload = JSON.stringify(res.data.items, null, 2)
       const blob = new Blob([payload], { type: "application/json" })
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `customization-${productId}-${Date.now()}.json`
+      const namePart = res.data.items
+        .map((it) => it.name)
+        .join("、")
+        .slice(0, 40)
+      a.download = `客制化项目-${namePart || productId}-${Date.now()}.json`
       a.click()
       URL.revokeObjectURL(url)
       toast.success(`已导出 ${res.data.items.length} 个客制化项目`)
@@ -353,7 +357,6 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                       onClick={handleExport}
                       disabled={exporting}
                     >
-                      <DownloadIcon data-icon="inline-start" />
                       导出配置
                     </DropdownMenuItem>
                   </DropdownMenuContent>

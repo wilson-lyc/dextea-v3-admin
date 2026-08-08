@@ -172,6 +172,7 @@ export type RebindCustomizationOptionIngredientResponse = CustomizationOption;
 
 // ─── 客制化配置导出 ───────────────────────────────
 // 导出的内容只保留可复用的核心字段：项目名称、选项名称/价格/排序。
+// 客制化项目本身不导出排序，仅保留客制化选项的排序。
 
 export const CustomizationExportOptionSchema = z.object({
   name: z.string().describe('选项名称'),
@@ -182,7 +183,6 @@ export type CustomizationExportOption = z.infer<typeof CustomizationExportOption
 
 export const CustomizationExportItemSchema = z.object({
   name: z.string().describe('客制化项目名称'),
-  sort: z.number().int().describe('排序'),
   options: z.array(CustomizationExportOptionSchema).describe('客制化选项列表'),
 });
 export type CustomizationExportItem = z.infer<typeof CustomizationExportItemSchema>;

@@ -11,7 +11,6 @@ import { withPagination } from '@/utils';
 
 export interface ExportCustomizationItem {
   name: string;
-  sort: number;
   options: { name: string; price: number; sort: number }[];
 }
 
@@ -232,7 +231,6 @@ export const customizationRepository = {
 
     return items.map((it) => ({
       name: it.name,
-      sort: it.sort,
       options: optionRows
         .filter((o) => o.itemId === it.id)
         .map((o) => ({ name: o.name, price: o.price, sort: o.sort })),
