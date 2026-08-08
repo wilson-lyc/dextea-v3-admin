@@ -62,13 +62,15 @@ export default function StoreCustomizationOptionStatusDialog({
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
-  const [togglingId, setTogglingId] = useState<number | null>(null)
 
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [batchConfirmOpen, setBatchConfirmOpen] = useState(false)
   const [batchConfirmAction, setBatchConfirmAction] = useState<0 | 1>(0)
   const [batchUpdating, setBatchUpdating] = useState(false)
   const [batchMenuOpen, setBatchMenuOpen] = useState(false)
+
+  const [singleConfirmOption, setSingleConfirmOption] = useState<StoreCustomizationOptionItem | null>(null)
+  const [singleUpdating, setSingleUpdating] = useState(false)
   const batchMenuCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const openBatchMenu = useCallback(() => {
     if (batchMenuCloseTimer.current) clearTimeout(batchMenuCloseTimer.current)
@@ -120,41 +122,43 @@ export default function StoreCustomizationOptionStatusDialog({
     }
   }, [open, fetchData])
 
-  const handleToggle = useCallback(
-    async (option: StoreCustomizationOptionItem) => {
-      const target =
-        option.storeStatus === CUSTOMIZATION_OPTION_STORE_STATUS.STORE_ACTIVE.value
-          ? CUSTOMIZATION_OPTION_STORE_STATUS.STORE_DISABLED.value
-          : CUSTOMIZATION_OPTION_STORE_STATUS.STORE_ACTIVE.value
+  const handleToggle = useCallback((option: StoreCustomizationOptionItem) => {
+    setSingleConfirmOption(option)
+  }, [])
 
-      // 乐观更新
+  const handleSingleConfirm = useCallback(async () => {
+    const option = singleConfirmOption
+    if (!option) return
+
+    const target =
+      option.storeStatus === CUSTOMIZATION_OPTION_STORE_STATUS.STORE_ACTIVE.value
+        ? CUSTOMIZATION_OPTION_STORE_STATUS.STORE_DISABLED.value
+        : CUSTOMIZATION_OPTION_STORE_STATUS.STORE_ACTIVE.value
+
+    setSingleUpdating(true)
+    try {
+      await updateCustomizationOptionStoreStatus(storeId, option.id, {
+        status: target,
+      })
       setData((prev) =>
         prev.map((o) => (o.id === option.id ? { ...o, storeStatus: target } : o)),
       )
-      setTogglingId(option.id)
-
-      try {
-        const res = await updateCustomizationOptionStoreStatus(storeId, option.id, {
-          status: target,
-        })
-      void res
-      } catch (err) {
-        setData((prev) =>
-          prev.map((o) =>
-            o.id === option.id ? { ...o, storeStatus: option.storeStatus } : o,
-          ),
-        )
-        logger.error(extractBackendMessage(err) ?? "未知错误", {
-          module: "门店",
-          label: "更新客制化选项状态",
-        })
-        toast.error("更新选项门店状态失败，请稍后重试")
-      } finally {
-        setTogglingId(null)
-      }
-    },
-    [storeId],
-  )
+      setSingleConfirmOption(null)
+      toast.success(
+        target === CUSTOMIZATION_OPTION_STORE_STATUS.STORE_ACTIVE.value
+          ? "已激活该选项的门店状态"
+          : "已禁用该选项的门店状态",
+      )
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "门店",
+        label: "更新客制化选项状态",
+      })
+      toast.error("更新选项门店状态失败，请稍后重试")
+    } finally {
+      setSingleUpdating(false)
+    }
+  }, [singleConfirmOption, storeId])
 
   const allSelected = data.length > 0 && selectedIds.size === data.length
   const someSelected = selectedIds.size > 0 && selectedIds.size < data.length
@@ -214,48 +218,43 @@ export default function StoreCustomizationOptionStatusDialog({
         </DialogHeader>
 
         <div className="flex min-h-0 flex-1 flex-col">
-          <DataTable
-            toolbarLeft={
-              selectedIds.size > 0 ? (
-                <div className="flex items-center gap-4 text-sm">
-                  <span className="text-muted-foreground">
-                    已选 <strong className="text-foreground">{selectedIds.size}</strong> 项
-                  </span>
-                  <div className="flex items-center" onMouseLeave={scheduleCloseBatchMenu}>
-                    <DropdownMenu open={batchMenuOpen} onOpenChange={setBatchMenuOpen}>
-                      <DropdownMenuTrigger
-                        render={
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onMouseEnter={openBatchMenu}
-                            onClick={openBatchMenu}
-                          />
-                        }
-                      >
-                        批量操作
-                        <ChevronDownIcon className="size-4" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="start"
+          {selectedIds.size > 0 && (
+            <div className="flex shrink-0 items-center pb-3">
+              <div className="flex items-center" onMouseLeave={scheduleCloseBatchMenu}>
+                <DropdownMenu open={batchMenuOpen} onOpenChange={setBatchMenuOpen}>
+                  <DropdownMenuTrigger
+                    render={
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onMouseEnter={openBatchMenu}
-                        onMouseLeave={scheduleCloseBatchMenu}
-                      >
-                        <DropdownMenuItem onClick={() => openBatchConfirm(1)}>
-                          批量激活
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onClick={() => openBatchConfirm(0)}
-                        >
-                          批量禁用
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              ) : undefined
-            }
+                        onClick={openBatchMenu}
+                      />
+                    }
+                  >
+                    批量操作
+                    <ChevronDownIcon className="size-4" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="start"
+                    onMouseEnter={openBatchMenu}
+                    onMouseLeave={scheduleCloseBatchMenu}
+                  >
+                    <DropdownMenuItem onClick={() => openBatchConfirm(1)}>
+                      批量激活
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={() => openBatchConfirm(0)}
+                    >
+                      批量禁用
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          )}
+          <DataTable
             header={
               <TableHeader className="sticky top-0 z-50 bg-background">
                 <TableRow>
@@ -339,12 +338,9 @@ export default function StoreCustomizationOptionStatusDialog({
                           : "outline-success"
                       }
                       size="sm"
-                      disabled={togglingId === o.id}
                       onClick={() => handleToggle(o)}
                     >
-                      {togglingId === o.id
-                        ? "处理中..."
-                        : CUSTOMIZATION_OPTION_STORE_STATUS_ACTION[o.storeStatus]}
+                      {CUSTOMIZATION_OPTION_STORE_STATUS_ACTION[o.storeStatus]}
                     </Button>
                   </div>
                 </TableCell>
@@ -369,6 +365,21 @@ export default function StoreCustomizationOptionStatusDialog({
         description={`确认将选中的 ${selectedIds.size} 个客制化选项的门店状态修改为「${batchConfirmAction === 1 ? "门店可用" : "门店不可用"}」？`}
         onConfirm={handleBatchConfirm}
         loading={batchUpdating}
+      />
+
+      <ConfirmDialog
+        open={singleConfirmOption !== null}
+        onOpenChange={(open) => {
+          if (!open) setSingleConfirmOption(null)
+        }}
+        title="操作确认"
+        description={
+          singleConfirmOption
+            ? `确认将客制化选项「${singleConfirmOption.name}」的门店状态修改为「${CUSTOMIZATION_OPTION_STORE_STATUS_LABEL[singleConfirmOption.storeStatus === CUSTOMIZATION_OPTION_STORE_STATUS.STORE_ACTIVE.value ? CUSTOMIZATION_OPTION_STORE_STATUS.STORE_DISABLED.value : CUSTOMIZATION_OPTION_STORE_STATUS.STORE_ACTIVE.value]}」？`
+            : undefined
+        }
+        onConfirm={handleSingleConfirm}
+        loading={singleUpdating}
       />
       </DialogContent>
     </Dialog>
