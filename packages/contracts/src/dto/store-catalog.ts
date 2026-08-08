@@ -114,6 +114,17 @@ export const UpdateOptionStoreStatusBodySchema = z.object({
 });
 export type UpdateOptionStoreStatusBody = z.infer<typeof UpdateOptionStoreStatusBodySchema>;
 
+/** 批量更新客制化选项门店状态请求体 */
+export const BatchUpdateOptionStoreStatusBodySchema = z.object({
+  optionIds: z
+    .array(z.number().int().positive('选项ID必须为正整数'))
+    .min(1, '请至少选择一个选项')
+    .max(100, '单次最多批量更新100个选项')
+    .describe('客制化选项ID列表'),
+  status: z.number().int().min(0).max(1, '状态值必须为0或1').describe('状态'),
+});
+export type BatchUpdateOptionStoreStatusBody = z.infer<typeof BatchUpdateOptionStoreStatusBodySchema>;
+
 /** 原料ID参数（门店库存） */
 export const StoreIngredientParamsSchema = z.object({
   storeId: z.coerce.number().int().positive('门店ID必须为正整数').describe('门店ID'),
@@ -146,6 +157,12 @@ export const BatchUpdateProductStoreStatusResponseSchema = z.object({
   updatedCount: z.number().describe('成功更新数量'),
 });
 export type BatchUpdateProductStoreStatusResponse = z.infer<typeof BatchUpdateProductStoreStatusResponseSchema>;
+
+/** 批量更新客制化选项门店状态响应 */
+export const BatchUpdateOptionStoreStatusResponseSchema = z.object({
+  updatedCount: z.number().describe('成功更新数量'),
+});
+export type BatchUpdateOptionStoreStatusResponse = z.infer<typeof BatchUpdateOptionStoreStatusResponseSchema>;
 
 /** 更新门店原料库存响应 */
 export const UpdateStoreIngredientStockResponseSchema = z.object({

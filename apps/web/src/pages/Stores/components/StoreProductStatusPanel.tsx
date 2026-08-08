@@ -145,7 +145,7 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
     setToggleTarget(null)
 
     try {
-      const res = await updateProductStoreStatus(storeId, id, {
+      await updateProductStoreStatus(storeId, id, {
         status: newStatus,
       })
       } catch (err) {
@@ -344,7 +344,8 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
             <TableRow>
               <TableHead className="w-[4%]">
                 <Checkbox
-                  checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                  checked={allSelected}
+                  indeterminate={someSelected}
                   onCheckedChange={toggleSelectAll}
                   aria-label="全选"
                 />

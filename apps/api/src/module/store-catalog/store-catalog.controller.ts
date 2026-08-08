@@ -18,6 +18,8 @@ import {
   UpdateOptionStoreStatusBodySchema,
   BatchUpdateProductStoreStatusBodySchema,
   BatchUpdateProductStoreStatusResponseSchema,
+  BatchUpdateOptionStoreStatusBodySchema,
+  BatchUpdateOptionStoreStatusResponseSchema,
 } from '@dextea-admin/contracts';
 
 export const registerStoreCatalogRoutes: FastifyPluginAsyncZod = async (app) => {
@@ -136,6 +138,34 @@ export const registerStoreCatalogRoutes: FastifyPluginAsyncZod = async (app) => 
         request.query,
       );
       return ApiResponse.success(data);
+    },
+  );
+
+  // 批量设置客制化选项门店状态
+  app.post(
+    '/stores/:storeId/customization-options/batch/status',
+    {
+      schema: {
+        tags: ['StoreCatalog'],
+        description: '批量设置客制化选项门店状态',
+        params: StoreIdParamsSchema,
+        body: BatchUpdateOptionStoreStatusBodySchema,
+        response: {
+          200: ApiResponseSchema(BatchUpdateOptionStoreStatusResponseSchema).describe('批量状态更新成功'),
+        },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await storeCatalogService.batchUpdateCustomizationOptionStoreStatus(
+        request.params.storeId,
+        request.body.optionIds,
+        request.body.status,
+      );
+      return ApiResponse.success(
+        data,
+        `已将 ${data.updatedCount} 个选项设为${request.body.status === 1 ? '门店可用' : '门店不可用'}`,
+      );
     },
   );
 
