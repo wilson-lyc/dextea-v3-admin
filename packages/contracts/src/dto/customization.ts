@@ -80,6 +80,19 @@ export type UpdateCustomizationStatusRequest = z.infer<typeof UpdateCustomizatio
 export const UpdateCustomizationStatusResponseSchema = CustomizationSchema;
 export type UpdateCustomizationStatusResponse = Customization;
 
+// ─── 批量更新客制化项目状态 ───────────────────────
+
+export const BatchUpdateCustomizationStatusRequestSchema = z.object({
+  ids: z.array(z.number().int().positive()).min(1, '至少需要一个客制化项目ID').describe('客制化项目ID列表'),
+  status: z.number().describe('状态（0=禁用 1=激活）'),
+});
+export type BatchUpdateCustomizationStatusRequest = z.infer<typeof BatchUpdateCustomizationStatusRequestSchema>;
+
+export const BatchUpdateCustomizationStatusResponseSchema = z.object({
+  updatedCount: z.number().describe('更新成功的客制化项目数量'),
+});
+export type BatchUpdateCustomizationStatusResponse = z.infer<typeof BatchUpdateCustomizationStatusResponseSchema>;
+
 // ─── 获取客制化选项列表（无分页） ─────────────────
 
 export const CustomizationOptionListResponseSchema = z.array(CustomizationOptionSchema);

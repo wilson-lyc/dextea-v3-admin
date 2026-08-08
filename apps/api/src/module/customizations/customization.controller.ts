@@ -11,6 +11,8 @@ import {
   UpdateCustomizationResponseSchema,
   UpdateCustomizationStatusRequestSchema,
   UpdateCustomizationStatusResponseSchema,
+  BatchUpdateCustomizationStatusRequestSchema,
+  BatchUpdateCustomizationStatusResponseSchema,
   CustomizationOptionListResponseSchema,
   CreateCustomizationOptionRequestSchema,
   CreateCustomizationOptionResponseSchema,
@@ -102,6 +104,24 @@ export const registerCustomizationRoutes: FastifyPluginAsyncZod = async (app) =>
     async (request, _reply) => {
       const data = await customizationService.updateCustomizationStatus(request.params.id, request.body);
       return ApiResponse.success(data, '状态更新成功');
+    },
+  );
+
+  // 批量更新客制化项目状态
+  app.post(
+    '/customizations/batch/status',
+    {
+      schema: {
+        tags: ['Customizations'],
+        description: '批量更新客制化项目状态（上架/下架）',
+        body: BatchUpdateCustomizationStatusRequestSchema,
+        response: { 200: ApiResponseSchema(BatchUpdateCustomizationStatusResponseSchema).describe('批量更新成功') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await customizationService.batchUpdateCustomizationStatus(request.body);
+      return ApiResponse.success(data, '批量更新客制化项目状态成功');
     },
   );
 

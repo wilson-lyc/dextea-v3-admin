@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react"
-import { ListIcon, PlusIcon } from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { ChevronDownIcon, ListIcon, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Customization } from "@/api"
@@ -23,11 +23,18 @@ import {
   DialogClose,
 } from "@/components/ui/dialog"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import {
   getCustomizations,
   createCustomization,
   updateCustomizationStatus,
+  batchUpdateCustomizationStatus,
 } from "@/api"
 import { logger, extractBackendMessage } from "@/lib/logger"
 import { EditCustomizationDialog } from "./EditCustomizationDialog"
@@ -58,6 +65,25 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
   const [createName, setCreateName] = useState("")
   const [createSort, setCreateSort] = useState("")
   const [creating, setCreating] = useState(false)
+
+  // Batch status
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [batchConfirmOpen, setBatchConfirmOpen] = useState(false)
+  const [batchConfirmAction, setBatchConfirmAction] = useState<0 | 1>(0)
+  const [batchUpdating, setBatchUpdating] = useState(false)
+  const [batchMenuOpen, setBatchMenuOpen] = useState(false)
+  const batchMenuCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const openBatchMenu = useCallback(() => {
+    if (batchMenuCloseTimer.current) clearTimeout(batchMenuCloseTimer.current)
+    setBatchMenuOpen(true)
+  }, [])
+  const scheduleCloseBatchMenu = useCallback(() => {
+    if (batchMenuCloseTimer.current) clearTimeout(batchMenuCloseTimer.current)
+    batchMenuCloseTimer.current = setTimeout(() => {
+      setBatchMenuOpen(false)
+      batchMenuCloseTimer.current = null
+    }, 120)
+  }, [])
 
   const fetchData = useCallback(async (targetPage: number) => {
     setLoading(true)
@@ -155,14 +181,79 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
     }
   }
 
+  const openBatchConfirm = (targetStatus: 0 | 1) => {
+    if (selectedIds.size === 0) return
+    setBatchConfirmAction(targetStatus)
+    setBatchConfirmOpen(true)
+  }
+
+  const handleBatchStatusUpdate = async () => {
+    if (selectedIds.size === 0) return
+    setBatchUpdating(true)
+    try {
+      const res = await batchUpdateCustomizationStatus([...selectedIds], batchConfirmAction)
+      if (res.code === 0) {
+        toast.success(res.message || `已批量更新 ${res.data.updatedCount} 个客制化项目状态`)
+        setBatchConfirmOpen(false)
+        setSelectedIds(new Set())
+        await fetchData(page)
+      }
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "批量更新客制化项目状态",
+      })
+      toast.error("批量更新客制化项目状态失败，请稍后重试")
+    } finally {
+      setBatchUpdating(false)
+    }
+  }
+
   return (
     <>
       <DataTable
         toolbarLeft={
-          <Button onClick={() => setCreateOpen(true)}>
-            <PlusIcon data-icon="inline-start" />
-            新建项目
-          </Button>
+          <>
+            <Button onClick={() => setCreateOpen(true)}>
+              <PlusIcon data-icon="inline-start" />
+              新建项目
+            </Button>
+            {selectedIds.size > 0 && (
+              <div
+                className="flex items-center gap-2"
+                onMouseLeave={scheduleCloseBatchMenu}
+              >
+                <DropdownMenu open={batchMenuOpen} onOpenChange={setBatchMenuOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      onMouseEnter={openBatchMenu}
+                      onClick={openBatchMenu}
+                    >
+                      操作
+                      <ChevronDownIcon />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    onMouseEnter={openBatchMenu}
+                    onMouseLeave={scheduleCloseBatchMenu}
+                  >
+                    <DropdownMenuItem
+                      onClick={() => openBatchConfirm(CUSTOMIZATION_STATUS.ACTIVE.value as 1)}
+                    >
+                      批量激活
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={() => openBatchConfirm(CUSTOMIZATION_STATUS.DISABLED.value as 0)}
+                    >
+                      批量禁用
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
+          </>
         }
         header={
           <TableHeader className="sticky top-0 z-50 bg-background">
@@ -177,7 +268,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
           </TableHeader>
         }
         body={data.map((item) => (
-          <TableRow key={item.id}>
+          <TableRow key={item.id} data-id={item.id}>
             <TableCell className="font-mono text-xs">{item.id}</TableCell>
             <TableCell className="font-medium">{item.name}</TableCell>
             <TableCell className="font-mono text-xs">{item.sort}</TableCell>
@@ -230,6 +321,9 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         loading={loading}
         isEmpty={data.length === 0}
         colSpan={6}
+        showSelection
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
         onRefresh={() => fetchData(page)}
         refreshDisabled={loading}
         emptyIcon={<ListIcon className="size-4" />}
@@ -323,6 +417,23 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         confirmText="确定"
         loading={togglingId !== null}
         onConfirm={confirmToggleStatus}
+      />
+
+      {/* ── Batch Status Confirm Dialog ── */}
+      <ConfirmDialog
+        open={batchConfirmOpen}
+        onOpenChange={setBatchConfirmOpen}
+        title="操作确认"
+        description={
+          <>
+            确定将 {selectedIds.size} 个客制化项目批量
+            {batchConfirmAction === CUSTOMIZATION_STATUS.ACTIVE.value ? "激活" : "禁用"}吗？
+          </>
+        }
+        confirmText="确定"
+        cancelText="取消"
+        loading={batchUpdating}
+        onConfirm={handleBatchStatusUpdate}
       />
     </>
   )

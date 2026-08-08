@@ -1,6 +1,7 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { CustomizationErrorCodes } from './customization.errorcode.js';
 import { customizationRepository } from './customization.repository.js';
+import { withDistributedLock } from '@/plugins/lock/index.js';
 import {
   CUSTOMIZATION_STATUS,
   CUSTOMIZATION_STATUS_VALUES,
@@ -12,9 +13,12 @@ import type {
   CreateCustomizationRequest,
   UpdateCustomizationRequest,
   UpdateCustomizationStatusRequest,
+  BatchUpdateCustomizationStatusRequest,
   CreateCustomizationOptionRequest,
   UpdateCustomizationOptionRequest,
 } from '@dextea-admin/contracts';
+
+const CUSTOMIZATION_GLOBAL_STATUS_LOCK = 'update_customization_item_global_status';
 
 export const customizationService = {
   async getCustomizationList(params: CustomizationListRequest) {
@@ -96,15 +100,41 @@ export const customizationService = {
       throw new BizError(CustomizationErrorCodes.INVALID_STATUS);
     }
 
-    const existing = await customizationRepository.getCustomizationById(id);
-    if (!existing) {
-      throw new BizError(CustomizationErrorCodes.NOT_FOUND);
+    // 客制化项目全局状态更新需抢占分布式锁，避免同一项目在分布式部署下并发写导致状态错乱。
+    // 锁键精确到客制化项目维度，不同项目的更新互不影响。
+    return withDistributedLock(`${CUSTOMIZATION_GLOBAL_STATUS_LOCK}:${id}`, async () => {
+      const existing = await customizationRepository.getCustomizationById(id);
+      if (!existing) {
+        throw new BizError(CustomizationErrorCodes.NOT_FOUND);
+      }
+
+      await customizationRepository.updateCustomizationById(id, { status });
+
+      const updated = await customizationRepository.getCustomizationById(id);
+      return updated!;
+    });
+  },
+
+  async batchUpdateCustomizationStatus(input: BatchUpdateCustomizationStatusRequest) {
+    const { ids, status } = input;
+
+    if (!(CUSTOMIZATION_STATUS_VALUES as readonly number[]).includes(status)) {
+      throw new BizError(CustomizationErrorCodes.INVALID_STATUS);
     }
 
-    await customizationRepository.updateCustomizationById(id, { status });
+    const uniqueIds = [...new Set(ids)];
 
-    const updated = await customizationRepository.getCustomizationById(id);
-    return updated!;
+    // 一个 ID 一把锁，逐个独立获取与释放：每把锁只覆盖该 ID 自身的更新，
+    // 处理完即释放，不会跨 ID 持有，避免把整批 ID 当成一个整体来加锁。
+    let updatedCount = 0;
+    for (const id of uniqueIds) {
+      await withDistributedLock(`${CUSTOMIZATION_GLOBAL_STATUS_LOCK}:${id}`, async () => {
+        const affected = await customizationRepository.updateCustomizationStatusById(id, status);
+        updatedCount += affected;
+      });
+    }
+
+    return { updatedCount };
   },
 
   async getOptionList(customizationId: number) {

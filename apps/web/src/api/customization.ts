@@ -65,6 +65,16 @@ export function updateCustomizationStatus(id: number, status: number) {
 }
 
 /**
+ * 批量更新客制化项目状态（上架 / 下架）
+ * POST /customizations/batch/status
+ */
+export function batchUpdateCustomizationStatus(ids: number[], status: number) {
+  return http
+    .post<ApiResponse<{ updatedCount: number }>>(`/customizations/batch/status`, { ids, status })
+    .then((res) => res.data)
+}
+
+/**
  * 创建客制化项目
  * POST /customizations
  */

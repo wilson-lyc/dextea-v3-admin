@@ -100,6 +100,14 @@ export const customizationRepository = {
       .where(eq(customizationItems.id, id));
   },
 
+  async updateCustomizationStatusById(id: number, status: number) {
+    const result = await db
+      .update(customizationItems)
+      .set({ status })
+      .where(eq(customizationItems.id, id));
+    return result[0]?.affectedRows ?? 0;
+  },
+
   // ─── Option CRUD ────────────────────────────────
 
   async getOptionList(customizationId: number) {
