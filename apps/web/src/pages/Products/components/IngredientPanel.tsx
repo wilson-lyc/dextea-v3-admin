@@ -273,7 +273,7 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
               <DialogFooter>
                 <DialogClose render={<Button variant="outline">取消</Button>} />
                 <Button onClick={handleBind} disabled={binding}>
-                  {binding ? "绑定中..." : "确定"}
+                  {binding ? "处理中..." : "确定"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -362,7 +362,7 @@ export default function IngredientPanel({ productId }: IngredientPanelProps) {
           <DialogFooter>
             <DialogClose render={<Button variant="outline">取消</Button>} />
             <Button onClick={handleEditQuantity} disabled={editing}>
-              {editing ? "保存中..." : "保存"}
+              {editing ? "处理中..." : "保存"}
             </Button>
           </DialogFooter>
         </DialogContent>

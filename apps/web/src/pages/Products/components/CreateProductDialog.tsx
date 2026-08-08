@@ -179,7 +179,7 @@ export function CreateProductDialog({ open, onOpenChange, onCreated }: CreatePro
             取消
           </Button>
           <Button onClick={handleSubmit} disabled={submitting}>
-            {submitting ? "提交中..." : "确定"}
+            {submitting ? "处理中..." : "确定"}
           </Button>
         </DialogFooter>
       </DialogContent>

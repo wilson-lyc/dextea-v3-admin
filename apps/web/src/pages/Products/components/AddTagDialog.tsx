@@ -118,7 +118,7 @@ export function AddTagDialog({ open, onOpenChange, productId, onAdded }: AddTagD
             取消
           </Button>
           <Button onClick={handleSubmit} disabled={submitting || !selectedTagId}>
-            {submitting ? "提交中..." : "确定"}
+            {submitting ? "处理中..." : "确定"}
           </Button>
         </DialogFooter>
       </DialogContent>

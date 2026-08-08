@@ -277,7 +277,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
           <DialogFooter>
             <DialogClose render={<Button variant="outline">取消</Button>} />
             <Button onClick={handleCreate} disabled={creating}>
-              {creating ? "创建中..." : "确定"}
+              {creating ? "处理中..." : "确定"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -157,9 +157,10 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
                 <Button
                   variant="outline-destructive"
                   onClick={() => setRemoveCoverOpen(true)}
+                  disabled={saving}
                 >
                   <Trash2Icon data-icon="inline-start" />
-                  移除
+                  {saving ? "处理中..." : "移除"}
                 </Button>
               )}
             </div>
@@ -209,6 +210,7 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
                       size="icon-sm"
                       className="absolute right-1.5 top-1.5"
                       onClick={() => removeGallery(index)}
+                      disabled={saving}
                       aria-label="移除图片"
                     >
                       <Trash2Icon />
@@ -218,18 +220,18 @@ export default function ImagePanel({ productId }: ImagePanelProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={index === 0}
+                      disabled={index === 0 || saving}
                       onClick={() => moveGallery(index, -1)}
                     >
-                      左移
+                      {saving ? "处理中..." : "左移"}
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={index === gallery.length - 1}
+                      disabled={index === gallery.length - 1 || saving}
                       onClick={() => moveGallery(index, 1)}
                     >
-                      右移
+                      {saving ? "处理中..." : "右移"}
                     </Button>
                   </div>
                 </div>

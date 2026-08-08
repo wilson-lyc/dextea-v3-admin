@@ -99,7 +99,7 @@ export function EditCustomizationDialog({ open, onOpenChange, item, onUpdated }:
         <DialogFooter>
           <DialogClose render={<Button variant="outline">取消</Button>} />
           <Button onClick={handleUpdate} disabled={saving}>
-            {saving ? "保存中..." : "确定"}
+            {saving ? "处理中..." : "确定"}
           </Button>
         </DialogFooter>
       </DialogContent>

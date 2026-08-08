@@ -513,7 +513,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               取消
             </Button>
             <Button onClick={handleCreate} disabled={creating}>
-              {creating ? "创建中..." : "确定"}
+              {creating ? "处理中..." : "确定"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -569,7 +569,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               取消
             </Button>
             <Button onClick={handleUpdate} disabled={saving}>
-              {saving ? "保存中..." : "保存"}
+              {saving ? "处理中..." : "保存"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -608,7 +608,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               取消
             </Button>
             <Button onClick={handleUpdateQuantity} disabled={savingQuantity}>
-              {savingQuantity ? "保存中..." : "保存"}
+              {savingQuantity ? "处理中..." : "保存"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -657,7 +657,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
               取消
             </Button>
             <Button onClick={handleRebind} disabled={savingRebind}>
-              {savingRebind ? "保存中..." : "保存"}
+              {savingRebind ? "处理中..." : "保存"}
             </Button>
           </DialogFooter>
         </DialogContent>

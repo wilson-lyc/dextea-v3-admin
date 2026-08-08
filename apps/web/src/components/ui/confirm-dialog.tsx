@@ -9,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Spinner } from "@/components/ui/spinner"
 
 interface ConfirmDialogProps {
   open: boolean
@@ -64,14 +63,7 @@ export default function ConfirmDialog({
             onClick={onConfirm}
             disabled={loading}
           >
-            {loading ? (
-              <>
-                <Spinner className="size-4" />
-                处理中...
-              </>
-            ) : (
-              confirmText
-            )}
+            {loading ? "处理中..." : confirmText}
           </Button>
         </DialogFooter>
       </DialogContent>
