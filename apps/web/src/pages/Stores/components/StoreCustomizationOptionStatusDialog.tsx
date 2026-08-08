@@ -179,7 +179,10 @@ export default function StoreCustomizationOptionStatusDialog({
   }, [])
 
   const openBatchConfirm = useCallback((targetStatus: 0 | 1) => {
-    if (selectedIds.size === 0) return
+    if (selectedIds.size === 0) {
+      toast.warning("请先勾选需要批量操作的客制化选项")
+      return
+    }
     setBatchConfirmAction(targetStatus)
     setBatchConfirmOpen(true)
   }, [selectedIds])
@@ -218,42 +221,40 @@ export default function StoreCustomizationOptionStatusDialog({
         </DialogHeader>
 
         <div className="flex min-h-0 flex-1 flex-col">
-          {selectedIds.size > 0 && (
-            <div className="flex shrink-0 items-center pb-3">
-              <div className="flex items-center" onMouseLeave={scheduleCloseBatchMenu}>
-                <DropdownMenu open={batchMenuOpen} onOpenChange={setBatchMenuOpen}>
-                  <DropdownMenuTrigger
-                    render={
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onMouseEnter={openBatchMenu}
-                        onClick={openBatchMenu}
-                      />
-                    }
+          <div className="flex shrink-0 items-center pb-3">
+            <div className="flex items-center" onMouseLeave={scheduleCloseBatchMenu}>
+              <DropdownMenu open={batchMenuOpen} onOpenChange={setBatchMenuOpen}>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onMouseEnter={openBatchMenu}
+                      onClick={openBatchMenu}
+                    />
+                  }
+                >
+                  批量操作
+                  <ChevronDownIcon className="size-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  onMouseEnter={openBatchMenu}
+                  onMouseLeave={scheduleCloseBatchMenu}
+                >
+                  <DropdownMenuItem onClick={() => openBatchConfirm(1)}>
+                    批量激活
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => openBatchConfirm(0)}
                   >
-                    批量操作
-                    <ChevronDownIcon className="size-4" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="start"
-                    onMouseEnter={openBatchMenu}
-                    onMouseLeave={scheduleCloseBatchMenu}
-                  >
-                    <DropdownMenuItem onClick={() => openBatchConfirm(1)}>
-                      批量激活
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onClick={() => openBatchConfirm(0)}
-                    >
-                      批量禁用
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+                    批量禁用
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          )}
+          </div>
           <DataTable
             header={
               <TableHeader className="sticky top-0 z-50 bg-background">

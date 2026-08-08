@@ -164,6 +164,7 @@ export default function GalleryPage() {
       return
     }
     setUploading(true)
+    let hasSuccess = false
     for (const task of pending) {
       try {
         setTasks((prev) =>
@@ -175,6 +176,7 @@ export default function GalleryPage() {
         setTasks((prev) =>
           prev.map((t) => (t.id === task.id ? { ...t, status: "done", progress: 100 } : t)),
         )
+        hasSuccess = true
       } catch (err) {
         setTasks((prev) =>
           prev.map((t) =>
@@ -186,9 +188,15 @@ export default function GalleryPage() {
       }
     }
     setUploading(false)
-    setImageName("")
-    await fetchImages(page)
-    toast.success("上传完成")
+    if (hasSuccess) {
+      setImageName("")
+      await fetchImages(page)
+      toast.success("上传完成")
+      closeUpload()
+    } else {
+      setImageName("")
+      toast.error("上传失败，请重试")
+    }
   }
 
   // 弹窗关闭时释放预览内存
@@ -359,6 +367,17 @@ export default function GalleryPage() {
 
           <div className="space-y-4">
             <div className="space-y-1.5">
+              <Label>
+                图片名称 <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                placeholder="请输入图片名称，便于后续检索"
+                value={imageName}
+                onChange={(e) => setImageName(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1.5">
               <Label>选择照片（单张）</Label>
               <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 text-center transition-colors hover:border-primary/50">
                 <UploadIcon className="size-7 text-muted-foreground" />
@@ -378,17 +397,6 @@ export default function GalleryPage() {
                   }}
                 />
               </label>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>
-                图片名称 <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                placeholder="请输入图片名称，便于后续检索"
-                value={imageName}
-                onChange={(e) => setImageName(e.target.value)}
-              />
             </div>
 
             {tasks.length > 0 && (
