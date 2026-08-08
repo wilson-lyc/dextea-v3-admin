@@ -275,10 +275,12 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
     let parsed: ImportCustomizationRequest
     try {
       const raw = JSON.parse(importText)
-      parsed = {
-        productId,
-        items: Array.isArray(raw.items) ? raw.items : (raw as ImportCustomizationRequest).items,
-      }
+      const items = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw.items)
+          ? raw.items
+          : (raw as ImportCustomizationRequest).items
+      parsed = { productId, items }
     } catch {
       toast.error("JSON 格式无效，请检查后重试")
       return

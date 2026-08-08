@@ -167,6 +167,7 @@ export default function CustomizationOptionsPanel({ customizationId }: Customiza
       if (res.code === 0) {
         toast.success(`已批量${batchConfirmAction === "activate" ? "激活" : "禁用"} ${res.data.updatedCount} 个客制化选项`)
         setSelectedIds(new Set())
+        setBatchConfirmOpen(false)
         await fetchOptions()
       }
     } catch (err) {

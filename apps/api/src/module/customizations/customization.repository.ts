@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, count, eq, groupBy, inArray, sql } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
 import {
   customizationItems,
@@ -22,10 +22,6 @@ export const customizationRepository = {
     pageSize = Math.min(100, Math.max(1, pageSize));
     keyword = keyword?.trim();
 
-    const optionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.itemId} = ${customizationItems.id})`;
-    const activeOptionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.itemId} = ${customizationItems.id} and ${customizationOptions.status} = ${CUSTOMIZATION_OPTION_STATUS.GLOBAL_ACTIVE.value})`;
-    const disabledOptionCountSubquery = sql<number>`(select count(*) from ${customizationOptions} where ${customizationOptions.itemId} = ${customizationItems.id} and ${customizationOptions.status} = ${CUSTOMIZATION_OPTION_STATUS.GLOBAL_DISABLED.value})`;
-
     const baseQuery = db
       .select({
         id: customizationItems.id,
@@ -33,9 +29,6 @@ export const customizationRepository = {
         name: customizationItems.name,
         sort: customizationItems.sort,
         status: customizationItems.status,
-        optionCount: optionCountSubquery,
-        activeOptionCount: activeOptionCountSubquery,
-        disabledOptionCount: disabledOptionCountSubquery,
         createdAt: customizationItems.createdAt,
         updatedAt: customizationItems.updatedAt,
       })
@@ -66,10 +59,46 @@ export const customizationRepository = {
       countQuery.where(whereClause);
     }
 
-    const [items, countResult] = await Promise.all([
+    const [rows, countResult] = await Promise.all([
       withPagination(baseQuery, page, pageSize),
       countQuery,
     ]);
+
+    const itemIds = rows.map((it) => it.id);
+    const optionStats = new Map<
+      number,
+      { optionCount: number; activeOptionCount: number; disabledOptionCount: number }
+    >();
+    if (itemIds.length > 0) {
+      const stats = await db
+        .select({
+          itemId: customizationOptions.itemId,
+          total: count(),
+          active: count(
+            sql`case when ${customizationOptions.status} = ${CUSTOMIZATION_OPTION_STATUS.GLOBAL_ACTIVE.value} then 1 end`,
+          ),
+          disabled: count(
+            sql`case when ${customizationOptions.status} = ${CUSTOMIZATION_OPTION_STATUS.GLOBAL_DISABLED.value} then 1 end`,
+          ),
+        })
+        .from(customizationOptions)
+        .where(inArray(customizationOptions.itemId, itemIds))
+        .groupBy(customizationOptions.itemId);
+      for (const s of stats) {
+        optionStats.set(s.itemId, {
+          optionCount: Number(s.total ?? 0),
+          activeOptionCount: Number(s.active ?? 0),
+          disabledOptionCount: Number(s.disabled ?? 0),
+        });
+      }
+    }
+
+    const items = rows.map((it) => ({
+      ...it,
+      optionCount: optionStats.get(it.id)?.optionCount ?? 0,
+      activeOptionCount: optionStats.get(it.id)?.activeOptionCount ?? 0,
+      disabledOptionCount: optionStats.get(it.id)?.disabledOptionCount ?? 0,
+    }));
 
     const total = Number(countResult[0]?.count ?? 0);
     return { items, total, page, pageSize };
