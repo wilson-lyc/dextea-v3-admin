@@ -12,6 +12,12 @@ import {
 import { PRODUCT_IMAGE_TYPE } from '@dextea-admin/contracts';
 import { withPagination } from '@/utils';
 
+// 价格以 DECIMAL 存储，MySQL 驱动返回为字符串；在出口层统一转为 number，
+// 以符合契约 ProductSchema.price 的 number 类型（避免响应序列化 500）。
+function normalizeProduct<T extends { price: string | number }>(p: T): T {
+  return { ...p, price: Number(p.price) };
+}
+
 export const productRepository = {
   // ─── 商品列表 ─────────────────────────────────────
 
@@ -108,13 +114,13 @@ export const productRepository = {
       }
 
       const itemsWithTags = items.map(item => ({
-        ...item,
+        ...normalizeProduct(item),
         tags: tagsByProductId.get(item.id) ?? [],
       }));
       return { items: itemsWithTags, total, page, pageSize };
     }
 
-    return { items, total, page, pageSize };
+    return { items: items.map(normalizeProduct), total, page, pageSize };
   },
 
   // ─── 商品基础信息 ─────────────────────────────────
@@ -125,7 +131,7 @@ export const productRepository = {
       .from(products)
       .where(eq(products.id, id))
       .limit(1);
-    return rows[0] ?? null;
+    return rows[0] ? normalizeProduct(rows[0]) : null;
   },
 
   async getProductTagsById(id: number) {

@@ -357,14 +357,9 @@ export const productService = {
 
       const { coverImageId, galleryImageIds } = input;
 
-      // 图库图片去重
+      // 同一 type 内图片不可重复（主键 product_id + image_id + type）
       const uniqueGallery = [...new Set(galleryImageIds)];
       if (uniqueGallery.length !== galleryImageIds.length) {
-        throw new BizError(ProductErrorCodes.IMAGE_DUPLICATED);
-      }
-
-      // product_images 主键为 (product_id, image_id)，同一张图片不能既作封面又入图库
-      if (coverImageId !== null && uniqueGallery.includes(coverImageId)) {
         throw new BizError(ProductErrorCodes.IMAGE_DUPLICATED);
       }
 

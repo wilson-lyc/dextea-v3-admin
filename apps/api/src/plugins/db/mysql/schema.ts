@@ -61,7 +61,7 @@ export const customizationOptions = mysqlTable("customization_options", {
 	id: bigint({ mode: "number", unsigned: true }).autoincrement().notNull(),
 	itemId: bigint("item_id", { mode: "number", unsigned: true }).notNull(),
 	name: varchar({ length: 32 }).notNull(),
-	price: decimal({ precision: 10, scale: 2, mode: "number" }).notNull(),
+	price: decimal({ precision: 10, scale: 2 }).notNull(),
 	sort: tinyint().notNull(),
 	status: tinyint().notNull(),
 	ingredientId: bigint("ingredient_id", { mode: "number", unsigned: true }),
@@ -154,28 +154,7 @@ export const menus = mysqlTable("menus", {
 	primaryKey({ columns: [table.id], name: "menus_id"}),
 ]);
 
-export const orderItems = mysqlTable("order_items", {
-	id: bigint({ mode: "number", unsigned: true }).autoincrement().notNull(),
-	orderId: bigint("order_id", { mode: "number", unsigned: true }).notNull(),
-	productId: bigint("product_id", { mode: "number", unsigned: true }).notNull(),
-	productName: varchar("product_name", { length: 64 }).notNull(),
-	skuId: varchar("sku_id", { length: 255 }).notNull(),
-	customization: text().notNull(),
-	coverId: bigint("cover_id", { mode: "number", unsigned: true }),
-	quantity: int().notNull(),
-	unitPrice: decimal("unit_price", { precision: 12, scale: 2, mode: "number" }).notNull(),
-	subtotal: decimal({ precision: 12, scale: 2, mode: "number" }).notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-},
-(table) => [
-	index("idx_order_items_order_id").on(table.orderId),
-	index("idx_order_items_product_id").on(table.productId),
-	index("idx_order_items_sku_id").on(table.skuId),
-	primaryKey({ columns: [table.id], name: "order_items_id"}),
-]);
-
-export const orderStatusLog = mysqlTable("order_status_log", {
+export const orderMakingStatusLog = mysqlTable("order_ making_status_log", {
 	id: serial().notNull(),
 	orderId: varchar("order_id", { length: 64 }).notNull(),
 	fromStatus: tinyint("from_status").notNull(),
@@ -186,7 +165,43 @@ export const orderStatusLog = mysqlTable("order_status_log", {
 },
 (table) => [
 	index("idx_order_status_log_order_id").on(table.orderId),
-	primaryKey({ columns: [table.id], name: "order_status_log_id"}),
+	primaryKey({ columns: [table.id], name: "order_ making_status_log_id"}),
+	unique("id").on(table.id),
+]);
+
+export const orderItems = mysqlTable("order_items", {
+	id: bigint({ mode: "number", unsigned: true }).autoincrement().notNull(),
+	orderId: bigint("order_id", { mode: "number", unsigned: true }).notNull(),
+	productId: bigint("product_id", { mode: "number", unsigned: true }).notNull(),
+	productName: varchar("product_name", { length: 64 }).notNull(),
+	skuId: varchar("sku_id", { length: 255 }).notNull(),
+	customization: text().notNull(),
+	coverUrl: text("cover_url"),
+	quantity: int().notNull(),
+	unitPrice: decimal("unit_price", { precision: 12, scale: 2 }).notNull(),
+	subtotal: decimal({ precision: 12, scale: 2 }).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("idx_order_items_order_id").on(table.orderId),
+	index("idx_order_items_product_id").on(table.productId),
+	index("idx_order_items_sku_id").on(table.skuId),
+	primaryKey({ columns: [table.id], name: "order_items_id"}),
+]);
+
+export const orderPaymentStatusLog = mysqlTable("order_payment_status_log", {
+	id: serial().notNull(),
+	orderId: varchar("order_id", { length: 64 }).notNull(),
+	fromStatus: tinyint("from_status").notNull(),
+	toStatus: tinyint("to_status").notNull(),
+	event: varchar({ length: 64 }).notNull(),
+	version: int().notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
+},
+(table) => [
+	index("idx_order_status_log_order_id").on(table.orderId),
+	primaryKey({ columns: [table.id], name: "order_payment_status_log_id"}),
 	unique("id").on(table.id),
 ]);
 
@@ -197,7 +212,7 @@ export const orders = mysqlTable("orders", {
 	idempotencyKey: varchar("idempotency_key", { length: 64 }).notNull(),
 	customerId: bigint("customer_id", { mode: "number", unsigned: true }).notNull(),
 	storeId: bigint("store_id", { mode: "number", unsigned: true }).notNull(),
-	totalPrice: decimal("total_price", { precision: 12, scale: 2, mode: "number" }).notNull(),
+	totalPrice: decimal("total_price", { precision: 12, scale: 2 }).notNull(),
 	totalQuantity: int("total_quantity").notNull(),
 	diningMethod: tinyint("dining_method").notNull(),
 	note: varchar({ length: 500 }),
@@ -233,6 +248,15 @@ export const permissions = mysqlTable("permissions", {
 	unique("uq_permissions_key").on(table.key),
 ]);
 
+export const pickupCodeCounter = mysqlTable("pickup_code_counter", {
+	storeId: bigint("store_id", { mode: "number", unsigned: true }).notNull(),
+	date: timestamp({ mode: 'string' }).notNull(),
+	dailyCount: int("daily_count").notNull(),
+},
+(table) => [
+	primaryKey({ columns: [table.storeId], name: "pickup_code_counter_store_id"}),
+]);
+
 export const productImages = mysqlTable("product_images", {
 	productId: bigint("product_id", { mode: "number", unsigned: true }).notNull(),
 	imageId: bigint("image_id", { mode: "number", unsigned: true }).notNull(),
@@ -242,7 +266,7 @@ export const productImages = mysqlTable("product_images", {
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
-	primaryKey({ columns: [table.productId, table.imageId], name: "product_images_product_id_image_id"}),
+	primaryKey({ columns: [table.productId, table.imageId, table.type], name: "product_images_product_id_image_id_type"}),
 ]);
 
 export const productIngredients = mysqlTable("product_ingredients", {
@@ -294,7 +318,7 @@ export const products = mysqlTable("products", {
 	brief: varchar({ length: 64 }).notNull(),
 	description: varchar({ length: 500 }).notNull(),
 	status: tinyint().notNull(),
-	price: decimal({ precision: 10, scale: 2, mode: "number" }).notNull(),
+	price: decimal({ precision: 10, scale: 2 }).notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
