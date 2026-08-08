@@ -34,6 +34,7 @@ import type {
   StoreIngredientItem,
   UpdateStoreIngredientStockBody,
   UpdateStoreIngredientStockResponse,
+  BatchUpdateProductStoreStatusResponse,
 } from "@dextea-admin/contracts/dto"
 
 // 门店目录子资源类型（商品/客制化/原料的门店级覆盖）
@@ -44,6 +45,8 @@ export type {
   StoreCustomizationOptionItem,
   UpdateOptionStoreStatusBody,
   StoreIngredientItem,
+  BatchUpdateProductStoreStatusBody,
+  BatchUpdateProductStoreStatusResponse,
 } from "@dextea-admin/contracts/dto"
 
 const http = createModuleClient("store")
@@ -150,6 +153,23 @@ export function updateProductStoreStatus(
 ) {
   return http
     .patch<ApiResponse<null>>(`/stores/${storeId}/products/${productId}/status`, data)
+    .then((r) => r.data)
+}
+
+/**
+ * 批量设置商品门店状态
+ * POST /stores/:storeId/products/batch/status
+ */
+export function batchUpdateProductStoreStatus(
+  storeId: number,
+  productIds: number[],
+  status: number,
+) {
+  return http
+    .post<ApiResponse<BatchUpdateProductStoreStatusResponse>>(
+      `/stores/${storeId}/products/batch/status`,
+      { productIds, status },
+    )
     .then((r) => r.data)
 }
 

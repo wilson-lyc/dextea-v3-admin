@@ -16,6 +16,8 @@ import {
   StoreCustomizationListQuerySchema,
   UpdateProductStoreStatusBodySchema,
   UpdateOptionStoreStatusBodySchema,
+  BatchUpdateProductStoreStatusBodySchema,
+  BatchUpdateProductStoreStatusResponseSchema,
 } from '@dextea-admin/contracts';
 
 export const registerStoreCatalogRoutes: FastifyPluginAsyncZod = async (app) => {
@@ -38,6 +40,34 @@ export const registerStoreCatalogRoutes: FastifyPluginAsyncZod = async (app) => 
         request.query,
       );
       return ApiResponse.success(data);
+    },
+  );
+
+  // 批量设置商品门店状态
+  app.post(
+    '/stores/:storeId/products/batch/status',
+    {
+      schema: {
+        tags: ['StoreCatalog'],
+        description: '批量设置商品门店状态',
+        params: StoreIdParamsSchema,
+        body: BatchUpdateProductStoreStatusBodySchema,
+        response: {
+          200: ApiResponseSchema(BatchUpdateProductStoreStatusResponseSchema).describe('批量状态更新成功'),
+        },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await storeCatalogService.batchUpdateProductStoreStatus(
+        request.params.storeId,
+        request.body.productIds,
+        request.body.status,
+      );
+      return ApiResponse.success(
+        data,
+        `已将 ${data.updatedCount} 个商品设为${request.body.status === 1 ? '门店可售' : '门店售罄'}`,
+      );
     },
   );
 

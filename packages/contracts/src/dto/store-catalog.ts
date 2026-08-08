@@ -97,6 +97,17 @@ export const UpdateProductStoreStatusBodySchema = z.object({
 });
 export type UpdateProductStoreStatusBody = z.infer<typeof UpdateProductStoreStatusBodySchema>;
 
+/** 批量更新商品门店状态请求体 */
+export const BatchUpdateProductStoreStatusBodySchema = z.object({
+  productIds: z
+    .array(z.number().int().positive('商品ID必须为正整数'))
+    .min(1, '请至少选择一个商品')
+    .max(100, '单次最多批量更新100个商品')
+    .describe('商品ID列表'),
+  status: z.number().int().min(0).max(1, '状态值必须为0或1').describe('状态'),
+});
+export type BatchUpdateProductStoreStatusBody = z.infer<typeof BatchUpdateProductStoreStatusBodySchema>;
+
 /** 更新客制化选项门店状态请求体 */
 export const UpdateOptionStoreStatusBodySchema = z.object({
   status: z.number().int().min(0).max(1, '状态值必须为0或1').describe('状态'),
@@ -129,6 +140,12 @@ export type StoreCustomizationOptionListResponse = z.infer<typeof StoreCustomiza
 
 export const StoreIngredientListResponseSchema = PaginatedDataSchema(StoreIngredientItemSchema);
 export type StoreIngredientListResponse = z.infer<typeof StoreIngredientListResponseSchema>;
+
+/** 批量更新商品门店状态响应 */
+export const BatchUpdateProductStoreStatusResponseSchema = z.object({
+  updatedCount: z.number().describe('成功更新数量'),
+});
+export type BatchUpdateProductStoreStatusResponse = z.infer<typeof BatchUpdateProductStoreStatusResponseSchema>;
 
 /** 更新门店原料库存响应 */
 export const UpdateStoreIngredientStockResponseSchema = z.object({

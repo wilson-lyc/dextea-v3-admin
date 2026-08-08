@@ -4,6 +4,11 @@ import { storeCatalogRepository } from './store-catalog.repository.js';
 import { STORE_PRODUCT_STATUS_VALUES } from '@dextea-admin/contracts';
 import { withDistributedLock } from '@/plugins/lock/index.js';
 
+// 商品门店状态锁键（完整键为 dextea:lock:update_product_store_status:p{商品ID}_s{门店ID}）
+function productStoreStatusLockKey(storeId: number, productId: number): string {
+  return `update_product_store_status:p${productId}_s${storeId}`;
+}
+
 // 校验门店是否存在（门店目录子资源接口共用）
 async function ensureStoreExists(storeId: number): Promise<void> {
   const store = await storeCatalogRepository.getStoreById(storeId);
@@ -25,11 +30,30 @@ export const storeCatalogService = {
     }
     await ensureStoreExists(storeId);
     return withDistributedLock(
-      `store-catalog:product-status:${storeId}:${productId}`,
+      productStoreStatusLockKey(storeId, productId),
       async () => {
         await storeCatalogRepository.upsertProductStoreStatus(storeId, productId, status);
       },
     );
+  },
+
+  async batchUpdateProductStoreStatus(storeId: number, productIds: number[], status: number) {
+    if (!STORE_PRODUCT_STATUS_VALUES.includes(status as 0 | 1)) {
+      throw new BizError(StoreCatalogErrorCodes.INVALID_STATUS);
+    }
+    await ensureStoreExists(storeId);
+
+    const uniqueIds = [...new Set(productIds)];
+    let updatedCount = 0;
+
+    for (const productId of uniqueIds) {
+      await withDistributedLock(productStoreStatusLockKey(storeId, productId), async () => {
+        await storeCatalogRepository.upsertProductStoreStatus(storeId, productId, status);
+        updatedCount += 1;
+      });
+    }
+
+    return { updatedCount };
   },
 
   async listStoreCustomizations(
