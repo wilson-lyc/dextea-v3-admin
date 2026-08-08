@@ -83,6 +83,16 @@ export function toggleProductStatus(id: number, status: ProductStatus) {
 }
 
 /**
+ * 批量更新商品状态（全局上架 / 全局下架）
+ * POST /products/batch/status
+ */
+export function batchUpdateProductStatus(ids: number[], status: ProductStatus) {
+  return http
+    .post<ApiResponse<{ updatedCount: number }>>(`/products/batch/status`, { ids, status })
+    .then((res) => res.data)
+}
+
+/**
  * 添加标签到商品（单次绑定一个标签）
  * POST /products/:id/tags
  */

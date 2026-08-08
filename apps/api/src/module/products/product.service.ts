@@ -15,6 +15,7 @@ import type {
   CreateProductRequest,
   UpdateProductRequest,
   UpdateProductStatusRequest,
+  BatchUpdateProductStatusRequest,
   BindTagsRequest,
   UnbindTagsRequest,
   BindIngredientRequest,
@@ -167,6 +168,25 @@ export const productService = {
         const updated = await productRepository.getProductById(id);
 
         return updated!;
+      });
+    }, ProductErrorCodes.STATUS_UPDATE_FAILED);
+  },
+
+  // ─── 批量更新商品状态 ─────────────────────────────
+
+  async batchUpdateProductStatus(input: BatchUpdateProductStatusRequest) {
+    const { ids, status } = input;
+
+    validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
+
+    const uniqueIds = [...new Set(ids)];
+
+    return withMutation(async () => {
+      // 商品全局状态更新需抢占分布式锁，避免同一商品在分布式部署下并发写导致状态错乱。
+      // 锁键精确到商品维度，不同商品的更新互不影响。
+      return withDistributedLock(uniqueIds.map(id => `update_product_global_status:${id}`), async () => {
+        const updatedCount = await productRepository.batchUpdateProductStatus(uniqueIds, status);
+        return { updatedCount };
       });
     }, ProductErrorCodes.STATUS_UPDATE_FAILED);
   },

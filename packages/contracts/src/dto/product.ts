@@ -104,6 +104,18 @@ export type UpdateProductStatusRequest = z.infer<typeof UpdateProductStatusReque
 export const UpdateProductStatusResponseSchema = ProductBasicInfoSchema;
 export type UpdateProductStatusResponse = ProductBasicInfo;
 
+/** 批量更新商品状态 */
+export const BatchUpdateProductStatusRequestSchema = z.object({
+  ids: z.array(z.number().int().positive()).min(1, '至少需要一个商品ID').describe('商品ID列表'),
+  status: z.number().describe('状态（0=全局下架 1=全局上架）'),
+});
+export type BatchUpdateProductStatusRequest = z.infer<typeof BatchUpdateProductStatusRequestSchema>;
+
+export const BatchUpdateProductStatusResponseSchema = z.object({
+  updatedCount: z.number().describe('更新成功的商品数量'),
+});
+export type BatchUpdateProductStatusResponse = z.infer<typeof BatchUpdateProductStatusResponseSchema>;
+
 /** 商品标签列表 */
 export const ProductTagListRequestSchema = z.object({
   page: z.coerce.number().int().positive().default(1).describe('页码'),

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
+  ChevronDownIcon,
   PackageIcon,
   PlusIcon,
   SearchIcon,
@@ -11,6 +12,12 @@ import type { Product } from "@/api"
 import { PRODUCT_STATUS, PRODUCT_STATUS_LABEL, PRODUCT_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import ConfirmDialog from "@/components/ui/confirm-dialog"
 import {
@@ -19,7 +26,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-import { getProducts, getTagOptions, toggleProductStatus } from "@/api"
+import { batchUpdateProductStatus, getProducts, getTagOptions, toggleProductStatus } from "@/api"
 import { logger, extractBackendMessage } from "@/lib/logger"
 import { SelectPicker } from "@/components/ui/select-picker"
 import { CreateProductDialog } from "./components/CreateProductDialog"
@@ -40,20 +47,36 @@ export default function ProductsPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const [filterStatus, setFilterStatus] = useState("")
-  const [priceMin, setPriceMin] = useState("")
-  const [priceMax, setPriceMax] = useState("")
 
   const [selectedTag, setSelectedTag] = useState("")
 
   const [tagOptions, setTagOptions] = useState<Array<{ label: string; value: string }>>([])
 
-  const filterRef = useRef({ filterStatus: "", priceMin: "", priceMax: "", selectedTag: "" })
-  filterRef.current = { filterStatus, priceMin, priceMax, selectedTag }
+  const filterRef = useRef({ filterStatus: "", selectedTag: "" })
+  filterRef.current = { filterStatus, selectedTag }
 
   const [statusConfirmOpen, setStatusConfirmOpen] = useState(false)
   const [statusConfirmTarget, setStatusConfirmTarget] = useState<{ id: number; name: string } | null>(null)
   const [statusConfirmAction, setStatusConfirmAction] = useState<0 | 1>(0)
   const [statusToggling, setStatusToggling] = useState(false)
+
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [batchConfirmOpen, setBatchConfirmOpen] = useState(false)
+  const [batchConfirmAction, setBatchConfirmAction] = useState<0 | 1>(0)
+  const [batchUpdating, setBatchUpdating] = useState(false)
+  const [batchMenuOpen, setBatchMenuOpen] = useState(false)
+  const batchMenuCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const openBatchMenu = useCallback(() => {
+    if (batchMenuCloseTimer.current) clearTimeout(batchMenuCloseTimer.current)
+    setBatchMenuOpen(true)
+  }, [])
+  const scheduleCloseBatchMenu = useCallback(() => {
+    if (batchMenuCloseTimer.current) clearTimeout(batchMenuCloseTimer.current)
+    batchMenuCloseTimer.current = setTimeout(() => {
+      setBatchMenuOpen(false)
+      batchMenuCloseTimer.current = null
+    }, 120)
+  }, [])
 
   useEffect(() => {
     getTagOptions()
@@ -68,16 +91,16 @@ export default function ProductsPage() {
       })
   }, [])
 
-  const hasFilters = !!(keyword || filterStatus || priceMin || priceMax || selectedTag)
+  const hasFilters = !!(keyword || filterStatus || selectedTag)
 
   const fetchProducts = useCallback(async (targetPage: number) => {
     setLoading(true)
     try {
       const kw = keywordRef.current
-      const { filterStatus, priceMin, priceMax, selectedTag } = filterRef.current
+      const { filterStatus, selectedTag } = filterRef.current
       const params: {
         page?: number; pageSize?: number; keyword?: string;
-        status?: number; priceMin?: number; priceMax?: number; tagIds?: string;
+        status?: number; tagIds?: string;
       } = {
         page: targetPage,
         pageSize,
@@ -87,12 +110,6 @@ export default function ProductsPage() {
       }
       if (filterStatus) {
         params.status = Number(filterStatus)
-      }
-      if (priceMin) {
-        params.priceMin = Number(priceMin)
-      }
-      if (priceMax) {
-        params.priceMax = Number(priceMax)
       }
       if (selectedTag) {
         params.tagIds = selectedTag
@@ -123,11 +140,9 @@ export default function ProductsPage() {
   const handleClear = () => {
     setKeyword("")
     setFilterStatus("")
-    setPriceMin("")
-    setPriceMax("")
     setSelectedTag("")
     keywordRef.current = ""
-    filterRef.current = { filterStatus: "", priceMin: "", priceMax: "", selectedTag: "" }
+    filterRef.current = { filterStatus: "", selectedTag: "" }
     fetchProducts(1)
   }
 
@@ -169,6 +184,34 @@ export default function ProductsPage() {
     }
   }
 
+  const openBatchConfirm = (targetStatus: 0 | 1) => {
+    if (selectedIds.size === 0) return
+    setBatchConfirmAction(targetStatus)
+    setBatchConfirmOpen(true)
+  }
+
+  const handleBatchStatusUpdate = async () => {
+    if (selectedIds.size === 0) return
+    setBatchUpdating(true)
+    try {
+      const res = await batchUpdateProductStatus([...selectedIds], batchConfirmAction)
+      if (res.code === 0) {
+        toast.success(res.message || `已批量更新 ${res.data.updatedCount} 个商品状态`)
+        setBatchConfirmOpen(false)
+        setSelectedIds(new Set())
+        await fetchProducts(page)
+      }
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "批量更新商品状态",
+      })
+      toast.error("批量更新商品状态失败，请稍后重试")
+    } finally {
+      setBatchUpdating(false)
+    }
+  }
+
   return (
     <>
       <DataTable
@@ -179,6 +222,39 @@ export default function ProductsPage() {
               <PlusIcon data-icon="inline-start" />
               新增商品
             </Button>
+            {selectedIds.size > 0 && (
+              <div
+                className="flex items-center gap-2"
+                onMouseLeave={scheduleCloseBatchMenu}
+              >
+                <DropdownMenu open={batchMenuOpen} onOpenChange={setBatchMenuOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      onMouseEnter={openBatchMenu}
+                      onClick={openBatchMenu}
+                    >
+                      操作
+                      <ChevronDownIcon />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    onMouseEnter={openBatchMenu}
+                    onMouseLeave={scheduleCloseBatchMenu}
+                  >
+                    <DropdownMenuItem onClick={() => openBatchConfirm(1)}>
+                      批量全局上架
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={() => openBatchConfirm(0)}
+                    >
+                      批量全局下架
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
           </>
         }
         toolbarRight={
@@ -207,23 +283,6 @@ export default function ProductsPage() {
               onValueChange={setFilterStatus}
               placeholder="状态"
               className="w-28"
-            />
-            <Input
-              placeholder="最低价"
-              className="w-24"
-              type="number"
-              min={0}
-              value={priceMin}
-              onChange={(e) => setPriceMin(e.target.value)}
-            />
-            <span className="text-muted-foreground">-</span>
-            <Input
-              placeholder="最高价"
-              className="w-24"
-              type="number"
-              min={0}
-              value={priceMax}
-              onChange={(e) => setPriceMax(e.target.value)}
             />
             <SelectPicker
               options={[
@@ -261,7 +320,7 @@ export default function ProductsPage() {
           </TableHeader>
         }
         body={products.map((product) => (
-          <TableRow key={product.id}>
+          <TableRow key={product.id} data-id={product.id}>
             <TableCell className="font-mono text-xs">{product.id}</TableCell>
             <TableCell>{product.name}</TableCell>
             <TableCell><span className="tabular-nums">¥ {product.price.toFixed(2)}</span></TableCell>
@@ -311,6 +370,9 @@ export default function ProductsPage() {
         loading={loading}
         isEmpty={products.length === 0}
         colSpan={6}
+        showSelection
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
         onRefresh={() => refreshProducts(page)}
         refreshDisabled={loading}
         emptyIcon={<PackageIcon className="size-4" />}
@@ -335,6 +397,21 @@ export default function ProductsPage() {
         }
         loading={statusToggling}
         onConfirm={handleStatusToggle}
+      />
+
+      <ConfirmDialog
+        open={batchConfirmOpen}
+        onOpenChange={setBatchConfirmOpen}
+        title="操作确认"
+        description={
+          <>
+            确定将 {selectedIds.size} 个商品批量{batchConfirmAction === 1 ? "上架" : "下架"}吗？
+          </>
+        }
+        confirmText="确定"
+        cancelText="取消"
+        loading={batchUpdating}
+        onConfirm={handleBatchStatusUpdate}
       />
     </>
   )

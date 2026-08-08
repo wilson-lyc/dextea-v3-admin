@@ -158,6 +158,17 @@ export const productRepository = {
       .where(eq(products.id, id));
   },
 
+  // ─── 批量更新商品状态 ─────────────────────────────
+
+  async batchUpdateProductStatus(ids: number[], status: number) {
+    if (ids.length === 0) return 0;
+    const result = await db
+      .update(products)
+      .set({ status })
+      .where(inArray(products.id, ids));
+    return result[0]?.affectedRows ?? 0;
+  },
+
   // ─── 商品标签列表（分页） ─────────────────────────
 
   async getProductTagListWithPage(productId: number, page: number, pageSize: number) {

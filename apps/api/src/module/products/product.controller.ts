@@ -12,6 +12,8 @@ import {
   UpdateProductResponseSchema,
   UpdateProductStatusRequestSchema,
   UpdateProductStatusResponseSchema,
+  BatchUpdateProductStatusRequestSchema,
+  BatchUpdateProductStatusResponseSchema,
   ProductTagListRequestSchema,
   ProductTagListResponseSchema,
   BindTagsRequestSchema,
@@ -150,6 +152,23 @@ export const registerProductRoutes: FastifyPluginAsyncZod = async (app) => {
     async (request, _reply) => {
       const data = await productService.updateProductStatus(request.params.id, request.body);
       return ApiResponse.success(data, '更新商品状态成功');
+    },
+  );
+
+  app.post(
+    '/products/batch/status',
+    {
+      schema: {
+        tags: ['Products'],
+        description: '批量更新商品状态（全局上架/下架）',
+        body: BatchUpdateProductStatusRequestSchema,
+        response: { 200: ApiResponseSchema(BatchUpdateProductStatusResponseSchema).describe('批量更新成功') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await productService.batchUpdateProductStatus(request.body);
+      return ApiResponse.success(data, '批量更新商品状态成功');
     },
   );
 
