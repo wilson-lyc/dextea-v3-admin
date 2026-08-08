@@ -7,7 +7,7 @@ import { verifyPassword, hashPassword } from '@/plugins/password/index.js';
 import { EMPLOYEE_STATUS } from '@dextea-admin/contracts';
 import type Redis from 'ioredis';
 
-export const TOKEN_PREFIX = 'dextea:admin:token:';
+export const TOKEN_PREFIX = 'dextea:auth:admin:';
 export const TOKEN_TTL = 60 * 15; // 15 分钟
 
 export const authService = {
