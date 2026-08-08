@@ -23,21 +23,10 @@ import {
   Table,
   TableHeader,
   TableHead,
-  TableBody,
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-import { Spinner } from "@/components/ui/spinner"
-import { Empty, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
+import DataTable from "@/components/ui/data-table"
 import { SelectPicker, type SelectOption } from "@/components/ui/select-picker"
 import { getTagBoundProducts, bindProductToTag, unbindProductFromTag, getProductOptions } from "@/api"
 
@@ -226,124 +215,60 @@ export default function ProductBindingSheet({
         </div>
 
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          {/* Bind button */}
-          <div className="flex items-center justify-start">
-            <Button onClick={openBindDialog}>
-              关联新商品
-            </Button>
-          </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Spinner className="size-6 text-muted-foreground" />
-            </div>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-20">商品ID</TableHead>
-                    <TableHead>商品名称</TableHead>
-                    <TableHead className="w-48 text-right">操作</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {products.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={3} className="h-48 text-center">
-                        <Empty>
-                          <EmptyMedia variant="icon">
-                            <PackageIcon className="size-4" />
-                          </EmptyMedia>
-                          <EmptyTitle>暂无数据</EmptyTitle>
-                        </Empty>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    products.map((product) => (
-                      <TableRow key={product.id}>
-                        <TableCell className="font-mono text-xs">{product.id}</TableCell>
-                        <TableCell>{product.name}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => navigate(`/products/${product.id}`)}
-                            >
-                              <ExternalLinkIcon data-icon="inline-start" />
-                              查看商品
-                            </Button>
-                            <Button
-                              variant="outline-destructive"
-                              size="sm"
-                              onClick={() => openDeleteConfirm(product)}
-                            >
-                              <Trash2Icon data-icon="inline-start" />
-                              解绑
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-
-              {products.length > 0 && (
-                <Pagination className="justify-end">
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        href="#"
-                        onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page > 1) fetchProducts(page - 1) }}
-                        text="上一页"
-                      />
-                    </PaginationItem>
-                    {(() => {
-                      const totalPages = Math.ceil(total / pageSize)
-                      const pages: (number | "...")[] = []
-                      if (totalPages <= 7) {
-                        for (let i = 1; i <= totalPages; i++) pages.push(i)
-                      } else {
-                        pages.push(1)
-                        if (page > 3) pages.push("...")
-                        for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
-                          pages.push(i)
-                        }
-                        if (page < totalPages - 2) pages.push("...")
-                        pages.push(totalPages)
-                      }
-                      return pages.map((p, idx) =>
-                        p === "..." ? (
-                          <PaginationItem key={`e-${idx}`}>
-                            <PaginationEllipsis />
-                          </PaginationItem>
-                        ) : (
-                          <PaginationItem key={p}>
-                            <PaginationLink
-                              href="#"
-                              isActive={p === page}
-                              onClick={(e: React.MouseEvent) => { e.preventDefault(); fetchProducts(p) }}
-                            >
-                              {p}
-                            </PaginationLink>
-                          </PaginationItem>
-                        ),
-                      )
-                    })()}
-                    <PaginationItem>
-                      <PaginationNext
-                        href="#"
-                        onClick={(e: React.MouseEvent) => { e.preventDefault(); if (page < Math.ceil(total / pageSize)) fetchProducts(page + 1) }}
-                        text="下一页"
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              )}
-            </>
-          )}
+          <DataTable
+            className="flex-1"
+            hideRefresh
+            toolbarLeft={
+              <Button onClick={openBindDialog}>
+                关联新商品
+              </Button>
+            }
+            header={
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-20">商品ID</TableHead>
+                  <TableHead>商品名称</TableHead>
+                  <TableHead className="w-48 text-right">操作</TableHead>
+                </TableRow>
+              </TableHeader>
+            }
+            body={products.map((product) => (
+              <TableRow key={product.id}>
+                <TableCell className="font-mono text-xs">{product.id}</TableCell>
+                <TableCell>{product.name}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/products/${product.id}`)}
+                    >
+                      <ExternalLinkIcon data-icon="inline-start" />
+                      查看商品
+                    </Button>
+                    <Button
+                      variant="outline-destructive"
+                      size="sm"
+                      onClick={() => openDeleteConfirm(product)}
+                    >
+                      <Trash2Icon data-icon="inline-start" />
+                      解绑
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+            loading={loading}
+            isEmpty={products.length === 0}
+            colSpan={3}
+            emptyIcon={<PackageIcon className="size-4" />}
+            emptyText="暂无关联商品"
+            pagination={
+              products.length > 0
+                ? { page, pageSize, total, onPageChange: fetchProducts }
+                : undefined
+            }
+          />
         </div>
 
         {/* Bind product dialog */}
