@@ -92,6 +92,7 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
     name: string
     currentStatus: number
   } | null>(null)
+  const [toggling, setToggling] = useState(false)
 
   // 客制化项目管理 sheet
   const [customizationTarget, setCustomizationTarget] = useState<{
@@ -106,6 +107,7 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
     const newStatus =
       currentStatus === 1 ? 0 : 1
 
+    setToggling(true)
     setData((prev) =>
       prev.map((item) =>
         item.id === id ? { ...item, storeStatus: newStatus } : item,
@@ -130,6 +132,8 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
           label: "更新商品门店状态",
         })
         toast.error("更新商品门店状态失败，请稍后重试")
+      } finally {
+        setToggling(false)
       }
   }, [storeId, toggleTarget])
 
@@ -299,6 +303,7 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
         title="操作确认"
         description={`确认修改「${toggleTarget?.name}」的门店状态为「${toggleTarget?.currentStatus === 1 ? "门店售罄" : "门店可售"}」？`}
         onConfirm={handleToggleConfirm}
+        loading={toggling}
       />
 
       {customizationTarget && (

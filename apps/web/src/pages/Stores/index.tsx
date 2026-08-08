@@ -174,7 +174,7 @@ export default function StoresPage() {
             </Button>
             <Button variant="outline" onClick={handleSync} disabled={syncing}>
               <RefreshCwIcon data-icon="inline-start" className={syncing ? "animate-spin" : ""} />
-              定位同步
+              {syncing ? "处理中..." : "定位同步"}
             </Button>
           </>
         }

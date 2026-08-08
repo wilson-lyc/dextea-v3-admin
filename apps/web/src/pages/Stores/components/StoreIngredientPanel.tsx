@@ -127,7 +127,7 @@ export function StoreIngredientPanel({ storeId }: StoreIngredientPanelProps) {
                   disabled={savingId === item.id}
                   onClick={() => saveEdit(item)}
                 >
-                  保存
+                  {savingId === item.id ? "处理中..." : "保存"}
                 </Button>
                 <Button
                   size="sm"
