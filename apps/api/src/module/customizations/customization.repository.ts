@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
 import {
   customizationItems,
@@ -8,6 +8,12 @@ import {
 } from '@/plugins/db/mysql/schema.js';
 import { CUSTOMIZATION_OPTION_STATUS } from '@dextea-admin/contracts/status';
 import { withPagination } from '@/utils';
+
+export interface ExportCustomizationItem {
+  name: string;
+  sort: number;
+  options: { name: string; price: number; sort: number }[];
+}
 
 export const customizationRepository = {
   // ─── Customization CRUD ──────────────────────────
@@ -174,6 +180,14 @@ export const customizationRepository = {
       .where(eq(customizationOptions.id, id));
   },
 
+  async updateOptionStatusById(id: number, status: number) {
+    const result = await db
+      .update(customizationOptions)
+      .set({ status })
+      .where(eq(customizationOptions.id, id));
+    return result[0]?.affectedRows ?? 0;
+  },
+
   async getIngredientById(id: number) {
     const rows = await db
       .select({ id: ingredients.id })
@@ -181,5 +195,92 @@ export const customizationRepository = {
       .where(eq(ingredients.id, id))
       .limit(1);
     return rows[0] ?? null;
+  },
+
+  // ─── 导出 / 导入 ────────────────────────────────
+
+  async getCustomizationWithOptions(productId: number, ids?: number[]): Promise<ExportCustomizationItem[]> {
+    const conditions = [eq(customizationItems.productId, productId)];
+    if (ids && ids.length > 0) {
+      conditions.push(inArray(customizationItems.id, ids));
+    }
+
+    const items = await db
+      .select({
+        id: customizationItems.id,
+        name: customizationItems.name,
+        sort: customizationItems.sort,
+      })
+      .from(customizationItems)
+      .where(and(...conditions))
+      .orderBy(customizationItems.sort, customizationItems.id);
+
+    const itemIds = items.map((it) => it.id);
+    let optionRows: { itemId: number; name: string; price: number; sort: number }[] = [];
+    if (itemIds.length > 0) {
+      optionRows = await db
+        .select({
+          itemId: customizationOptions.itemId,
+          name: customizationOptions.name,
+          price: customizationOptions.price,
+          sort: customizationOptions.sort,
+        })
+        .from(customizationOptions)
+        .where(inArray(customizationOptions.itemId, itemIds))
+        .orderBy(customizationOptions.sort, customizationOptions.id);
+    }
+
+    return items.map((it) => ({
+      name: it.name,
+      sort: it.sort,
+      options: optionRows
+        .filter((o) => o.itemId === it.id)
+        .map((o) => ({ name: o.name, price: o.price, sort: o.sort })),
+    }));
+  },
+
+  async importCustomizations(
+    productId: number,
+    items: { name: string; sort: number; options: { name: string; price: number; sort: number }[] }[],
+    itemStatus: number,
+    optionStatus: number,
+  ) {
+    return db.transaction(async (tx) => {
+      let importedItemCount = 0;
+      let importedOptionCount = 0;
+
+      for (const item of items) {
+        const [itemResult] = await tx
+          .insert(customizationItems)
+          .values({
+            productId,
+            name: item.name,
+            sort: item.sort,
+            status: itemStatus,
+          });
+        const itemId = Number(itemResult?.insertId ?? 0);
+        if (itemId === 0) continue;
+        importedItemCount += 1;
+
+        for (const option of item.options) {
+          const [optionResult] = await tx
+            .insert(customizationOptions)
+            .values({
+              itemId,
+              name: option.name,
+              price: option.price,
+              sort: option.sort,
+              status: optionStatus,
+              ingredientId: null,
+              ingredientQuantity: 0,
+            });
+          if (Number(optionResult?.insertId ?? 0) !== 0) {
+            importedOptionCount += 1;
+          }
+        }
+      }
+
+      return { importedItemCount, importedOptionCount };
+    });
   },
 };

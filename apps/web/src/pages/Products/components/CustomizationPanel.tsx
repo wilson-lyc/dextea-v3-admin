@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { ChevronDownIcon, ListIcon, PlusIcon } from "lucide-react"
+import { ChevronDownIcon, DownloadIcon, ListIcon, PlusIcon, UploadIcon } from "lucide-react"
 import { toast } from "sonner"
 
+import { cn } from "@/lib/utils"
 import type { Customization } from "@/api"
 import { CUSTOMIZATION_STATUS } from "@dextea-admin/contracts/status"
 import { CUSTOMIZATION_STATUS_LABEL, CUSTOMIZATION_STATUS_TEXT_CLASSES } from "@dextea-admin/contracts/status"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import {
   TableHeader,
   TableHead,
@@ -35,7 +37,10 @@ import {
   createCustomization,
   updateCustomizationStatus,
   batchUpdateCustomizationStatus,
+  exportCustomization,
+  importCustomization,
 } from "@/api"
+import type { ImportCustomizationRequest } from "@dextea-admin/contracts/dto"
 import { logger, extractBackendMessage } from "@/lib/logger"
 import { EditCustomizationDialog } from "./EditCustomizationDialog"
 import ManageOptionsSheet from "./ManageOptionsSheet"
@@ -72,6 +77,12 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
   const [batchConfirmAction, setBatchConfirmAction] = useState<0 | 1>(0)
   const [batchUpdating, setBatchUpdating] = useState(false)
   const [batchMenuOpen, setBatchMenuOpen] = useState(false)
+
+  // Export / Import
+  const [exporting, setExporting] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
+  const [importText, setImportText] = useState("")
+  const [importing, setImporting] = useState(false)
   const batchMenuCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const openBatchMenu = useCallback(() => {
     if (batchMenuCloseTimer.current) clearTimeout(batchMenuCloseTimer.current)
@@ -209,6 +220,91 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
     }
   }
 
+  // ── Export ──
+  const handleExport = async () => {
+    if (selectedIds.size === 0) {
+      toast.error("请先选择要导出的客制化项目")
+      return
+    }
+    setExporting(true)
+    try {
+      const res = await exportCustomization({
+        productId,
+        ids: Array.from(selectedIds),
+      })
+      if (res.code !== 0) return
+      const payload = JSON.stringify(res.data, null, 2)
+      const blob = new Blob([payload], { type: "application/json" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `customization-${productId}-${Date.now()}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success(`已导出 ${res.data.items.length} 个客制化项目`)
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "导出客制化配置",
+      })
+      toast.error("导出失败，请稍后重试")
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  // ── Import ──
+  const handleImportFile = (file: File) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      setImportText(String(reader.result ?? ""))
+    }
+    reader.onerror = () => toast.error("读取文件失败")
+    reader.readAsText(file)
+  }
+
+  const handleImport = async () => {
+    if (!importText.trim()) {
+      toast.error("请粘贴或上传客制化配置 JSON")
+      return
+    }
+    let parsed: ImportCustomizationRequest
+    try {
+      const raw = JSON.parse(importText)
+      parsed = {
+        productId,
+        items: Array.isArray(raw.items) ? raw.items : (raw as ImportCustomizationRequest).items,
+      }
+    } catch {
+      toast.error("JSON 格式无效，请检查后重试")
+      return
+    }
+    if (!Array.isArray(parsed.items) || parsed.items.length === 0) {
+      toast.error("配置中未包含任何客制化项目")
+      return
+    }
+    setImporting(true)
+    try {
+      const res = await importCustomization(parsed)
+      if (res.code === 0) {
+        toast.success(
+          `导入成功：共 ${res.data.importedItemCount} 个项目、${res.data.importedOptionCount} 个选项（默认禁用）`,
+        )
+        setImportOpen(false)
+        setImportText("")
+        await fetchData(1)
+      }
+    } catch (err) {
+      logger.error(extractBackendMessage(err) ?? "未知错误", {
+        module: "商品",
+        label: "导入客制化配置",
+      })
+      toast.error("导入失败，请确认配置格式正确")
+    } finally {
+      setImporting(false)
+    }
+  }
+
   return (
     <>
       <DataTable
@@ -217,6 +313,10 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
             <Button onClick={() => setCreateOpen(true)}>
               <PlusIcon data-icon="inline-start" />
               新建项目
+            </Button>
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <UploadIcon data-icon="inline-start" />
+              导入配置
             </Button>
             {selectedIds.size > 0 && (
               <div
@@ -248,6 +348,13 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
                       onClick={() => openBatchConfirm(CUSTOMIZATION_STATUS.DISABLED.value as 0)}
                     >
                       批量禁用
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={handleExport}
+                      disabled={exporting}
+                    >
+                      <DownloadIcon data-icon="inline-start" />
+                      导出配置
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -435,6 +542,59 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
         loading={batchUpdating}
         onConfirm={handleBatchStatusUpdate}
       />
+
+      {/* ── Import Dialog ── */}
+      <Dialog open={importOpen} onOpenChange={setImportOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>导入客制化配置</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-2 py-2">
+            <p className="text-sm text-muted-foreground">
+              将导出的 JSON 粘贴到下方，或上传 .json 文件。导入后项目与选项均默认为
+              <span className="text-destructive">禁用</span>状态，需手动激活。
+            </p>
+            <Textarea
+              className="h-64 font-mono text-xs"
+              value={importText}
+              onChange={(e) => setImportText(e.target.value)}
+            />
+            <div className="flex items-center gap-2">
+              <label
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "cursor-pointer",
+                )}
+              >
+                上传 JSON 文件
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handleImportFile(file)
+                    e.target.value = ""
+                  }}
+                />
+              </label>
+              {importText.trim() && (
+                <Button variant="ghost" size="sm" onClick={() => setImportText("")}>
+                  清空
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline">取消</Button>} />
+            <Button onClick={handleImport} disabled={importing}>
+              {importing ? "导入中..." : "导入"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

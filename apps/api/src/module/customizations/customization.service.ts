@@ -16,9 +16,14 @@ import type {
   BatchUpdateCustomizationStatusRequest,
   CreateCustomizationOptionRequest,
   UpdateCustomizationOptionRequest,
+  UpdateCustomizationOptionStatusRequest,
+  BatchUpdateCustomizationOptionStatusRequest,
+  ImportCustomizationRequest,
+  ExportCustomizationRequest,
 } from '@dextea-admin/contracts';
 
 const CUSTOMIZATION_GLOBAL_STATUS_LOCK = 'update_customization_item_global_status';
+const CUSTOMIZATION_OPTION_GLOBAL_STATUS_LOCK = 'update_customization_option_global_status';
 
 export const customizationService = {
   async getCustomizationList(params: CustomizationListRequest) {
@@ -240,12 +245,80 @@ export const customizationService = {
       throw new BizError(CustomizationErrorCodes.INVALID_STATUS);
     }
 
-    const option = await customizationRepository.getOptionById(optionId);
-    if (!option || option.itemId !== customizationId) {
-      throw new BizError(CustomizationErrorCodes.OPTION_NOT_FOUND);
+    // 客制化选项全局状态更新需抢占分布式锁，锁键精确到选项维度。
+    return withDistributedLock(`${CUSTOMIZATION_OPTION_GLOBAL_STATUS_LOCK}:${optionId}`, async () => {
+      const option = await customizationRepository.getOptionById(optionId);
+      if (!option || option.itemId !== customizationId) {
+        throw new BizError(CustomizationErrorCodes.OPTION_NOT_FOUND);
+      }
+
+      await customizationRepository.updateOptionById(optionId, { status });
+      return customizationRepository.getOptionByIdWithIngredient(optionId);
+    });
+  },
+
+  async batchUpdateOptionStatus(input: BatchUpdateCustomizationOptionStatusRequest) {
+    const { ids, status } = input;
+
+    if (!(CUSTOMIZATION_OPTION_STATUS_VALUES as readonly number[]).includes(status)) {
+      throw new BizError(CustomizationErrorCodes.INVALID_STATUS);
     }
 
-    await customizationRepository.updateOptionById(optionId, { status });
-    return customizationRepository.getOptionByIdWithIngredient(optionId);
+    const uniqueIds = [...new Set(ids)];
+
+    // 一个 ID 一把锁，逐个独立获取与释放：每把锁只覆盖该选项自身的更新，
+    // 处理完即释放，不会跨选项持有，避免把整批 ID 当成一个整体来加锁。
+    let updatedCount = 0;
+    for (const id of uniqueIds) {
+      await withDistributedLock(`${CUSTOMIZATION_OPTION_GLOBAL_STATUS_LOCK}:${id}`, async () => {
+        const affected = await customizationRepository.updateOptionStatusById(id, status);
+        updatedCount += affected;
+      });
+    }
+
+    return { updatedCount };
+  },
+
+  async exportCustomization(input: ExportCustomizationRequest) {
+    const { productId, ids } = input;
+
+    const product = await customizationRepository.getProductById(productId);
+    if (!product) {
+      throw new BizError(CustomizationErrorCodes.PRODUCT_NOT_FOUND);
+    }
+
+    const items = await customizationRepository.getCustomizationWithOptions(productId, ids);
+    return { productId, items };
+  },
+
+  async importCustomization(input: ImportCustomizationRequest) {
+    const { productId, items } = input;
+
+    const product = await customizationRepository.getProductById(productId);
+    if (!product) {
+      throw new BizError(CustomizationErrorCodes.PRODUCT_NOT_FOUND);
+    }
+
+    const normalizedItems = items.map((item) => ({
+      name: item.name.trim(),
+      sort: item.sort ?? 0,
+      options: item.options.map((option) => ({
+        name: option.name.trim(),
+        price: option.price ?? 0,
+        sort: option.sort ?? 0,
+      })),
+    }));
+
+    if (normalizedItems.length === 0) {
+      throw new BizError(CustomizationErrorCodes.IMPORT_INVALID);
+    }
+
+    const result = await customizationRepository.importCustomizations(
+      productId,
+      normalizedItems,
+      CUSTOMIZATION_STATUS.DISABLED.value,
+      CUSTOMIZATION_OPTION_STATUS.GLOBAL_DISABLED.value,
+    );
+    return result;
   },
 };

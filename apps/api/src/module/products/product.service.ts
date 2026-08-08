@@ -183,11 +183,15 @@ export const productService = {
 
     return withMutation(async () => {
       // 商品全局状态更新需抢占分布式锁，避免同一商品在分布式部署下并发写导致状态错乱。
-      // 锁键精确到商品维度，不同商品的更新互不影响。
-      return withDistributedLock(uniqueIds.map(id => `update_product_global_status:${id}`), async () => {
-        const updatedCount = await productRepository.batchUpdateProductStatus(uniqueIds, status);
-        return { updatedCount };
-      });
+      // 锁键精确到商品维度，一个 id 一把锁，逐个独立获取与释放，不把整批当成一个整体加锁。
+      let updatedCount = 0;
+      for (const id of uniqueIds) {
+        await withDistributedLock(`update_product_global_status:${id}`, async () => {
+          const affected = await productRepository.batchUpdateProductStatus([id], status);
+          updatedCount += affected;
+        });
+      }
+      return { updatedCount };
     }, ProductErrorCodes.STATUS_UPDATE_FAILED);
   },
 

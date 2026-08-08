@@ -135,6 +135,19 @@ export type UpdateCustomizationOptionStatusRequest = z.infer<typeof UpdateCustom
 export const UpdateCustomizationOptionStatusResponseSchema = CustomizationOptionSchema;
 export type UpdateCustomizationOptionStatusResponse = CustomizationOption;
 
+// ─── 批量更新客制化选项状态（激活/禁用） ──
+
+export const BatchUpdateCustomizationOptionStatusRequestSchema = z.object({
+  ids: z.array(z.number().int().positive()).min(1, '至少需要一个客制化选项ID').describe('客制化选项ID列表'),
+  status: z.number().describe('状态（0=禁用 1=激活）'),
+});
+export type BatchUpdateCustomizationOptionStatusRequest = z.infer<typeof BatchUpdateCustomizationOptionStatusRequestSchema>;
+
+export const BatchUpdateCustomizationOptionStatusResponseSchema = z.object({
+  updatedCount: z.number().describe('更新成功的客制化选项数量'),
+});
+export type BatchUpdateCustomizationOptionStatusResponse = z.infer<typeof BatchUpdateCustomizationOptionStatusResponseSchema>;
+
 // ─── 单独更新客制化选项绑定用量 ───────────────────
 
 export const UpdateCustomizationOptionQuantityRequestSchema = z.object({
@@ -156,3 +169,62 @@ export type RebindCustomizationOptionIngredientRequest = z.infer<typeof RebindCu
 
 export const RebindCustomizationOptionIngredientResponseSchema = CustomizationOptionSchema;
 export type RebindCustomizationOptionIngredientResponse = CustomizationOption;
+
+// ─── 客制化配置导出 ───────────────────────────────
+// 导出的内容只保留可复用的核心字段：项目名称、选项名称/价格/排序。
+
+export const CustomizationExportOptionSchema = z.object({
+  name: z.string().describe('选项名称'),
+  price: z.number().describe('加价'),
+  sort: z.number().int().describe('排序'),
+});
+export type CustomizationExportOption = z.infer<typeof CustomizationExportOptionSchema>;
+
+export const CustomizationExportItemSchema = z.object({
+  name: z.string().describe('客制化项目名称'),
+  sort: z.number().int().describe('排序'),
+  options: z.array(CustomizationExportOptionSchema).describe('客制化选项列表'),
+});
+export type CustomizationExportItem = z.infer<typeof CustomizationExportItemSchema>;
+
+export const ExportCustomizationResponseSchema = z.object({
+  productId: z.number().describe('来源商品ID'),
+  items: z.array(CustomizationExportItemSchema).describe('客制化配置'),
+});
+export type ExportCustomizationResponse = z.infer<typeof ExportCustomizationResponseSchema>;
+
+export const ExportCustomizationRequestSchema = z.object({
+  productId: z.number().int().positive('商品ID必须为正整数').describe('来源商品ID'),
+  ids: z.array(z.number().int().positive()).min(1, '至少需要选择一个客制化项目').describe('要导出的客制化项目ID列表'),
+});
+export type ExportCustomizationRequest = z.infer<typeof ExportCustomizationRequestSchema>;
+
+// ─── 客制化配置导入 ───────────────────────────────
+// 导入到目标商品，复用的字段只有项目名称、选项名称/价格/排序；
+// 导入后项目和选项状态全部默认为禁用。
+
+export const CustomizationImportOptionSchema = z.object({
+  name: z.string().trim().min(1, '客制化选项名称不能为空').max(32, '客制化选项名称长度不能超过 32 个字符').describe('选项名称'),
+  price: z.number().optional().describe('加价'),
+  sort: z.number().int().min(0).max(127).optional().describe('排序'),
+});
+export type CustomizationImportOption = z.infer<typeof CustomizationImportOptionSchema>;
+
+export const CustomizationImportItemSchema = z.object({
+  name: z.string().trim().min(1, '客制化项目名称不能为空').max(32, '客制化项目名称长度不能超过 32 个字符').describe('项目名称'),
+  sort: z.number().int().min(0).max(127).optional().describe('排序'),
+  options: z.array(CustomizationImportOptionSchema).min(1, '每个客制化项目至少需要一个选项').describe('选项列表'),
+});
+export type CustomizationImportItem = z.infer<typeof CustomizationImportItemSchema>;
+
+export const ImportCustomizationRequestSchema = z.object({
+  productId: z.number().int().positive('商品ID必须为正整数').describe('目标商品ID'),
+  items: z.array(CustomizationImportItemSchema).min(1, '至少需要一个客制化项目').describe('客制化配置'),
+});
+export type ImportCustomizationRequest = z.infer<typeof ImportCustomizationRequestSchema>;
+
+export const ImportCustomizationResponseSchema = z.object({
+  importedItemCount: z.number().describe('导入成功的客制化项目数量'),
+  importedOptionCount: z.number().describe('导入成功的客制化选项数量'),
+});
+export type ImportCustomizationResponse = z.infer<typeof ImportCustomizationResponseSchema>;

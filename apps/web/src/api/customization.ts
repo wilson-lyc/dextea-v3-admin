@@ -13,6 +13,11 @@ import type {
   UpdateCustomizationOptionStatusRequest,
   UpdateCustomizationOptionQuantityRequest,
   RebindCustomizationOptionIngredientRequest,
+  BatchUpdateCustomizationOptionStatusRequest,
+  ExportCustomizationResponse,
+  ExportCustomizationRequest,
+  ImportCustomizationRequest,
+  ImportCustomizationResponse,
 } from "@dextea-admin/contracts/dto"
 
 export type {
@@ -24,6 +29,11 @@ export type {
   UpdateCustomizationOptionRequest,
   UpdateCustomizationOptionQuantityRequest,
   RebindCustomizationOptionIngredientRequest,
+  BatchUpdateCustomizationOptionStatusRequest,
+  ExportCustomizationResponse,
+  ExportCustomizationRequest,
+  ImportCustomizationRequest,
+  ImportCustomizationResponse,
 } from "@dextea-admin/contracts/dto"
 
 const http = createModuleClient("customization")
@@ -147,6 +157,23 @@ export function updateCustomizationOptionStatus(
 }
 
 /**
+ * 批量更新客制化选项状态（激活/禁用）
+ * POST /customizations/:id/options/batch/status
+ */
+export function batchUpdateCustomizationOptionStatus(
+  customizationId: number,
+  ids: number[],
+  status: number,
+) {
+  return http
+    .post<ApiResponse<{ updatedCount: number }>>(
+      `/customizations/${customizationId}/options/batch/status`,
+      { ids, status } satisfies BatchUpdateCustomizationOptionStatusRequest,
+    )
+    .then((res) => res.data)
+}
+
+/**
  * 单独更新客制化选项绑定用量
  * PATCH /customizations/:id/options/:optionId/quantity
  */
@@ -177,5 +204,27 @@ export function rebindCustomizationOptionIngredient(
       `/customizations/${customizationId}/options/${optionId}/ingredient`,
       payload,
     )
+    .then((res) => res.data)
+}
+
+// ──── 客制化配置导出 / 导入 ────
+
+/**
+ * 导出选中的客制化配置（仅含项目名称与选项的 名称/价格/排序）
+ * POST /customizations/export
+ */
+export function exportCustomization(data: ExportCustomizationRequest) {
+  return http
+    .post<ApiResponse<ExportCustomizationResponse>>("/customizations/export", data)
+    .then((res) => res.data)
+}
+
+/**
+ * 导入客制化配置到目标商品（项目与选项默认禁用）
+ * POST /customizations/import
+ */
+export function importCustomization(data: ImportCustomizationRequest) {
+  return http
+    .post<ApiResponse<ImportCustomizationResponse>>("/customizations/import", data)
     .then((res) => res.data)
 }

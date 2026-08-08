@@ -17,4 +17,5 @@ export const CustomizationErrorCodes = {
   OPTION_DELETE_FAILED: { code: 10910, message: '删除客制化选项失败' },
   INGREDIENT_NOT_FOUND: { code: 10911, message: '原料不存在' },
   INVALID_STATUS: { code: 10912, message: '无效的状态值' },
+  IMPORT_INVALID: { code: 10913, message: '导入的客制化配置无效' },
 } as const satisfies Record<string, BizErrorCode>;

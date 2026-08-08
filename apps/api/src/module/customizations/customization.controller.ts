@@ -20,10 +20,16 @@ import {
   UpdateCustomizationOptionResponseSchema,
   UpdateCustomizationOptionStatusRequestSchema,
   UpdateCustomizationOptionStatusResponseSchema,
+  BatchUpdateCustomizationOptionStatusRequestSchema,
+  BatchUpdateCustomizationOptionStatusResponseSchema,
   UpdateCustomizationOptionQuantityRequestSchema,
   UpdateCustomizationOptionQuantityResponseSchema,
   RebindCustomizationOptionIngredientRequestSchema,
   RebindCustomizationOptionIngredientResponseSchema,
+  ExportCustomizationRequestSchema,
+  ExportCustomizationResponseSchema,
+  ImportCustomizationRequestSchema,
+  ImportCustomizationResponseSchema,
 } from '@dextea-admin/contracts';
 
 const ParamIdSchema = z.object({ id: z.coerce.number().int().positive('ID 必须为正整数') });
@@ -208,6 +214,25 @@ export const registerCustomizationRoutes: FastifyPluginAsyncZod = async (app) =>
     },
   );
 
+  // 批量更新客制化选项状态（激活/禁用）
+  app.post(
+    '/customizations/:id/options/batch/status',
+    {
+      schema: {
+        tags: ['Customizations'],
+        description: '批量更新客制化选项状态（激活/禁用）',
+        params: ParamIdSchema,
+        body: BatchUpdateCustomizationOptionStatusRequestSchema,
+        response: { 200: ApiResponseSchema(BatchUpdateCustomizationOptionStatusResponseSchema).describe('批量更新成功') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await customizationService.batchUpdateOptionStatus(request.body);
+      return ApiResponse.success(data, '批量更新客制化选项状态成功');
+    },
+  );
+
   // 单独更新客制化选项绑定用量
   app.patch(
     '/customizations/:id/options/:optionId/quantity',
@@ -252,6 +277,42 @@ export const registerCustomizationRoutes: FastifyPluginAsyncZod = async (app) =>
         request.body.quantity,
       );
       return ApiResponse.success(data, '换绑成功');
+    },
+  );
+
+  // 导出客制化配置（按选中的项目批量导出，仅含项目名称与选项的 名称/价格/排序）
+  app.post(
+    '/customizations/export',
+    {
+      schema: {
+        tags: ['Customizations'],
+        description: '导出选中的客制化配置为可复用 JSON',
+        body: ExportCustomizationRequestSchema,
+        response: { 200: ApiResponseSchema(ExportCustomizationResponseSchema).describe('客制化配置导出结果') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await customizationService.exportCustomization(request.body);
+      return ApiResponse.success(data);
+    },
+  );
+
+  // 导入客制化配置（到目标商品，导入后项目和选项均默认为禁用）
+  app.post(
+    '/customizations/import',
+    {
+      schema: {
+        tags: ['Customizations'],
+        description: '导入客制化配置到目标商品（项目与选项默认禁用）',
+        body: ImportCustomizationRequestSchema,
+        response: { 200: ApiResponseSchema(ImportCustomizationResponseSchema).describe('导入结果') },
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, _reply) => {
+      const data = await customizationService.importCustomization(request.body);
+      return ApiResponse.success(data, '导入成功');
     },
   );
 };
