@@ -251,8 +251,8 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
               </FieldLabel>
               <Input
                 id="create-name"
-                placeholder="例如：温度、甜度、加料"
                 value={createName}
+                placeholder="例如：温度、甜度..."
                 onChange={(e) => setCreateName(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleCreate()
@@ -264,7 +264,7 @@ export default function CustomizationPanel({ productId }: CustomizationPanelProp
               <Input
                 id="create-sort"
                 type="number"
-                placeholder="手动设置，留空则默认为 0"
+                placeholder="留空默认为 0"
                 value={createSort}
                 onChange={(e) => setCreateSort(e.target.value)}
                 onKeyDown={(e) => {

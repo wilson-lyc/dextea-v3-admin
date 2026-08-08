@@ -76,6 +76,7 @@ export function EditCustomizationDialog({ open, onOpenChange, item, onUpdated }:
             <Input
               id="edit-name"
               value={name}
+              placeholder="例如：温度、甜度..."
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleUpdate()
