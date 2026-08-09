@@ -14,7 +14,7 @@ import { withPagination } from '@/utils';
 
 // 价格以 DECIMAL 存储，MySQL 驱动返回为字符串；在出口层统一转为 number，
 // 以符合契约 ProductSchema.price 的 number 类型（避免响应序列化 500）。
-function normalizeProduct<T extends { price: string | number }>(p: T): T {
+function normalizeProduct<T extends { price: string | number }>(p: T): Omit<T, 'price'> & { price: number } {
   return { ...p, price: Number(p.price) };
 }
 

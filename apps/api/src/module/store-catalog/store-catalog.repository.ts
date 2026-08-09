@@ -75,11 +75,12 @@ export const storeCatalogRepository = {
       countQuery.where(where);
     }
 
-    const [items, countResult] = await Promise.all([
+    const [rows, countResult] = await Promise.all([
       baseQuery.limit(pageSize).offset(offset).orderBy(products.id),
       countQuery,
     ]);
 
+    const items = rows.map((row) => ({ ...row, price: Number(row.price) }));
     const total = Number(countResult[0]?.count ?? 0);
 
     return { items, total, page, pageSize };
@@ -162,7 +163,7 @@ export const storeCatalogRepository = {
     const pageSize = Math.min(100, Math.max(1, params.pageSize));
     const offset = (page - 1) * pageSize;
 
-    const [items, countResult] = await Promise.all([
+    const [rows, countResult] = await Promise.all([
       db
         .select({
           id: customizationOptions.id,
@@ -189,6 +190,7 @@ export const storeCatalogRepository = {
         .where(eq(customizationOptions.itemId, customizationId)),
     ]);
 
+    const items = rows.map((row) => ({ ...row, price: Number(row.price) }));
     const total = Number(countResult[0]?.count ?? 0);
 
     return { items, total, page, pageSize };

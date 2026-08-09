@@ -91,7 +91,7 @@ export const productService = {
         name,
         brief: brief ?? '',
         description: description ?? '',
-        price: price ?? 0,
+        price: String(price ?? 0),
         status: status ?? 0,
       });
       if (!insertId) {
@@ -124,11 +124,11 @@ export const productService = {
           if (!name) throw new BizError(ProductErrorCodes.NAME_REQUIRED);
         }
 
-        const updateData: Partial<typeof product> = {};
+        const updateData: Partial<Omit<typeof product, 'price'> & { price: string }> = {};
         if (name !== undefined) updateData.name = name;
         if (brief !== undefined) updateData.brief = brief;
         if (description !== undefined) updateData.description = description;
-        if (price !== undefined) updateData.price = price;
+        if (price !== undefined) updateData.price = String(price);
         if (status !== undefined) updateData.status = status;
 
         if (Object.keys(updateData).length > 0) {
@@ -136,6 +136,9 @@ export const productService = {
         }
 
         const updated = await productRepository.getProductById(id);
+        if (!updated) {
+          throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
+        }
         const tags = await productRepository.getProductTagsById(id);
 
         return { ...updated, tags };

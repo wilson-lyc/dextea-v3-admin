@@ -186,7 +186,7 @@ export const menuRepository = {
   // ─── 商品 ──────────────────────────────────────────
 
   async getMenuProductList(groupId: number) {
-    return db
+    const rows = await db
       .select({
         groupId: menuProducts.groupId,
         productId: menuProducts.productId,
@@ -201,6 +201,7 @@ export const menuRepository = {
       .innerJoin(products, eq(menuProducts.productId, products.id))
       .where(eq(menuProducts.groupId, groupId))
       .orderBy(menuProducts.sort, menuProducts.productId);
+    return rows.map((row) => ({ ...row, price: Number(row.price) }));
   },
 
   async getMenuProduct(groupId: number, productId: number) {

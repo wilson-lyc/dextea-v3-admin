@@ -1,4 +1,4 @@
-import { and, count, eq, groupBy, inArray, sql } from 'drizzle-orm';
+import { and, count, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '@/plugins/db/mysql/index.js';
 import {
   customizationItems,
@@ -12,6 +12,12 @@ import { withPagination } from '@/utils';
 export interface ExportCustomizationItem {
   name: string;
   options: { name: string; price: number; sort: number }[];
+}
+
+// 加价以 DECIMAL 存储，MySQL 驱动返回为字符串；在出口层统一转为 number，
+// 以符合契约 CustomizationOptionSchema.price 的 number 类型（避免响应序列化 500）。
+function normalizeOption<T extends { price: string | number }>(o: T): Omit<T, 'price'> & { price: number } {
+  return { ...o, price: Number(o.price) };
 }
 
 export const customizationRepository = {
@@ -145,7 +151,7 @@ export const customizationRepository = {
   // ─── Option CRUD ────────────────────────────────
 
   async getOptionList(customizationId: number) {
-    return db
+    const rows = await db
       .select({
         id: customizationOptions.id,
         customizationId: customizationOptions.itemId,
@@ -163,6 +169,7 @@ export const customizationRepository = {
       .leftJoin(ingredients, eq(customizationOptions.ingredientId, ingredients.id))
       .where(eq(customizationOptions.itemId, customizationId))
       .orderBy(customizationOptions.sort, customizationOptions.id);
+    return rows.map(normalizeOption);
   },
 
   async getOptionById(id: number) {
@@ -193,7 +200,8 @@ export const customizationRepository = {
       .leftJoin(ingredients, eq(customizationOptions.ingredientId, ingredients.id))
       .where(eq(customizationOptions.id, id))
       .limit(1);
-    return rows[0] ?? null;
+    const row = rows[0];
+    return row ? normalizeOption(row) : null;
   },
 
   async createOption(data: typeof customizationOptions.$inferInsert) {
@@ -244,7 +252,7 @@ export const customizationRepository = {
       .orderBy(customizationItems.sort, customizationItems.id);
 
     const itemIds = items.map((it) => it.id);
-    let optionRows: { itemId: number; name: string; price: number; sort: number }[] = [];
+    let optionRows: { itemId: number; name: string; price: string | number; sort: number }[] = [];
     if (itemIds.length > 0) {
       optionRows = await db
         .select({
@@ -262,7 +270,7 @@ export const customizationRepository = {
       name: it.name,
       options: optionRows
         .filter((o) => o.itemId === it.id)
-        .map((o) => ({ name: o.name, price: o.price, sort: o.sort })),
+        .map((o) => ({ name: o.name, price: Number(o.price), sort: o.sort })),
     }));
   },
 
@@ -295,7 +303,7 @@ export const customizationRepository = {
             .values({
               itemId,
               name: option.name,
-              price: option.price,
+              price: String(option.price),
               sort: option.sort,
               status: optionStatus,
               ingredientId: null,

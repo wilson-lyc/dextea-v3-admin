@@ -167,7 +167,7 @@ export const customizationService = {
     const insertId = await customizationRepository.createOption({
       itemId: customizationId,
       name: trimmedName,
-      price: price ?? 0,
+      price: String(price ?? 0),
       sort: sort ?? 0,
       status: CUSTOMIZATION_OPTION_STATUS.GLOBAL_DISABLED.value,
       ingredientId: ingredientId ?? null,
@@ -192,7 +192,7 @@ export const customizationService = {
       
       updateData.name = trimmedName;
     }
-    if (price !== undefined) updateData.price = price;
+    if (price !== undefined) updateData.price = String(price);
     if (sort !== undefined) {
       updateData.sort = sort;
     }
