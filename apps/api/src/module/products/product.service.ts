@@ -3,7 +3,6 @@ import { ProductErrorCodes } from './product.errorcode.js';
 import { TagErrorCodes } from '@/module/tags/tag.errorcode.js';
 import { productRepository } from './product.repository.js';
 import { PRODUCT_STATUS_VALUES } from '@dextea-admin/contracts';
-import { withDistributedLock } from '@/plugins/lock/index.js';
 import {
   validateStatus,
   isDuplicateKeyError,
@@ -112,8 +111,6 @@ export const productService = {
     }
 
     return withMutation(async () => {
-      // 当本次更新包含全局状态字段时，需与其他状态写入抢同一把商品锁，
-      // 避免 updateProduct 与 updateProductStatus 并发写导致状态覆盖。
       const runMutation = async () => {
         const product = await productRepository.getProductById(id);
         if (!product) {
@@ -144,9 +141,7 @@ export const productService = {
         return { ...updated, tags };
       };
 
-      return status !== undefined
-        ? withDistributedLock(`product:status:${id}`, runMutation)
-        : runMutation();
+      return runMutation();
     }, ProductErrorCodes.UPDATE_FAILED);
   },
 
@@ -158,20 +153,16 @@ export const productService = {
     validateStatus(status, PRODUCT_STATUS_VALUES, '商品状态');
 
     return withMutation(async () => {
-      // 商品全局状态更新需抢占分布式锁，避免同一商品在分布式部署下并发写导致状态错乱。
-      // 锁键精确到商品维度，不同商品的更新互不影响。
-      return withDistributedLock(`product:status:${id}`, async () => {
-        const product = await productRepository.getProductById(id);
-        if (!product) {
-          throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
-        }
+      const product = await productRepository.getProductById(id);
+      if (!product) {
+        throw new BizError(ProductErrorCodes.PRODUCT_NOT_FOUND);
+      }
 
-        await productRepository.updateProductById(id, { status });
+      await productRepository.updateProductById(id, { status });
 
-        const updated = await productRepository.getProductById(id);
+      const updated = await productRepository.getProductById(id);
 
-        return updated!;
-      });
+      return updated!;
     }, ProductErrorCodes.STATUS_UPDATE_FAILED);
   },
 
@@ -185,14 +176,10 @@ export const productService = {
     const uniqueIds = [...new Set(ids)];
 
     return withMutation(async () => {
-      // 商品全局状态更新需抢占分布式锁，避免同一商品在分布式部署下并发写导致状态错乱。
-      // 锁键精确到商品维度，一个 id 一把锁，逐个独立获取与释放，不把整批当成一个整体加锁。
       let updatedCount = 0;
       for (const id of uniqueIds) {
-        await withDistributedLock(`update_product_global_status:${id}`, async () => {
-          const affected = await productRepository.batchUpdateProductStatus([id], status);
-          updatedCount += affected;
-        });
+        const affected = await productRepository.batchUpdateProductStatus([id], status);
+        updatedCount += affected;
       }
       return { updatedCount };
     }, ProductErrorCodes.STATUS_UPDATE_FAILED);

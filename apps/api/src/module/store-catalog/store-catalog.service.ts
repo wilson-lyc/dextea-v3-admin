@@ -2,17 +2,6 @@ import { BizError } from '@/common/exceptions/index.js';
 import { StoreCatalogErrorCodes } from './store-catalog.errorcode.js';
 import { storeCatalogRepository } from './store-catalog.repository.js';
 import { STORE_PRODUCT_STATUS_VALUES } from '@dextea-admin/contracts';
-import { withDistributedLock } from '@/plugins/lock/index.js';
-
-// 商品门店状态锁键（完整键为 dextea:lock:update_product_store_status:p{商品ID}_s{门店ID}）
-function productStoreStatusLockKey(storeId: number, productId: number): string {
-  return `update_product_store_status:p${productId}_s${storeId}`;
-}
-
-// 客制化选项门店状态锁键（完整键为 dextea:lock:update_customization_option_store_stauts:o{选项ID}_s{门店ID}）
-function customizationOptionStoreStatusLockKey(storeId: number, optionId: number): string {
-  return `update_customization_option_store_stauts:o${optionId}_s${storeId}`;
-}
 
 // 校验门店是否存在（门店目录子资源接口共用）
 async function ensureStoreExists(storeId: number): Promise<void> {
@@ -34,12 +23,7 @@ export const storeCatalogService = {
       throw new BizError(StoreCatalogErrorCodes.INVALID_STATUS);
     }
     await ensureStoreExists(storeId);
-    return withDistributedLock(
-      productStoreStatusLockKey(storeId, productId),
-      async () => {
-        await storeCatalogRepository.upsertProductStoreStatus(storeId, productId, status);
-      },
-    );
+    await storeCatalogRepository.upsertProductStoreStatus(storeId, productId, status);
   },
 
   async batchUpdateProductStoreStatus(storeId: number, productIds: number[], status: number) {
@@ -52,10 +36,8 @@ export const storeCatalogService = {
     let updatedCount = 0;
 
     for (const productId of uniqueIds) {
-      await withDistributedLock(productStoreStatusLockKey(storeId, productId), async () => {
-        await storeCatalogRepository.upsertProductStoreStatus(storeId, productId, status);
-        updatedCount += 1;
-      });
+      await storeCatalogRepository.upsertProductStoreStatus(storeId, productId, status);
+      updatedCount += 1;
     }
 
     return { updatedCount };
@@ -83,12 +65,7 @@ export const storeCatalogService = {
       throw new BizError(StoreCatalogErrorCodes.INVALID_STATUS);
     }
     await ensureStoreExists(storeId);
-    return withDistributedLock(
-      customizationOptionStoreStatusLockKey(storeId, optionId),
-      async () => {
-        await storeCatalogRepository.upsertCustomizationOptionStoreStatus(storeId, optionId, status);
-      },
-    );
+    await storeCatalogRepository.upsertCustomizationOptionStoreStatus(storeId, optionId, status);
   },
 
   async batchUpdateCustomizationOptionStoreStatus(storeId: number, optionIds: number[], status: number) {
@@ -101,10 +78,8 @@ export const storeCatalogService = {
     let updatedCount = 0;
 
     for (const optionId of uniqueIds) {
-      await withDistributedLock(customizationOptionStoreStatusLockKey(storeId, optionId), async () => {
-        await storeCatalogRepository.upsertCustomizationOptionStoreStatus(storeId, optionId, status);
-        updatedCount += 1;
-      });
+      await storeCatalogRepository.upsertCustomizationOptionStoreStatus(storeId, optionId, status);
+      updatedCount += 1;
     }
 
     return { updatedCount };

@@ -3,7 +3,6 @@ import { BizError } from '@/common/exceptions/index.js';
 import { StoreErrorCodes } from './store.errorcode.js';
 import { storeRepository } from './store.repository.js';
 import { redis } from '@/plugins/db/redis/index.js';
-import { withDistributedLock } from '@/plugins/lock/index.js';
 import { geocode } from '@/plugins/geocode/index.js';
 import { hashPassword } from '@/plugins/password/index.js';
 import { normalizeStoreRegion, isMunicipality } from '@/utils';
@@ -118,10 +117,8 @@ export const storeService = {
       throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
 
-    return withDistributedLock(`update_store_status:${id}`, async () => {
-      await storeRepository.updateStoreById(id, { status });
-      return { status };
-    });
+    await storeRepository.updateStoreById(id, { status });
+    return { status };
   },
 
   async resetStorePassword(id: number) {

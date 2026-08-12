@@ -16,8 +16,6 @@ export const SystemErrorCodes = {
     FORBIDDEN: { code: 10006, message: '没有权限执行该操作' },
     VALIDATION_ERROR: { code: 10007, message: '数据校验失败' },
     DASHBOARD_STATS_FAILED: { code: 10008, message: '获取统计数据失败' },
-    LOCK_CONFLICT: { code: 10009, message: '资源正被其他操作占用，请稍后重试' },
-    LOCK_ACQUIRE_FAILED: { code: 10010, message: '获取分布式锁失败，请稍后重试' },
     // HTTP 通用码
     HTTP_INVALID_PARAM: { code: 400, message: '参数错误' },
     HTTP_NOT_FOUND: { code: 404, message: '资源不存在' },
