@@ -32,7 +32,7 @@ async function main() {
   // CORS 跨域
   await app.register(cors, {
     origin: config.corsOrigin,
-    credentials: true,
+    credentials: config.corsCredentials,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
   });
 
