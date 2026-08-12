@@ -427,7 +427,6 @@ export function StoreProductStatusPanel({ storeId }: StoreProductStatusPanelProp
         fixedLayout
         onRefresh={() => fetchData(page)}
         refreshDisabled={loading}
-        hideRefresh
         emptyIcon={<PackageIcon className="size-4" />}
         emptyText="暂无数据"
         pagination={{ page, pageSize, total, onPageChange: fetchData }}
