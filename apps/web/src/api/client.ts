@@ -23,47 +23,41 @@ export type ModuleKey =
   | "health"
   | "customer"
 
-// 各模块独立的环境变量键（集中在 .env 管理）
-const MODULE_ENV_KEYS: Record<ModuleKey, keyof ImportMetaEnv> = {
-  auth: "VITE_API_AUTH_BASE_URL",
-  store: "VITE_API_STORE_BASE_URL",
-  employee: "VITE_API_EMPLOYEE_BASE_URL",
-  product: "VITE_API_PRODUCT_BASE_URL",
-  tag: "VITE_API_TAG_BASE_URL",
-  area: "VITE_API_AREA_BASE_URL",
-  config: "VITE_API_CONFIG_BASE_URL",
-  customization: "VITE_API_CUSTOMIZATION_BASE_URL",
-  ingredient: "VITE_API_INGREDIENT_BASE_URL",
-  dashboard: "VITE_API_DASHBOARD_BASE_URL",
-  menu: "VITE_API_MENU_BASE_URL",
-  init: "VITE_API_INIT_BASE_URL",
-  role: "VITE_API_ROLE_BASE_URL",
-  permission: "VITE_API_PERMISSION_BASE_URL",
-  gallery: "VITE_API_GALLERY_BASE_URL",
-  health: "VITE_API_HEALTH_BASE_URL",
-  customer: "VITE_API_CUSTOMER_BASE_URL",
+// 各模块的路径前缀，版本号由前端 API 层自行决定（网关统一入口）
+const MODULE_PREFIX: Record<ModuleKey, string> = {
+  auth: "/api/v2",
+  store: "/api/v2",
+  employee: "/api/v2",
+  product: "/api/v2",
+  tag: "/api/v2",
+  area: "/api/v2",
+  config: "/api/v2",
+  customization: "/api/v2",
+  ingredient: "/api/v2",
+  dashboard: "/api/v2",
+  menu: "/api/v2",
+  init: "/api/v2",
+  role: "/api/v2",
+  permission: "/api/v2",
+  gallery: "/api/v2",
+  customer: "/api/v2",
+  health: "",
 }
 
-// 无 /api/v2 前缀的模块使用独立默认地址
-const DEFAULT_BASE_URLS: Partial<Record<ModuleKey, string>> = {
-  health: "http://localhost:3001",
-}
-const FALLBACK_BASE_URL = "http://localhost:3001/api/v2"
+const FALLBACK_BASE_URL = "http://localhost:8196"
 
 const clientCache = new Map<ModuleKey, AxiosInstance>()
 
 /**
  * 按模块创建独立的 axios 实例（按 moduleKey 缓存复用）。
- * 各模块 Base URL 取自 .env 中对应的 VITE_API_<MODULE>_BASE_URL，缺失时回退默认。
+ * 网关地址统一取自 VITE_API_BASE_URL，模块路径前缀（含版本号）由此处定义。
  */
 export function createModuleClient(moduleKey: ModuleKey): AxiosInstance {
   const cached = clientCache.get(moduleKey)
   if (cached) return cached
 
   const baseURL =
-    import.meta.env[MODULE_ENV_KEYS[moduleKey]] ??
-    DEFAULT_BASE_URLS[moduleKey] ??
-    FALLBACK_BASE_URL
+    `${import.meta.env.VITE_API_BASE_URL ?? FALLBACK_BASE_URL}${MODULE_PREFIX[moduleKey]}`
 
   const instance = axios.create({
     baseURL,
