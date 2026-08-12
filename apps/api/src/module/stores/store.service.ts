@@ -118,7 +118,7 @@ export const storeService = {
       throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
 
-    return withDistributedLock(`store:status:${id}`, async () => {
+    return withDistributedLock(`update_store_status:${id}`, async () => {
       await storeRepository.updateStoreById(id, { status });
       return { status };
     });
