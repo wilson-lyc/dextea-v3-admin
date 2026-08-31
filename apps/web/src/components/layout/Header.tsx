@@ -38,7 +38,10 @@ export default function Header() {
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b px-6">
-      <h1 className="text-lg font-semibold tracking-tight">德贤茶庄 - 管理端</h1>
+      <h1 className="flex items-center gap-2 text-lg font-semibold leading-none tracking-tight">
+        <img src="/logo.png" alt="德贤茶庄" className="h-7 w-7" />
+        德贤茶庄 - 管理端
+      </h1>
 
       <div className="flex items-center gap-1">
         <ThemeToggle />
