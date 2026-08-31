@@ -38,7 +38,7 @@ export default function Header() {
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b px-6">
-      <h1 className="text-lg font-semibold tracking-tight">dextea admin</h1>
+      <h1 className="text-lg font-semibold tracking-tight">德贤茶庄 - 管理端</h1>
 
       <div className="flex items-center gap-1">
         <ThemeToggle />
