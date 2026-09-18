@@ -1,6 +1,6 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { TagErrorCodes } from './tag.errorcode.js';
-import { tagRepository } from './tag.repository.js';
+import { tagRpcRepository as tagRepository } from '@/infrastructure/product/rpc-repositories.js';
 import type {
   TagListRequest,
   CreateTagRequest,

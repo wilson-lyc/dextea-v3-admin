@@ -4,7 +4,6 @@ import { StoreErrorCodes } from './store.errorcode.js';
 import { storeRepository } from './store.repository.js';
 import { redis } from '@/plugins/db/redis/index.js';
 import { geocode } from '@/plugins/geocode/index.js';
-import { hashPassword } from '@/plugins/password/index.js';
 import { normalizeStoreRegion, isMunicipality } from '@/utils';
 import { STORE_STATUS } from '@dextea-admin/contracts';
 import type { StoreListRequest, CreateStoreRequest, UpdateStoreProfileRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest } from '@dextea-admin/contracts';
@@ -41,8 +40,6 @@ export const storeService = {
     }
 
     const initialPassword = nanoid(12);
-    const hashedPassword = await hashPassword(initialPassword);
-
     const id = await storeRepository.createStore({
       name,
       province: region.province,
@@ -53,8 +50,8 @@ export const storeService = {
       businessHours: businessHours ?? '',
       phone: phone ?? '',
       account,
-      password: hashedPassword,
       email: email ?? '',
+      initialPassword,
       longitude,
       latitude,
     });
@@ -127,12 +124,9 @@ export const storeService = {
       throw new BizError(StoreErrorCodes.STORE_NOT_FOUND);
     }
 
-    const newPassword = nanoid(12);
-    const hashedPassword = await hashPassword(newPassword);
-
-    await storeRepository.updateStoreById(id, { password: hashedPassword });
-
-    return { newPassword };
+    const { callRpc } = await import('@/infrastructure/rpc/client.js');
+    const result = await callRpc<{ password: string }>('store', 'resetStorePassword', { id });
+    return { newPassword: result.password };
   },
 
   async syncStoreLocations() {

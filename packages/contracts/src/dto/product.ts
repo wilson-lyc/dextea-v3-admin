@@ -58,8 +58,6 @@ export const ProductListRequestSchema = z.object({
   pageSize: z.coerce.number().int().positive().max(100).default(20).describe('每页条数'),
   keyword: z.string().optional().describe('关键字'),
   status: optionalCoerceNumber.describe('状态（0=全局下架 1=全局上架）'),
-  priceMin: optionalCoerceNumber.describe('最低价'),
-  priceMax: optionalCoerceNumber.describe('最高价'),
   tagIds: z.string().optional().describe('标签ID列表'),
 });
 export type ProductListRequest = z.infer<typeof ProductListRequestSchema>;

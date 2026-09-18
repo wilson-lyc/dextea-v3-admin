@@ -16,6 +16,8 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+	"@grpc/grpc-js": "^1.14.4",
+	"@grpc/proto-loader": "^0.8.1",
     "@aurouscia/china-areas": "^0.7.0",
     "@aws-sdk/client-s3": "^3.1086.0",
     "@dextea-admin/contracts": "workspace:*",

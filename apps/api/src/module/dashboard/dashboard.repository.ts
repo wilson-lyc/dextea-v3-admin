@@ -1,19 +1,10 @@
 import { sql } from 'drizzle-orm';
-import type { AnyMySqlTable } from 'drizzle-orm/mysql-core';
 import { db } from '@/plugins/db/mysql/index.js';
-import {
-  employees,
-  stores,
-  products,
-  menus,
-  ingredients,
-  productTags,
-  customizationItems,
-  orders,
-} from '@/plugins/db/mysql/schema.js';
+import { employees, stores, orders } from '@/plugins/db/mysql/schema.js';
+import { callRpc } from '@/infrastructure/rpc/client.js';
 import type { DashboardStats } from '@dextea-admin/contracts';
 
-async function count(table: AnyMySqlTable): Promise<number> {
+async function count(table: typeof employees | typeof stores | typeof orders): Promise<number> {
   const rows = await db.select({ count: sql<number>`count(*)` }).from(table);
   return Number(rows[0]?.count ?? 0);
 }
@@ -23,21 +14,13 @@ export const dashboardRepository = {
     const [
       employeeCount,
       storeCount,
-      productCount,
-      menuCount,
-      ingredientCount,
-      tagCount,
-      customizationCount,
+      productStats,
       orderCount,
       storeStatusDistribution,
     ] = await Promise.all([
       count(employees),
       count(stores),
-      count(products),
-      count(menus),
-      count(ingredients),
-      count(productTags),
-      count(customizationItems),
+      callRpc<{ productCount: string | number; menuCount: string | number; ingredientCount: string | number; tagCount: string | number; customizationCount: string | number }>('product', 'getProductStats', {}),
       count(orders),
       db
         .select({ status: stores.status, count: sql<number>`count(*)` })
@@ -51,11 +34,11 @@ export const dashboardRepository = {
     return {
       employeeCount,
       storeCount,
-      productCount,
-      menuCount,
-      ingredientCount,
-      tagCount,
-      customizationCount,
+      productCount: Number(productStats.productCount ?? 0),
+      menuCount: Number(productStats.menuCount ?? 0),
+      ingredientCount: Number(productStats.ingredientCount ?? 0),
+      tagCount: Number(productStats.tagCount ?? 0),
+      customizationCount: Number(productStats.customizationCount ?? 0),
       orderCount,
       storeStatusDistribution,
     };

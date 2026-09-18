@@ -1,6 +1,6 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { IngredientErrorCodes } from './ingredient.errorcode.js';
-import { ingredientRepository } from './ingredient.repository.js';
+import { ingredientRpcRepository as ingredientRepository } from '@/infrastructure/product/rpc-repositories.js';
 import { INGREDIENT_STATUS_VALUES } from '@dextea-admin/contracts';
 import type {
   IngredientListRequest,

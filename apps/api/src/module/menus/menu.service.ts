@@ -1,6 +1,6 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { MenuErrorCodes } from './menu.errorcode.js';
-import { menuRepository } from './menu.repository.js';
+import { menuRpcRepository as menuRepository } from '@/infrastructure/product/rpc-repositories.js';
 import { normalizeStoreRegion } from '@/utils';
 import type {
   MenuListRequest,

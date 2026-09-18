@@ -39,8 +39,6 @@ export function getProducts(params?: {
   pageSize?: number
   keyword?: string
   status?: number
-  priceMin?: number
-  priceMax?: number
   tagIds?: string
 }) {
   return http

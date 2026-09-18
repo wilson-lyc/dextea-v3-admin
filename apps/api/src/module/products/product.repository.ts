@@ -26,8 +26,6 @@ export const productRepository = {
     pageSize: number,
     keyword?: string,
     status?: number,
-    priceMin?: number,
-    priceMax?: number,
     tagIds?: number[],
   ) {
     page = Math.max(1, page);
@@ -54,16 +52,6 @@ export const productRepository = {
     if (status !== undefined) {
       baseQuery.where(eq(products.status, status));
       countQuery.where(eq(products.status, status));
-    }
-
-    if (priceMin !== undefined && priceMin >= 0) {
-      baseQuery.where(sql`${products.price} >= ${priceMin}`);
-      countQuery.where(sql`${products.price} >= ${priceMin}`);
-    }
-
-    if (priceMax !== undefined && priceMax >= 0) {
-      baseQuery.where(sql`${products.price} <= ${priceMax}`);
-      countQuery.where(sql`${products.price} <= ${priceMax}`);
     }
 
     // 标签筛选：查找同时拥有所有指定标签的商品

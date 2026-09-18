@@ -15,6 +15,27 @@ interface Config {
   nodeEnv: string;
   logLevel: string;
 
+  nacos: {
+    enabled: boolean;
+    serverList: string[];
+    namespace: string;
+    group: string;
+    username: string;
+    password: string;
+  };
+
+  rpc: {
+    productServiceName: string;
+    productAddress: string;
+    storeServiceName: string;
+    storeAddress: string;
+    tradeServiceName: string;
+    tradeAddress: string;
+    xosServiceName: string;
+    xosAddress: string;
+    xosStorageSource: string;
+  };
+
   db: {
     host: string;
     port: number;
@@ -27,6 +48,7 @@ interface Config {
     host: string;
     port: number;
     password: string;
+    db: number;
   };
 
   amap: {
@@ -57,6 +79,27 @@ function buildConfig(): Config {
     nodeEnv: env.NODE_ENV || 'development',
     logLevel: env.LOG_LEVEL || 'info',
 
+    nacos: {
+      enabled: env.NACOS_ENABLED === 'true',
+      serverList: (env.NACOS_SERVER_ADDR || '').split(',').map((item) => item.trim()).filter(Boolean),
+      namespace: env.NACOS_NAMESPACE || 'public',
+      group: env.NACOS_GROUP || 'DEFAULT_GROUP',
+      username: env.NACOS_USERNAME || '',
+      password: env.NACOS_PASSWORD || '',
+    },
+
+    rpc: {
+      productServiceName: env.PRODUCT_SERVICE_NAME || 'dextea-product',
+      productAddress: env.PRODUCT_SERVICE_ADDR || '127.0.0.1:9090',
+      storeServiceName: env.STORE_SERVICE_NAME || 'dextea-store-service',
+      storeAddress: env.STORE_SERVICE_ADDR || '127.0.0.1:9092',
+      tradeServiceName: env.TRADE_SERVICE_NAME || 'dextea-trade',
+      tradeAddress: env.TRADE_SERVICE_ADDR || '127.0.0.1:9091',
+      xosServiceName: env.XOS_SERVICE_NAME || 'dextea-xos',
+      xosAddress: env.XOS_SERVICE_ADDR || '127.0.0.1:9091',
+      xosStorageSource: env.XOS_STORAGE_SOURCE || 'minio-dev',
+    },
+
     db: {
       host: env.DB_HOST || '',
       port: Number(env.DB_PORT),
@@ -69,6 +112,7 @@ function buildConfig(): Config {
       host: env.REDIS_HOST || '',
       port: Number(env.REDIS_PORT),
       password: env.REDIS_PASSWORD || '',
+      db: Number(env.REDIS_DB) || 0,
     },
 
     amap: {
@@ -99,17 +143,11 @@ function validateConfig(config: Config): void {
 
   if (!config.redis.host) missing.push('REDIS_HOST');
   if (!config.redis.port || !Number.isFinite(config.redis.port) || config.redis.port <= 0) missing.push('REDIS_PORT');
+  if (!Number.isInteger(config.redis.db) || config.redis.db < 0) missing.push('REDIS_DB');
 
   if (!config.amap.key) missing.push('AMAP_KEY');
   if (!config.amap.jsKey) missing.push('AMAP_JS_KEY');
   if (!config.amap.jsSecurityCode) missing.push('AMAP_JS_SECURITY_CODE');
-
-  if (!config.s3.region) missing.push('S3_REGION');
-  if (!config.s3.endpoint) missing.push('S3_ENDPOINT');
-  if (!config.s3.bucket) missing.push('S3_BUCKET');
-  if (!config.s3.accessKeyId) missing.push('S3_ACCESS_KEY_ID');
-  if (!config.s3.secretAccessKey) missing.push('S3_SECRET_ACCESS_KEY');
-  if (!config.s3.publicBaseUrl) missing.push('S3_PUBLIC_BASE_URL');
 
   if (missing.length > 0) {
     console.error(

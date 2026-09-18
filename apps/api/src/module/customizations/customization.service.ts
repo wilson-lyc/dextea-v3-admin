@@ -1,6 +1,6 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { CustomizationErrorCodes } from './customization.errorcode.js';
-import { customizationRepository } from './customization.repository.js';
+import { customizationRpcRepository as customizationRepository } from '@/infrastructure/product/rpc-repositories.js';
 import {
   CUSTOMIZATION_STATUS,
   CUSTOMIZATION_STATUS_VALUES,

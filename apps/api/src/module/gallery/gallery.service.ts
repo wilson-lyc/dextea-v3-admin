@@ -1,10 +1,8 @@
-import path from 'node:path';
 import { nanoid } from 'nanoid';
 import { BizError } from '@/common/exceptions/index.js';
-import { createStorageAdapter, getGlobalStorageConfig } from '@/plugins/storage/index.js';
-import type { StorageAdapter } from '@/plugins/storage/index.js';
+import { callRpc } from '@/infrastructure/rpc/client.js';
+import { config } from '@/config.js';
 import { GalleryErrorCodes } from './gallery.errorcode.js';
-import { galleryRepository } from './gallery.repository.js';
 import type { GetGalleryImageListRequest, UpdateGalleryImageRequest } from '@dextea-admin/contracts';
 
 const MIME_TO_EXT: Record<string, string> = {
@@ -17,9 +15,13 @@ const MIME_TO_EXT: Record<string, string> = {
   'image/avif': '.avif',
 };
 
-/** 构造全局唯一的 S3 适配器（配置来自 .env） */
-function getStorageAdapter(): StorageAdapter {
-  return createStorageAdapter(getGlobalStorageConfig());
+function timestampOf(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (value && typeof value === 'object' && 'seconds' in value) {
+    const seconds = Number((value as { seconds: string | number }).seconds);
+    if (Number.isFinite(seconds)) return new Date(seconds * 1000).toISOString();
+  }
+  return '';
 }
 
 export const galleryService = {
@@ -32,15 +34,17 @@ export const galleryService = {
       throw new BizError(GalleryErrorCodes.INVALID_FILE);
     }
 
-    const ext = (MIME_TO_EXT[mimetype] ?? path.extname(filename).toLowerCase()) || '.bin';
+    const ext = MIME_TO_EXT[mimetype] ?? '.bin';
     const key = `gallery_${Date.now()}_${nanoid(8)}${ext}`;
 
-    // 全局单一 S3 连接配置（来自 .env），无需指定存储位置
-    const adapter = getStorageAdapter();
-
-    let result;
+    let result: Record<string, unknown>;
     try {
-      result = await adapter.upload({ key, body: buffer, contentType: mimetype });
+      result = await callRpc<Record<string, unknown>>('xos', 'upload', {
+        source: config.rpc.xosStorageSource,
+        objectKey: key,
+        fileName: filename,
+        content: buffer,
+      });
     } catch (err) {
       throw new BizError(
         GalleryErrorCodes.UPLOAD_FAILED,
@@ -48,55 +52,58 @@ export const galleryService = {
       );
     }
 
-    const id = await galleryRepository.createGalleryImage({
-      name,
-      url: result.url,
-      objectKey: result.objectKey,
-    });
-
-    return {
-      id,
-      name,
-      url: result.url,
-      createdAt: new Date().toISOString(),
-    };
+    const id = Number(result.galleryId ?? 0);
+    if (id > 0 && name !== String(result.name ?? '')) {
+      await callRpc('xos', 'updateName', { id, name });
+    }
+    return { id, name, url: String(result.url ?? ''), createdAt: new Date().toISOString() };
   },
 
   async getGalleryImageList(params: GetGalleryImageListRequest) {
-    return galleryRepository.getGalleryImageList(params.page, params.pageSize, {
-      keyword: params.keyword,
-    });
+    const allItems: Array<Record<string, unknown>> = [];
+    const pageSize = 100;
+    const first = await callRpc<Record<string, unknown>>('xos', 'listPage', { page: 1, pageSize });
+    allItems.push(...((first.list as Array<Record<string, unknown>> | undefined) ?? []));
+    const total = Number(first.total ?? allItems.length);
+    for (let page = 2; page <= Math.ceil(total / pageSize); page += 1) {
+      const next = await callRpc<Record<string, unknown>>('xos', 'listPage', { page, pageSize });
+      allItems.push(...((next.list as Array<Record<string, unknown>> | undefined) ?? []));
+    }
+    const keyword = params.keyword?.trim().toLowerCase();
+    const filtered = keyword
+      ? allItems.filter((item) => `${item.name ?? ''} ${item.url ?? ''}`.toLowerCase().includes(keyword))
+      : allItems;
+    const start = (params.page - 1) * params.pageSize;
+    return {
+      items: filtered.slice(start, start + params.pageSize).map((item) => ({
+        id: Number(item.id ?? 0),
+        name: String(item.name ?? ''),
+        url: String(item.url ?? ''),
+        createdAt: timestampOf(item.createdAt),
+      })),
+      total: filtered.length,
+      page: params.page,
+      pageSize: params.pageSize,
+    };
   },
 
   async deleteGalleryImage(id: number) {
-    const record = await galleryRepository.getGalleryImageById(id);
-    if (!record) {
-      throw new BizError(GalleryErrorCodes.NOT_FOUND);
-    }
-
-    // 对象存储删除失败不阻断数据库记录删除，避免产生悬挂引用
     try {
-      await getStorageAdapter().delete(record.objectKey);
+      await callRpc('xos', 'delete', { id });
     } catch (err) {
-      console.error('[gallery] 删除对象存储文件失败', err);
+      throw new BizError(GalleryErrorCodes.DELETE_FAILED, err instanceof Error ? err.message : undefined);
     }
-
-    await galleryRepository.deleteGalleryImageById(id);
 
     return { id };
   },
 
   async updateGalleryImageName(id: number, input: UpdateGalleryImageRequest) {
     const { name } = input;
-    
-
-    const record = await galleryRepository.getGalleryImageById(id);
-    if (!record) {
-      throw new BizError(GalleryErrorCodes.NOT_FOUND);
+    try {
+      const result = await callRpc<Record<string, unknown>>('xos', 'updateName', { id, name });
+      return { id, name: String(result.name ?? name) };
+    } catch (err) {
+      throw new BizError(GalleryErrorCodes.NOT_FOUND, err instanceof Error ? err.message : undefined);
     }
-
-    await galleryRepository.updateGalleryImageNameById(id, name);
-
-    return { id, name };
   },
 };

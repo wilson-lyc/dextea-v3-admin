@@ -14,6 +14,7 @@ import { registerRedis } from './plugins/db/redis/index.js';
 import { registerDb } from './plugins/db/mysql/index.js';
 import { globalErrorHandler, schemaErrorFormatter } from '@/common/exceptions/index.js';
 import { registerModules } from './register-modules.js';
+import { getNacosClient, closeNacosClient } from './infrastructure/nacos.js';
 
 async function main() {
   const app = Fastify({
@@ -21,6 +22,13 @@ async function main() {
       level: config.logLevel,
     },
   }).withTypeProvider<ZodTypeProvider>();
+
+  if (config.nacos.enabled) {
+    void getNacosClient().catch((error: unknown) => {
+      app.log.warn({ error }, 'Nacos 不可用，将使用 RPC 静态地址兜底');
+    });
+    app.addHook('onClose', async () => closeNacosClient());
+  }
 
   // Zod 校验编译
   app.setValidatorCompiler(validatorCompiler);

@@ -1,7 +1,7 @@
 import { BizError } from '@/common/exceptions/index.js';
 import { ProductErrorCodes } from './product.errorcode.js';
 import { TagErrorCodes } from '@/module/tags/tag.errorcode.js';
-import { productRepository } from './product.repository.js';
+import { productRpcRepository as productRepository } from '@/infrastructure/product/rpc-repositories.js';
 import { PRODUCT_STATUS_VALUES } from '@dextea-admin/contracts';
 import {
   validateStatus,
@@ -46,8 +46,6 @@ export const productService = {
     const pageSize = Math.min(100, Math.max(1, params.pageSize));
     const keyword = params.keyword;
     const status = params.status;
-    const priceMin = params.priceMin;
-    const priceMax = params.priceMax;
     const tagIds = params.tagIds
       ? params.tagIds.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n > 0)
       : undefined;
@@ -57,8 +55,6 @@ export const productService = {
       pageSize,
       keyword,
       status,
-      priceMin,
-      priceMax,
       tagIds,
     );
   },
