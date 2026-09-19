@@ -36,6 +36,7 @@ class HttpNacosClient implements NacosClient {
   }
   async selectInstances(serviceName: string): Promise<Array<{ ip: string; port: number; weight: number }>> {
     const params = new URLSearchParams({ serviceName, groupName: config.nacos.group, namespaceId: config.nacos.namespace, healthyOnly: 'true' })
+    if (config.nacos.cluster) params.set('clusters', config.nacos.cluster)
     if (config.nacos.username) params.set('username', config.nacos.username)
     if (config.nacos.password) params.set('password', config.nacos.password)
     const response = await fetch(`${this.endpoint}/nacos/v1/ns/instance/list?${params}`)

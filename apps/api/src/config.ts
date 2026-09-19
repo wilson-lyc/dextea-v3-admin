@@ -20,6 +20,7 @@ interface Config {
     serverList: string[];
     namespace: string;
     group: string;
+    cluster: string;
     username: string;
     password: string;
   };
@@ -89,6 +90,7 @@ function buildConfig(): Config {
       serverList: (env.NACOS_SERVER_ADDR || '').split(',').map((item) => item.trim()).filter(Boolean),
       namespace: env.NACOS_NAMESPACE || 'public',
       group: env.NACOS_GROUP || 'DEFAULT_GROUP',
+      cluster: env.NACOS_CLUSTER || '',
       username: env.NACOS_USERNAME || '',
       password: env.NACOS_PASSWORD || '',
     },
