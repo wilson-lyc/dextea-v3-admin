@@ -4,7 +4,7 @@ import * as protoLoader from '@grpc/proto-loader'
 import { config } from '@/config.js'
 import { resolveServiceAddress } from '@/infrastructure/nacos.js'
 
-export type RpcService = 'productAdmin' | 'productBusiness' | 'storeAdmin' | 'storeBusiness' | 'storeCredential' | 'trade' | 'xos'
+export type RpcService = 'productAdmin' | 'productBusiness' | 'storeAdmin' | 'storeBusiness' | 'storeCredential' | 'tradeAdmin' | 'xos'
 
 interface RpcDefinition {
   packagePath: string
@@ -38,9 +38,9 @@ const definitions: Record<RpcService, RpcDefinition> = {
     serviceName: 'StoreCredentialService',
     protoPath: path.resolve(process.cwd(), '../../../dextea-proto/proto/store/v1/store.proto'),
   },
-  trade: {
+  tradeAdmin: {
     packagePath: 'dextea.order.v1',
-    serviceName: 'OrderService',
+    serviceName: 'OrderAdminService',
     protoPath: path.resolve(process.cwd(), '../../../dextea-proto/proto/order/v1/order.proto'),
   },
   xos: {
@@ -57,7 +57,7 @@ function serviceConfig(service: RpcService): { serviceName: string; address: str
     case 'storeAdmin':
     case 'storeBusiness':
     case 'storeCredential': return { serviceName: config.rpc.storeServiceName, address: config.rpc.storeAddress }
-    case 'trade': return { serviceName: config.rpc.tradeServiceName, address: config.rpc.tradeAddress }
+    case 'tradeAdmin': return { serviceName: config.rpc.tradeServiceName, address: config.rpc.tradeAddress }
     case 'xos': return { serviceName: config.rpc.xosServiceName, address: config.rpc.xosAddress }
   }
 }
@@ -77,7 +77,7 @@ export async function createRpcClient(service: RpcService): Promise<Client> {
   })
   const packages = loadPackageDefinition(packageDefinition) as unknown as Record<string, unknown>
   const namespace = packages[service === 'xos' ? 'xos' : 'dextea'] as Record<string, unknown>
-  const packageName = service === 'trade'
+  const packageName = service === 'tradeAdmin'
     ? 'order'
     : service.startsWith('store')
       ? 'store'
