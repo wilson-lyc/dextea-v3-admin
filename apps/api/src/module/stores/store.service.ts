@@ -1,10 +1,9 @@
-import { nanoid } from 'nanoid';
 import { BizError } from '@/common/exceptions/index.js';
 import { StoreErrorCodes } from './store.errorcode.js';
 import { storeRepository } from './store.repository.js';
 import { redis } from '@/plugins/db/redis/index.js';
 import { geocode } from '@/plugins/geocode/index.js';
-import { normalizeStoreRegion, isMunicipality } from '@/utils';
+import { normalizeStoreRegion } from '@/utils';
 import { STORE_STATUS } from '@dextea-admin/contracts';
 import type { StoreListRequest, CreateStoreRequest, UpdateStoreProfileRequest, UpdateStoreLocationRequest, UpdateStoreStatusRequest } from '@dextea-admin/contracts';
 
@@ -39,8 +38,7 @@ export const storeService = {
       console.warn(`Geocoding failed for ${[region.province, region.city, region.district, address].filter(Boolean).join('')}`);
     }
 
-    const initialPassword = nanoid(12);
-    const id = await storeRepository.createStore({
+    const result = await storeRepository.createStore({
       name,
       province: region.province,
       city: region.city,
@@ -51,14 +49,15 @@ export const storeService = {
       phone: phone ?? '',
       account,
       email: email ?? '',
-      initialPassword,
       longitude,
       latitude,
     });
 
-    await redis.geoadd('dextea:store:location', longitude, latitude, String(id));
+    if (longitude !== 0 || latitude !== 0) {
+      await redis.geoadd('dextea:store:location', longitude, latitude, String(result.id));
+    }
 
-    return { initialPassword };
+    return { initialPassword: result.initialPassword };
   },
 
   async updateStoreBasicInfo(id: number, input: UpdateStoreProfileRequest) {
@@ -125,7 +124,7 @@ export const storeService = {
     }
 
     const { callRpc } = await import('@/infrastructure/rpc/client.js');
-    const result = await callRpc<{ password: string }>('store', 'resetStorePassword', { id });
+    const result = await callRpc<{ password: string }>('storeAdmin', 'resetStorePassword', { id });
     return { newPassword: result.password };
   },
 

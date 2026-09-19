@@ -1,5 +1,4 @@
 import { callRpc } from '@/infrastructure/rpc/client.js';
-import { menuRepository as localMenuRepository } from '@/module/menus/menu.repository.js';
 
 type RpcRecord = Record<string, any>;
 
@@ -16,7 +15,7 @@ async function page<T extends RpcRecord>(
   request: Record<string, unknown>,
   key: string,
 ): Promise<{ items: T[]; total: number; page: number; pageSize: number }> {
-  const response = await callRpc<RpcRecord>('product', method, request);
+  const response = await callRpc<RpcRecord>('productAdmin', method, request);
   const currentPage = numberOf(request.page) || 1;
   const currentPageSize = numberOf(request.pageSize) || 20;
   return {
@@ -41,6 +40,44 @@ async function all<T extends RpcRecord>(
     items.push(...next.items);
   }
   return items;
+}
+
+async function getStoresByIds(storeIds: number[]) {
+  if (storeIds.length === 0) return [] as RpcRecord[];
+  const uniqueStoreIds = [...new Set(storeIds)];
+  const responses = await Promise.all(
+    Array.from({ length: Math.ceil(uniqueStoreIds.length / 500) }, (_, index) =>
+      callRpc<{ stores?: RpcRecord[] }>('storeAdmin', 'getStores', {
+        ids: uniqueStoreIds.slice(index * 500, (index + 1) * 500),
+        includeUnavailable: true,
+      }),
+    ),
+  );
+  const byId = new Map(responses.flatMap((response) => response.stores ?? []).map((store) => [numberOf(store.id), store]));
+  return uniqueStoreIds.flatMap((id) => {
+    const store = byId.get(id);
+    return store ? [store] : [];
+  });
+}
+
+function storeView(row: RpcRecord) {
+  return {
+    id: numberOf(row.id),
+    name: textOf(row.name),
+    province: textOf(row.province),
+    city: textOf(row.city),
+    district: textOf(row.district),
+    address: textOf(row.address),
+    status: numberOf(row.status),
+    businessHours: textOf(row.businessHours),
+    phone: textOf(row.phone),
+    longitude: numberOf(row.longitude),
+    latitude: numberOf(row.latitude),
+    account: textOf(row.account),
+    email: textOf(row.email),
+    createdAt: textOf(row.createdAt),
+    updatedAt: textOf(row.updatedAt),
+  };
 }
 
 function productView(row: RpcRecord) {
@@ -80,6 +117,18 @@ async function listAllProducts() {
   return all<RpcRecord>('listProducts', { name: '' }, 'products');
 }
 
+async function listAllGalleryImages() {
+  const pageSize = 100;
+  const first = await callRpc<RpcRecord>('xos', 'listPage', { page: 1, pageSize });
+  const items = [...((first.list as RpcRecord[] | undefined) ?? [])];
+  const totalPages = Math.ceil(numberOf(first.total) / pageSize);
+  for (let currentPage = 2; currentPage <= totalPages; currentPage += 1) {
+    const next = await callRpc<RpcRecord>('xos', 'listPage', { page: currentPage, pageSize });
+    items.push(...((next.list as RpcRecord[] | undefined) ?? []));
+  }
+  return items;
+}
+
 function customizationItemView(row: RpcRecord) {
   return {
     id: numberOf(row.id),
@@ -113,7 +162,7 @@ async function listOptions(itemId: number) {
   const rows = await all<RpcRecord>('listCustomizationOptions', { itemId, name: '' }, 'options');
   return Promise.all(rows.map(async (row) => {
     if (row.ingredientId == null) return customizationOptionView(row);
-    const ingredient = await callRpc<RpcRecord>('product', 'getIngredient', { id: row.ingredientId });
+    const ingredient = await callRpc<RpcRecord>('productAdmin', 'getIngredient', { id: row.ingredientId });
     return customizationOptionView(row, textOf(ingredient.name));
   }));
 }
@@ -168,14 +217,14 @@ export const productRpcRepository = {
   },
 
   async createProduct(data: RpcRecord) {
-    const product = await callRpc<RpcRecord>('product', 'createProduct', {
+    const product = await callRpc<RpcRecord>('productAdmin', 'createProduct', {
       name: data.name,
       brief: data.brief ?? '',
       description: data.description ?? '',
       price: numberOf(data.price),
     });
     if (data.status !== undefined) {
-      await callRpc('product', 'batchUpdateProductStatus', { ids: [product.id], status: numberOf(data.status) });
+      await callRpc('productAdmin', 'batchUpdateProductStatus', { ids: [product.id], status: numberOf(data.status) });
     }
     return numberOf(product.id);
   },
@@ -185,15 +234,15 @@ export const productRpcRepository = {
     for (const key of ['name', 'brief', 'description', 'price']) {
       if (data[key] !== undefined) request[key] = key === 'price' ? numberOf(data[key]) : data[key];
     }
-    if (Object.keys(request).length > 1) await callRpc('product', 'updateProduct', request);
+    if (Object.keys(request).length > 1) await callRpc('productAdmin', 'updateProduct', request);
     if (data.status !== undefined) {
-      await callRpc('product', 'batchUpdateProductStatus', { ids: [id], status: numberOf(data.status) });
+      await callRpc('productAdmin', 'batchUpdateProductStatus', { ids: [id], status: numberOf(data.status) });
     }
   },
 
   async batchUpdateProductStatus(ids: number[], status: number) {
     if (ids.length === 0) return 0;
-    const response = await callRpc<RpcRecord>('product', 'batchUpdateProductStatus', { ids, status });
+    const response = await callRpc<RpcRecord>('productAdmin', 'batchUpdateProductStatus', { ids, status });
     return numberOf(response.updatedCount);
   },
 
@@ -209,12 +258,12 @@ export const productRpcRepository = {
       byProduct.set(relation.productId, ids);
     }
     for (const [productId, tagIds] of byProduct) {
-      await callRpc('product', 'bindProductTags', { productId, tagIds });
+      await callRpc('productAdmin', 'bindProductTags', { productId, tagIds });
     }
   },
 
   async deleteProductTagRelations(productId: number, tagIds: number[]) {
-    if (tagIds.length > 0) await callRpc('product', 'unbindProductTags', { productId, tagIds });
+    if (tagIds.length > 0) await callRpc('productAdmin', 'unbindProductTags', { productId, tagIds });
   },
 
   async getProductIngredientListWithPage(productId: number, pageNumber: number, pageSize: number) {
@@ -239,7 +288,7 @@ export const productRpcRepository = {
   },
 
   async insertProductIngredientRelation(data: RpcRecord) {
-    await callRpc('product', 'bindProductIngredient', {
+    await callRpc('productAdmin', 'bindProductIngredient', {
       productId: data.productId,
       ingredientId: data.ingredientId,
       quantity: numberOf(data.quantity),
@@ -248,15 +297,15 @@ export const productRpcRepository = {
   },
 
   async updateProductIngredientQuantity(productId: number, ingredientId: number, quantity: number) {
-    await callRpc('product', 'updateProductIngredient', { productId, ingredientId, quantity });
+    await callRpc('productAdmin', 'updateProductIngredient', { productId, ingredientId, quantity });
   },
 
   async updateProductIngredientSort(productId: number, ingredientId: number, sort: number) {
-    await callRpc('product', 'updateProductIngredient', { productId, ingredientId, sort });
+    await callRpc('productAdmin', 'updateProductIngredient', { productId, ingredientId, sort });
   },
 
   async deleteProductIngredientRelation(productId: number, ingredientId: number) {
-    await callRpc('product', 'deleteProductIngredient', { productId, ingredientId });
+    await callRpc('productAdmin', 'deleteProductIngredient', { productId, ingredientId });
   },
 
   async getProductOptionSelectList() {
@@ -270,7 +319,7 @@ export const productRpcRepository = {
 
   async getIngredientById(ingredientId: number) {
     try {
-      const ingredient = await callRpc<RpcRecord>('product', 'getIngredient', { id: ingredientId });
+      const ingredient = await callRpc<RpcRecord>('productAdmin', 'getIngredient', { id: ingredientId });
       return { id: numberOf(ingredient.id) };
     } catch {
       return null;
@@ -278,7 +327,7 @@ export const productRpcRepository = {
   },
 
   async getProductImages(productId: number) {
-    const response = await callRpc<RpcRecord>('product', 'getProductImages', { productId });
+    const response = await callRpc<RpcRecord>('productAdmin', 'getProductImages', { productId });
     const image = (row: RpcRecord | undefined) => row ? {
       id: numberOf(row.id),
       url: textOf(row.url),
@@ -291,12 +340,12 @@ export const productRpcRepository = {
   },
 
   async getGalleryImagesByIds(ids: number[]) {
-    const rows = await all<RpcRecord>('listGallery', {}, 'items');
+    const rows = await listAllGalleryImages();
     return rows.filter((row) => ids.includes(numberOf(row.id))).map((row) => ({ id: numberOf(row.id) }));
   },
 
   async setProductImages(productId: number, coverImageId: number | null, galleryImageIds: number[]) {
-    await callRpc('product', 'setProductImages', { productId, coverImageId, galleryImageIds });
+    await callRpc('productAdmin', 'setProductImages', { productId, coverImageId, galleryImageIds });
   },
 };
 
@@ -332,7 +381,7 @@ export const customizationRpcRepository = {
   },
 
   async createCustomization(data: RpcRecord) {
-    const item = await callRpc<RpcRecord>('product', 'createCustomizationItem', {
+    const item = await callRpc<RpcRecord>('productAdmin', 'createCustomizationItem', {
       productId: data.productId,
       name: data.name,
       sort: numberOf(data.sort),
@@ -344,12 +393,12 @@ export const customizationRpcRepository = {
     const request: RpcRecord = { id };
     if (data.name !== undefined) request.name = data.name;
     if (data.sort !== undefined) request.sort = data.sort;
-    if (Object.keys(request).length > 1) await callRpc('product', 'updateCustomizationItem', request);
-    if (data.status !== undefined) await callRpc('product', 'batchUpdateCustomizationItemStatus', { ids: [id], status: data.status });
+    if (Object.keys(request).length > 1) await callRpc('productAdmin', 'updateCustomizationItem', request);
+    if (data.status !== undefined) await callRpc('productAdmin', 'batchUpdateCustomizationItemStatus', { ids: [id], status: data.status });
   },
 
   async updateCustomizationStatusById(id: number, status: number) {
-    const response = await callRpc<RpcRecord>('product', 'batchUpdateCustomizationItemStatus', { ids: [id], status });
+    const response = await callRpc<RpcRecord>('productAdmin', 'batchUpdateCustomizationItemStatus', { ids: [id], status });
     return numberOf(response.updatedCount);
   },
 
@@ -366,7 +415,7 @@ export const customizationRpcRepository = {
   },
 
   async createOption(data: RpcRecord) {
-    const option = await callRpc<RpcRecord>('product', 'createCustomizationOption', {
+    const option = await callRpc<RpcRecord>('productAdmin', 'createCustomizationOption', {
       itemId: data.itemId,
       name: data.name,
       price: numberOf(data.price),
@@ -381,18 +430,18 @@ export const customizationRpcRepository = {
     if (data.name !== undefined) request.name = data.name;
     if (data.price !== undefined) request.price = numberOf(data.price);
     if (data.sort !== undefined) request.sort = data.sort;
-    if (Object.keys(request).length > 1) await callRpc('product', 'updateCustomizationOption', request);
+    if (Object.keys(request).length > 1) await callRpc('productAdmin', 'updateCustomizationOption', request);
 
     if (data.ingredientId != null && data.ingredientQuantity !== undefined) {
-      await callRpc('product', 'updateCustomizationOptionIngredient', {
+      await callRpc('productAdmin', 'updateCustomizationOptionIngredient', {
         id,
         ingredientId: data.ingredientId,
         ingredientQuantity: numberOf(data.ingredientQuantity),
       });
     } else if (data.ingredientId === null) {
-      await callRpc('product', 'updateCustomizationOptionIngredient', { id });
+      await callRpc('productAdmin', 'updateCustomizationOptionIngredient', { id });
     } else if (data.ingredientQuantity !== undefined) {
-      await callRpc('product', 'updateCustomizationOptionIngredient', {
+      await callRpc('productAdmin', 'updateCustomizationOptionIngredient', {
         id,
         ingredientQuantity: numberOf(data.ingredientQuantity),
       });
@@ -400,13 +449,13 @@ export const customizationRpcRepository = {
   },
 
   async updateOptionStatusById(id: number, status: number) {
-    const response = await callRpc<RpcRecord>('product', 'batchUpdateCustomizationOptionStatus', { ids: [id], status });
+    const response = await callRpc<RpcRecord>('productAdmin', 'batchUpdateCustomizationOptionStatus', { ids: [id], status });
     return numberOf(response.updatedCount);
   },
 
   async getIngredientById(id: number) {
     try {
-      const ingredient = await callRpc<RpcRecord>('product', 'getIngredient', { id });
+      const ingredient = await callRpc<RpcRecord>('productAdmin', 'getIngredient', { id });
       return { id: numberOf(ingredient.id) };
     } catch {
       return null;
@@ -414,7 +463,7 @@ export const customizationRpcRepository = {
   },
 
   async getCustomizationWithOptions(productId: number, ids?: number[]) {
-    const response = await callRpc<RpcRecord>('product', 'exportCustomization', { productId, itemIds: ids ?? [] });
+    const response = await callRpc<RpcRecord>('productAdmin', 'exportCustomization', { productId, itemIds: ids ?? [] });
     return ((response.items as RpcRecord[] | undefined) ?? []).map((item) => ({
       name: textOf(item.name),
       options: ((item.options as RpcRecord[] | undefined) ?? []).map((option) => ({
@@ -426,7 +475,7 @@ export const customizationRpcRepository = {
   },
 
   async importCustomizations(productId: number, items: RpcRecord[], _itemStatus?: number, _optionStatus?: number) {
-    const response = await callRpc<RpcRecord>('product', 'importCustomization', {
+    const response = await callRpc<RpcRecord>('productAdmin', 'importCustomization', {
       productId,
       items: items.map((item) => ({
         name: item.name,
@@ -459,7 +508,7 @@ export const ingredientRpcRepository = {
   },
 
   async getIngredientById(id: number) {
-    const row = await callRpc<RpcRecord>('product', 'getIngredient', { id });
+    const row = await callRpc<RpcRecord>('productAdmin', 'getIngredient', { id });
     const [products, options] = await Promise.all([
       page<RpcRecord>('listIngredientProducts', { ingredientId: id, page: 1, pageSize: 1 }, 'products'),
       page<RpcRecord>('listIngredientOptions', { ingredientId: id, page: 1, pageSize: 1 }, 'options'),
@@ -473,14 +522,14 @@ export const ingredientRpcRepository = {
   },
 
   async createIngredient(data: RpcRecord) {
-    const row = await callRpc<RpcRecord>('product', 'createIngredient', { name: data.name, unit: data.unit, status: numberOf(data.status) });
+    const row = await callRpc<RpcRecord>('productAdmin', 'createIngredient', { name: data.name, unit: data.unit, status: numberOf(data.status) });
     return numberOf(row.id);
   },
 
   async updateIngredient(id: number, data: RpcRecord) {
     const request: RpcRecord = { id };
     for (const key of ['name', 'unit', 'status']) if (data[key] !== undefined) request[key] = data[key];
-    await callRpc('product', 'updateIngredient', request);
+    await callRpc('productAdmin', 'updateIngredient', request);
   },
 
   async getIngredientProductList(ingredientId: number, pageNumber: number, pageSize: number) {
@@ -494,7 +543,7 @@ export const ingredientRpcRepository = {
   },
 
   async getIngredientOptionSelectList() {
-    const response = await callRpc<RpcRecord>('product', 'listIngredientSelect', {});
+    const response = await callRpc<RpcRecord>('productAdmin', 'listIngredientSelect', {});
     return ((response.ingredients as RpcRecord[] | undefined) ?? []).map((row) => ({ label: textOf(row.label), value: textOf(row.value), unit: textOf(row.unit) }));
   },
 };
@@ -529,16 +578,16 @@ export const tagRpcRepository = {
   },
 
   async createTag(name: string) {
-    const tag = await callRpc<RpcRecord>('product', 'createTag', { name });
+    const tag = await callRpc<RpcRecord>('productAdmin', 'createTag', { name });
     return numberOf(tag.id);
   },
 
   async updateTagById(id: number, name: string) {
-    await callRpc('product', 'updateTag', { id, name });
+    await callRpc('productAdmin', 'updateTag', { id, name });
   },
 
   async deleteTagById(id: number) {
-    await callRpc('product', 'deleteTag', { id });
+    await callRpc('productAdmin', 'deleteTag', { id });
   },
 
   async getTagProducts(tagId: number, pageNumber: number, pageSize: number) {
@@ -552,16 +601,16 @@ export const tagRpcRepository = {
   },
 
   async bindProducts(tagId: number, productIds: number[]) {
-    await callRpc('product', 'bindTagProducts', { tagId, productIds });
+    await callRpc('productAdmin', 'bindTagProducts', { tagId, productIds });
   },
 
   async unbindProducts(tagId: number, productIds: number[]) {
-    await callRpc('product', 'unbindTagProducts', { tagId, productIds });
+    await callRpc('productAdmin', 'unbindTagProducts', { tagId, productIds });
   },
 
   async deleteTagProductRelations(tagId: number) {
     const products = await all<RpcRecord>('listTagProducts', { tagId }, 'products');
-    if (products.length > 0) await callRpc('product', 'unbindTagProducts', { tagId, productIds: products.map((row) => numberOf(row.productId)) });
+    if (products.length > 0) await callRpc('productAdmin', 'unbindTagProducts', { tagId, productIds: products.map((row) => numberOf(row.productId)) });
   },
 
   async getExistingProductIds(productIds: number[]) {
@@ -583,12 +632,12 @@ export const menuRpcRepository = {
   },
 
   async createMenu(data: RpcRecord) {
-    const menu = await callRpc<RpcRecord>('product', 'createMenu', data);
+    const menu = await callRpc<RpcRecord>('productAdmin', 'createMenu', data);
     return numberOf(menu.id);
   },
 
   async updateMenuById(id: number, data: RpcRecord) {
-    await callRpc('product', 'updateMenu', { id, ...data });
+    await callRpc('productAdmin', 'updateMenu', { id, ...data });
   },
 
   async hasBoundStores(menuIds: number[]) {
@@ -600,7 +649,7 @@ export const menuRpcRepository = {
   },
 
   async deleteMenuWithRelations(menuIds: number[]) {
-    for (const id of menuIds) await callRpc('product', 'deleteMenu', { id });
+    for (const id of menuIds) await callRpc('productAdmin', 'deleteMenu', { id });
   },
 
   async getMenuGroupList(menuId: number) {
@@ -622,16 +671,16 @@ export const menuRpcRepository = {
   },
 
   async createMenuGroup(data: RpcRecord) {
-    const group = await callRpc<RpcRecord>('product', 'createMenuGroup', { menuId: data.menuId, name: data.name, sort: data.sortOrder });
+    const group = await callRpc<RpcRecord>('productAdmin', 'createMenuGroup', { menuId: data.menuId, name: data.name, sort: data.sortOrder });
     return numberOf(group.id);
   },
 
   async updateMenuGroupById(id: number, data: RpcRecord) {
-    await callRpc('product', 'updateMenuGroup', { id, name: data.name, sort: data.sortOrder });
+    await callRpc('productAdmin', 'updateMenuGroup', { id, name: data.name, sort: data.sortOrder });
   },
 
   async batchDeleteMenuGroups(groupIds: number[]) {
-    for (const id of groupIds) await callRpc('product', 'deleteMenuGroup', { id });
+    for (const id of groupIds) await callRpc('productAdmin', 'deleteMenuGroup', { id });
   },
 
   async getMenuProductList(groupId: number) {
@@ -657,41 +706,79 @@ export const menuRpcRepository = {
   },
 
   async addMenuProduct(data: RpcRecord) {
-    await callRpc('product', 'createMenuProduct', { groupId: data.groupId, productId: data.productId, sort: data.sortOrder });
+    await callRpc('productAdmin', 'createMenuProduct', { groupId: data.groupId, productId: data.productId, sort: data.sortOrder });
   },
 
   async batchRemoveMenuProducts(groupId: number, productIds: number[]) {
-    for (const productId of productIds) await callRpc('product', 'deleteMenuProduct', { groupId, productId });
+    for (const productId of productIds) await callRpc('productAdmin', 'deleteMenuProduct', { groupId, productId });
   },
 
   async updateMenuProductSort(groupId: number, productId: number, sortOrder: number) {
-    await callRpc('product', 'updateMenuProduct', { groupId, productId, sort: sortOrder });
+    await callRpc('productAdmin', 'updateMenuProduct', { groupId, productId, sort: sortOrder });
   },
 
-  // Product RPC 当前只返回门店基础地域/状态，admin 契约还要求门店详情字段；该查询暂留本地。
   async getMenuStoreList(menuId: number, pageNumber: number, pageSize: number) {
-    return localMenuRepository.getMenuStoreList(menuId, pageNumber, pageSize);
+    const response = await page<RpcRecord>('listMenuStores', { menuId, page: pageNumber, pageSize }, 'stores');
+    const stores = await getStoresByIds(response.items.map((row) => numberOf(row.id)));
+    const storeById = new Map(stores.map((store) => [numberOf(store.id), store]));
+    return {
+      items: response.items.flatMap((row) => {
+        const store = storeById.get(numberOf(row.id));
+        return store ? [storeView(store)] : [];
+      }),
+      total: response.total,
+      page: response.page,
+      pageSize: response.pageSize,
+    };
   },
 
-  // 菜单分发需要 admin 当前的门店字段与返回统计，product RPC 暂未提供等价查询，暂留本地。
   async countStoresByArea(area: { province: string; city: string; district: string }) {
-    return localMenuRepository.countStoresByArea(area);
+    const response = await callRpc<{ stores?: RpcRecord[] }>('storeAdmin', 'searchStores', {
+      province: area.province,
+      city: area.city,
+      district: area.district,
+      keyword: '',
+      includeUnavailable: true,
+    });
+    return response.stores?.length ?? 0;
   },
 
   async getUnboundStoreIdsByArea(menuId: number, area: { province: string; city: string; district: string }) {
-    return localMenuRepository.getUnboundStoreIdsByArea(menuId, area);
+    const [stores, boundStores] = await Promise.all([
+      callRpc<{ stores?: RpcRecord[] }>('storeAdmin', 'searchStores', {
+        province: area.province,
+        city: area.city,
+        district: area.district,
+        keyword: '',
+        includeUnavailable: true,
+      }),
+      all<RpcRecord>('listMenuStores', { menuId }, 'stores'),
+    ]);
+    const boundIds = new Set(boundStores.filter((row) => row.bound).map((row) => numberOf(row.id)));
+    return (stores.stores ?? []).map((row) => ({ id: numberOf(row.id) })).filter((store) => !boundIds.has(store.id));
   },
 
   async getStoreIdsByIds(storeIds: number[]) {
-    return localMenuRepository.getStoreIdsByIds(storeIds);
+    const stores = await getStoresByIds(storeIds);
+    return stores.map((store) => numberOf(store.id));
   },
 
   async getBoundStoreIds(menuId: number, storeIds: number[]) {
-    return localMenuRepository.getBoundStoreIds(menuId, storeIds);
+    const requested = new Set(storeIds);
+    const stores = await all<RpcRecord>('listMenuStores', { menuId }, 'stores');
+    return new Set(stores.filter((row) => row.bound && requested.has(numberOf(row.id))).map((row) => numberOf(row.id)));
   },
 
   async insertStoreMenuRelations(values: Array<{ storeId: number; menuId: number }>) {
-    return localMenuRepository.insertStoreMenuRelations(values);
+    const byMenu = new Map<number, number[]>();
+    for (const value of values) {
+      const ids = byMenu.get(value.menuId) ?? [];
+      ids.push(value.storeId);
+      byMenu.set(value.menuId, ids);
+    }
+    for (const [menuId, storeIds] of byMenu) {
+      await callRpc('productAdmin', 'dispatchMenuByStores', { menuId, storeIds });
+    }
   },
 };
 

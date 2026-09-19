@@ -27,8 +27,13 @@ interface Config {
   rpc: {
     productServiceName: string;
     productAddress: string;
+    productAdminServiceToken: string;
+    productBusinessServiceToken: string;
     storeServiceName: string;
     storeAddress: string;
+    storeAdminServiceToken: string;
+    storeBusinessServiceToken: string;
+    storeCredentialServiceToken: string;
     tradeServiceName: string;
     tradeAddress: string;
     xosServiceName: string;
@@ -91,8 +96,13 @@ function buildConfig(): Config {
     rpc: {
       productServiceName: env.PRODUCT_SERVICE_NAME || 'dextea-product',
       productAddress: env.PRODUCT_SERVICE_ADDR || '127.0.0.1:9090',
+      productAdminServiceToken: env.PRODUCT_ADMIN_SERVICE_TOKEN || '',
+      productBusinessServiceToken: env.PRODUCT_BUSINESS_SERVICE_TOKEN || '',
       storeServiceName: env.STORE_SERVICE_NAME || 'dextea-store-service',
       storeAddress: env.STORE_SERVICE_ADDR || '127.0.0.1:9092',
+      storeAdminServiceToken: env.STORE_ADMIN_SERVICE_TOKEN || '',
+      storeBusinessServiceToken: env.STORE_BUSINESS_SERVICE_TOKEN || '',
+      storeCredentialServiceToken: env.STORE_CREDENTIAL_SERVICE_TOKEN || '',
       tradeServiceName: env.TRADE_SERVICE_NAME || 'dextea-trade',
       tradeAddress: env.TRADE_SERVICE_ADDR || '127.0.0.1:9091',
       xosServiceName: env.XOS_SERVICE_NAME || 'dextea-xos',

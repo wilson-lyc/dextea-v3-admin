@@ -1,10 +1,10 @@
 import path from 'node:path'
-import { credentials, loadPackageDefinition, type ChannelCredentials, type Client } from '@grpc/grpc-js'
+import { credentials, loadPackageDefinition, Metadata, type ChannelCredentials, type Client } from '@grpc/grpc-js'
 import * as protoLoader from '@grpc/proto-loader'
 import { config } from '@/config.js'
 import { resolveServiceAddress } from '@/infrastructure/nacos.js'
 
-export type RpcService = 'product' | 'store' | 'trade' | 'xos'
+export type RpcService = 'productAdmin' | 'productBusiness' | 'storeAdmin' | 'storeBusiness' | 'storeCredential' | 'trade' | 'xos'
 
 interface RpcDefinition {
   packagePath: string
@@ -13,14 +13,29 @@ interface RpcDefinition {
 }
 
 const definitions: Record<RpcService, RpcDefinition> = {
-  product: {
+  productAdmin: {
     packagePath: 'dextea.product.v1',
-    serviceName: 'ProductService',
+    serviceName: 'ProductAdminService',
     protoPath: path.resolve(process.cwd(), '../../../dextea-proto/proto/product/v1/product.proto'),
   },
-  store: {
+  productBusiness: {
+    packagePath: 'dextea.product.v1',
+    serviceName: 'ProductBusinessService',
+    protoPath: path.resolve(process.cwd(), '../../../dextea-proto/proto/product/v1/product.proto'),
+  },
+  storeAdmin: {
     packagePath: 'dextea.store.v1',
-    serviceName: 'StoreService',
+    serviceName: 'StoreAdminService',
+    protoPath: path.resolve(process.cwd(), '../../../dextea-proto/proto/store/v1/store.proto'),
+  },
+  storeBusiness: {
+    packagePath: 'dextea.store.v1',
+    serviceName: 'StoreBusinessService',
+    protoPath: path.resolve(process.cwd(), '../../../dextea-proto/proto/store/v1/store.proto'),
+  },
+  storeCredential: {
+    packagePath: 'dextea.store.v1',
+    serviceName: 'StoreCredentialService',
     protoPath: path.resolve(process.cwd(), '../../../dextea-proto/proto/store/v1/store.proto'),
   },
   trade: {
@@ -37,8 +52,11 @@ const definitions: Record<RpcService, RpcDefinition> = {
 
 function serviceConfig(service: RpcService): { serviceName: string; address: string } {
   switch (service) {
-    case 'product': return { serviceName: config.rpc.productServiceName, address: config.rpc.productAddress }
-    case 'store': return { serviceName: config.rpc.storeServiceName, address: config.rpc.storeAddress }
+    case 'productAdmin':
+    case 'productBusiness': return { serviceName: config.rpc.productServiceName, address: config.rpc.productAddress }
+    case 'storeAdmin':
+    case 'storeBusiness':
+    case 'storeCredential': return { serviceName: config.rpc.storeServiceName, address: config.rpc.storeAddress }
     case 'trade': return { serviceName: config.rpc.tradeServiceName, address: config.rpc.tradeAddress }
     case 'xos': return { serviceName: config.rpc.xosServiceName, address: config.rpc.xosAddress }
   }
@@ -59,7 +77,14 @@ export async function createRpcClient(service: RpcService): Promise<Client> {
   })
   const packages = loadPackageDefinition(packageDefinition) as unknown as Record<string, unknown>
   const namespace = packages[service === 'xos' ? 'xos' : 'dextea'] as Record<string, unknown>
-  const servicePackage = namespace[service === 'trade' ? 'order' : service] as Record<string, unknown>
+  const packageName = service === 'trade'
+    ? 'order'
+    : service.startsWith('store')
+      ? 'store'
+      : service.startsWith('product')
+        ? 'product'
+        : service
+  const servicePackage = namespace[packageName] as Record<string, unknown>
   const version = servicePackage.v1 as Record<string, unknown>
   const Service = version[definition.serviceName] as new (
     address: string,
@@ -82,10 +107,23 @@ export async function callRpc<TResponse>(
   }
   const client = await clientPromise
   const rpcMethod = (client as unknown as Record<string, unknown>)[method] as
-    | ((input: Record<string, unknown>, callback: (error: Error | null, response: TResponse) => void) => void)
+    | ((input: Record<string, unknown>, metadata: Metadata, callback: (error: Error | null, response: TResponse) => void) => void)
     | undefined
   if (!rpcMethod) throw new Error(`RPC 方法不存在: ${service}.${method}`)
+  const metadata = new Metadata()
+  const serviceToken = service === 'productAdmin'
+    ? config.rpc.productAdminServiceToken
+    : service === 'productBusiness'
+      ? config.rpc.productBusinessServiceToken
+      : service === 'storeAdmin'
+        ? config.rpc.storeAdminServiceToken
+        : service === 'storeBusiness'
+          ? config.rpc.storeBusinessServiceToken
+          : service === 'storeCredential'
+            ? config.rpc.storeCredentialServiceToken
+            : ''
+  if (serviceToken) metadata.set('x-service-token', serviceToken)
   return new Promise<TResponse>((resolve, reject) => {
-    rpcMethod.call(client, request, (error, response) => error ? reject(error) : resolve(response))
+    rpcMethod.call(client, request, metadata, (error, response) => error ? reject(error) : resolve(response))
   })
 }
